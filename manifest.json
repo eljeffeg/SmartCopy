@@ -1,0 +1,28 @@
+{
+    "manifest_version": 2,
+
+    "name": "History SmartCopy",
+    "description": "This extension copies SmartMatch profiles from MyHeritage to Geni.",
+    "version": "0.1",
+    "icons": { "16": "icon16.png",
+        "48": "icon48.png",
+        "128": "icon128.png" },
+  "background": {
+    "scripts": ["background.js"],
+        "persistent": false
+  },
+    "browser_action": {
+        "default_icon": "icon.png",
+        "default_popup": "popup.html"
+    },
+
+    "permissions": ["tabs", "<all_urls>",
+        "http://www.geni.com/","https://www.geni.com/",
+        "https://historylink.herokuapp.com/",
+        "http://historylink.herokuapp.com/",
+        "https://www.myheritage.com/",
+        "http://www.myheritage.com/",
+        "https://*.netdna-ssl.com/",
+        "http://*.netdna-ssl.com/"
+    ]
+}

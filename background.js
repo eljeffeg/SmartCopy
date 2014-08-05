@@ -4,15 +4,20 @@
  *  method: Default "GET"
  *  url   : required, but not validated
  *  data  : data to send in a POST request
+ *  variable : pass private variable into the callback
  *
- * The callback function is called upon completion of the request */
+ * The callback function is called upon completion of the request
+ *
+ * Call to verify HistoryLink authentication to Geni & query Family Data
+ * */
 chrome.runtime.onMessage.addListener(function(request, sender, callback) {
     if (request.action == "xhttp") {
         var xhttp = new XMLHttpRequest();
         var method = request.method ? request.method.toUpperCase() : 'GET';
 
         xhttp.onload = function() {
-            callback(xhttp.responseText);
+            var valrtn = {html: xhttp.responseText, variable: request.variable};
+            callback(valrtn);
         };
         if (method == 'POST') {
             xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); 
@@ -23,5 +28,4 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
         return true; // prevents the callback from being called too early on return
     }
 });
-
 

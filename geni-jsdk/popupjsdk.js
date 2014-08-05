@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', function () {
     Geni.init({
         app_id: 'kmTDRYWcLrLSSTCUJdpSueGlj1AmDmx2Hp47bDwv'
     });
-    //connectWithGeni();
-    loadLogin();
+    connectWithGeni();
+    //loadLogin();
     //document.getElementById('loginpage').innerHTML('<object data="http://historylink.herokuapp.com/search"/>');
     chrome.tabs.getSelected(null,function(tab) {
         var tablink = tab.url;
@@ -45,10 +45,6 @@ function getPageCode() {
     });
 
 }
-
-chrome.browserAction.onClicked.addListener(function() {
-
-});
 
 function loadLogin() {
     chrome.extension.sendMessage({

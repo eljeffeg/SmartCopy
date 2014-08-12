@@ -32,9 +32,8 @@ var NameParse = (function(){
             birthName = fullastName.substring(fullastName.lastIndexOf("(") + 1, fullastName.length).replace(")","");
             birthName = birthName.replace(/^born /, '');
             fullastName = fullastName.substring(0, fullastName.lastIndexOf("(") + 1).trim();
-        };
-
-		// split into words
+        }
+        // split into words
 		// completely ignore any words in parentheses
 		nameParts = fullastName.split(" ").filter(function(namePart){
 			return (namePart.indexOf("(") === -1);

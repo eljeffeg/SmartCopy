@@ -6,26 +6,26 @@
 </head>
 <body>
 <a href=""></a><!-- For some reason, the first hyperlink adds a border - chrome extension feature? -->
-<div id="logo" style="background-color: #e5ebf0; margin-top: -2px; margin-left: -8px; margin-right: -8px; margin-bottom: -2px; padding-top:3px; padding-left: 8px; padding-right: 8px; border-bottom: solid 1px #fff;"><a href="http://historylink.herokuapp.com/" target="_blank"><img src="images/HistoryLink5sm.png"></a>
+<div id="logo" style="background-color: #e5ebf0; margin: -2px -8px; padding-top:3px; padding-left: 8px; padding-right: 8px; border-bottom: solid 1px #fff;"><a href="http://historylink.herokuapp.com/" target="_blank"><img src="images/HistoryLink5sm.png"></a>
     <!-- <span style="display: inline-block; float: right; padding-top: 4px;"><img src="images/CuratorShield.png" width="22" align="right"></span> -->
 </div>
 <div id="backlinks" style="text-align:center;  margin-left: -8px; margin-right: -8px; padding-left: 8px; padding-right: 8px; padding-top: 3px; border-top: solid 1px #ddd;"><span style="margin-right: 8px; margin-top: -3px; font-size: 82%;"><strong><a href="http://historylink.herokuapp.com/history" target="_blank" id="historyurl">History Search</a> <span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylink.herokuapp.com/graph" target="_blank" id="graphurl">Ancestor Graph</a> <span id="curator" style="display: none;"><span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylink.herokuapp.com/leaderboard" target="_blank">Leaderboard</a></span></strong></span></div>
 <div id="smartcopy-container" style="margin-top: 10px; margin-bottom: 10px; display: none;">
 
-        <table width="100%">
+        <table style="width: 100%;">
             <tr><td>
                 <div id='focusname' style="font-size: large; font-weight: bold;"></div>
                 <div id='focusrange' style="font-size: small; margin-bottom: 5px; margin-top: 1px;" ></div>
             </td><td style="vertical-align: top;">
-                <button type="button" id="submitbutton" align="MIDDLE" class="cta cta-green">Submit</button>
+                <button type="button" id="submitbutton" class="cta cta-green">Submit</button>
             </td>
             </tr>
         </table>
 
         <div class="shadoweffect" id="options" style="margin-bottom: 10px;">
-                <table cellpadding="0" cellspacing="0" width="100%">
+                <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
                     <tr>
-                        <td width="58px;">
+                        <td style="width: 58px; padding: 0;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="geoonoffswitch" checked>
@@ -35,10 +35,10 @@
                                 </label>
                             </div>
                         </td>
-                        <td style="text-align: left; vertical-align: middle;">Detect geolocation & populate fields</td>
+                        <td style="text-align: left; padding: 0; vertical-align: middle;">Detect geolocation & populate fields</td>
                     </tr>
                     <tr>
-                        <td style="padding-top: 3px; width: 58px;">
+                        <td style="padding: 3px 0 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="privateonoffswitch" checked>
@@ -48,7 +48,7 @@
                                 </label>
                             </div>
                         </td>
-                        <td style="padding-top: 3px; text-align: left; vertical-align: middle;">Exclude &lt;private&gt; profile auto-select</td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Exclude &lt;private&gt; profile auto-select</td>
                     </tr>
                 </table>
             </div>
@@ -56,9 +56,9 @@
         <div id="profiledata" style="display: none; text-align: center;">
 
             <strong>Profile Data</strong>
-            <div class="shadoweffect" style="font-weight: bold;"><input type="checkbox" id="updateprofile" class="checkall">Update Profile
+            <div class="shadoweffect" style="font-weight: bold;"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall">Update Profile
                 <fieldset id="profilefield" class="fieldeffect">
-                    <table cellpadding="0" cellspacing="0" width="100%" id="profiletable">
+                    <table style="width: 100%; border-spacing: 0; border-collapse: collapse;" id="profiletable">
                     </table>
                 </fieldset>
             </div>
@@ -95,13 +95,13 @@
         </div>
 
         <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
-            <center><img src="images/spinner.gif" style="height:24px;vertical-align:bottom;padding-right:2px; vertical-align: middle;"> Reading Match...</center>
+            <div style="text-align: center;"><img src="images/spinner.gif" style="height:24px; padding-right:2px; vertical-align: middle;"> Reading Match...</div>
         </div>
          <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
-            <center><img src="images/spinner.gif" style="height:24px;vertical-align:bottom;padding-right:2px; vertical-align: middle;"> Updating Geni...</center>
+            <div style="text-align: center;"><img src="images/spinner.gif" style="height:24px; padding-right:2px; vertical-align: middle;"> Updating Geni...</div>
         </div>
         <div id="completed" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
-            <center><strong>Completed: Tree Updated</strong></center>
+            <div style="text-align: center;"><strong>Completed: Tree Updated</strong></div>
         </div>
     </form>
 </div>

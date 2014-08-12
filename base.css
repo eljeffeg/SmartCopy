@@ -3,9 +3,9 @@ body {
     overflow-x: hidden;
     color: #3b5998;
     background-color: #eff3f7;
-    margin-top: 0px;
-    margin-right: 0px;
-    margin-left: 0px;
+    margin-top: 0;
+    margin-right: 0;
+    margin-left: 0;
     padding-right: 8px;
     padding-left: 8px;
 }
@@ -66,7 +66,8 @@ body {
     font-weight: bold;
     font-size: 90%;
     vertical-align: middle;
-    padding: 0px;
+    padding: 0;
+    white-space: nowrap;
 }
 .familydiv {
     font-size: 90%;
@@ -118,6 +119,7 @@ a:hover {
     -webkit-font-smoothing:antialiased;
     height: 30px;
     text-decoration: none;
+    text-align: center;
 
     white-space: nowrap;
     -webkit-border-radius: 5px;
@@ -181,8 +183,7 @@ a:hover {
     -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='#50de76', EndColorStr='#00b638')";
 }
 .cta-green:before {
-    border: solid 1px #78e695;
-    border-color: rgba(255, 255, 255, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.35);
 }
 .cta-green:hover {
     color: #fff;
@@ -245,7 +246,7 @@ a:hover {
 }
 
 .onoffswitch-switch {
-    display: block; width: 16px; margin: 0px;
+    display: block; width: 16px; margin: 0;
     background: #FFFFFF;
     border: 1px solid #DDDDDD; border-radius: 3px;
     position: absolute; top: 0; bottom: 0; right: 32px;
@@ -262,5 +263,5 @@ a:hover {
 }
 
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
-    right: 0px;
+    right: 0;
 }

@@ -12,8 +12,8 @@
     results = results["results"];
 
     if (results.length >= 1) {
-        for (i = 0; i < results[0].address_components.length; i++) {
-            switch(results[0].address_components[i].types.join(",")){
+        for (var i = 0; i < results[0].address_components.length; i++) {
+            switch (results[0].address_components[i].types.join(",")) {
                 case 'postal_code':
                 case 'postal_code_prefix,postal_code':
                     location.zip = results[0].address_components[i].long_name;
@@ -41,4 +41,4 @@
         }
     }
     return location;
-}
+};

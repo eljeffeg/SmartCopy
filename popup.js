@@ -2,9 +2,13 @@ var proaccount = true;
 var focusid;
 var tablink;
 var submitcheck = true;
+//noinspection JSUnusedGlobalSymbols
 var expandparent = true; //used in expandAll function window[...] var call
+//noinspection JSUnusedGlobalSymbols
 var expandpartner = true; //same
+//noinspection JSUnusedGlobalSymbols
 var expandsibling = true; //same
+//noinspection JSUnusedGlobalSymbols
 var expandchild = true; //same
 
 // Run script as soon as the document's DOM is ready.
@@ -269,7 +273,7 @@ var submitform = function() {
 
         // --------------------- Add Family Data ---------------------
         var privateprofiles = $('.checkslide');
-        for (var profile in privateprofiles) {
+        for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
             var entry = privateprofiles[profile];
             if (exists(entry.name) && entry.name.startsWith("checkbox") && entry.checked) {
                 fs = $("#" + entry.name.replace("checkbox", "slide"));
@@ -299,8 +303,8 @@ function submitWait() {
     if (submitstatus.length > 0) {
         setTimeout(submitWait, 300);
     } else {
-        document.getElementById("updating").innerHTML = '<center><strong>Completed: Tree Updated</strong><br/>' +
-        '<a href="http://www.geni.com/family-tree/index/' + focusid + '" target="_blank">View Profile</a></center>';
+        document.getElementById("updating").innerHTML = '<div style="text-align: center;"><strong>Completed: Tree Updated</strong><br/>' +
+        '<a href="http://www.geni.com/family-tree/index/' + focusid + '" target="_blank">View Profile</a></div>';
         console.log("Tree Updated...");
     }
 }
@@ -310,7 +314,7 @@ document.getElementById('submitbutton').addEventListener('click', submitform, fa
 function parseForm(fs) {
     var objentry = {};
     var fsinput = fs.find('input:text,select');
-    for (var item in fsinput) {
+    for (var item in fsinput) if (fsinput.hasOwnProperty(item)) {
         if (exists(fsinput[item].value) && !fsinput[item].disabled) {
             //console.log(fsinput[item].name + ":" + fsinput[item].value);
             var splitentry = fsinput[item].name.split(":");
@@ -372,6 +376,9 @@ function parseForm(fs) {
                 if (fsinput[item].name === "gender") {
                     objentry[fsinput[item].name] = fsinput[item].options[fsinput[item].selectedIndex].value;
                 } else {
+                    if (fsinput[item].name === "first_name" && fsinput[item].value.startsWith("\<Private\>")) {
+                        objentry["is_alive"] = true;
+                    }
                     objentry[fsinput[item].name] = fsinput[item].value;
                 }
             }
@@ -389,12 +396,12 @@ $(function () {
         chrome.storage.local.set({'autoprivate': this.checked});
         //TODO could check if each field has data before enabling to avoid submitting unnecessary fields
         var profilegroup = $('.checkall');
-        for (var group in profilegroup) {
+        for (var group in profilegroup) if (profilegroup.hasOwnProperty(group)) {
             if(profilegroup[group].checked) { //only check it if the section is checked
                 var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
-                for (var profile in privateprofiles) {
+                for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
                     if (exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
-                        if ($(privateprofiles[profile]).next().text().startsWith("<Private>")) {
+                        if ($(privateprofiles[profile]).next().text().startsWith("\<Private\>")) {
                             $(privateprofiles[profile]).prop('checked', !this.checked);
                             var fs = $("#" + privateprofiles[profile].name.replace("checkbox", "slide"));
                             fs.find(':checkbox').prop('checked', !this.checked);

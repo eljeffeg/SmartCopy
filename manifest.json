@@ -1,9 +1,8 @@
 {
     "manifest_version": 2,
     "name": "HistoryLink SmartCopy",
-    "description": "This extension copies SmartMatch profiles from MyHeritage to Geni.",
+    "description": "Copies Smart Match profiles from MyHeritage to Geni.",
     "version": "0.1.0",
-    "update_url": "http://historylink.herokuapp.com/static/extension/updates.xml",
     "icons": { "16": "images/icon16.png",
         "48": "images/icon48.png",
         "128": "images/icon128.png" },

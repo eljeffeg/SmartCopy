@@ -11,16 +11,17 @@
 </div>
 <div id="backlinks" style="text-align:center;  margin-left: -8px; margin-right: -8px; padding-left: 8px; padding-right: 8px; padding-top: 3px; border-top: solid 1px #ddd;"><span style="margin-right: 8px; margin-top: -3px; font-size: 82%;"><strong><a href="http://historylink.herokuapp.com/history" target="_blank" id="historyurl">History Search</a> <span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylink.herokuapp.com/graph" target="_blank" id="graphurl">Ancestor Graph</a> <span id="curator" style="display: none;"><span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylink.herokuapp.com/leaderboard" target="_blank">Leaderboard</a></span></strong></span></div>
 <div id="smartcopy-container" style="margin-top: 10px; margin-bottom: 10px; display: none;">
-    <form>
+
         <table width="100%">
             <tr><td>
                 <div id='focusname' style="font-size: large; font-weight: bold;"></div>
                 <div id='focusrange' style="font-size: small; margin-bottom: 5px; margin-top: 1px;" ></div>
             </td><td style="vertical-align: top;">
-                <button id="submitbutton" align="MIDDLE" onClick="alert('submit');" class="cta cta-green">Submit</button>
+                <button type="button" id="submitbutton" align="MIDDLE" class="cta cta-green">Submit</button>
             </td>
             </tr>
         </table>
+
         <div class="shadoweffect" id="options" style="margin-bottom: 10px;">
                 <table cellpadding="0" cellspacing="0" width="100%">
                     <tr>
@@ -34,27 +35,30 @@
                                 </label>
                             </div>
                         </td>
-                        <td style="text-align: left;">Detect geolocation and populate fields</td>
+                        <td style="text-align: left; vertical-align: middle;">Detect geolocation & populate fields</td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top: 3px; width: 58px;">
+                            <div class="onoffswitch">
+                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                       id="privateonoffswitch" checked>
+                                <label class="onoffswitch-label" for="privateonoffswitch">
+                                    <span class="onoffswitch-inner"></span>
+                                    <span class="onoffswitch-switch"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td style="padding-top: 3px; text-align: left; vertical-align: middle;">Exclude &lt;private&gt; profile auto-select</td>
                     </tr>
                 </table>
             </div>
+    <form>
         <div id="profiledata" style="display: none; text-align: center;">
 
             <strong>Profile Data</strong>
-            <div class="shadoweffect" style="font-weight: bold;"><input type="checkbox" id="updateprofile" class="checkall"/>Update Profile
+            <div class="shadoweffect" style="font-weight: bold;"><input type="checkbox" id="updateprofile" class="checkall">Update Profile
                 <fieldset id="profilefield" class="fieldeffect">
-                    <table cellpadding="0" cellspacing="0" width="100%">
-                    <tr id="birthdate" class="profilediv"></tr>
-                    <tr id="birthlocation" class="profilediv"></tr>
-                    <tr><td colspan="2"><div id="baptismseparator" style="display: none;" class="separator"></div></td></tr>
-                    <tr id="baptismdate" class="profilediv"></tr>
-                    <tr id="baptismlocation" class="profilediv"></tr>
-                    <tr><td colspan="2"><div id="deathseparator" style="display: none;" class="separator"></div></td></tr>
-                    <tr id="deathdate" class="profilediv"></tr>
-                    <tr id="deathlocation" class="profilediv"></tr>
-                    <tr><td colspan="2"><div id="burialseparator" style="display: none;" class="separator"></div></td></tr>
-                    <tr id="burialdate" class="profilediv"></tr>
-                    <tr id="buriallocation" class="profilediv"></tr>
+                    <table cellpadding="0" cellspacing="0" width="100%" id="profiletable">
                     </table>
                 </fieldset>
             </div>
@@ -63,28 +67,28 @@
         <div id="familydata" style="display: none; margin-top: 10px; text-align: center;">
             <strong>Family Members</strong>
             <div class="shadoweffect">
-                <div id="parents" style="display: none;">
-                    <span style="font-weight: bold;"><input type="checkbox" class="checkall" />Add Parents</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandparents" style="color: #000;">expand all</a>)</span>
+                <div id="parent" style="display: none;">
+                    <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addparentck">Add Parents</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandparent" style="color: #000;">expand all</a>)</span>
                     <fieldset class="fieldeffect">
-                        <div id="parentsval" class="familydiv"></div>
+                        <div id="parentval" class="familydiv"></div>
                     </fieldset>
                 </div>
-                <div id="partners" style="display: none; margin-top: 8px;">
-                    <span style="font-weight: bold;"><input type="checkbox" class="checkall" />Add Partners</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandpartners" style="color: #000;">expand all</a>)</span>
+                <div id="partner" style="display: none; margin-top: 8px;">
+                    <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addpartnerck">Add Partners</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandpartner" style="color: #000;">expand all</a>)</span>
                     <fieldset class="fieldeffect">
-                        <div id="partnersval" class="familydiv"></div>
+                        <div id="partnerval" class="familydiv"></div>
                     </fieldset>
                 </div>
-                <div id="siblings" style="display: none; margin-top: 8px;">
-                    <span style="font-weight: bold;"><input type="checkbox" class="checkall" />Add Siblings</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandsiblings" style="color: #000;">expand all</a>)</span>
+                <div id="sibling" style="display: none; margin-top: 8px;">
+                    <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addsiblingck">Add Siblings</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandsibling" style="color: #000;">expand all</a>)</span>
                     <fieldset class="fieldeffect">
-                        <div id="siblingsval" class="familydiv"></div>
+                        <div id="siblingval" class="familydiv"></div>
                     </fieldset>
                 </div>
-                <div id="children" style="display: none; margin-top: 8px;">
-                    <span style="font-weight: bold;"><input type="checkbox" class="checkall" />Add Children</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandchildren"  style="color: #000;">expand all</a>)</span>
+                <div id="child" style="display: none; margin-top: 8px;">
+                    <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addchildck">Add Children</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandchild"  style="color: #000;">expand all</a>)</span>
                     <fieldset class="fieldeffect">
-                        <div id="childrenval" class="familydiv"></div>
+                        <div id="childval" class="familydiv"></div>
                     </fieldset>
                 </div>
             </div>
@@ -93,14 +97,22 @@
         <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
             <center><img src="images/spinner.gif" style="height:24px;vertical-align:bottom;padding-right:2px; vertical-align: middle;"> Reading Match...</center>
         </div>
+         <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
+            <center><img src="images/spinner.gif" style="height:24px;vertical-align:bottom;padding-right:2px; vertical-align: middle;"> Updating Geni...</center>
+        </div>
+        <div id="completed" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
+            <center><strong>Completed: Tree Updated</strong></center>
+        </div>
     </form>
 </div>
 
 <div class='colorbox' id='message' style="display:none; background-color:#D3D3D3;"></div>
 <script src="jquery.js"></script>
+<script src="parse-location.js"></script>
 <script src="parse-names.js"></script>
 <script src="parsematch.js"></script>
 <script src="popup.js"></script>
+<script src="moment.js"></script>
 </body>
 </html>
 

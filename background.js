@@ -14,16 +14,15 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
     if (request.action == "xhttp") {
         var xhttp = new XMLHttpRequest();
         var method = request.method ? request.method.toUpperCase() : 'GET';
-
         xhttp.onload = function() {
             var valrtn = {html: xhttp.responseText, variable: request.variable};
             callback(valrtn);
         };
-        if (method == 'POST') {
-            xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); 
-            xhttp.setRequestHeader("Content-length", request.data.length);
-        }
         xhttp.open(method, request.url, true);
+        if (method == 'POST') {
+            xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");  //"application/json;charset=UTF-8"
+            //xhttp.setRequestHeader("Content-length", request.data.length);
+        }
         xhttp.send(request.data);
         return true; // prevents the callback from being called too early on return
     }

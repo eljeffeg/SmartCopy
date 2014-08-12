@@ -65,6 +65,8 @@ body {
 .profilediv {
     font-weight: bold;
     font-size: 90%;
+    vertical-align: middle;
+    padding: 0px;
 }
 .familydiv {
     font-size: 90%;

@@ -1,26 +1,33 @@
 var proaccount = true;
 var focusid;
 var tablink;
-var expandparents = true;
-var expandparners = true;
-var expandsiblings = true;
-var expandchildren = true;
+var submitcheck = true;
+var expandparent = true; //used in expandAll function window[...] var call
+var expandpartner = true; //same
+var expandsibling = true; //same
+var expandchild = true; //same
 
 // Run script as soon as the document's DOM is ready.
 if (typeof String.prototype.startsWith != 'function') {
     String.prototype.startsWith = function (str) {
+        if (typeof str === "undefined") {
+            return false;
+        }
         return this.slice(0, str.length) == str;
-    };
+    }
 }
 if (typeof String.prototype.endsWith != 'function' ) {
     String.prototype.endsWith = function( str ) {
+        if (typeof str === "undefined") {
+            return false;
+        }
         return this.substring( this.length - str.length, this.length ) === str;
     }
-};
+}
 if (!String.prototype.contains) {
     String.prototype.contains = function () {
         return String.prototype.indexOf.apply(this, arguments) !== -1;
-    };
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -113,7 +120,7 @@ function checkAccount() {
             }
             proaccount = response.pro;
         }
-    }
+    };
     xhr.send();
 }
 
@@ -121,7 +128,7 @@ function loadLogin() {
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
-        url: "http://historylink.herokuapp.com/smart"
+        url: "http://historylink.herokuapp.com/smartlogin"
     }, function (responseText) {
         if (responseText.html === "<script>window.open('', '_self', ''); window.close();</script>") {
             console.log("Logged In...");
@@ -134,9 +141,9 @@ function loadLogin() {
             var top = (screen.height / 2) - (h / 2);
             //redirect helps it close properly.. not sure why
             chrome.windows.create({'url': 'redirect.html', 'type': 'panel', 'width': w, 'height': h, 'left': left, 'top': top, 'focused': true}, function (window) {
+                //grab the window.id if needed
             });
         }
-
     });
 }
 
@@ -225,48 +232,203 @@ function exists(object) {
     return (typeof object !== "undefined");
 }
 
-$("input:checkbox").click(function() {
-    $("input:text").attr("disabled", !this.checked);
-});
-
 $(function () {
     $('.checkall').on('click', function () {
         var fs = $(this).closest('div').find('fieldset');
         fs.find(':checkbox').prop('checked', this.checked);
+        fs.find('input:text,select').attr('disabled', !this.checked);
     });
 });
 
+// Form submission
+var submitstatus = [];
+var submitform = function() {
+    if (parsecomplete && submitcheck) {
+        submitcheck = false; //try to prevent clicking more than once and submitting it twice
+        document.getElementById("familydata").style.display = "none";
+        document.getElementById("profiledata").style.display = "none";
+        document.getElementById("updating").style.display = "block";
+
+        // --------------------- Update Profile Data ---------------------
+        var fs = $('#profiletable');
+        var profileout = parseForm(fs);
+        if(!$.isEmptyObject(profileout)) {
+            submitstatus.push(submitstatus.length);
+            chrome.extension.sendMessage({
+                method: "POST",
+                action: "xhttp",
+                url: "http://historylink.herokuapp.com/smartsubmit?profile=" + focusid + "&action=update",
+                data: $.param(profileout),
+                variable: ""
+            }, function (response) {
+                submitstatus.pop();
+            });
+            //console.log(encodeURIComponent(JSON.stringify(profileout)));
+            //console.log($.param(profileout));
+        }
+
+        // --------------------- Add Family Data ---------------------
+        var privateprofiles = $('.checkslide');
+        for (var profile in privateprofiles) {
+            var entry = privateprofiles[profile];
+            if (exists(entry.name) && entry.name.startsWith("checkbox") && entry.checked) {
+                fs = $("#" + entry.name.replace("checkbox", "slide"));
+                var actionname = entry.name.split("-"); //get the relationship
+                var familyout = parseForm(fs);
+                if(!$.isEmptyObject(familyout)) {
+                    submitstatus.push(submitstatus.length);
+                    chrome.extension.sendMessage({
+                        method: "POST",
+                        action: "xhttp",
+                        url: "http://historylink.herokuapp.com/smartsubmit?profile=" + focusid + "&action=add-" + actionname[1],
+                        data: $.param(familyout),
+                        variable: ""
+                    }, function (response) {
+                        submitstatus.pop();
+                    });
+                }
+                //console.log(JSON.stringify(familyout));
+                //console.log($.param(familyout));
+            }
+        }
+    }
+    submitWait();
+};
+
+function submitWait() {
+    if (submitstatus.length > 0) {
+        setTimeout(submitWait, 300);
+    } else {
+        document.getElementById("updating").innerHTML = '<center><strong>Completed: Tree Updated</strong><br/>' +
+        '<a href="http://www.geni.com/family-tree/index/' + focusid + '" target="_blank">View Profile</a></center>';
+        console.log("Tree Updated...");
+    }
+}
+
+document.getElementById('submitbutton').addEventListener('click', submitform, false);
+
+function parseForm(fs) {
+    var objentry = {};
+    var fsinput = fs.find('input:text,select');
+    for (var item in fsinput) {
+        if (exists(fsinput[item].value) && !fsinput[item].disabled) {
+            //console.log(fsinput[item].name + ":" + fsinput[item].value);
+            var splitentry = fsinput[item].name.split(":");
+            if (splitentry.length > 1) {
+                if (splitentry[1] === "date") {
+                    var vardate = {};
+                    var fulldate = fsinput[item].value;
+                    var betweenflag = false;
+
+                    if (fulldate.startsWith("Circa")) {
+                        vardate["circa"] = true;
+                        fulldate = fulldate.replace("Circa ", "");
+                    }
+                    if (fulldate.startsWith("After")) {
+                        vardate["range"] = "after";
+                        fulldate = fulldate.replace("After ", "");
+                    } else if (fulldate.startsWith("Before")) {
+                        vardate["range"] = "before";
+                        fulldate = fulldate.replace("Before ", "");
+                    } else if (fulldate.startsWith("Between")) {
+                        betweenflag = true;
+                        //TODO find a Between example and finish this
+                    }
+                    if (!betweenflag) {
+                        var dt = moment(fulldate.trim(), ["MMM D YYYY", "MMM YYYY", "YYYY", "MMM", "MMM D"]);
+                        //TODO Probably need to do some more checking below to make sure it doesn't improperly default dates
+                        if (isNaN(fulldate)) {
+                            vardate["day"] = dt.get('date');
+                            vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                        }
+                        vardate["year"] = dt.get('year');
+
+                        if (!exists(objentry[splitentry[0]])) {
+                            objentry[splitentry[0]] = {};
+                        }
+                        var finalentry = {};
+                        finalentry[splitentry[1]] = vardate;
+                        $.extend(objentry[splitentry[0]], finalentry);
+                    }
+
+                } else if (splitentry[1] === "location" && splitentry.length > 2) {
+                    if (!exists(objentry[splitentry[0]])) {
+                        objentry[splitentry[0]] = {};
+                    }
+                    var geocheck = $('#geoonoffswitch').prop('checked');
+                    if (geocheck && splitentry[2] === "place") {
+                        continue;
+                    } else if (!geocheck && splitentry[2] !== "place") {
+                        continue;
+                    }
+                    var varlocation = {};
+                    varlocation[splitentry[2]] = fsinput[item].value;
+                    if (!exists(objentry[splitentry[0]][splitentry[1]])) {
+                        objentry[splitentry[0]][splitentry[1]] = {};
+                    }
+                    $.extend(objentry[splitentry[0]][splitentry[1]], varlocation);
+                }
+            } else {
+                if (fsinput[item].name === "gender") {
+                    objentry[fsinput[item].name] = fsinput[item].options[fsinput[item].selectedIndex].value;
+                } else {
+                    objentry[fsinput[item].name] = fsinput[item].value;
+                }
+            }
+        }
+        //var entry = focusprofile[profile];
+        //console.log(entry);
+    }
+    return objentry;
+}
+
+
 // ----- Persistent Options -----
 $(function () {
+    $('#privateonoffswitch').on('click', function() {
+        chrome.storage.local.set({'autoprivate': this.checked});
+        //TODO could check if each field has data before enabling to avoid submitting unnecessary fields
+        var profilegroup = $('.checkall');
+        for (var group in profilegroup) {
+            if(profilegroup[group].checked) { //only check it if the section is checked
+                var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
+                for (var profile in privateprofiles) {
+                    if (exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
+                        if ($(privateprofiles[profile]).next().text().startsWith("<Private>")) {
+                            $(privateprofiles[profile]).prop('checked', !this.checked);
+                            var fs = $("#" + privateprofiles[profile].name.replace("checkbox", "slide"));
+                            fs.find(':checkbox').prop('checked', !this.checked);
+                            fs.find('input:text').attr('disabled', this.checked);
+                        }
+                    }
+                }
+            }
+        }
+    });
     $('#geoonoffswitch').on('click', function () {
         chrome.storage.local.set({'autogeo': this.checked});
         if (this.checked) {
             var locobj = document.getElementsByClassName("geoloc");
             for (var i=0;i < locobj.length; i++) {
                 locobj[i].style.display = "table-row";
-                $(locobj[i]).children(":input").prop("disabled", false);
+                $(locobj[i]).find(":input").prop("disabled", false);
             }
             var placeobj = document.getElementsByClassName("geoplace");
             for (var i=0;i < placeobj.length; i++) {
                 placeobj[i].style.display = "none";
-                $(placeobj[i]).children(":input").prop("disabled", true);
+                $(placeobj[i]).find(":input").prop("disabled", true);
             }
-           // .style.display = "table-row";
-            //document.getElementsByClassName("geoplace")[0].style.display = "none";
-            //$('#divID').children(":input").prop("disabled", true); // disable
 
         } else {
-            //document.getElementsByClassName("geoloc").style.display = "none";
-           // document.getElementsByClassName("geoplace")[0].style.display = "table-row";
             var locobj = document.getElementsByClassName("geoloc");
             for (var i=0;i < locobj.length; i++) {
                 locobj[i].style.display = "none";
-                $(locobj[i]).children(":input").prop("disabled", true);
+                $(locobj[i]).find(":input").prop("disabled", true);
             }
             var placeobj = document.getElementsByClassName("geoplace");
             for (var i=0;i < placeobj.length; i++) {
                 placeobj[i].style.display = "table-row";
-                $(placeobj[i]).children(":input").prop("disabled", false);
+                $(placeobj[i]).find(":input").prop("disabled", false);
             }
         }
     });
@@ -276,7 +438,12 @@ chrome.storage.local.get('autogeo', function (result) {
     var geochecked = result.autogeo;
     if(exists(geochecked)) {
         $('#geoonoffswitch').prop('checked', geochecked);
-
     }
+});
 
+chrome.storage.local.get('autoprivate', function (result) {
+    var privatechecked = result.autoprivate;
+    if(exists(privatechecked)) {
+        $('#privateonoffswitch').prop('checked', privatechecked);
+    }
 });

@@ -1,8 +1,12 @@
 var alldata = {};
 var familystatus = [];
+var geostatus = [];
+var geoid = 0;
+var geolocation = [];
+var parsecomplete = false;
 // Parse MyHeritage Tree from Smart Match
 function parseSmartMatch(htmlstring, familymembers) {
-    var parsed = $('<div>').html(htmlstring.replace(/<img[^>]*>/g,""));
+    var parsed = $('<div>').html(htmlstring.replace(/<img[^>]*>/g, ""));
     var focusperson = parsed.find(".recordTitle").text().trim();
     var focusdaterange = parsed.find(".recordSubtitle").text().trim();
     //console.log(focusperson);
@@ -28,9 +32,9 @@ function parseSmartMatch(htmlstring, familymembers) {
 
         for (var r = 0; r < rows.length; r++) {
 
-           // console.log(row);
+            // console.log(row);
             var row = rows[r];
-            var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":","").trim();
+            var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
             var valdate = "";
             var vallocal = $(row).find(".map_callout_link").text().trim();
 
@@ -51,7 +55,7 @@ function parseSmartMatch(htmlstring, familymembers) {
                 /*
                  This will exclude residence, since the API seems to only support current residence.
                  It will also exclude Marriage and Partner dates as I see no way to add this via the API.
-                 It also will remove Military Service and any other entry not explicitly defined in the parser.
+                 It also will remove Military Service and any other entry not explicitly defined above.
                  */
                 continue;  //move to the next entry
             }
@@ -62,7 +66,8 @@ function parseSmartMatch(htmlstring, familymembers) {
                 data.push({date: valdate});
             }
             if (vallocal !== "") {
-                data.push({location: vallocal});
+                data.push({location: vallocal, geolocation: geoid});
+                geoid++;
             }
             profiledata[title] = data;
         }
@@ -70,8 +75,7 @@ function parseSmartMatch(htmlstring, familymembers) {
         // ---------------------- Family Data --------------------
         if (familymembers && children.length > 2) {
             //This section is only run on the focus profile
-            var scorefactors = parsed.find(".value_add_score_factors_container").text().trim();
-            alldata["scorefactors"] = scorefactors;
+            alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();
             alldata["family"] = {};
             child = children[2];
 
@@ -79,7 +83,7 @@ function parseSmartMatch(htmlstring, familymembers) {
 
             for (var i = 0; i < rows.length; i++) {
                 var row = rows[i];
-                var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":","").trim();
+                var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
                 var valfamily = $(row).find(".recordFieldValue");
                 var famlist = $(valfamily).find(".individualsListContainer");
                 alldata["family"][title] = [];
@@ -88,7 +92,7 @@ function parseSmartMatch(htmlstring, familymembers) {
                     familystatus.push(r);
                     var row = famlist[r];
                     var urlval = $(row).find(".individualListBodyContainer a").attr("href");
-                    var shorturl = urlval.substring(0, urlval.indexOf('showRecord')+10);
+                    var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
 
                     //Grab data from the profile's page as it contains more detailed information
                     chrome.extension.sendMessage({
@@ -96,25 +100,92 @@ function parseSmartMatch(htmlstring, familymembers) {
                         action: "xhttp",
                         url: shorturl,
                         variable: title
-                    }, function(response) {
-                        var person = parseSmartMatch(response.html,false);
+                    }, function (response) {
+                        var person = parseSmartMatch(response.html, false);
                         alldata["family"][response.variable].push(person);
                         familystatus.pop();
                     });
                 }
             }
-            updateFamily(); //Poll until all family requests have returned and continue there
+            updateGeo(); //Poll until all family requests have returned and continue there
         }
     }
     return profiledata;
 }
 
-function updateFamily() {
+function updateGeo() {
     if (familystatus.length > 0) {
-        setTimeout(updateFamily, 300);
+        setTimeout(updateGeo, 300);
     } else {
         document.getElementById("loading").style.display = "none";
         console.log("Family Processed...");
+        var listvalues = ["birth", "baptism", "death", "burial"];
+        for (var list in listvalues) {
+            var title = listvalues[list];
+            var memberobj = alldata["profile"][title];
+
+            if (exists(memberobj)) {
+                for (var item in memberobj) {
+                    if (exists(memberobj[item].location)) {
+                        geostatus.push(geostatus.length);
+                        var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(memberobj[item].location);
+                        chrome.extension.sendMessage({
+                            method: "GET",
+                            action: "xhttp",
+                            url: url,
+                            variable: memberobj[item].geolocation
+                        }, function (response) {
+                            var result = jQuery.parseJSON(response.html);
+                            geolocation[response.variable] = new GeoLocation(result);
+                            geostatus.pop();
+                        });
+                    }
+                }
+            }
+        }
+
+        var obj = alldata["family"];
+
+        for (var relationship in obj) {
+            var members = obj[relationship];
+
+            for (var member in members) {
+                for (var list in listvalues) {
+                    var title = listvalues[list];
+                    var memberobj = members[member][title];
+                    if (exists(memberobj)) {
+
+                        for (var item in memberobj) {
+                            if (exists(memberobj[item].location)) {
+                                geostatus.push(geostatus.length);
+                                var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(memberobj[item].location);
+                                chrome.extension.sendMessage({
+                                    method: "GET",
+                                    action: "xhttp",
+                                    url: url,
+                                    variable: memberobj[item].geolocation
+                                }, function (response) {
+                                    var result = jQuery.parseJSON(response.html);
+                                    geolocation[response.variable] = new GeoLocation(result);
+                                    geostatus.pop();
+                                });
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+        updateFamily();
+    }
+}
+
+function updateFamily() {
+    if (geostatus.length > 0) {
+        setTimeout(updateFamily, 300);
+    } else {
+        document.getElementById("loading").style.display = "none";
+        console.log("Geo Processed...");
         buildForm();
     }
 }
@@ -132,32 +203,62 @@ function buildForm() {
         obj = alldata["profile"][title];
         if (exists(obj)) {
             if (x > 0) {
-                $("#"+title+"separator")[0].style.display = "block";
+                var div = $("#profiletable");
+                div[0].innerHTML = div[0].innerHTML + '<tr><td colspan="2"><div class="separator"></div></td></tr>';
+                // $("#"+title+"separator")[0].style.display = "block";
             }
             x++;
             for (var item in obj) {
-                if(exists(obj[item].date)){
-                    var div =  $("#"+title+"date");
-                    div[0].innerHTML = '<td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" />' +
-                        capFL(title) + ' Date:</td><td style="float:right;"><input type="text" name="date" value="' + obj[item].date + '"></td>';
-                    if (scorefactors.contains(title+" date")) {
-                        div.find("input:checkbox").prop('checked', true);
+                if (exists(obj[item].date)) {
+                    var scored = false;
+                    if (scorefactors.contains(title + " date")) {
+                        scored = true;
+                        //div.find("input:checkbox").prop('checked', true);
                         ck++;
                     }
-                    //div[0].style.display = "block";
+                    var div = $("#profiletable"); //"$("#"+title+"date");
+                    var membersstring = div[0].innerHTML;
+                    var dateval = obj[item].date;
+                    membersstring = membersstring +
+                        '<tr id="birthdate"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored) + '>' +
+                        capFL(title) + ' Date:</td><td style="float:right;"><input type="text" name="' + title + ':date" value="' + dateval + '" ' + isEnabled(place, scored) + '></td></tr>';
+                    div[0].innerHTML = membersstring;
 
-                    var bd = new Date(obj[item].date);
+                    //div[0].style.display = "block";
+                    //var bd = new Date(obj[item].date);
                     //console.log(bd.getFullYear());
 
                 }
-                if(exists(obj[item].location)) {
-                    var div = $("#"+title+"location");
-                    div[0].innerHTML = '<td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" " />' +
-                        capFL(title) + ' Place:</td><td style="float:right;"><input type="text" name="loc" value="' + obj[item].location + '"></td>';
-                    if (scorefactors.contains(title+" place")) {
-                        div.find("input:checkbox").prop('checked', true);
+                if (exists(obj[item].location)) {
+                    var scored = false;
+                    if (scorefactors.contains(title + " place")) {
+                        scored = true;
+                        //div.find("input:checkbox").prop('checked', true);
                         ck++;
                     }
+                    var place = obj[item].location;
+                    var city = geolocation[obj[item].geolocation].city;
+                    var county = geolocation[obj[item].geolocation].county;
+                    var state = geolocation[obj[item].geolocation].state;
+                    var country = geolocation[obj[item].geolocation].country;
+                    var geoplace = "table-row";
+                    var geoauto = "none";
+                    if ($('#geoonoffswitch').prop('checked')) {
+                        geoplace = "none";
+                        geoauto = "table-row";
+                    }
+                    var div = $("#profiletable");
+                    var membersstring = div[0].innerHTML;
+                    membersstring = membersstring +
+                        '<tr class="geoplace"style="display: ' + geoplace + ';"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place:</td><td style="float:right;"><input type="text" name="' + title + ':location:place" value="' + place + '" ' + isEnabled(place, scored) + '></td></tr>' +
+                        '<tr class="geoloc" style="display: ' + geoauto + ';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 3px; margin-right: 2px; padding-left: 5px;"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
+                        '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, scored) + '>City: </td><td style="float:right;"><input type="text" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, scored) + '></td></tr>' +
+                        '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, scored) + '>County: </td><td style="float:right;"><input type="text" name="' + title + ':location:county" value="' + county + '" ' + isEnabled(county, scored) + '></td></tr>' +
+                        '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(state, scored) + '>State: </td><td style="float:right;"><input type="text" name="' + title + ':location:state" value="' + state + '" ' + isEnabled(state, scored) + '></td></tr>' +
+                        '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(country, scored) + '>Country: </td><td style="float:right;"><input type="text" name="' + title + ':location:country" value="' + country + '" ' + isEnabled(country, scored) + '></td></tr>';
+
+                    div[0].innerHTML = membersstring;
+
                     //div[0].style.display = "block";
                 }
             }
@@ -176,33 +277,61 @@ function buildForm() {
     var i = 0;
     for (var relationship in obj) {
         var members = obj[relationship];
+        var scored = false;
         //Use a common naming scheme
-        if (relationship === "sibling") {
-            relationship = "siblings";
+        if (relationship === "siblings" || relationship === "sibling") {
+            if (scorefactors.contains("sibling")) {
+                scored = true;
+                $('#addsiblingck').prop('checked', true);
+            }
+            relationship = "sibling";
+        } else if (relationship === "children" || relationship === "child" || relationship === "son" || relationship === "daughter") {
+            if (scorefactors.contains("child")) {
+                scored = true;
+                $('#addchildck').prop('checked', true);
+            }
+            relationship = "child";
         }
-        else if (relationship === "father" || relationship === "mother") {
-            relationship = "parents";
+        else if (relationship === "parents" || relationship === "father" || relationship === "mother" || relationship === "parent") {
+            if (scorefactors.contains("parent")) {
+                scored = true;
+                $('#addparentck').prop('checked', true);
+            }
+            relationship = "parent";
         }
-        else if (relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "husbands" || relationship === "wives") {
-            relationship = "partners";
+        else if (relationship === "partners" || relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "husbands" || relationship === "wives") {
+            if (scorefactors.contains("spouse")) {
+                scored = true;
+                $('#addpartnerck').prop('checked', true);
+            }
+            relationship = "partner";
         }
 
-        var div = $("#"+relationship);
+        var div = $("#" + relationship);
         div[0].style.display = "block";
-
+        var parentscore = scored;
+        var skipprivate = $('#privateonoffswitch').prop('checked');
         for (var member in members) {
-            var entry = $("#"+relationship+"val")[0];
-            var nameval = NameParse.parse(members[member].name);
+            scored = parentscore;
+            var entry = $("#" + relationship + "val")[0];
+            var fullname = members[member].name;
+            if (skipprivate && fullname.startsWith("<Private>")) {
+                scored = false;
+            }
+            var nameval = NameParse.parse(fullname);
+            var gender = members[member].gender;
             var membersstring = entry.innerHTML;
-            membersstring = membersstring + '<div class="membertitle"><table cellpadding="0" cellspacing="0" width="100%"><tr>' +
-                '<td style="font-size: 90%;"><input type="checkbox" name="checkbox'+ i + relationship + '"><a name="' + i + relationship + '">' + escapeHtml(members[member].name) + '</a></td>' +
-                '<td style="font-size: 130%; float: right; padding-right: 5px; padding-left: 5px;"><a name="' + i + relationship + '">&#9662;</a></td></tr></table></div>' +
-                '<div id="slide' + i + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 15px;"><table cellpadding="0" cellspacing="0" width="100%">' +
-                '<tr><td style="font-weight: bold; font-size: 90%; vertical-align: middle;">First Name: </td><td style="float:right;"><input type="text" name="fname" value="' + nameval.firstName + '"></td></tr>'+
-                '<tr><td style="font-weight: bold; font-size: 90%; vertical-align: middle;">Middle Name: </td><td style="float:right;"><input type="text" name="mname" value="' + nameval.middleName + '"></td></tr>' +
-                '<tr><td style="font-weight: bold; font-size: 90%; vertical-align: middle;">Last Name: </td><td style="float:right;"><input type="text" name="lname" value="' + nameval.lastName + '"></td></tr>'+
-                '<tr><td style="font-weight: bold; font-size: 90%; vertical-align: middle;">Birth Name: </td><td style="float:right;"><input type="text" name="bname" value="' + nameval.birthName + '"></td></tr>' +
-                '<tr><td style="font-weight: bold; font-size: 90%; vertical-align: middle;">Suffix: </td><td style="float:right;"><input type="text" name="sname" value="' + nameval.suffix + '"></td></tr>';
+            membersstring = membersstring + '<div class="membertitle"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
+                '<td style="font-size: 90%; padding: 0px;"><input type="checkbox" class="checkslide" name="checkbox' + i + "-" + relationship + '" ' + isChecked(fullname, scored) + '><a name="' + i + "-" + relationship + '">' + escapeHtml(fullname) + '</a></td>' +
+                '<td style="font-size: 130%; float: right; padding: 0px 5px;"><a name="' + i + "-" + relationship + '">&#9662;</a></td></tr></table></div>' +
+                '<div id="slide' + i + "-" + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
+                '<tr><td class="profilediv" nowrap><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored) + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored) + '></td></tr>' +
+                '<tr><td class="profilediv" nowrap><input type="checkbox" class="checknext" ' + isChecked(nameval.middleName, scored) + '>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '" ' + isEnabled(nameval.middleName, scored) + '></td></tr>' +
+                '<tr><td class="profilediv" nowrap><input type="checkbox" class="checknext" ' + isChecked(nameval.lastName, scored) + '>Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" ' + isEnabled(nameval.lastName, scored) + '></td></tr>' +
+                '<tr><td class="profilediv" nowrap><input type="checkbox" class="checknext" ' + isChecked(nameval.birthName, scored) + '>Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" ' + isEnabled(nameval.birthName, scored) + '></td></tr>' +
+                '<tr><td class="profilediv" nowrap><input type="checkbox" class="checknext" ' + isChecked(nameval.suffix, scored) + '>Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" ' + isEnabled(nameval.suffix, scored) + '></td></tr>' +
+                '<tr><td class="profilediv" nowrap style="padding-top: 2px;"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-top: 2px;"><select style="width: 151px; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
+                '<option value="male" '+ setGender("male", gender) + '>Male</option><option value="female" '+ setGender("female", gender) + '>Female</option><option value="unknown" '+ setGender("unknown", gender) + '>Unknown</option></select></td></tr>';
 
             for (var list in listvalues) {
                 var title = listvalues[list];
@@ -211,21 +340,29 @@ function buildForm() {
                     membersstring = membersstring + '<tr><td colspan="2"><div class="separator"></div></td></tr>';
                     for (var item in memberobj) {
                         if (exists(memberobj[item].date)) {
+                            var dateval = memberobj[item].date;
                             membersstring = membersstring +
-                                '<tr><td style="font-weight: bold; font-size: 90%; vertical-align: middle;">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" name="bname" value="' + memberobj[item].date + '"></td></tr>';
+                                '<tr><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored) + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored) + '></td></tr>';
                         }
                         if (exists(memberobj[item].location)) {
-                            var place = "table-row";
+                            var place = memberobj[item].location;
+                            var city = geolocation[memberobj[item].geolocation].city;
+                            var county = geolocation[memberobj[item].geolocation].county;
+                            var state = geolocation[memberobj[item].geolocation].state;
+                            var country = geolocation[memberobj[item].geolocation].country;
+                            var geoplace = "table-row";
                             var geoauto = "none";
                             if ($('#geoonoffswitch').prop('checked')) {
-                                place = "none";
+                                geoplace = "none";
                                 geoauto = "table-row";
                             }
-                                membersstring = membersstring +
-                                    '<tr class="geoplace" style="display: ' + place + ';"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="bname" value="' + memberobj[item].location + '"></td></tr>'+
-                                    '<tr class="geoloc" style="display: ' + geoauto + ';"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;">' + capFL(title) + ' City: </td><td style="float:right;"><input type="text" name="bname"></td></tr>' +
-                                    '<tr class="geoloc" style="display: ' + geoauto + ';"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;">' + capFL(title) + ' State: </td><td style="float:right;"><input type="text" name="bname"></td></tr>' +
-                                    '<tr class="geoloc" style="display: ' + geoauto + ';"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;">' + capFL(title) + ' Country: </td><td style="float:right;"><input type="text" name="bname"></td></tr>';
+                            membersstring = membersstring +
+                                '<tr class="geoplace" style="display: ' + geoplace + ';"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place" value="' + place + '" ' + isEnabled(place, scored) + '></td></tr>' +
+                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
+                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, scored) + '>City: </td><td style="float:right;"><input type="text" name="'+title+':location:city" value="' + city + '" ' + isEnabled(city, scored) + '></td></tr>' +
+                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, scored) + '>County: </td><td style="float:right;"><input type="text" name="'+title+':location:county" value="' + county + '" ' + isEnabled(country, scored) + '></td></tr>' +
+                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(state, scored) + '>State: </td><td style="float:right;"><input type="text" name="'+title+':location:state" value="' + state + '" ' + isEnabled(state, scored) + '></td></tr>' +
+                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(country, scored) + '>Country: </td><td style="float:right;"><input type="text" name="'+title+':location:country" value="' + country + '" ' + isEnabled(country, scored) + '></td></tr>';
 
                         }
                     }
@@ -235,12 +372,52 @@ function buildForm() {
             membersstring = membersstring + '</table></div>';
             entry.innerHTML = membersstring;
 
-            console.log("  " + members[member].name);
+            //log("  " + members[member].name);
             i++;
         }
     }
-    document.getElementById("familydata").style.display = "block";
 
+    $(function () {
+        $('.checknext').on('click', function () {
+            $(this).closest('tr').find("input:text,select").attr("disabled", !this.checked);
+        });
+    });
+    $(function () {
+        $('.checkslide').on('click', function () {
+            var fs = $("#" + this.name.replace("checkbox", "slide"));
+            fs.find(':checkbox').prop('checked', this.checked);
+            fs.find('input:text,select').attr('disabled', !this.checked);
+        });
+    });
+    document.getElementById("familydata").style.display = "block";
+    parsecomplete = true;
+}
+
+function isValue(object) {
+    return (object !== "");
+}
+
+function isEnabled(value, score) {
+   if (score && isValue(value)) {
+        return "";
+    } else {
+        return "disabled";
+    }
+}
+
+function setGender(gender,value) {
+    if (gender === value) {
+        return "selected";
+    }
+    return "";
+}
+
+function isChecked(value, score) {
+    if (score && isValue(value)) {
+        return "checked";
+    } else {
+        return "";
+    }
 }
 
 

@@ -1,6 +1,7 @@
 ;var GeoLocation = function (results) {
 
     var location = {};
+    location.place = "";
     location.zip = "";
     location.city = "";
     location.county = "";
@@ -13,29 +14,42 @@
 
     if (results.length >= 1) {
         for (var i = 0; i < results[0].address_components.length; i++) {
+            var long_name = results[0].address_components[i].long_name;
             switch (results[0].address_components[i].types.join(",")) {
                 case 'postal_code':
                 case 'postal_code_prefix,postal_code':
-                    location.zip = results[0].address_components[i].long_name;
+                    location.zip = long_name;
                     break;
-
                 case 'sublocality,political':
                 case 'locality,political':
+                    if (isNaN(long_name)) {
+                        location.city = long_name;
+                    }
+                    break;
                 case 'neighborhood,political':
                 case 'administrative_area_level_3,political':
-                    location.city = results[0].address_components[i].long_name;
+                    if (location.city === "" && isNaN(long_name)) {
+                        //If the city is not in locality, use admin area 3
+                        location.city = long_name;
+                    }
                     break;
 
                 case 'administrative_area_level_2,political':
-                    location.county = results[0].address_components[i].long_name;
+                    if (isNaN(long_name)) {
+                        location.county = long_name;
+                    }
                     break;
 
                 case 'administrative_area_level_1,political':
-                    location.state = results[0].address_components[i].long_name;
+                    if (isNaN(long_name)) {
+                        location.state = long_name;
+                    }
                     break;
 
                 case 'country,political':
-                    location.country = results[0].address_components[i].long_name;
+                    if (isNaN(long_name)) {
+                        location.country = long_name;
+                    }
                     break;
             }
         }

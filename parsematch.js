@@ -35,32 +35,44 @@ function parseSmartMatch(htmlstring, familymembers) {
             // console.log(row);
             var row = rows[r];
             var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
+
+            if (title !== "birth" && title !== 'death' && title !== 'baptism' && title !== 'burial') {
+                /*
+                 This will exclude residence, since the API seems to only support current residence.
+                 It also will remove Military Service and any other entry not explicitly defined above.
+                 */
+                //TODO Look at Marriage and Partner dates - uses the Union API.
+                continue;  //move to the next entry
+            }
+            //TODO Get Place Names as well
+            //console.log(title);
+            //console.log(valdate);
+
             var valdate = "";
             var vallocal = $(row).find(".map_callout_link").text().trim();
 
             //var vdate = $(row).find(".recordFieldValue");
             //var valdate = vdate.clone().children().remove().end().text().trim();
             if (exists($(row).find(".recordFieldValue").contents().get(0))) {
+                //console.log($(row).find(".recordFieldValue").contents());
                 valdate = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
-                if (valdate !== null && valdate.toLowerCase().startsWith("parent")) {
+                //console.log(valdate);
+                var verifydate = moment(valdate, ["MMM D YYYY", "MMM YYYY", "YYYY", "MMM", "MMM D"]).isValid();
+                if (!verifydate) {
+                    if (valdate !== null && !valdate.toLowerCase().startsWith("parent")) {
+                        console.log("Place: " + valdate);
+                    }
                     if (exists($(row).find(".recordFieldValue").contents().get(2))) {
                         valdate = $(row).find(".recordFieldValue").contents().get(2).nodeValue;
                     }
-                } else if (valdate === null) {
-                    valdate = "";
+                    verifydate = moment(valdate, ["MMM D YYYY", "MMM YYYY", "YYYY", "MMM", "MMM D"]).isValid();
+                    if (!verifydate) {
+                        valdate = "";
+                    }
                 }
             }
 
-            if (title !== "birth" && title !== 'death' && title !== 'baptism' && title !== 'burial') {
-                /*
-                 This will exclude residence, since the API seems to only support current residence.
-                 It will also exclude Marriage and Partner dates as I see no way to add this via the API.
-                 It also will remove Military Service and any other entry not explicitly defined above.
-                 */
-                continue;  //move to the next entry
-            }
-            //console.log(title);
-            //console.log(valdate);
+
             var data = [];
             if (valdate !== "") {
                 data.push({date: valdate});

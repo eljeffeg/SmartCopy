@@ -74,10 +74,12 @@ chrome.extension.onMessage.addListener(function (request, sender, callback) {
                 document.getElementById("loading").style.display = "block";
                 var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/g,""));
                 var focusperson = parsed.find(".recordTitle").text().trim();
-                var focusprofile = parsed.find(".individualInformationProfileLink").attr("href").trim();
                 var focusrange = parsed.find(".recordSubtitle").text().trim();
-                focusid = focusprofile.replace("http://www.geni.com/", "");
-                updateLinks("?profile=" + focusid);
+                if (!profilechanged) {
+                    var focusprofile = parsed.find(".individualInformationProfileLink").attr("href").trim();
+                    focusid = focusprofile.replace("http://www.geni.com/", "");
+                    updateLinks("?profile=" + focusid);
+                }
                 document.getElementById("focusname").innerText = focusperson;
                 if (focusrange !== "") {
                     document.getElementById("focusrange").innerText = focusrange;
@@ -98,7 +100,9 @@ chrome.extension.onMessage.addListener(function (request, sender, callback) {
                 '<strong>Change Geni Focus Profile</strong><input type="text" id="changeprofile"><button id="changefocus">Update</button>');
             $(function () {
                 $('#changefocus').on('click', function () {
-                    focusid = getProfile($('#changeprofile')[0].value);
+                    var profilelink = getProfile($('#changeprofile')[0].value);
+                    updateLinks(profilelink);
+                    focusid = profilelink.replace("?profile=", "");
                     document.querySelector('#message').style.display = "none";
                     profilechanged = true;
                     getPageCode();
@@ -361,7 +365,7 @@ function submitWait() {
             buildTree("", "delete", tempspouse.id);
         }
         document.getElementById("updating").innerHTML = '<div style="text-align: center;"><strong>Geni Tree Updated</strong><br/>' +
-            '<a href="http://www.geni.com/family-tree/index/' + focusid + '" target="_blank">View Profile</a></div>';
+            '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g","") + '" target="_blank">View Profile</a></div>';
         console.log("Tree Updated...");
         if (devblocksend) {
             console.log("******** Dev Mode - Blocked Sending ********")

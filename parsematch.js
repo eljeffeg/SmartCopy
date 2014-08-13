@@ -13,9 +13,9 @@ function parseSmartMatch(htmlstring, familymembers) {
     var genderdiv = parsed.find(".recordImage");
     var genderimage = $(genderdiv).find('.PK_Silhouette');
     var genderval = "unknown";
-    if ($(genderimage).hasClass('PK_Silhouette_S_150_M_A_LTR')) {
+    if ($(genderimage).hasClass('PK_Silhouette_S_150_M_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_150_M_C_LTR')) {
         genderval = "male";
-    } else if ($(genderimage).hasClass('PK_Silhouette_S_150_F_A_LTR')) {
+    } else if ($(genderimage).hasClass('PK_Silhouette_S_150_F_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_150_F_C_LTR')) {
         genderval = "female";
     }
     var profiledata = {name: focusperson, gender: genderval};
@@ -91,6 +91,8 @@ function parseSmartMatch(htmlstring, familymembers) {
                 for (var r = 0; r < famlist.length; r++) {
                     familystatus.push(r);
                     var row = famlist[r];
+                    //var subdata = parseInfoData(row);
+                    //console.log(subdata);
                     var urlval = $(row).find(".individualListBodyContainer a").attr("href");
                     var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
 
@@ -111,6 +113,39 @@ function parseSmartMatch(htmlstring, familymembers) {
         }
     }
     return profiledata;
+}
+
+function parseInfoData(row) {
+    var obj = {};
+    var name = $(row).find(".individualNameLink").text();
+    if (!name.startsWith("\<Private\>")) {
+        obj["name"] = name.trim();
+    }
+    var drange = $(row).find(".immediateMemberDateRange").text();
+    if (drange.length > 0) {
+        if (drange.contains(" - ")) {
+            var splitr = drange.trim().split(" - ");
+            if (splitr[0] !== "?") {
+                obj["birthyear"] = splitr[0];
+            }
+            if (splitr[1] !== "?") {
+                obj["deathyear"] = splitr[1];
+            }
+        } else if (!isNaN(drange)) {
+            obj["birthyear"] = drange.trim();
+        }
+    }
+    var genderimage = $(row).find('.PK_Silhouette');
+    var genderval = "unknown";
+    if ($(genderimage).hasClass('PK_Silhouette_S_30_M_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_30_M_C_LTR')) {
+        genderval = "male";
+    } else if ($(genderimage).hasClass('PK_Silhouette_S_30_F_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_30_F_C_LTR')) {
+        genderval = "female";
+    }
+    if (genderval.trim() !== "unknown") {
+        obj["gender"] = genderval.trim();
+    }
+    return obj;
 }
 
 function updateGeo() {

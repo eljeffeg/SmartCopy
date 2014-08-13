@@ -1,4 +1,6 @@
+var devblocksend = false;
 var proaccount = true;
+var profilechanged = false;
 var focusid;
 var tablink;
 var submitcheck = true;
@@ -40,6 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
         tablink = tab.url;
         if (tablink.startsWith("http://www.myheritage.com/research/collection")) {
             loadLogin();
+        } else if (tablink.startsWith("http://www.myheritage.com/matchingresult")) {
+            setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Matches on this results page.');
         } else {
             setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.')
         }
@@ -63,7 +67,7 @@ chrome.extension.onMessage.addListener(function (request, sender, callback) {
          in order to prevent them from copying a family or data to the wrong destination.
          Once you click off the initial match, MH adds a row of tabs - using that as indication.
          */
-        if (request.source.indexOf('pk_family_tabs') === -1) {
+        if (request.source.indexOf('pk_family_tabs') === -1 || profilechanged) {
             if (tablink.contains("/collection-1/")) {
                 document.getElementById("smartcopy-container").style.display = "block";
                 document.getElementById("loading").style.display = "block";
@@ -89,7 +93,16 @@ chrome.extension.onMessage.addListener(function (request, sender, callback) {
             }
         } else {
             var name = $(request.source).find(".individualInformationName").text().trim();
-            setMessage("#f8ff86", 'The copy is only supported on the Matched profile ' + name + ".");
+            setMessage("#f8ff86", 'The copy is only supported on the Matched profile ' + name + '.<br/>' +
+                '<strong>Change Geni Focus Profile</strong><input type="text" id="changeprofile"><button id="changefocus">Update</button>');
+            $(function () {
+                $('#changefocus').on('click', function () {
+                    focusid = getProfile($('#changeprofile')[0].value);
+                    document.querySelector('#message').style.display = "none";
+                    profilechanged = true;
+                    getPageCode();
+                });
+            });
         }
     }
 });
@@ -98,7 +111,7 @@ function setMessage(color, messagetext) {
     var message = document.querySelector('#message');
     message.style.backgroundColor = color;
     message.style.display = "block";
-    message.innerText = messagetext;
+    message.innerHTML = messagetext;
 }
 
 function getPageCode() {
@@ -246,8 +259,10 @@ $(function () {
 
 // Form submission
 var submitstatus = [];
+var tempspouse;
 var submitform = function() {
     if (parsecomplete && submitcheck) {
+        var partnersubmit = false;
         submitcheck = false; //try to prevent clicking more than once and submitting it twice
         document.getElementById("familydata").style.display = "none";
         document.getElementById("profiledata").style.display = "none";
@@ -256,20 +271,9 @@ var submitform = function() {
         // --------------------- Update Profile Data ---------------------
         var fs = $('#profiletable');
         var profileout = parseForm(fs);
-        if(!$.isEmptyObject(profileout)) {
-            submitstatus.push(submitstatus.length);
-            chrome.extension.sendMessage({
-                method: "POST",
-                action: "xhttp",
-                url: "http://historylink.herokuapp.com/smartsubmit?profile=" + focusid + "&action=update",
-                data: $.param(profileout),
-                variable: ""
-            }, function (response) {
-                submitstatus.pop();
-            });
-            //console.log(encodeURIComponent(JSON.stringify(profileout)));
-            //console.log($.param(profileout));
-        }
+        buildTree(profileout, "update", focusid);
+
+
 
         // --------------------- Add Family Data ---------------------
         var privateprofiles = $('.checkslide');
@@ -278,34 +282,84 @@ var submitform = function() {
             if (exists(entry.name) && entry.name.startsWith("checkbox") && entry.checked) {
                 fs = $("#" + entry.name.replace("checkbox", "slide"));
                 var actionname = entry.name.split("-"); //get the relationship
-                var familyout = parseForm(fs);
-                if(!$.isEmptyObject(familyout)) {
-                    submitstatus.push(submitstatus.length);
-                    chrome.extension.sendMessage({
-                        method: "POST",
-                        action: "xhttp",
-                        url: "http://historylink.herokuapp.com/smartsubmit?profile=" + focusid + "&action=add-" + actionname[1],
-                        data: $.param(familyout),
-                        variable: ""
-                    }, function (response) {
-                        submitstatus.pop();
-                    });
+                if (actionname[1] !== "child") {
+                    var familyout = parseForm(fs);
+                    buildTree(familyout, "add-" + actionname[1], focusid)
+                } else {
+                    if (!partnersubmit) {
+                        partnersubmit = true;
+                        submitstatus.push(submitstatus.length);
+                        chrome.extension.sendMessage({
+                            method: "POST",
+                            action: "xhttp",
+                            url: "http://historylink.herokuapp.com/smartsubmit?profile=" + focusid + "&action=add-partner",
+                            data: "",
+                            variable: ""
+                        }, function (response) {
+                            //console.log(response.html);
+                            tempspouse = JSON.parse(response.html);
+                            submitstatus.pop();
+                        });
+                    }
+
                 }
-                //console.log(JSON.stringify(familyout));
-                //console.log($.param(familyout));
             }
         }
     }
-    submitWait();
+    submitChildren();
 };
+
+function buildTree(data, action, sendid) {
+    if(!$.isEmptyObject(data) && !devblocksend) {
+        submitstatus.push(submitstatus.length);
+        chrome.extension.sendMessage({
+            method: "POST",
+            action: "xhttp",
+            url: "http://historylink.herokuapp.com/smartsubmit?profile=" + sendid + "&action=" + action,
+            data: $.param(data),
+            variable: ""
+        }, function (response) {
+            submitstatus.pop();
+        });
+    } else if (!$.isEmptyObject(data) && devblocksend) {
+        console.log("-------------------");
+        console.log(JSON.stringify(data));
+    }
+}
+
+function submitChildren() {
+    if (submitstatus.length > 0) {
+        setTimeout(submitChildren, 300);
+    } else {
+        var unionid = tempspouse.unions[0].replace("https://www.geni.com/api/", "");
+        // --------------------- Add Family Data ---------------------
+        var privateprofiles = $('.checkslide');
+        for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
+            var entry = privateprofiles[profile];
+            if (exists(entry.name) && entry.name.startsWith("checkbox") && entry.checked) {
+                fs = $("#" + entry.name.replace("checkbox", "slide"));
+                var actionname = entry.name.split("-"); //get the relationship
+                if (actionname[1] === "child") {
+                    var familyout = parseForm(fs);
+                    buildTree(familyout, "add-child", unionid)
+                }
+            }
+        }
+        submitWait();
+    }
+}
 
 function submitWait() {
     if (submitstatus.length > 0) {
         setTimeout(submitWait, 300);
     } else {
-        document.getElementById("updating").innerHTML = '<div style="text-align: center;"><strong>Completed: Tree Updated</strong><br/>' +
-        '<a href="http://www.geni.com/family-tree/index/' + focusid + '" target="_blank">View Profile</a></div>';
+        buildTree("", "delete", tempspouse.id);
+        document.getElementById("updating").innerHTML = '<div style="text-align: center;"><strong>Geni Tree Updated</strong><br/>' +
+            '<a href="http://www.geni.com/family-tree/index/' + focusid + '" target="_blank">View Profile</a></div>';
         console.log("Tree Updated...");
+        if (devblocksend) {
+            console.log("******** Dev Mode - Blocked Sending ********")
+        }
     }
 }
 

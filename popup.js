@@ -37,6 +37,7 @@ if (!String.prototype.contains) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    console.log(chrome.app.getDetails().name + " v" + chrome.app.getDetails().version);
     checkAccount();
     chrome.tabs.getSelected(null, function (tab) {
         tablink = tab.url;
@@ -260,9 +261,10 @@ $(function () {
 // Form submission
 var submitstatus = [];
 var tempspouse;
+var partnersubmit = false;
 var submitform = function() {
     if (parsecomplete && submitcheck) {
-        var partnersubmit = false;
+
         submitcheck = false; //try to prevent clicking more than once and submitting it twice
         document.getElementById("familydata").style.display = "none";
         document.getElementById("profiledata").style.display = "none";
@@ -331,17 +333,19 @@ function submitChildren() {
     if (submitstatus.length > 0) {
         setTimeout(submitChildren, 300);
     } else {
-        var unionid = tempspouse.unions[0].replace("https://www.geni.com/api/", "");
-        // --------------------- Add Family Data ---------------------
-        var privateprofiles = $('.checkslide');
-        for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
-            var entry = privateprofiles[profile];
-            if (exists(entry.name) && entry.name.startsWith("checkbox") && entry.checked) {
-                fs = $("#" + entry.name.replace("checkbox", "slide"));
-                var actionname = entry.name.split("-"); //get the relationship
-                if (actionname[1] === "child") {
-                    var familyout = parseForm(fs);
-                    buildTree(familyout, "add-child", unionid)
+        if (partnersubmit) {
+            var unionid = tempspouse.unions[0].replace("https://www.geni.com/api/", "");
+            // --------------------- Add Family Data ---------------------
+            var privateprofiles = $('.checkslide');
+            for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
+                var entry = privateprofiles[profile];
+                if (exists(entry.name) && entry.name.startsWith("checkbox") && entry.checked) {
+                    fs = $("#" + entry.name.replace("checkbox", "slide"));
+                    var actionname = entry.name.split("-"); //get the relationship
+                    if (actionname[1] === "child") {
+                        var familyout = parseForm(fs);
+                        buildTree(familyout, "add-child", unionid)
+                    }
                 }
             }
         }
@@ -353,7 +357,9 @@ function submitWait() {
     if (submitstatus.length > 0) {
         setTimeout(submitWait, 300);
     } else {
-        buildTree("", "delete", tempspouse.id);
+        if (partnersubmit) {
+            buildTree("", "delete", tempspouse.id);
+        }
         document.getElementById("updating").innerHTML = '<div style="text-align: center;"><strong>Geni Tree Updated</strong><br/>' +
             '<a href="http://www.geni.com/family-tree/index/' + focusid + '" target="_blank">View Profile</a></div>';
         console.log("Tree Updated...");

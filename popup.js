@@ -374,6 +374,7 @@ function submitWait() {
 }
 
 document.getElementById('submitbutton').addEventListener('click', submitform, false);
+document.getElementById('submitbutton2').addEventListener('click', submitform, false);
 
 function parseForm(fs) {
     var objentry = {};
@@ -403,11 +404,16 @@ function parseForm(fs) {
                         //TODO find a Between example and finish this
                     }
                     if (!betweenflag) {
-                        var dt = moment(fulldate.trim(), ["MMM D YYYY", "MMM YYYY", "YYYY", "MMM", "MMM D"]);
+                        var dt = moment(fulldate.trim(), ["MMM YYYY", "MMM D YYYY", "YYYY", "MMM", "MMM D"]);
                         //TODO Probably need to do some more checking below to make sure it doesn't improperly default dates
                         if (isNaN(fulldate)) {
-                            vardate["day"] = dt.get('date');
-                            vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                            var splitd = fulldate.split(" ");
+                            if (splitd.length > 2) {
+                                vardate["day"] = dt.get('date');
+                                vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                            } else {
+                                vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                            }
                         }
                         vardate["year"] = dt.get('year');
 
@@ -424,13 +430,17 @@ function parseForm(fs) {
                         objentry[splitentry[0]] = {};
                     }
                     var geocheck = $('#geoonoffswitch').prop('checked');
-                    if (geocheck && splitentry[2] === "place") {
+                    var fieldname = splitentry[2];
+                    if (geocheck && fieldname === "place_name") {
                         continue;
-                    } else if (!geocheck && splitentry[2] !== "place") {
+                    } else if (!geocheck && fieldname !== "place_name") {
                         continue;
                     }
+                    if (fieldname === "place_name_geo") {
+                        fieldname = "place_name";
+                    }
                     var varlocation = {};
-                    varlocation[splitentry[2]] = fsinput[item].value;
+                    varlocation[fieldname] = fsinput[item].value;
                     if (!exists(objentry[splitentry[0]][splitentry[1]])) {
                         objentry[splitentry[0]][splitentry[1]] = {};
                     }

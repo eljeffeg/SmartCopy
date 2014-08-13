@@ -50,6 +50,7 @@ function parseSmartMatch(htmlstring, familymembers) {
 
             var valdate = "";
             var vallocal = $(row).find(".map_callout_link").text().trim();
+            var valplace = "";
 
             //var vdate = $(row).find(".recordFieldValue");
             //var valdate = vdate.clone().children().remove().end().text().trim();
@@ -60,7 +61,7 @@ function parseSmartMatch(htmlstring, familymembers) {
                 var verifydate = moment(valdate, ["MMM D YYYY", "MMM YYYY", "YYYY", "MMM", "MMM D"]).isValid();
                 if (!verifydate) {
                     if (valdate !== null && !valdate.toLowerCase().startsWith("parent")) {
-                        console.log("Place: " + valdate);
+                        valplace = valdate.trim();
                     }
                     if (exists($(row).find(".recordFieldValue").contents().get(2))) {
                         valdate = $(row).find(".recordFieldValue").contents().get(2).nodeValue;
@@ -78,7 +79,7 @@ function parseSmartMatch(htmlstring, familymembers) {
                 data.push({date: valdate});
             }
             if (vallocal !== "") {
-                data.push({location: vallocal, geolocation: geoid});
+                data.push({location: vallocal, geolocation: geoid, geoplace: valplace});
                 geoid++;
             }
             profiledata[title] = data;
@@ -180,10 +181,14 @@ function updateGeo() {
                             method: "GET",
                             action: "xhttp",
                             url: url,
-                            variable: memberobj[item].geolocation
+                            variable: {geoid: memberobj[item].geolocation, geoplace: memberobj[item].geoplace}
                         }, function (response) {
                             var result = jQuery.parseJSON(response.html);
-                            geolocation[response.variable] = new GeoLocation(result);
+                            var georesult = new GeoLocation(result);
+                            if (response.variable.geoplace !== "") {
+                                georesult.place = response.variable.geoplace;
+                            }
+                            geolocation[response.variable.geoid] = georesult;
                             geostatus.pop();
                         });
                     }
@@ -284,10 +289,12 @@ function buildForm() {
                         ck++;
                     }
                     var place = obj[item].location;
-                    var city = geolocation[obj[item].geolocation].city;
-                    var county = geolocation[obj[item].geolocation].county;
-                    var state = geolocation[obj[item].geolocation].state;
-                    var country = geolocation[obj[item].geolocation].country;
+                    var geovar1 = geolocation[obj[item].geolocation];
+                    var placegeo = geovar1.place;
+                    var city = geovar1.city;
+                    var county = geovar1.county;
+                    var state = geovar1.state;
+                    var country = geovar1.country;
                     var geoplace = "table-row";
                     var geoauto = "none";
                     if ($('#geoonoffswitch').prop('checked')) {
@@ -297,8 +304,9 @@ function buildForm() {
                     var div = $("#profiletable");
                     var membersstring = div[0].innerHTML;
                     membersstring = membersstring +
-                        '<tr class="geoplace"style="display: ' + geoplace + ';"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place:</td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':location:place" value="' + place + '" ' + isEnabled(place, scored) + '></td></tr>' +
+                        '<tr class="geoplace"style="display: ' + geoplace + ';"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place:</td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, scored) + '></td></tr>' +
                         '<tr class="geoloc" style="display: ' + geoauto + ';"><td colspan="2" style="font-size: 90%;padding: 0;"><div class="membertitle" style="margin-top: 4px; margin-left: 3px; margin-right: 2px; padding-left: 5px;"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
+                        '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, scored) + '>Place: </td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, scored) + '></td></tr>' +
                         '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, scored) + '>City: </td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, scored) + '></td></tr>' +
                         '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, scored) + '>County: </td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':location:county" value="' + county + '" ' + isEnabled(county, scored) + '></td></tr>' +
                         '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(state, scored) + '>State: </td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':location:state" value="' + state + '" ' + isEnabled(state, scored) + '></td></tr>' +
@@ -393,10 +401,12 @@ function buildForm() {
                         }
                         if (exists(memberobj[item].location)) {
                             var place = memberobj[item].location;
-                            var city = geolocation[memberobj[item].geolocation].city;
-                            var county = geolocation[memberobj[item].geolocation].county;
-                            var state = geolocation[memberobj[item].geolocation].state;
-                            var country = geolocation[memberobj[item].geolocation].country;
+                            var geovar2 = geolocation[memberobj[item].geolocation];
+                            var placegeo = geovar2.place;
+                            var city = geovar2.city;
+                            var county = geovar2.county;
+                            var state = geovar2.state;
+                            var country = geovar2.country;
                             var geoplace = "table-row";
                             var geoauto = "none";
                             if ($('#geoonoffswitch').prop('checked')) {
@@ -404,8 +414,9 @@ function buildForm() {
                                 geoauto = "table-row";
                             }
                             membersstring = membersstring +
-                                '<tr class="geoplace" style="display: ' + geoplace + ';"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place" value="' + place + '" ' + isEnabled(place, scored) + '></td></tr>' +
+                                '<tr class="geoplace" style="display: ' + geoplace + ';"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" value="' + place + '" ' + isEnabled(place, scored) + '></td></tr>' +
                                 '<tr class="geoloc" style="display: ' + geoauto + ';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
+                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, scored) + '>Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, scored) + '></td></tr>' +
                                 '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, scored) + '>City: </td><td style="float:right;"><input type="text" name="'+title+':location:city" value="' + city + '" ' + isEnabled(city, scored) + '></td></tr>' +
                                 '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, scored) + '>County: </td><td style="float:right;"><input type="text" name="'+title+':location:county" value="' + county + '" ' + isEnabled(country, scored) + '></td></tr>' +
                                 '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(state, scored) + '>State: </td><td style="float:right;"><input type="text" name="'+title+':location:state" value="' + state + '" ' + isEnabled(state, scored) + '></td></tr>' +

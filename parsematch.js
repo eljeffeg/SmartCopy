@@ -58,7 +58,7 @@ function parseSmartMatch(htmlstring, familymembers) {
                 //console.log($(row).find(".recordFieldValue").contents());
                 valdate = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
                 //console.log(valdate);
-                var verifydate = moment(valdate, ["MMM D YYYY", "MMM YYYY", "YYYY", "MMM", "MMM D"]).isValid();
+                var verifydate = moment(valdate, dateformatter).isValid();
                 if (!verifydate) {
                     if (valdate !== null && !valdate.toLowerCase().startsWith("parent")) {
                         valplace = valdate.trim();
@@ -66,7 +66,7 @@ function parseSmartMatch(htmlstring, familymembers) {
                     if (exists($(row).find(".recordFieldValue").contents().get(2))) {
                         valdate = $(row).find(".recordFieldValue").contents().get(2).nodeValue;
                     }
-                    verifydate = moment(valdate, ["MMM D YYYY", "MMM YYYY", "YYYY", "MMM", "MMM D"]).isValid();
+                    verifydate = moment(valdate, dateformatter).isValid();
                     if (!verifydate) {
                         valdate = "";
                     }
@@ -79,6 +79,13 @@ function parseSmartMatch(htmlstring, familymembers) {
                 data.push({date: valdate});
             }
             if (vallocal !== "") {
+                if (valplace === "") {
+                    var splitplace = vallocal.split(",");
+                    var checkplace = splitplace[0].toLowerCase();
+                    if (checkplace.contains(" cemetery") || checkplace.contains(" grave")) {
+                        valplace = splitplace[0];
+                    }
+                }
                 data.push({location: vallocal, geolocation: geoid, geoplace: valplace});
                 geoid++;
             }

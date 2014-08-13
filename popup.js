@@ -4,6 +4,7 @@ var profilechanged = false;
 var focusid;
 var tablink;
 var submitcheck = true;
+var dateformatter = ["MMM YYYY", "MMM D YYYY", "YYYY"];
 //noinspection JSUnusedGlobalSymbols
 var expandparent = true; //used in expandAll function window[...] var call
 //noinspection JSUnusedGlobalSymbols
@@ -41,9 +42,9 @@ document.addEventListener('DOMContentLoaded', function () {
     checkAccount();
     chrome.tabs.getSelected(null, function (tab) {
         tablink = tab.url;
-        if (tablink.startsWith("http://www.myheritage.com/research/collection")) {
+        if (startsWithRegex(tablink,"http://www\\.myheritage\\.\\w{2,3}/research/collection")) {
             loadLogin();
-        } else if (tablink.startsWith("http://www.myheritage.com/matchingresult")) {
+        } else if (startsWithRegex(tablink,"http://www\\.myheritage\\.\\w{2,3}/matchingresult")) {
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Matches on this results page.');
         } else {
             setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.')
@@ -55,6 +56,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+function startsWithRegex(stringToCheck, query) {
+    var searchPattern = new RegExp('^' + query, 'i');
+    return searchPattern.test(stringToCheck);
+}
 
 function updateLinks(focusprofile) {
     $("#historyurl").attr("href", "http://historylink.herokuapp.com/history" + focusprofile);
@@ -132,7 +138,8 @@ function getPageCode() {
 
 function checkAccount() {
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://historylink.herokuapp.com/account", true);
+    var url =
+    xhr.open("GET", "http://historylink.herokuapp.com/account?version=" + chrome.app.getDetails().version, true);
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
             var response = JSON.parse(xhr.responseText);
@@ -364,8 +371,10 @@ function submitWait() {
         if (partnersubmit) {
             buildTree("", "delete", tempspouse.id);
         }
-        document.getElementById("updating").innerHTML = '<div style="text-align: center;"><strong>Geni Tree Updated</strong><br/>' +
-            '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g","") + '" target="_blank">View Profile</a></div>';
+        document.getElementById("updating").innerHTML = '<div style="text-align: center; font-size: 110%;"><strong>Geni Tree Updated</strong></div>' +
+            '<div style="text-align: center; padding:5px;"><b>View Profile:</b> ' +
+            '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g","") + '" target="_blank">tree view</a>, ' +
+            '<a href="http://www.geni.com/' + focusid.replace("profile-g","") + '" target="_blank">profile view</a></div>';
         console.log("Tree Updated...");
         if (devblocksend) {
             console.log("******** Dev Mode - Blocked Sending ********")
@@ -404,7 +413,7 @@ function parseForm(fs) {
                         //TODO find a Between example and finish this
                     }
                     if (!betweenflag) {
-                        var dt = moment(fulldate.trim(), ["MMM YYYY", "MMM D YYYY", "YYYY", "MMM", "MMM D"]);
+                        var dt = moment(fulldate.trim(), dateformatter);
                         //TODO Probably need to do some more checking below to make sure it doesn't improperly default dates
                         if (isNaN(fulldate)) {
                             var splitd = fulldate.split(" ");

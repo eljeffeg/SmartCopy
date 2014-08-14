@@ -12,46 +12,46 @@
 <div id="backlinks" style="text-align:center;  margin-left: -8px; margin-right: -8px; padding-left: 8px; padding-right: 8px; padding-top: 3px; border-top: solid 1px #ddd;"><span style="margin-right: 8px; margin-top: -3px; font-size: 82%;"><strong><a href="http://historylink.herokuapp.com/history" target="_blank" id="historyurl">History Search</a> <span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylink.herokuapp.com/graph" target="_blank" id="graphurl">Ancestor Graph</a> <span id="curator" style="display: none;"><span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylink.herokuapp.com/leaderboard" target="_blank">Leaderboard</a></span></strong></span></div>
 <div id="smartcopy-container" style="margin-top: 10px; margin-bottom: 10px; display: none;">
 
-        <table style="width: 100%;">
-            <tr><td>
-                <div id='focusname' style="font-size: large; font-weight: bold;"></div>
-                <div id='focusrange' style="font-size: small; margin-bottom: 5px; margin-top: 1px;" ></div>
-            </td><td style="vertical-align: top;">
-                <button type="button" id="submitbutton" class="cta cta-green">Submit</button>
-            </td>
+    <table style="width: 100%;">
+        <tr><td>
+            <div id='focusname' style="font-size: large; font-weight: bold;"></div>
+            <div id='focusrange' style="font-size: small; margin-bottom: 5px; margin-top: 1px;" ></div>
+        </td><td style="vertical-align: top;">
+            <button type="button" id="submitbutton" class="cta cta-green">Submit</button>
+        </td>
+        </tr>
+    </table>
+
+    <div class="shadoweffect" id="options" style="margin-bottom: 10px;">
+        <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
+            <tr>
+                <td style="width: 58px; padding: 0;">
+                    <div class="onoffswitch">
+                        <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                               id="geoonoffswitch" checked>
+                        <label class="onoffswitch-label" for="geoonoffswitch">
+                            <span class="onoffswitch-inner"></span>
+                            <span class="onoffswitch-switch"></span>
+                        </label>
+                    </div>
+                </td>
+                <td style="text-align: left; padding: 0; vertical-align: middle;">Detect geolocation & populate fields</td>
+            </tr>
+            <tr>
+                <td style="padding: 3px 0 0; width: 58px;">
+                    <div class="onoffswitch">
+                        <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                               id="privateonoffswitch" checked>
+                        <label class="onoffswitch-label" for="privateonoffswitch">
+                            <span class="onoffswitch-inner"></span>
+                            <span class="onoffswitch-switch"></span>
+                        </label>
+                    </div>
+                </td>
+                <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Exclude &lt;private&gt; profile auto-select</td>
             </tr>
         </table>
-
-        <div class="shadoweffect" id="options" style="margin-bottom: 10px;">
-                <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
-                    <tr>
-                        <td style="width: 58px; padding: 0;">
-                            <div class="onoffswitch">
-                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                       id="geoonoffswitch" checked>
-                                <label class="onoffswitch-label" for="geoonoffswitch">
-                                    <span class="onoffswitch-inner"></span>
-                                    <span class="onoffswitch-switch"></span>
-                                </label>
-                            </div>
-                        </td>
-                        <td style="text-align: left; padding: 0; vertical-align: middle;">Detect geolocation & populate fields</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 0 0; width: 58px;">
-                            <div class="onoffswitch">
-                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                       id="privateonoffswitch" checked>
-                                <label class="onoffswitch-label" for="privateonoffswitch">
-                                    <span class="onoffswitch-inner"></span>
-                                    <span class="onoffswitch-switch"></span>
-                                </label>
-                            </div>
-                        </td>
-                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Exclude &lt;private&gt; profile auto-select</td>
-                    </tr>
-                </table>
-            </div>
+    </div>
     <form>
         <div id="profiledata" style="display: none; text-align: center;">
 
@@ -98,7 +98,7 @@
         <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
             <div style="text-align: center;"><img src="images/spinner.gif" style="height:24px; padding-right:2px; vertical-align: middle;"> Reading Match...</div>
         </div>
-         <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
+        <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
             <div style="text-align: center;"><img src="images/spinner.gif" style="height:24px; padding-right:2px; vertical-align: middle;"> Updating Geni...</div>
         </div>
         <div id="completed" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">

@@ -36,7 +36,8 @@ function parseSmartMatch(htmlstring, familymembers) {
             var row = rows[r];
             var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
 
-            if (title !== "birth" && title !== 'death' && title !== 'baptism' && title !== 'burial') {
+            if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
+                && title !== 'occupation') {
                 /*
                  This will exclude residence, since the API seems to only support current residence.
                  It also will remove Military Service and any other entry not explicitly defined above.
@@ -47,6 +48,13 @@ function parseSmartMatch(htmlstring, familymembers) {
             //TODO Get Place Names as well
             //console.log(title);
             //console.log(valdate);
+
+            if (title === "occupation") {
+                if (exists($(row).find(".recordFieldValue").contents().get(0))) {
+                    profiledata[title] = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
+                }
+                continue;
+            }
 
             var valdate = "";
             var vallocal = $(row).find(".map_callout_link").text().trim();
@@ -256,6 +264,22 @@ function buildForm() {
 
     var x = 0;
     var ck = 0;
+    if (exists(alldata["profile"]["occupation"])) {
+        x += 1;
+        var title = "occupation";
+        if (scorefactors.contains(title)) {
+            scored = true;
+            ck++;
+        }
+        var occupation = alldata["profile"]["occupation"];
+        var div = $("#profiletable");
+        var membersstring = div[0].innerHTML;
+        membersstring = membersstring +
+            '<tr id="occupation"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored) + '>' +
+            capFL(title) + ':</td><td style="float:right;padding: 0;"><input type="text" name="' + title + '" value="' + occupation + '" ' + isEnabled(occupation, scored) + '></td></tr>';
+        div[0].innerHTML = membersstring;
+    }
+
     // ---------------------- Profile Data --------------------
     for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
         var title = listvalues[list];
@@ -263,7 +287,9 @@ function buildForm() {
         if (exists(obj)) {
             if (x > 0) {
                 var div = $("#profiletable");
-                div[0].innerHTML = div[0].innerHTML + '<tr><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
+                var membersstring = div[0].innerHTML;
+                membersstring = membersstring + '<tr><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
+                div[0].innerHTML = membersstring;
                 // $("#"+title+"separator")[0].style.display = "block";
             }
             x++;
@@ -280,7 +306,7 @@ function buildForm() {
                     var dateval = obj[item].date;
                     membersstring = membersstring +
                         '<tr id="birthdate"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored) + '>' +
-                        capFL(title) + ' Date:</td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':date" value="' + dateval + '" ' + isEnabled(place, scored) + '></td></tr>';
+                        capFL(title) + ' Date:</td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored) + '></td></tr>';
                     div[0].innerHTML = membersstring;
 
                     //div[0].style.display = "block";
@@ -381,6 +407,9 @@ function buildForm() {
                 scored = false;
             }
             var nameval = NameParse.parse(fullname);
+            if((relationship === "child" || relationship === "sibling") && nameval.birthName === "") {
+                nameval.birthName = nameval.lastName;
+            }
             var gender = members[member].gender;
             var membersstring = entry.innerHTML;
             membersstring = membersstring + '<div class="membertitle"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
@@ -391,8 +420,12 @@ function buildForm() {
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.middleName, scored) + '>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '" ' + isEnabled(nameval.middleName, scored) + '></td></tr>' +
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.lastName, scored) + '>Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" ' + isEnabled(nameval.lastName, scored) + '></td></tr>' +
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.birthName, scored) + '>Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" ' + isEnabled(nameval.birthName, scored) + '></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.suffix, scored) + '>Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" ' + isEnabled(nameval.suffix, scored) + '></td></tr>' +
-                '<tr><td class="profilediv" style="padding-top: 2px;"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-top: 2px;"><select style="width: 151px; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.suffix, scored) + '>Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" ' + isEnabled(nameval.suffix, scored) + '></td></tr>';
+            if (exists(members[member]["occupation"])) {
+                var occupation = members[member]["occupation"];
+                membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored) + '>Occupation: </td><td style="float:right; padding: 0px;"><input type="text" name="occupation" value="' + occupation + '" ' + isEnabled(occupation, scored) + '></td></tr>';
+            }
+            membersstring = membersstring + '<tr><td class="profilediv" style="padding-top: 2px;"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-top: 2px;"><select style="width: 151px; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
                 '<option value="male" '+ setGender("male", gender) + '>Male</option><option value="female" '+ setGender("female", gender) + '>Female</option><option value="unknown" '+ setGender("unknown", gender) + '>Unknown</option></select></td></tr>';
 
             for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
@@ -463,7 +496,7 @@ function isValue(object) {
 }
 
 function isEnabled(value, score) {
-   if (score && isValue(value)) {
+    if (score && isValue(value)) {
         return "";
     } else {
         return "disabled";

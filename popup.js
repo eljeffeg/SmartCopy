@@ -103,15 +103,21 @@ chrome.extension.onMessage.addListener(function (request, sender, callback) {
         } else {
             var name = $(request.source).find(".individualInformationName").text().trim();
             setMessage("#f8ff86", 'The copy is only supported on the Matched profile ' + name + '.<br/>' +
-                '<strong>Change Geni Focus Profile</strong><input type="text" id="changeprofile"><button id="changefocus">Update</button>');
+                '<strong><span id="changetext">Change Geni Focus Profile</span></strong><input type="text" id="changeprofile"><button id="changefocus">Update</button>');
             $(function () {
                 $('#changefocus').on('click', function () {
                     var profilelink = getProfile($('#changeprofile')[0].value);
-                    updateLinks(profilelink);
-                    focusid = profilelink.replace("?profile=", "");
-                    document.querySelector('#message').style.display = "none";
-                    profilechanged = true;
-                    getPageCode();
+                    if (profilelink !== "" || devblocksend) {
+                        updateLinks(profilelink);
+                        focusid = profilelink.replace("?profile=", "");
+                        document.querySelector('#message').style.display = "none";
+                        profilechanged = true;
+                        getPageCode();
+                    } else {
+                        var invalidtext = $("#changetext")[0];
+                        invalidtext.innerText = "Invalid Profile Id - Try Again";
+                        invalidtext.style.color ='red';
+                    }
                 });
             });
         }
@@ -139,7 +145,7 @@ function getPageCode() {
 function checkAccount() {
     var xhr = new XMLHttpRequest();
     var url =
-    xhr.open("GET", "http://historylink.herokuapp.com/account?version=" + chrome.app.getDetails().version, true);
+        xhr.open("GET", "http://historylink.herokuapp.com/account?version=" + chrome.app.getDetails().version, true);
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
             var response = JSON.parse(xhr.responseText);
@@ -168,7 +174,7 @@ function loadLogin() {
             var h = 450;
             var left = (screen.width / 2) - (w / 2);
             var top = (screen.height / 2) - (h / 2);
-            //redirect helps it close properly.. not sure why
+            //redirect helps it close the window properly.. not sure why
             chrome.windows.create({'url': 'redirect.html', 'type': 'panel', 'width': w, 'height': h, 'left': left, 'top': top, 'focused': true}, function (window) {
                 //grab the window.id if needed
             });
@@ -299,7 +305,7 @@ var submitform = function() {
                     var familyout = parseForm(fs);
                     buildTree(familyout, "add-" + actionname[1], focusid)
                 } else {
-                    if (!partnersubmit) {
+                    if (!devblocksend && !partnersubmit) {
                         partnersubmit = true;
                         submitstatus.push(submitstatus.length);
                         chrome.extension.sendMessage({
@@ -313,6 +319,10 @@ var submitform = function() {
                             tempspouse = JSON.parse(response.html);
                             submitstatus.pop();
                         });
+                    } else if (devblocksend && !partnersubmit) {
+                        //Dev testing code - give it some fake data so it doesn't fail
+                        partnersubmit = true;
+                        tempspouse = JSON.parse('{"id":"profile-34663119235","unions": ["https://www.geni.com/api/union-58259268"]}');
                     }
 
                 }
@@ -351,7 +361,7 @@ function submitChildren() {
             for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
                 var entry = privateprofiles[profile];
                 if (exists(entry.name) && entry.name.startsWith("checkbox") && entry.checked) {
-                    fs = $("#" + entry.name.replace("checkbox", "slide"));
+                    var fs = $("#" + entry.name.replace("checkbox", "slide"));
                     var actionname = entry.name.split("-"); //get the relationship
                     if (actionname[1] === "child") {
                         var familyout = parseForm(fs);
@@ -396,7 +406,6 @@ function parseForm(fs) {
                 if (splitentry[1] === "date") {
                     var vardate = {};
                     var fulldate = fsinput[item].value;
-                    var betweenflag = false;
 
                     if (fulldate.startsWith("Circa")) {
                         vardate["circa"] = true;
@@ -405,34 +414,65 @@ function parseForm(fs) {
                     if (fulldate.startsWith("After")) {
                         vardate["range"] = "after";
                         fulldate = fulldate.replace("After ", "");
+                        if (fulldate.startsWith("Circa")) {
+                            vardate["circa"] = true;
+                            fulldate = fulldate.replace("Circa ", "");
+                        }
                     } else if (fulldate.startsWith("Before")) {
                         vardate["range"] = "before";
                         fulldate = fulldate.replace("Before ", "");
+                        if (fulldate.startsWith("Circa")) {
+                            vardate["circa"] = true;
+                            fulldate = fulldate.replace("Circa ", "");
+                        }
                     } else if (fulldate.startsWith("Between")) {
-                        betweenflag = true;
-                        //TODO find a Between example and finish this
-                    }
-                    if (!betweenflag) {
-                        var dt = moment(fulldate.trim(), dateformatter);
-                        //TODO Probably need to do some more checking below to make sure it doesn't improperly default dates
-                        if (isNaN(fulldate)) {
-                            var splitd = fulldate.split(" ");
-                            if (splitd.length > 2) {
-                                vardate["day"] = dt.get('date');
-                                vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
-                            } else {
-                                vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                        vardate["range"] = "between";
+                        fulldate = fulldate.replace("Between ", "");
+                        if (fulldate.startsWith("Circa")) {
+                            vardate["circa"] = true;
+                            fulldate = fulldate.replace("Circa ", "");
+                        }
+                        var btsplit = fulldate.split(" and ");
+                        if (btsplit.length > 1) {
+                            fulldate = btsplit[0];
+                            if (btsplit[1].startsWith("Circa ")) {
+                                vardate["end_circa"] = true;
+                                btsplit[1] = btsplit[1].replace("Circa ", "").trim();
                             }
+                            var dt = moment(btsplit[1].trim(), dateformatter);
+                            if (isNaN(btsplit[1])) {
+                                var splitd = btsplit[1].split(" ");
+                                if (splitd.length > 2) {
+                                    vardate["end_day"] = dt.get('date');
+                                    vardate["end_month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                                } else {
+                                    vardate["end_month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                                }
+                            }
+                            vardate["end_year"] = dt.get('year');
                         }
-                        vardate["year"] = dt.get('year');
 
-                        if (!exists(objentry[splitentry[0]])) {
-                            objentry[splitentry[0]] = {};
-                        }
-                        var finalentry = {};
-                        finalentry[splitentry[1]] = vardate;
-                        $.extend(objentry[splitentry[0]], finalentry);
                     }
+                    var dt = moment(fulldate.trim(), dateformatter);
+                    //TODO Probably need to do some more checking below to make sure it doesn't improperly default dates
+                    if (isNaN(fulldate)) {
+                        var splitd = fulldate.split(" ");
+                        if (splitd.length > 2) {
+                            vardate["day"] = dt.get('date');
+                            vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                        } else {
+                            vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                        }
+                    }
+                    vardate["year"] = dt.get('year');
+
+                    if (!exists(objentry[splitentry[0]])) {
+                        objentry[splitentry[0]] = {};
+                    }
+                    var finalentry = {};
+                    finalentry[splitentry[1]] = vardate;
+                    $.extend(objentry[splitentry[0]], finalentry);
+
 
                 } else if (splitentry[1] === "location" && splitentry.length > 2) {
                     if (!exists(objentry[splitentry[0]])) {

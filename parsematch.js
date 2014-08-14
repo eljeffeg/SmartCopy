@@ -45,9 +45,6 @@ function parseSmartMatch(htmlstring, familymembers) {
                 //TODO Look at Marriage and Partner dates - uses the Union API.
                 continue;  //move to the next entry
             }
-            //TODO Get Place Names as well
-            //console.log(title);
-            //console.log(valdate);
 
             if (title === "occupation") {
                 if (exists($(row).find(".recordFieldValue").contents().get(0))) {
@@ -59,28 +56,38 @@ function parseSmartMatch(htmlstring, familymembers) {
             var valdate = "";
             var vallocal = $(row).find(".map_callout_link").text().trim();
             var valplace = "";
-
             //var vdate = $(row).find(".recordFieldValue");
             //var valdate = vdate.clone().children().remove().end().text().trim();
-            if (exists($(row).find(".recordFieldValue").contents().get(0))) {
-                //console.log($(row).find(".recordFieldValue").contents());
-                valdate = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
-                //console.log(valdate);
-                var verifydate = moment(valdate, dateformatter).isValid();
-                if (!verifydate) {
-                    if (valdate !== null && !valdate.toLowerCase().startsWith("parent")) {
-                        valplace = valdate.trim();
-                    }
-                    if (exists($(row).find(".recordFieldValue").contents().get(2))) {
-                        valdate = $(row).find(".recordFieldValue").contents().get(2).nodeValue;
-                    }
-                    verifydate = moment(valdate, dateformatter).isValid();
-                    if (!verifydate) {
-                        valdate = "";
+            var fielddata = $(row).find(".recordFieldValue").contents();
+            dance:
+                for (var i=0; i < fielddata.length; i++) {
+                    if (exists(fielddata.get(i))) {
+                        valdate = fielddata.get(i).nodeValue;
+                        var verifydate = moment(valdate, dateformatter, true).isValid();
+                        if (!verifydate) {
+                            if (valdate !== null && (valdate.toLowerCase().contains(" cemetery") || valdate.toLowerCase().contains(" grave"))) {
+                                valplace = valdate.trim();
+                            } else {
+                                if (fielddata.get(i).hasChildNodes()) {
+                                    var checkchild = fielddata.get(i).childNodes;
+                                    for (var x=0; x < checkchild.length; x++) {
+                                        valdate = checkchild[x].nodeValue;
+                                        verifydate = moment(valdate, dateformatter, true).isValid();
+                                        if (!verifydate) {
+                                            valdate = "";
+                                        } else {
+                                            break dance;
+                                        }
+                                    }
+                                } else {
+                                    valdate = "";
+                                }
+                            }
+                        } else {
+                            break;
+                        }
                     }
                 }
-            }
-
 
             var data = [];
             if (valdate !== "") {
@@ -119,7 +126,8 @@ function parseSmartMatch(htmlstring, familymembers) {
                 for (var r = 0; r < famlist.length; r++) {
                     familystatus.push(r);
                     var row = famlist[r];
-                    //var subdata = parseInfoData(row);
+                    var subdata = parseInfoData(row);
+                    subdata["title"] = title;
                     //console.log(subdata);
                     var urlval = $(row).find(".individualListBodyContainer a").attr("href");
                     var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
@@ -129,10 +137,12 @@ function parseSmartMatch(htmlstring, familymembers) {
                         method: "GET",
                         action: "xhttp",
                         url: shorturl,
-                        variable: title
+                        variable: subdata
                     }, function (response) {
+                        var arg = response.variable;
                         var person = parseSmartMatch(response.html, false);
-                        alldata["family"][response.variable].push(person);
+                        person = updateInfoData(person, arg);
+                        alldata["family"][arg.title].push(person);
                         familystatus.pop();
                     });
                 }
@@ -141,6 +151,39 @@ function parseSmartMatch(htmlstring, familymembers) {
         }
     }
     return profiledata;
+}
+
+function updateInfoData(person, arg) {
+    if (exists(arg.name)) {
+        //This compares the data on the focus profile to the linked profile and uses most complete
+        //Sometimes more information is shown on the SM, but when you click the link it goes <Private>
+        if (person.name.startsWith("\<Private\>") && !arg.name.startsWith("\<Private\>")) {
+            if (!arg.name.contains("(born ") && person.name.contains("(born ")) {
+                var tempname = NameParse.parse(person.name);
+                if (arg.name.contains(tempname.birthName)) {
+                    if (arg.name.contains(tempname.lastName)) {
+                        arg.name = arg.name.replace(tempname.birthName, "(born " + tempname.birthName + ")");
+                    } else {
+                        arg.name = arg.name.replace(tempname.birthName, tempname.lastName + " (born " + tempname.birthName + ")");
+                    }
+                } else {
+                    arg.name = arg.name.trim() + " (born " + tempname.birthName + ")";
+                }
+            }
+            person.name = arg.name;
+            person["alive"] = true;
+        }
+        if (exists(arg.gender) && person.gender === "unknown") {
+            person.gender = arg.gender;
+        }
+        if (exists(arg.birthyear) && !exists(person.birth)) {
+            person["birth"] = [{"date": arg.birthyear}];
+        }
+        if (exists(arg.deathyear) && !exists(person.death)) {
+            person["death"] = [{"date": arg.deathyear}];
+        }
+    }
+    return person;
 }
 
 function parseInfoData(row) {
@@ -367,7 +410,7 @@ function buildForm() {
         var members = obj[relationship];
         var scored = false;
         //Use a common naming scheme
-        if (relationship === "siblings" || relationship === "sibling") {
+        if (relationship === "siblings" || relationship === "sibling" || relationship === "brother" || relationship === "sister") {
             if (scorefactors.contains("sibling")) {
                 scored = true;
                 $('#addsiblingck').prop('checked', true);
@@ -403,11 +446,17 @@ function buildForm() {
             scored = parentscore;
             var entry = $("#" + relationship + "val")[0];
             var fullname = members[member].name;
+            var living = false;
             if (skipprivate && fullname.startsWith("\<Private\>")) {
                 scored = false;
             }
+            if (exists(members[member].alive)){
+                living = members[member].alive;
+            } else if (fullname.startsWith("\<Private\>")) {
+                living = true;
+            }
             var nameval = NameParse.parse(fullname);
-            if((relationship === "child" || relationship === "sibling") && nameval.birthName === "") {
+            if($('#birthonoffswitch').prop('checked') && (relationship === "child" || relationship === "sibling") && nameval.birthName === "") {
                 nameval.birthName = nameval.lastName;
             }
             var gender = members[member].gender;
@@ -425,8 +474,10 @@ function buildForm() {
                 var occupation = members[member]["occupation"];
                 membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored) + '>Occupation: </td><td style="float:right; padding: 0px;"><input type="text" name="occupation" value="' + occupation + '" ' + isEnabled(occupation, scored) + '></td></tr>';
             }
-            membersstring = membersstring + '<tr><td class="profilediv" style="padding-top: 2px;"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-top: 2px;"><select style="width: 151px; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
-                '<option value="male" '+ setGender("male", gender) + '>Male</option><option value="female" '+ setGender("female", gender) + '>Female</option><option value="unknown" '+ setGender("unknown", gender) + '>Unknown</option></select></td></tr>';
+            membersstring = membersstring + '<tr><td class="profilediv" style="padding: 2px; 0px;"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-top: 2px;"><select style="width: 151px; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
+                '<option value="male" '+ setGender("male", gender) + '>Male</option><option value="female" '+ setGender("female", gender) + '>Female</option><option value="unknown" '+ setGender("unknown", gender) + '>Unknown</option></select></td></tr>' +
+                '<tr><td class="profilediv" style="padding: 2px; 0px;"><input type="checkbox" class="checknext" ' + isChecked(living, scored) + '>Vital: </td><td style="float:right; padding-top: 2px;"><select style="width: 151px; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, scored) + '>' +
+                '<option value=false '+ setLiving("deceased", living) + '>Deceased</option><option value=true '+ setLiving("living", living) + '>Living</option></select></td></tr>';
 
             for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
                 var title = listvalues[list];
@@ -508,6 +559,16 @@ function setGender(gender,value) {
         return "selected";
     }
     return "";
+}
+
+function setLiving(living,value) {
+    if (living === "deceased" && !value) {
+        return "selected";
+    } else if (living === "living" && value) {
+        return "selected";
+    } else {
+        return "";
+    }
 }
 
 function isChecked(value, score) {

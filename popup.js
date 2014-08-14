@@ -4,7 +4,7 @@ var profilechanged = false;
 var focusid;
 var tablink;
 var submitcheck = true;
-var dateformatter = ["MMM YYYY", "MMM D YYYY", "YYYY"];
+var dateformatter = ["MMM YYYY", "MMM D YYYY", "YYYY", "MM/ /YYYY"];
 //noinspection JSUnusedGlobalSymbols
 var expandparent = true; //used in expandAll function window[...] var call
 //noinspection JSUnusedGlobalSymbols
@@ -103,7 +103,7 @@ chrome.extension.onMessage.addListener(function (request, sender, callback) {
         } else {
             var name = $(request.source).find(".individualInformationName").text().trim();
             setMessage("#f8ff86", 'The copy is only supported on the Matched profile ' + name + '.<br/>' +
-                '<strong><span id="changetext">Change Geni Focus Profile</span></strong><input type="text" id="changeprofile"><button id="changefocus">Update</button>');
+                '<strong><span id="changetext">Change Geni Destination Profile</span></strong><input type="text" id="changeprofile"><button id="changefocus">Update</button>');
             $(function () {
                 $('#changefocus').on('click', function () {
                     var profilelink = getProfile($('#changeprofile')[0].value);
@@ -499,9 +499,6 @@ function parseForm(fs) {
                 if (fsinput[item].name === "gender") {
                     objentry[fsinput[item].name] = fsinput[item].options[fsinput[item].selectedIndex].value;
                 } else {
-                    if (fsinput[item].name === "first_name" && fsinput[item].value.startsWith("\<Private\>")) {
-                        objentry["is_alive"] = true;
-                    }
                     objentry[fsinput[item].name] = fsinput[item].value;
                 }
             }
@@ -562,6 +559,32 @@ $(function () {
             }
         }
     });
+    $('#birthonoffswitch').on('click', function() {
+        chrome.storage.local.set({'autobirth': this.checked});
+        var profilegroup = $('.checkall');
+        for (var group in profilegroup) if (profilegroup.hasOwnProperty(group)) {
+            if(profilegroup[group].id === "addchildck" || profilegroup[group].id === "addsiblingck") {
+                var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
+                for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
+                    if (exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
+                        var fs = $("#" + privateprofiles[profile].name.replace("checkbox", "slide"));
+                        var lname = fs.find('[name="last_name"]')[0];
+                        var bname = fs.find('[name="maiden_name"]')[0];
+                        if (this.checked) {
+                            if (bname.value === "") {
+                                bname.value = lname.value;
+                            }
+                        } else {
+                            if (bname.value === lname.value) {
+                                bname.value = "";
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+    });
 });
 
 chrome.storage.local.get('autogeo', function (result) {
@@ -575,5 +598,12 @@ chrome.storage.local.get('autoprivate', function (result) {
     var privatechecked = result.autoprivate;
     if(exists(privatechecked)) {
         $('#privateonoffswitch').prop('checked', privatechecked);
+    }
+});
+
+chrome.storage.local.get('autobirth', function (result) {
+    var birthchecked = result.autobirth;
+    if(exists(birthchecked)) {
+        $('#birthonoffswitch').prop('checked', birthchecked);
     }
 });

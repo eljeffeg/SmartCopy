@@ -65,7 +65,10 @@ function parseSmartMatch(htmlstring, familymembers) {
                         valdate = fielddata.get(i).nodeValue;
                         var verifydate = moment(valdate, dateformatter, true).isValid();
                         if (!verifydate) {
-                            if (valdate !== null && (valdate.toLowerCase().contains(" cemetery") || valdate.toLowerCase().contains(" grave"))) {
+                            if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
+                               break;
+                            }
+                            else if (valdate !== null && (valdate.toLowerCase().contains(" cemetery") || valdate.toLowerCase().contains(" grave"))) {
                                 valplace = valdate.trim();
                             } else {
                                 if (fielddata.get(i).hasChildNodes()) {
@@ -74,6 +77,9 @@ function parseSmartMatch(htmlstring, familymembers) {
                                         valdate = checkchild[x].nodeValue;
                                         verifydate = moment(valdate, dateformatter, true).isValid();
                                         if (!verifydate) {
+                                            if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
+                                               break dance;
+                                            }
                                             valdate = "";
                                         } else {
                                             break dance;
@@ -221,7 +227,7 @@ function parseInfoData(row) {
 
 function updateGeo() {
     if (familystatus.length > 0) {
-        setTimeout(updateGeo, 300);
+        setTimeout(updateGeo, 200);
     } else {
         document.getElementById("loading").style.display = "none";
         console.log("Family Processed...");
@@ -292,7 +298,7 @@ function updateGeo() {
 
 function updateFamily() {
     if (geostatus.length > 0) {
-        setTimeout(updateFamily, 300);
+        setTimeout(updateFamily, 200);
     } else {
         document.getElementById("loading").style.display = "none";
         console.log("Geo Processed...");
@@ -447,6 +453,14 @@ function buildForm() {
             var entry = $("#" + relationship + "val")[0];
             var fullname = members[member].name;
             var living = false;
+            if (!scored && relationship === "parent") {
+                //used !== to also select unknown gender
+                if (scorefactors.contains("father") && members[member].gender !== "female") {
+                    scored = true;
+                } else if (scorefactors.contains("mother") && members[member].gender !== "male") {
+                    scored = true;
+                }
+            }
             if (skipprivate && fullname.startsWith("\<Private\>")) {
                 scored = false;
             }

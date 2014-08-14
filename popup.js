@@ -352,7 +352,7 @@ function buildTree(data, action, sendid) {
 
 function submitChildren() {
     if (submitstatus.length > 0) {
-        setTimeout(submitChildren, 300);
+        setTimeout(submitChildren, 200);
     } else {
         if (partnersubmit) {
             var unionid = tempspouse.unions[0].replace("https://www.geni.com/api/", "");
@@ -376,7 +376,7 @@ function submitChildren() {
 
 function submitWait() {
     if (submitstatus.length > 0) {
-        setTimeout(submitWait, 300);
+        setTimeout(submitWait, 200);
     } else {
         if (partnersubmit) {
             buildTree("", "delete", tempspouse.id);

@@ -154,7 +154,7 @@ function getPageCode() {
             }
         });
     } else {
-        var url = tablink.replace(/https?:\/\/www\.myheritage\..*?\//i,"http://www.myheritage.com/");
+        var url = tablink.replace(/https?:\/\/www\.myheritage\..*?\//i,"http://www.myheritage.com/") + "&lang=EN";
         chrome.extension.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -414,8 +414,14 @@ function submitWait() {
     }
 }
 
+var slideoptions = function() {
+    $('#optionslide').slideToggle();
+}
+
 document.getElementById('submitbutton').addEventListener('click', submitform, false);
 document.getElementById('submitbutton2').addEventListener('click', submitform, false);
+document.getElementById('optionbutton').addEventListener('click', slideoptions, false);
+
 
 function parseForm(fs) {
     var objentry = {};

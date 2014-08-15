@@ -12,6 +12,7 @@
 <div id="backlinks" style="text-align:center;  margin-left: -8px; margin-right: -8px; padding-left: 8px; padding-right: 8px; padding-top: 3px; border-top: solid 1px #ddd;"><span style="margin-right: 8px; margin-top: -3px; font-size: 82%;"><strong><a href="http://historylink.herokuapp.com/history" target="_blank" id="historyurl">History Search</a> <span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylink.herokuapp.com/graph" target="_blank" id="graphurl">Ancestor Graph</a> <span id="curator" style="display: none;"><span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylink.herokuapp.com/leaderboard" target="_blank">Leaderboard</a></span></strong></span></div>
 <div id="smartcopy-container" style="margin-top: 10px; margin-bottom: 10px; display: none;">
     <div id="top-container" style="display: none;">
+
         <table style="width: 100%;">
             <tr><td>
                 <div id='focusname' style="font-size: large; font-weight: bold;"></div>
@@ -23,47 +24,52 @@
         </table>
 
         <div class="shadoweffect" id="options" style="margin-bottom: 10px;">
-            <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
-                <tr>
-                    <td style="width: 58px; padding: 0;">
-                        <div class="onoffswitch">
-                            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                   id="geoonoffswitch" checked>
-                            <label class="onoffswitch-label" for="geoonoffswitch">
-                                <span class="onoffswitch-inner"></span>
-                                <span class="onoffswitch-switch"></span>
-                            </label>
-                        </div>
-                    </td>
-                    <td style="text-align: left; padding: 0; vertical-align: middle;">Detect geolocation & populate fields</td>
-                </tr>
-                <tr>
-                    <td style="padding: 3px 0 0; width: 58px;">
-                        <div class="onoffswitch">
-                            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                   id="privateonoffswitch" checked>
-                            <label class="onoffswitch-label" for="privateonoffswitch">
-                                <span class="onoffswitch-inner"></span>
-                                <span class="onoffswitch-switch"></span>
-                            </label>
-                        </div>
-                    </td>
-                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Exclude &lt;private&gt; profile auto-select</td>
-                </tr>
-                <tr>
-                    <td style="padding: 3px 0 0; width: 58px;">
-                        <div class="onoffswitch">
-                            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                   id="birthonoffswitch" checked>
-                            <label class="onoffswitch-label" for="birthonoffswitch">
-                                <span class="onoffswitch-inner"></span>
-                                <span class="onoffswitch-switch"></span>
-                            </label>
-                        </div>
-                    </td>
-                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Auto-populate birth name fields</td>
-                </tr>
-            </table>
+            <div id="optionbutton" style="vertical-align: middle; cursor: pointer;"><img src="/images/admin.png" style="float: left; margin-top: -2px;">
+                <span style="padding-left:5px"><strong>Configuration Options</strong></span><span style="float: right; font-size: 120%; padding-right: 2px;">&#9662;</span></div>
+            <div id="optionslide" style="display: none;">
+                <div class="separator"></div>
+                <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
+                    <tr>
+                        <td style="width: 58px; padding: 0;">
+                            <div class="onoffswitch">
+                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                       id="geoonoffswitch" checked>
+                                <label class="onoffswitch-label" for="geoonoffswitch">
+                                    <span class="onoffswitch-inner"></span>
+                                    <span class="onoffswitch-switch"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td style="text-align: left; padding: 0; vertical-align: middle;">Detect geolocation & populate fields</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 0 0; width: 58px;">
+                            <div class="onoffswitch">
+                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                       id="privateonoffswitch" checked>
+                                <label class="onoffswitch-label" for="privateonoffswitch">
+                                    <span class="onoffswitch-inner"></span>
+                                    <span class="onoffswitch-switch"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Exclude &lt;private&gt; profile auto-select</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 0 0; width: 58px;">
+                            <div class="onoffswitch">
+                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                       id="birthonoffswitch" checked>
+                                <label class="onoffswitch-label" for="birthonoffswitch">
+                                    <span class="onoffswitch-inner"></span>
+                                    <span class="onoffswitch-switch"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Auto-populate birth name fields</td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </div>
     <form>
@@ -106,7 +112,7 @@
                     </fieldset>
                 </div>
             </div>
-            <div style="padding-top: 8px; text-aling: center;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;">Submit</a></div>
+            <div style="padding-top: 8px; text-align: center;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;">Submit</a></div>
         </div>
 
         <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">

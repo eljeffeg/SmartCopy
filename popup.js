@@ -79,9 +79,14 @@ function loadPage(request) {
      in order to prevent them from copying a family or data to the wrong destination.
      Once you click off the initial match, MH adds a row of tabs - using that as indication.
      */
-    if (request.source.indexOf('pk_family_tabs') === -1 || profilechanged) {
+    if (request.source.indexOf('SearchPlansPageManager') !== -1) {
+        document.getElementById("smartcopy-container").style.display = "none";
+        document.getElementById("loading").style.display = "none";
+        setMessage("#f8ff86", 'SmartCopy can work with the various language sites of MyHeritage, but you must have an authenticated session with the English website.<br/><a href="http://www.myheritage.com/">Please login to MyHeritage.com</a>');
+    }
+    else if (request.source.indexOf('pk_family_tabs') === -1 || profilechanged) {
         if (tablink.contains("/collection-1/")) {
-
+            document.getElementById("top-container").style.display = "block";
             var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/g,""));
             var focusperson = parsed.find(".recordTitle").text().trim();
             var focusrange = parsed.find(".recordSubtitle").text().trim();

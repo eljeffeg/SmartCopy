@@ -66,7 +66,7 @@ function parseSmartMatch(htmlstring, familymembers) {
                         var verifydate = moment(valdate, dateformatter, true).isValid();
                         if (!verifydate) {
                             if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
-                               break;
+                                break;
                             }
                             else if (valdate !== null && (valdate.toLowerCase().contains(" cemetery") || valdate.toLowerCase().contains(" grave"))) {
                                 valplace = valdate.trim();
@@ -78,7 +78,7 @@ function parseSmartMatch(htmlstring, familymembers) {
                                         verifydate = moment(valdate, dateformatter, true).isValid();
                                         if (!verifydate) {
                                             if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
-                                               break dance;
+                                                break dance;
                                             }
                                             valdate = "";
                                         } else {
@@ -146,7 +146,7 @@ function parseSmartMatch(htmlstring, familymembers) {
                         variable: subdata
                     }, function (response) {
                         var arg = response.variable;
-                        var person = parseSmartMatch(response.html, false);
+                        var person = parseSmartMatch(response.source, false);
                         person = updateInfoData(person, arg);
                         alldata["family"][arg.title].push(person);
                         familystatus.pop();
@@ -247,7 +247,7 @@ function updateGeo() {
                             url: url,
                             variable: {geoid: memberobj[item].geolocation, geoplace: memberobj[item].geoplace}
                         }, function (response) {
-                            var result = jQuery.parseJSON(response.html);
+                            var result = jQuery.parseJSON(response.source);
                             var georesult = new GeoLocation(result);
                             if (response.variable.geoplace !== "") {
                                 georesult.place = response.variable.geoplace;
@@ -281,7 +281,7 @@ function updateGeo() {
                                     url: url,
                                     variable: memberobj[item].geolocation
                                 }, function (response) {
-                                    var result = jQuery.parseJSON(response.html);
+                                    var result = jQuery.parseJSON(response.source);
                                     geolocation[response.variable] = new GeoLocation(result);
                                     geostatus.pop();
                                 });
@@ -436,7 +436,7 @@ function buildForm() {
             }
             relationship = "parent";
         }
-        else if (relationship === "partners" || relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "husbands" || relationship === "wives") {
+        else if (relationship === "partners" || relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "husbands" || relationship === "wives" || relationship === "ex-husband" || relationship === "ex-wife") {
             if (scorefactors.contains("spouse")) {
                 scored = true;
                 $('#addpartnerck').prop('checked', true);
@@ -470,8 +470,14 @@ function buildForm() {
                 living = true;
             }
             var nameval = NameParse.parse(fullname);
-            if($('#birthonoffswitch').prop('checked') && (relationship === "child" || relationship === "sibling") && nameval.birthName === "") {
-                nameval.birthName = nameval.lastName;
+            if($('#birthonoffswitch').prop('checked')) {
+                if ((relationship === "child" || relationship === "sibling") && nameval.birthName === "") {
+                    nameval.birthName = nameval.lastName;
+                } else if (relationship === "parent" && members[member].gender === "male") {
+                    nameval.birthName = nameval.lastName;
+                } else if (relationship === "partner" && members[member].gender === "male") {
+                    nameval.birthName = nameval.lastName;
+                }
             }
             var gender = members[member].gender;
             var membersstring = entry.innerHTML;

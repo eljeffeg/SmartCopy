@@ -120,6 +120,7 @@ a:hover {
     height: 30px;
     text-decoration: none;
     text-align: center;
+    margin-bottom: 5px;
 
     white-space: nowrap;
     -webkit-border-radius: 5px;

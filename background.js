@@ -15,7 +15,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
         var xhttp = new XMLHttpRequest();
         var method = request.method ? request.method.toUpperCase() : 'GET';
         xhttp.onload = function() {
-            var valrtn = {html: xhttp.responseText, variable: request.variable};
+            var valrtn = {source: xhttp.responseText, variable: request.variable};
             callback(valrtn);
         };
         xhttp.open(method, request.url, true);

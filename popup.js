@@ -42,9 +42,9 @@ document.addEventListener('DOMContentLoaded', function () {
     checkAccount();
     chrome.tabs.getSelected(null, function (tab) {
         tablink = tab.url;
-        if (startsWithRegex(tablink,"http://www\\.myheritage\\.\\w{2,3}/research/collection")) {
+        if (startsWithMH(tablink,"research/collection")) {
             loadLogin();
-        } else if (startsWithRegex(tablink,"http://www\\.myheritage\\.\\w{2,3}/matchingresult")) {
+        } else if (startsWithMH(tablink,"matchingresult")) {
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Matches on this results page.');
         } else {
             setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.')
@@ -57,8 +57,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-function startsWithRegex(stringToCheck, query) {
-    var searchPattern = new RegExp('^' + query, 'i');
+function startsWithMH(stringToCheck, query) {
+    var searchPattern = new RegExp('^https?://www\.myheritage\..*?/' + query, 'i');
     return searchPattern.test(stringToCheck);
 }
 
@@ -69,60 +69,65 @@ function updateLinks(focusprofile) {
 
 chrome.extension.onMessage.addListener(function (request, sender, callback) {
     if (request.action == "getSource") {
-        /*
-         Below checks to make sure the user has not clicked away from the matched profile
-         in order to prevent them from copying a family or data to the wrong destination.
-         Once you click off the initial match, MH adds a row of tabs - using that as indication.
-         */
-        if (request.source.indexOf('pk_family_tabs') === -1 || profilechanged) {
-            if (tablink.contains("/collection-1/")) {
-                document.getElementById("smartcopy-container").style.display = "block";
-                document.getElementById("loading").style.display = "block";
-                var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/g,""));
-                var focusperson = parsed.find(".recordTitle").text().trim();
-                var focusrange = parsed.find(".recordSubtitle").text().trim();
-                if (!profilechanged) {
-                    var focusprofile = parsed.find(".individualInformationProfileLink").attr("href").trim();
-                    focusid = focusprofile.replace("http://www.geni.com/", "");
-                    updateLinks("?profile=" + focusid);
-                }
-                document.getElementById("focusname").innerText = focusperson;
-                if (focusrange !== "") {
-                    document.getElementById("focusrange").innerText = focusrange;
-                }
-                alldata["profile"] = parseSmartMatch(request.source, proaccount);
-
-                if (!proaccount) {
-                    document.getElementById("loading").style.display = "none";
-                    $("#familymembers").attr('disabled', 'disabled');
-                    setMessage("#f8ff86", 'The copying of Family Members is only available to Geni Pro Members.');
-                }
-            } else {
-                setMessage("#f8ff86", 'This MyHeritage collection is not yet supported.');
-            }
-        } else {
-            var name = $(request.source).find(".individualInformationName").text().trim();
-            setMessage("#f8ff86", 'The copy is only supported on the Matched profile ' + name + '.<br/>' +
-                '<strong><span id="changetext">Change Geni Destination Profile</span></strong><input type="text" id="changeprofile"><button id="changefocus">Update</button>');
-            $(function () {
-                $('#changefocus').on('click', function () {
-                    var profilelink = getProfile($('#changeprofile')[0].value);
-                    if (profilelink !== "" || devblocksend) {
-                        updateLinks(profilelink);
-                        focusid = profilelink.replace("?profile=", "");
-                        document.querySelector('#message').style.display = "none";
-                        profilechanged = true;
-                        getPageCode();
-                    } else {
-                        var invalidtext = $("#changetext")[0];
-                        invalidtext.innerText = "Invalid Profile Id - Try Again";
-                        invalidtext.style.color ='red';
-                    }
-                });
-            });
-        }
+        loadPage(request);
     }
 });
+
+function loadPage(request) {
+    /*
+     Below checks to make sure the user has not clicked away from the matched profile
+     in order to prevent them from copying a family or data to the wrong destination.
+     Once you click off the initial match, MH adds a row of tabs - using that as indication.
+     */
+    if (request.source.indexOf('pk_family_tabs') === -1 || profilechanged) {
+        if (tablink.contains("/collection-1/")) {
+
+            var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/g,""));
+            var focusperson = parsed.find(".recordTitle").text().trim();
+            var focusrange = parsed.find(".recordSubtitle").text().trim();
+            if (!profilechanged) {
+                var focusprofile = parsed.find(".individualInformationProfileLink").attr("href").trim();
+                focusid = focusprofile.replace("http://www.geni.com/", "");
+                updateLinks("?profile=" + focusid);
+            }
+            document.getElementById("focusname").innerText = focusperson;
+            if (focusrange !== "") {
+                document.getElementById("focusrange").innerText = focusrange;
+            }
+            alldata["profile"] = parseSmartMatch(request.source, proaccount);
+
+            if (!proaccount) {
+                document.getElementById("loading").style.display = "none";
+                $("#familymembers").attr('disabled', 'disabled');
+                setMessage("#f8ff86", 'The copying of Family Members is only available to Geni Pro Members.');
+            }
+        } else {
+            setMessage("#f8ff86", 'This MyHeritage collection is not yet supported.');
+        }
+    } else {
+        document.getElementById("smartcopy-container").style.display = "none";
+        document.getElementById("loading").style.display = "none";
+        var name = $(request.source).find(".individualInformationName").text().trim();
+        setMessage("#f8ff86", 'The copy is only supported on the Matched profile ' + name + '.<br/>' +
+            '<strong><span id="changetext">Change Geni Destination Profile</span></strong><input type="text" id="changeprofile"><button id="changefocus">Update</button>');
+        $(function () {
+            $('#changefocus').on('click', function () {
+                var profilelink = getProfile($('#changeprofile')[0].value);
+                if (profilelink !== "" || devblocksend) {
+                    updateLinks(profilelink);
+                    focusid = profilelink.replace("?profile=", "");
+                    document.querySelector('#message').style.display = "none";
+                    profilechanged = true;
+                    getPageCode();
+                } else {
+                    var invalidtext = $("#changetext")[0];
+                    invalidtext.innerText = "Invalid Profile Id - Try Again";
+                    invalidtext.style.color ='red';
+                }
+            });
+        });
+    }
+}
 
 function setMessage(color, messagetext) {
     var message = document.querySelector('#message');
@@ -132,20 +137,32 @@ function setMessage(color, messagetext) {
 }
 
 function getPageCode() {
-    chrome.tabs.executeScript(null, {
-        file: "getPagesSource.js"
-    }, function () {
-        // If you try and inject into an extensions page or the webstore/NTP you'll get an error
-        if (chrome.extension.lastError) {
-            message.innerText = 'There was an error injecting script : \n' + chrome.extension.lastError.message;
-        }
-    });
+    document.getElementById("smartcopy-container").style.display = "block";
+    document.getElementById("loading").style.display = "block";
+    if (tablink.startsWith("http://www.myheritage.com/")) {
+        chrome.tabs.executeScript(null, {
+            file: "getPagesSource.js"
+        }, function () {
+            // If you try and inject into an extensions page or the webstore/NTP you'll get an error
+            if (chrome.extension.lastError) {
+                message.innerText = 'There was an error injecting script : \n' + chrome.extension.lastError.message;
+            }
+        });
+    } else {
+        var url = tablink.replace(/https?:\/\/www\.myheritage\..*?\//i,"http://www.myheritage.com/");
+        chrome.extension.sendMessage({
+            method: "GET",
+            action: "xhttp",
+            url: url
+        }, function (response) {
+            loadPage(response);
+        });
+    }
 }
 
 function checkAccount() {
     var xhr = new XMLHttpRequest();
-    var url =
-        xhr.open("GET", "http://historylink.herokuapp.com/account?version=" + chrome.app.getDetails().version, true);
+    xhr.open("GET", "http://historylink.herokuapp.com/account?version=" + chrome.app.getDetails().version, true);
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
             var response = JSON.parse(xhr.responseText);
@@ -165,7 +182,7 @@ function loadLogin() {
         action: "xhttp",
         url: "http://historylink.herokuapp.com/smartlogin"
     }, function (responseText) {
-        if (responseText.html === "<script>window.open('', '_self', ''); window.close();</script>") {
+        if (responseText.source === "<script>window.open('', '_self', ''); window.close();</script>") {
             console.log("Logged In...");
             getPageCode();
         } else {
@@ -315,8 +332,8 @@ var submitform = function() {
                             data: "",
                             variable: ""
                         }, function (response) {
-                            //console.log(response.html);
-                            tempspouse = JSON.parse(response.html);
+                            //console.log(response.source);
+                            tempspouse = JSON.parse(response.source);
                             submitstatus.pop();
                         });
                     } else if (devblocksend && !partnersubmit) {
@@ -580,7 +597,28 @@ $(function () {
                             }
                         }
                     }
-
+                }
+            } else if (profilegroup[group].id === "addparentck" || profilegroup[group].id === "addpartnerck") {
+                var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
+                for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
+                    if (exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
+                        var fs = $("#" + privateprofiles[profile].name.replace("checkbox", "slide"));
+                        var genderobj = fs.find('[name="gender"]')[0];
+                        var gender = genderobj.options[genderobj.selectedIndex].value;
+                        if (gender === "male") {
+                            var lname = fs.find('[name="last_name"]')[0];
+                            var bname = fs.find('[name="maiden_name"]')[0];
+                            if (this.checked) {
+                                if (bname.value === "") {
+                                    bname.value = lname.value;
+                                }
+                            } else {
+                                if (bname.value === lname.value) {
+                                    bname.value = "";
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

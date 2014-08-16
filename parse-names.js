@@ -15,7 +15,8 @@ var NameParse = (function(){
 		// - surname / last name
         // - birth / maiden name
 		// - suffix (II, Phd, Jr, etc)
-	NameParse.parse = function (fullastName) {
+	NameParse.parse = function (fullastName, detectMiddleName) {
+        detectMiddleName = detectMiddleName || true;
 		fullastName = fullastName.trim();
 
 		var nameParts = [];
@@ -86,10 +87,12 @@ var NameParse = (function(){
 			}
 		}
 
-        var checkmiddle = firstName.trim().split(" ");
-        if ((middleName.trim() === "") && (checkmiddle.length > 1)) {
-            middleName = checkmiddle.pop();
-            firstName = checkmiddle.join(" ");
+        if (detectMiddleName) {
+            var checkmiddle = firstName.trim().split(" ");
+            if ((middleName.trim() === "") && (checkmiddle.length > 1)) {
+                middleName = checkmiddle.pop();
+                firstName = checkmiddle.join(" ");
+            }
         }
 	
 		// return the various parts in an array

@@ -4,8 +4,12 @@ var geostatus = [];
 var geoid = 0;
 var geolocation = [];
 var parsecomplete = false;
+var unionurls = [];
+var databyid = [];
+var childlist = [];
 // Parse MyHeritage Tree from Smart Match
-function parseSmartMatch(htmlstring, familymembers) {
+function parseSmartMatch(htmlstring, familymembers, relation) {
+    relation = relation || "";
     var parsed = $('<div>').html(htmlstring.replace(/<img[^>]*>/g, ""));
     var focusperson = parsed.find(".recordTitle").text().trim();
     var focusdaterange = parsed.find(".recordSubtitle").text().trim();
@@ -114,6 +118,7 @@ function parseSmartMatch(htmlstring, familymembers) {
         }
 
         // ---------------------- Family Data --------------------
+        var famid = 0;
         if (familymembers && children.length > 2) {
             //This section is only run on the focus profile
             alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();
@@ -137,7 +142,10 @@ function parseSmartMatch(htmlstring, familymembers) {
                     //console.log(subdata);
                     var urlval = $(row).find(".individualListBodyContainer a").attr("href");
                     var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
-
+                    subdata["url"] = shorturl;
+                    subdata["profile_id"] = famid;
+                    unionurls[famid] = shorturl;
+                    famid ++;
                     //Grab data from the profile's page as it contains more detailed information
                     chrome.extension.sendMessage({
                         method: "GET",
@@ -146,20 +154,44 @@ function parseSmartMatch(htmlstring, familymembers) {
                         variable: subdata
                     }, function (response) {
                         var arg = response.variable;
-                        var person = parseSmartMatch(response.source, false);
+                        var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
                         person = updateInfoData(person, arg);
+                        databyid[arg.profile_id] = person;
                         alldata["family"][arg.title].push(person);
                         familystatus.pop();
                     });
                 }
             }
             updateGeo(); //Poll until all family requests have returned and continue there
+        } else if (children.length > 2) {
+            if (relation.title === "children" || relation.title === "child" || relation.title === "son" || relation.title === "daughter") {
+
+                child = children[2];
+                var rows = $(child).find('tr');
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var relationship = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
+
+                    if (relationship === "parents" || relationship === "father" || relationship === "mother" || relationship === "parent") {
+                        var valfamily = $(row).find(".recordFieldValue");
+                        var famlist = $(valfamily).find(".individualsListContainer");
+                        for (var r = 0; r < famlist.length; r++) {
+                            var row = famlist[r];
+                            var urlval = $(row).find(".individualListBodyContainer a").attr("href");
+                            childlist[relation.proid] = $.inArray(urlval, unionurls);
+                            profiledata["parent_id"] = $.inArray(urlval, unionurls);
+                        }
+                    }
+                }
+            }
         }
     }
     return profiledata;
 }
 
 function updateInfoData(person, arg) {
+    person["url"] = arg["url"];  //TODO Not currently used - future follow profile
+    person["profile_id"] = arg["profile_id"];
     if (exists(arg.name)) {
         //This compares the data on the focus profile to the linked profile and uses most complete
         //Sometimes more information is shown on the SM, but when you click the link it goes <Private>
@@ -485,6 +517,7 @@ function buildForm() {
                 '<td style="font-size: 90%; padding: 0px;"><input type="checkbox" class="checkslide" name="checkbox' + i + "-" + relationship + '" ' + isChecked(fullname, scored) + '><a name="' + i + "-" + relationship + '">' + escapeHtml(fullname) + '</a></td>' +
                 '<td style="font-size: 130%; float: right; padding: 0px 5px;"><a name="' + i + "-" + relationship + '">&#9662;</a></td></tr></table></div>' +
                 '<div id="slide' + i + "-" + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
+                '<tr><td colspan="2"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '" ' + isEnabled(members[member].profile_id, scored) + '></td></tr>' +
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored) + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored) + '></td></tr>' +
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.middleName, scored) + '>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '" ' + isEnabled(nameval.middleName, scored) + '></td></tr>' +
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.lastName, scored) + '>Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" ' + isEnabled(nameval.lastName, scored) + '></td></tr>' +
@@ -548,14 +581,14 @@ function buildForm() {
 
     $(function () {
         $('.checknext').on('click', function () {
-            $(this).closest('tr').find("input:text,select").attr("disabled", !this.checked);
+            $(this).closest('tr').find("input:text,select,input:hidden").attr("disabled", !this.checked);
         });
     });
     $(function () {
         $('.checkslide').on('click', function () {
             var fs = $("#" + this.name.replace("checkbox", "slide"));
             fs.find(':checkbox').prop('checked', this.checked);
-            fs.find('input:text,select').attr('disabled', !this.checked);
+            fs.find('input:text,select,input:hidden').attr('disabled', !this.checked);
         });
     });
     document.getElementById("familydata").style.display = "block";

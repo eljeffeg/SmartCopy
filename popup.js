@@ -301,6 +301,7 @@ $(function () {
 var submitstatus = [];
 var tempspouse = [];
 var spouselist = [];
+var addchildren = [];
 var submitform = function() {
     if (parsecomplete && submitcheck) {
 
@@ -323,9 +324,11 @@ var submitform = function() {
             if (exists(entry.name) && entry.name.startsWith("checkbox") && entry.checked) {
                 fs = $("#" + entry.name.replace("checkbox", "slide"));
                 var actionname = entry.name.split("-"); //get the relationship
+                var familyout = parseForm(fs);
                 if (actionname[1] !== "child") {
-                    var familyout = parseForm(fs);
                     buildTree(familyout, "add-" + actionname[1], focusid);
+                } else {
+                    addchildren[familyout.profile_id] = familyout;
                 }
             }
         }
@@ -333,32 +336,6 @@ var submitform = function() {
 
     submitChildren();
 };
-
-function buildTempSpouse(parentid) {
-    if (!devblocksend) {
-        submitstatus.push(submitstatus.length);
-        chrome.extension.sendMessage({
-            method: "POST",
-            action: "xhttp",
-            url: "http://historylink.herokuapp.com/smartsubmit?profile=" + focusid + "&action=add-partner",
-            data: "",
-            variable: {"id": parentid}
-        }, function (response) {
-            var spouse = JSON.parse(response.source);
-            if (response.variable.id > 0) {
-                spouselist[response.variable.id] = spouse.unions[0].replace("https://www.geni.com/api/", "");
-                tempspouse[response.variable.id] = spouse.id;
-            } else {
-                spouselist[0] = spouse.unions[0].replace("https://www.geni.com/api/", "");
-                tempspouse[0] = spouse.id;
-            }
-            submitstatus.pop();
-        });
-    } else if (devblocksend) {
-        //Dev testing code - give it some fake data so it doesn't fail
-        spouselist[parentid] = "union-58259268";
-    }
-}
 
 function buildTree(data, action, sendid) {
     if(!$.isEmptyObject(data) && !devblocksend) {
@@ -397,36 +374,56 @@ function submitChildren() {
         setTimeout(submitChildren, 200);
     } else if (!checkchildren) {
         checkchildren = true;
-        for(var i = 0; i < childlist.length; i++) {
-            if (exists(childlist[i]) && !exists(spouselist[childlist[i]])) {
-                buildTempSpouse(childlist[i]);
-                break;
+        var tempadded = [];
+        for(var i = 0; i < addchildren.length; i++) {
+            if (exists(addchildren[i])) {
+                var childid = childlist[i];
+                if (childid === -1) {
+                    childid = 0;
+                }
+                if (!exists(tempadded[childid]) && !exists(spouselist[childid])) {
+                    //Add a temp for each spouse which is a parent that is not added
+                    buildTempSpouse(childid);
+                    tempadded[childid] = "added";
+                }
             }
         }
         submitChildren();
     } else {
-        //var unionid = tempspouse.unions[0].replace("https://www.geni.com/api/", "");
-        // --------------------- Add Family Data ---------------------
-        var privateprofiles = $('.checkslide');
-        for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
-            var entry = privateprofiles[profile];
-            if (exists(entry.name) && entry.name.startsWith("checkbox") && entry.checked) {
-                var fs = $("#" + entry.name.replace("checkbox", "slide"));
-                var actionname = entry.name.split("-"); //get the relationship
-                if (actionname[1] === "child") {
-                    var familyout = parseForm(fs);
-                    var clid = childlist[familyout.profile_id];
-                    if (clid === -1) {
-                        clid = 0;
-                    }
-                    var parentunion = spouselist[clid];
-                    if (exists(parentunion)) {
-                        buildTree(familyout, "add-child", parentunion);
-                    }
-                }
+        // --------------------- Add Child Data ---------------------
+        for (var child in addchildren) if (addchildren.hasOwnProperty(child)) {
+            var familyout = addchildren[child];
+            var clid = childlist[familyout.profile_id];
+            if (clid === -1) {
+                clid = 0;
+            }
+            var parentunion = spouselist[clid];
+            if (exists(parentunion)) {
+                buildTree(familyout, "add-child", parentunion);
             }
         }
         submitWait();
+    }
+}
+
+function buildTempSpouse(parentid) {
+    if (!devblocksend) {
+        submitstatus.push(submitstatus.length);
+        chrome.extension.sendMessage({
+            method: "POST",
+            action: "xhttp",
+            url: "http://historylink.herokuapp.com/smartsubmit?profile=" + focusid + "&action=add-partner",
+            data: "",
+            variable: {"id": parentid}
+        }, function (response) {
+            var spouse = JSON.parse(response.source);
+            spouselist[response.variable.id] = spouse.unions[0].replace("https://www.geni.com/api/", "");
+            tempspouse[response.variable.id] = spouse.id;
+            submitstatus.pop();
+        });
+    } else if (devblocksend) {
+        //Dev testing code - give it some fake data so it doesn't fail
+        spouselist[parentid] = "union-58259268";
     }
 }
 
@@ -461,7 +458,10 @@ document.getElementById('optionbutton').addEventListener('click', slideoptions, 
 
 function parseForm(fs) {
     var objentry = {};
-    var fsinput = fs.find('input:text,select,input:hidden');
+    var rawinput = fs.find('input:text,select,input:hidden');
+    var fsinput = rawinput.filter(function(item) {
+        return ($(rawinput[item]).closest('tr').css('display') !== 'none');
+    });
     for (var item in fsinput) if (fsinput.hasOwnProperty(item)) {
         if (exists(fsinput[item].value) && !fsinput[item].disabled && fsinput[item].name !== "") {
             //console.log(fsinput[item].name + ":" + fsinput[item].value);
@@ -513,7 +513,9 @@ function parseForm(fs) {
                                     vardate["end_month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
                                 }
                             }
-                            vardate["end_year"] = dt.get('year');
+                            if (dt.get('year') !== 0) {
+                                vardate["end_year"] = dt.get('year');
+                            }
                         }
 
                     }
@@ -528,41 +530,36 @@ function parseForm(fs) {
                             vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
                         }
                     }
-                    vardate["year"] = dt.get('year');
-
-                    if (!exists(objentry[splitentry[0]])) {
-                        objentry[splitentry[0]] = {};
+                    if (dt.get('year') !== 0) {
+                        vardate["year"] = dt.get('year');
                     }
-                    var finalentry = {};
-                    finalentry[splitentry[1]] = vardate;
-                    $.extend(objentry[splitentry[0]], finalentry);
 
-
+                    if (!$.isEmptyObject(vardate)) {
+                        var finalentry = {};
+                        if (!exists(objentry[splitentry[0]])) {
+                            objentry[splitentry[0]] = {};
+                        }
+                        finalentry[splitentry[1]] = vardate;
+                        $.extend(objentry[splitentry[0]], finalentry);
+                    }
                 } else if (splitentry[1] === "location" && splitentry.length > 2) {
-                    if (!exists(objentry[splitentry[0]])) {
-                        objentry[splitentry[0]] = {};
+                    if (fsinput[item].value !== "") {
+                        var varlocation = {};
+                        var fieldname = splitentry[2];
+                        varlocation[fieldname] = fsinput[item].value;
+                        if (!exists(objentry[splitentry[0]])) {
+                            objentry[splitentry[0]] = {};
+                        }
+                        if (!exists(objentry[splitentry[0]][splitentry[1]])) {
+                            objentry[splitentry[0]][splitentry[1]] = {};
+                        }
+                        $.extend(objentry[splitentry[0]][splitentry[1]], varlocation);
                     }
-                    var geocheck = $('#geoonoffswitch').prop('checked');
-                    var fieldname = splitentry[2];
-                    if (geocheck && fieldname === "place_name") {
-                        continue;
-                    } else if (!geocheck && fieldname !== "place_name") {
-                        continue;
-                    }
-                    if (fieldname === "place_name_geo") {
-                        fieldname = "place_name";
-                    }
-                    var varlocation = {};
-                    varlocation[fieldname] = fsinput[item].value;
-                    if (!exists(objentry[splitentry[0]][splitentry[1]])) {
-                        objentry[splitentry[0]][splitentry[1]] = {};
-                    }
-                    $.extend(objentry[splitentry[0]][splitentry[1]], varlocation);
                 }
             } else {
                 if (fsinput[item].name === "gender") {
                     objentry[fsinput[item].name] = fsinput[item].options[fsinput[item].selectedIndex].value;
-                } else {
+                } else if (fsinput[item].value !== "") {
                     objentry[fsinput[item].name] = fsinput[item].value;
                 }
             }
@@ -584,7 +581,7 @@ $(function () {
             if(profilegroup[group].checked) { //only check it if the section is checked
                 var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
                 for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
-                    if (exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
+                    if (exists(privateprofiles[profile]) && exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
                         if ($(privateprofiles[profile]).next().text().startsWith("\<Private\>")) {
                             $(privateprofiles[profile]).prop('checked', !this.checked);
                             var fs = $("#" + privateprofiles[profile].name.replace("checkbox", "slide"));
@@ -598,7 +595,11 @@ $(function () {
     });
     $('#geoonoffswitch').on('click', function () {
         chrome.storage.local.set({'autogeo': this.checked});
-        if (this.checked) {
+        geoonoff(this.checked);
+        hideempty($('#hideemptyonoffswitch').prop('checked'));
+    });
+    function geoonoff(value) {
+        if (value) {
             var locobj = document.getElementsByClassName("geoloc");
             for (var i=0;i < locobj.length; i++) {
                 locobj[i].style.display = "table-row";
@@ -622,7 +623,7 @@ $(function () {
                 $(placeobj[i]).find(":input").prop("disabled", false);
             }
         }
-    });
+    }
     $('#birthonoffswitch').on('click', function() {
         chrome.storage.local.set({'autobirth': this.checked});
         var profilegroup = $('.checkall');
@@ -630,7 +631,7 @@ $(function () {
             if(profilegroup[group].id === "addchildck" || profilegroup[group].id === "addsiblingck") {
                 var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
                 for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
-                    if (exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
+                    if (exists(privateprofiles[profile]) && exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
                         var fs = $("#" + privateprofiles[profile].name.replace("checkbox", "slide"));
                         var lname = fs.find('[name="last_name"]')[0];
                         var bname = fs.find('[name="maiden_name"]')[0];
@@ -648,7 +649,7 @@ $(function () {
             } else if (profilegroup[group].id === "addparentck" || profilegroup[group].id === "addpartnerck") {
                 var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
                 for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
-                    if (exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
+                    if (exists(privateprofiles[profile]) && exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
                         var fs = $("#" + privateprofiles[profile].name.replace("checkbox", "slide"));
                         var genderobj = fs.find('[name="gender"]')[0];
                         var gender = genderobj.options[genderobj.selectedIndex].value;
@@ -670,6 +671,39 @@ $(function () {
             }
         }
     });
+    $('#mnameonoffswitch').on('click', function () {
+        chrome.storage.local.set({'automname': this.checked});
+        var profilegroup = $('.checkall');
+        for (var group in profilegroup) if (profilegroup.hasOwnProperty(group)) {
+            var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
+            for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
+                if (exists(privateprofiles[profile]) && exists(privateprofiles[profile].name) &&  privateprofiles[profile].name.startsWith("checkbox")) {
+                    if (exists($(privateprofiles[profile]).next()[0])) {
+                        var name = NameParse.parse($(privateprofiles[profile]).next()[0].text, this.checked);
+                        var fs = $("#" + privateprofiles[profile].name.replace("checkbox", "slide"));
+                        var fname = fs.find('[name="first_name"]')[0];
+                        var mname = fs.find('[name="middle_name"]')[0];
+                        fname.value = name.firstName;
+                        mname.value = name.middleName;
+
+                    }
+                }
+            }
+
+        }
+    });
+    $('#hideemptyonoffswitch').on('click', function () {
+        chrome.storage.local.set({'hideempty': this.checked});
+        hideempty(this.checked);
+    });
+    function hideempty(value) {
+        if (value) {
+            $('#formdata').find(".hiddenrow").css("display", "none");
+        } else {
+            $('#formdata').find(".hiddenrow").css("display", "table-row");
+            geoonoff($('#geoonoffswitch').prop('checked'));
+        }
+    }
 });
 
 chrome.storage.local.get('autogeo', function (result) {
@@ -690,5 +724,19 @@ chrome.storage.local.get('autobirth', function (result) {
     var birthchecked = result.autobirth;
     if(exists(birthchecked)) {
         $('#birthonoffswitch').prop('checked', birthchecked);
+    }
+});
+
+chrome.storage.local.get('automname', function (result) {
+    var mnamechecked = result.automname;
+    if(exists(mnamechecked)) {
+        $('#mnameonoffswitch').prop('checked', mnamechecked);
+    }
+});
+
+chrome.storage.local.get('hideempty', function (result) {
+    var hidechecked = result.hideempty;
+    if(exists(hidechecked)) {
+        $('#hideemptyonoffswitch').prop('checked', hidechecked);
     }
 });

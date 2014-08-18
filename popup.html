@@ -66,13 +66,39 @@
                                 </label>
                             </div>
                         </td>
-                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Auto-populate birth name fields</td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Auto-populate empty birth name fields</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 0 0; width: 58px;">
+                            <div class="onoffswitch">
+                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                       id="mnameonoffswitch" checked>
+                                <label class="onoffswitch-label" for="mnameonoffswitch">
+                                    <span class="onoffswitch-inner"></span>
+                                    <span class="onoffswitch-switch"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Parse for middle names automatically</td>
+                    </tr>
+                     <tr>
+                        <td style="padding: 3px 0 0; width: 58px;">
+                            <div class="onoffswitch">
+                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                       id="hideemptyonoffswitch" checked>
+                                <label class="onoffswitch-label" for="hideemptyonoffswitch">
+                                    <span class="onoffswitch-inner"></span>
+                                    <span class="onoffswitch-switch"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Hide event sections with empty fields</td>
                     </tr>
                 </table>
             </div>
         </div>
     </div>
-    <form>
+    <form id="formdata">
         <div id="profiledata" style="display: none; text-align: center;">
 
             <strong>Profile Data</strong>
@@ -116,13 +142,11 @@
         </div>
 
         <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
-            <div style="text-align: center;"><img src="images/spinner.gif" style="height:24px; padding-right:2px; vertical-align: middle;"> Reading Match...</div>
+            <div style="text-align: center; padding-top: 2px;"><img src="images/spinner.gif" style="height:24px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Reading Match...</strong></div>
         </div>
         <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
-            <div style="text-align: center;"><img src="images/spinner.gif" style="height:24px; padding-right:2px; vertical-align: middle;"> Updating Geni...</div>
-        </div>
-        <div id="completed" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
-            <div style="text-align: center;"><strong>Completed: Tree Updated</strong></div>
+            <div style="text-align: center; padding-top: 2px; padding-right: 10px; padding-left: 10px;"><img src="images/spinner.gif" style="height:24px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Updating Geni...</strong>
+                <div style="padding-top: 5px;">Leaving this window before completion could result in an incomplete data copy.</div></div>
         </div>
     </form>
 </div>

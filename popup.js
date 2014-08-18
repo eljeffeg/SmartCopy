@@ -546,6 +546,9 @@ function parseForm(fs) {
                     if (fsinput[item].value !== "") {
                         var varlocation = {};
                         var fieldname = splitentry[2];
+                        if (fieldname === "place_name_geo") {
+                            fieldname = "place_name";
+                        }
                         varlocation[fieldname] = fsinput[item].value;
                         if (!exists(objentry[splitentry[0]])) {
                             objentry[splitentry[0]] = {};

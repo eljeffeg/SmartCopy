@@ -100,6 +100,9 @@ var NameParse = (function(){
             var checkmiddle = firstName.trim().split(" ");
             if ((middleName.trim() === "") && (checkmiddle.length > 1)) {
                 middleName = checkmiddle.pop();
+                while (checkmiddle.length > 2) {
+                    middleName = checkmiddle.pop() + " " + middleName;
+                }
                 firstName = checkmiddle.join(" ");
             }
         }

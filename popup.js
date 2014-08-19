@@ -99,7 +99,7 @@ function loadPage(request) {
             if (focusrange !== "") {
                 document.getElementById("focusrange").innerText = focusrange;
             }
-            alldata["profile"] = parseSmartMatch(request.source, proaccount);
+            parseSmartMatch(request.source, proaccount);
 
             if (!proaccount) {
                 document.getElementById("loading").style.display = "none";
@@ -606,24 +606,31 @@ $(function () {
             var locobj = document.getElementsByClassName("geoloc");
             for (var i=0;i < locobj.length; i++) {
                 locobj[i].style.display = "table-row";
-                $(locobj[i]).find(":input").prop("disabled", false);
+                var pinput = $(locobj[i]).find(":input:text");
+                pinput.filter(function(item) {
+                    var checkbox = $(pinput[item]).closest("tr").find(":input:checkbox");
+                    return (pinput[item].value !== "" && checkbox.checked);
+                }).prop("disabled", false);
             }
             var placeobj = document.getElementsByClassName("geoplace");
             for (var i=0;i < placeobj.length; i++) {
                 placeobj[i].style.display = "none";
-                $(placeobj[i]).find(":input").prop("disabled", true);
+                $(placeobj[i]).find(":input:text").prop("disabled", true);
             }
-
         } else {
             var locobj = document.getElementsByClassName("geoloc");
             for (var i=0;i < locobj.length; i++) {
                 locobj[i].style.display = "none";
-                $(locobj[i]).find(":input").prop("disabled", true);
+                $(locobj[i]).find(":input:text").prop("disabled", true);
             }
             var placeobj = document.getElementsByClassName("geoplace");
             for (var i=0;i < placeobj.length; i++) {
                 placeobj[i].style.display = "table-row";
-                $(placeobj[i]).find(":input").prop("disabled", false);
+                var pinput = $(placeobj[i]).find(":input:text");
+                pinput.filter(function(item) {
+                    var checkbox = $(pinput[item]).closest("tr").find(":input:checkbox");
+                    return (pinput[item].value !== ""  && checkbox.checked);
+                }).prop("disabled", false);
             }
         }
     }
@@ -697,6 +704,11 @@ $(function () {
     });
     $('#hideemptyonoffswitch').on('click', function () {
         chrome.storage.local.set({'hideempty': this.checked});
+        if (!this.checked) {
+          document.getElementById("profiledata").style.display = "block";
+        } else if (hideprofile) {
+          document.getElementById("profiledata").style.display = "none";
+        }
         hideempty(this.checked);
     });
     function hideempty(value) {

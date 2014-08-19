@@ -1,5 +1,5 @@
 body {
-    min-width: 320px;
+    min-width: 335px;
     overflow-x: hidden;
     color: #3b5998;
     background-color: #eff3f7;
@@ -36,6 +36,8 @@ body {
     position: relative;
     text-align: left;
     z-index: 3;
+    margin-right: 4px;
+    margin-left: 4px;
 }
 .fieldeffect {
     border: 1px solid #ddd;

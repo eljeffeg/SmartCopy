@@ -94,6 +94,7 @@ var NameParse = (function(){
             for (j=i; j<end; j++) {
                 lastName += " " + this.fix_case(nameParts[j]);
             }
+            lastName = this.removeIgnoredChars(lastName);
         }
 
         if (detectMiddleName) {
@@ -143,8 +144,10 @@ var NameParse = (function(){
     };
 
     NameParse.removeIgnoredChars = function (word) {
-        //ignore periods
-        return word.replace(".","");
+        //ignore periods and commas
+        word = word.replace(".","");
+        word = word.replace(",","");
+        return word;
     };
 
     // detect and format standard salutations

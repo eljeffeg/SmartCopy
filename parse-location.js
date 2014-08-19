@@ -1,6 +1,7 @@
-;var GeoLocation = function (results) {
+;var GeoLocation = function (results, query) {
 
     var location = {};
+    location.query = query || "";
     location.place = "";
     location.zip = "";
     location.city = "";

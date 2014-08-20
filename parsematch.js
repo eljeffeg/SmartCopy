@@ -117,14 +117,13 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
             profiledata[title] = data;
         }
-        alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();
-        if (familymembers) {
-            alldata["profile"] = profiledata;
-        }
+
         // ---------------------- Family Data --------------------
         var famid = 0;
         if (familymembers && children.length > 2) {
             //This section is only run on the focus profile
+            alldata["profile"] = profiledata;
+            alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();
 
             alldata["family"] = {};
             child = children[2];
@@ -188,7 +187,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     }
                 }
             }
-        } else if (familymembers) {
+        } else if (relation === "") {
+            alldata["profile"] = profiledata;
+            alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();
             updateGeo();
         }
     }
@@ -550,8 +551,10 @@ function buildForm() {
                 //used !== to also select unknown gender
                 if (scorefactors.contains("father") && members[member].gender !== "female") {
                     scored = true;
+                    $('#addparentck').prop('checked', true);
                 } else if (scorefactors.contains("mother") && members[member].gender !== "male") {
                     scored = true;
+                    $('#addparentck').prop('checked', true);
                 }
             }
             if (skipprivate && fullname.startsWith("\<Private\>")) {
@@ -698,7 +701,7 @@ function buildForm() {
     if (i > 0) {
         document.getElementById("familydata").style.display = "block";
     }
-
+    document.getElementById("bottomsubmit").style.display = "block";
     parsecomplete = true;
 }
 

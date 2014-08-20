@@ -64,9 +64,9 @@ var NameParse = (function(){
             // for ex: "R. Jason Smith" => "Jason Smith" & "R." is stored as an initial
             // but "R. J. Smith" => "R. Smith" and "J." is stored as an initial
             if (this.is_initial(nameParts[start + 1])) {
-                firstName += " " + word.toUpperCase();
+                firstName += " " + word.toLocaleUpperCase();
             } else {
-                middleName += " " + word.toUpperCase();
+                middleName += " " + word.toLocaleUpperCase();
             }
         } else {
             firstName += " " + this.fix_case(word);
@@ -82,7 +82,7 @@ var NameParse = (function(){
             }
 
             if (this.is_initial(word)) {
-                middleName += " " + word.toUpperCase();
+                middleName += " " + word.toLocaleUpperCase();
             } else {
                 firstName += " " + this.fix_case(word);
             }
@@ -153,7 +153,7 @@ var NameParse = (function(){
     // detect and format standard salutations
     // I'm only considering english honorifics for now & not words like
     NameParse.is_salutation = function (word) {
-        word = this.removeIgnoredChars(word).toLowerCase();
+        word = this.removeIgnoredChars(word).toLocaleLowerCase();
         // returns normalized values
         if (word === "mr" || word === "master" || word === "mister") {
             return "Mr.";
@@ -174,7 +174,7 @@ var NameParse = (function(){
 
     //  detect and format common suffixes
     NameParse.is_suffix = function (word) {
-        word = this.removeIgnoredChars(word).toLowerCase();
+        word = this.removeIgnoredChars(word).toLocaleLowerCase();
         // these are some common suffixes - what am I missing?
         var suffixArray = [
             'I','II','III','IV','V','Senior','Junior','Jr','Sr','PhD','APR','RPh','PE','MD','MA','DMD','CME',
@@ -184,7 +184,7 @@ var NameParse = (function(){
         ];
 
         var suffixIndex = suffixArray.map(function(suffix){
-            return suffix.toLowerCase();
+            return suffix.toLocaleLowerCase();
         }).indexOf(word);
 
         if(suffixIndex >= 0) {
@@ -196,7 +196,7 @@ var NameParse = (function(){
 
     // detect compound last names like "Von Fange"
     NameParse.is_compound_lastName = function (word) {
-        word = word.toLowerCase();
+        word = word.toLocaleLowerCase();
         // these are some common prefixes that identify a compound last names - what am I missing?
         var words = ['vere','von','van','de','del','della','di','da','pietro','vanden','du','st.','st','la','lo','ter'];
         return (words.indexOf(word) >= 0);
@@ -233,7 +233,7 @@ var NameParse = (function(){
             if(this.is_camel_case(thisWord)) {
                 return thisWord;
             } else {
-                return thisWord.substr(0,1).toUpperCase() + thisWord.substr(1).toLowerCase();
+                return thisWord.substr(0,1).toLocaleUpperCase() + thisWord.substr(1).toLocaleLowerCase();
             }
         }, this).join(seperator);
     };

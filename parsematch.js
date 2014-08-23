@@ -177,9 +177,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             subdata["marriage"] = marriagedata[0];
                         } else {
                             for (var m=0; m < marriagedata.length; m++) {
-                                if (marriagedata[m].name === subdata.name) {
-                                    subdata["marriage"] = marriagedata[m];
-                                    break;
+                                if (exists(marriagedata[m][0]) && exists(marriagedata[m][0].name)) {
+                                    if (marriagedata[m][0].name === subdata.name) {
+                                        subdata["marriage"] = marriagedata[m];
+                                        break;
+                                    }
                                 }
                             }
                         }

@@ -7,11 +7,19 @@ var parsecomplete = false;
 var unionurls = [];
 var databyid = [];
 var childlist = [];
+var marriagedata = [];
 var hideprofile = false;
 // Parse MyHeritage Tree from Smart Match
 function parseSmartMatch(htmlstring, familymembers, relation) {
     relation = relation || "";
     var parsed = $('<div>').html(htmlstring.replace(/<img[^>]*>/g, ""));
+    /*
+     var image = parsed.find(".recordImageBoxContainer").find('a');
+     if (exists(image[0])) {
+     console.log(image[0].href);  //TODO Profile photo
+     }
+     */
+
     var focusperson = parsed.find(".recordTitle").text().trim();
     var focusdaterange = parsed.find(".recordSubtitle").text().trim();
     //console.log(focusperson);
@@ -23,7 +31,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     } else if ($(genderimage).hasClass('PK_Silhouette_S_150_F_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_150_F_C_LTR')) {
         genderval = "female";
     }
-    var profiledata = {name: focusperson, gender: genderval};
+    var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     var records = parsed.find(".recordFieldsContainer");
     if (records.length > 0 && records[0].hasChildNodes()) {
 
@@ -34,7 +42,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         var children = records[0].childNodes;
         var child = children[0];
         var rows = $(child).find('tr');
-
         for (var r = 0; r < rows.length; r++) {
 
             // console.log(row);
@@ -42,12 +49,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
 
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
-                && title !== 'occupation') {
+                && title !== 'occupation' && !(title === 'marriage' && relation === "")) {
                 /*
                  This will exclude residence, since the API seems to only support current residence.
                  It also will remove Military Service and any other entry not explicitly defined above.
                  */
-                //TODO Look at Marriage and Partner dates - uses the Union API.
                 continue;  //move to the next entry
             }
 
@@ -63,6 +69,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             var valplace = "";
             //var vdate = $(row).find(".recordFieldValue");
             //var valdate = vdate.clone().children().remove().end().text().trim();
+            var data = [];
             var fielddata = $(row).find(".recordFieldValue").contents();
             dance:
                 for (var i=0; i < fielddata.length; i++) {
@@ -75,6 +82,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             }
                             else if (valdate !== null && (valdate.toLowerCase().contains(" cemetery") || valdate.toLowerCase().contains(" grave"))) {
                                 valplace = valdate.trim();
+                            } else if (valdate !== null && valdate.toLowerCase().startsWith("marriage to")) {
+                                data.push({name: valdate.replace("Marriage to: ","")});
                             } else {
                                 if (fielddata.get(i).hasChildNodes()) {
                                     var checkchild = fielddata.get(i).childNodes;
@@ -100,7 +109,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     }
                 }
 
-            var data = [];
             if (valdate !== "") {
                 data.push({date: valdate});
             }
@@ -115,7 +123,30 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 data.push({location: vallocal, geolocation: geoid, geoplace: valplace});
                 geoid++;
             }
-            profiledata[title] = data;
+
+            if (title !== 'marriage') {
+                profiledata[title] = data;
+            } else if (!$.isEmptyObject(data)) {
+                marriagedata.push(data);
+            }
+        }
+
+        var setmarriage = false;
+        if (marriagedata.length > 0 && familymembers && children.length > 2) {
+            child = children[2];
+            var pcount = 0;
+            var rows = $(child).find('tr');
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
+                if (isPartner(title)) {
+                    //TODO Checking could be done if one profile is private and another not
+                    pcount++;
+                }
+            }
+            if (marriagedata.length === 1 && pcount === 1) {
+                setmarriage = true;
+            }
         }
 
         // ---------------------- Family Data --------------------
@@ -141,6 +172,18 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     familystatus.push(r);
                     var row = famlist[r];
                     var subdata = parseInfoData(row);
+                    if (isPartner(title) && marriagedata.length > 0) {
+                        if (setmarriage) {
+                            subdata["marriage"] = marriagedata[0];
+                        } else {
+                            for (var m=0; m < marriagedata.length; m++) {
+                                if (marriagedata[m].name === subdata.name) {
+                                    subdata["marriage"] = marriagedata[m];
+                                    break;
+                                }
+                            }
+                        }
+                    }
                     subdata["title"] = title;
                     //console.log(subdata);
                     var urlval = $(row).find(".individualListBodyContainer a").attr("href");
@@ -167,7 +210,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
             updateGeo(); //Poll until all family requests have returned and continue there
         } else if (children.length > 2) {
-            if (relation.title === "children" || relation.title === "child" || relation.title === "son" || relation.title === "daughter") {
+            if (isChild(relation.title)) {
 
                 child = children[2];
                 var rows = $(child).find('tr');
@@ -175,7 +218,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     var row = rows[i];
                     var relationship = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
 
-                    if (relationship === "parents" || relationship === "father" || relationship === "mother" || relationship === "parent") {
+                    if (isParent(relationship)) {
                         var valfamily = $(row).find(".recordFieldValue");
                         var famlist = $(valfamily).find(".individualsListContainer");
                         for (var r = 0; r < famlist.length; r++) {
@@ -199,6 +242,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
 function updateInfoData(person, arg) {
     person["url"] = arg["url"];  //TODO Not currently used - future follow profile
     person["profile_id"] = arg["profile_id"];
+
     if (exists(arg.name)) {
         //This compares the data on the focus profile to the linked profile and uses most complete
         //Sometimes more information is shown on the SM, but when you click the link it goes <Private>
@@ -235,6 +279,10 @@ function updateInfoData(person, arg) {
         }
         if (exists(arg.deathyear) && !exists(person.death)) {
             person["death"] = [{"date": arg.deathyear}];
+        }
+        if (exists(arg.marriage)) {
+            delete arg["marriage"][0].name;
+            person["marriage"] = arg["marriage"];
         }
     }
     return person;
@@ -279,7 +327,7 @@ function updateGeo() {
     } else {
         document.getElementById("loading").style.display = "none";
         console.log("Family Processed...");
-        var listvalues = ["birth", "baptism", "death", "burial"];
+        var listvalues = ["birth", "baptism", "marriage", "death", "burial"];
         for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
             var title = listvalues[list];
             var memberobj = alldata["profile"][title];
@@ -378,6 +426,13 @@ function buildForm() {
         membersstring = membersstring +
             '<tr id="occupation"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored) + '>' +
             capFL(title) + ':</td><td style="float:right;padding: 0;"><input type="text" name="' + title + '" value="' + occupation + '" ' + isEnabled(occupation, scored) + '></td></tr>';
+        div[0].innerHTML = membersstring;
+    } else {
+        var div = $("#profiletable");
+        var membersstring = div[0].innerHTML;
+        membersstring = membersstring +
+            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow" id="occupation"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right;"><input type="text" name="occupation" disabled></td></tr>' +
+            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
         div[0].innerHTML = membersstring;
     }
 
@@ -502,6 +557,7 @@ function buildForm() {
     }
 
     // ---------------------- Family Data --------------------
+    listvalues = ["birth", "baptism", "marriage", "death", "burial"];
     obj = alldata["family"];
     //console.log("");
     //console.log(JSON.stringify(obj));
@@ -510,27 +566,27 @@ function buildForm() {
         var members = obj[relationship];
         var scored = false;
         //Use a common naming scheme
-        if (relationship === "siblings" || relationship === "sibling" || relationship === "brother" || relationship === "sister") {
+        if (isSibling(relationship)) {
             if (scorefactors.contains("sibling")) {
                 scored = true;
                 $('#addsiblingck').prop('checked', true);
             }
             relationship = "sibling";
-        } else if (relationship === "children" || relationship === "child" || relationship === "son" || relationship === "daughter") {
+        } else if (isChild(relationship)) {
             if (scorefactors.contains("child")) {
                 scored = true;
                 $('#addchildck').prop('checked', true);
             }
             relationship = "child";
         }
-        else if (relationship === "parents" || relationship === "father" || relationship === "mother" || relationship === "parent") {
+        else if (isParent(relationship)) {
             if (scorefactors.contains("parent")) {
                 scored = true;
                 $('#addparentck').prop('checked', true);
             }
             relationship = "parent";
         }
-        else if (relationship === "partners" || relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "husbands" || relationship === "wives" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner") {
+        else if (isPartner(relationship)) {
             if (scorefactors.contains("spouse")) {
                 scored = true;
                 $('#addpartnerck').prop('checked', true);
@@ -599,6 +655,9 @@ function buildForm() {
 
             for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
                 var title = listvalues[list];
+                if (relationship !== "partner" && title === "marriage") {
+                    continue;  //Skip marriage date fields if not partner
+                }
                 var memberobj = members[member][title];
                 if (exists(memberobj)) {
                     membersstring = membersstring + '<tr><td colspan="2"><div class="separator"></div></td></tr>';
@@ -715,6 +774,22 @@ function isEnabled(value, score) {
     } else {
         return "disabled";
     }
+}
+
+function isSibling(relationship) {
+    return (relationship === "siblings" || relationship === "sibling" || relationship === "brother" || relationship === "sister");
+}
+
+function isChild(relationship) {
+    return (relationship === "children" || relationship === "child" || relationship === "son" || relationship === "daughter");
+}
+
+function isParent(relationship) {
+    return (relationship === "parents" || relationship === "father" || relationship === "mother" || relationship === "parent");
+}
+
+function isPartner(relationship) {
+    return (relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner");
 }
 
 function isHidden(value, geo) {

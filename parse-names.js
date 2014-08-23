@@ -167,6 +167,14 @@ var NameParse = (function(){
             return "Rev.";
         } else if (word === "fr") {
             return "Fr.";
+        } else if (word === "capt") {
+            return this.fix_case(word) + ".";
+        } else if (word === "maj") {
+            return this.fix_case(word) + ".";
+        } else if (word === "col") {
+            return this.fix_case(word) + ".";
+        } else if (word === "lt") {
+            return this.fix_case(word) + ".";
         } else {
             return false;
         }

@@ -17,7 +17,7 @@ var NameParse = (function(){
     // - suffix (II, Phd, Jr, etc)
     NameParse.parse = function (fullastName, detectMiddleName) {
         detectMiddleName = typeof detectMiddleName !== 'undefined' ? detectMiddleName : true;
-        fullastName = fullastName.trim();
+        fullastName = NameParse.removePreffix(fullastName).trim();
 
         var nameParts = [];
         var nickParts = [];
@@ -167,17 +167,38 @@ var NameParse = (function(){
             return "Rev.";
         } else if (word === "fr") {
             return "Fr.";
-        } else if (word === "capt") {
-            return this.fix_case(word) + ".";
-        } else if (word === "maj") {
-            return this.fix_case(word) + ".";
-        } else if (word === "col") {
-            return this.fix_case(word) + ".";
-        } else if (word === "lt") {
-            return this.fix_case(word) + ".";
         } else {
             return false;
         }
+    };
+
+    //  detect and format common suffixes
+    NameParse.removePreffix = function (word) {
+        word = this.removeIgnoredChars(word).toLocaleLowerCase();
+        // these are some common suffixes - what am I missing?
+        var preffixArray = [
+            'mr', 'master', 'mister', 'mrs', 'miss', 'ms', 'dr', 'rev', 'fr',
+            'bro', 'chap', 'jud', 'prof', "rabbi", "sr", 'sen', 'the hon',
+            'hon', 'amd', 'bg', 'bgen', 'brig gen', 'cpt', 'capt', 'cwo',
+            'col', 'cdr', 'cpl', 'ens', '1lt', '1st lt', 'ltjg', '2lt', '2nd lt',
+            'lt', 'gen', 'ltc', 'lt col', 'lcdr', 'ltg', 'lt gen', 'maj', 'mg',
+            'maj gen', 'msg', 'msgt', 'sgt', 'radm', 'vadm', 'brother', 'chaplain',
+            'doctor', 'father', 'judge', 'missus', 'madam', 'professor', 'reverend',
+            'senator', 'congressman', 'governor', 'sister', 'the honorable', 'honerable',
+            'admiral', 'brigadier general', 'captain', 'chief warrant officer', 'colonel',
+            'commander', 'corporal', 'ensign', 'first lieutenant', 'lieutenant colonel',
+            'lieutenant general', 'lieutenant commander', 'lieutenant', 'master sergeant',
+            'major general', 'major', 'general', 'rear admiral', 'vice admiral', 'admiral',
+            'second lieutenant', 'sergeant'
+        ];
+
+        for (var i=0; i < preffixArray.length; i++) {
+            if (word.startsWith(preffixArray[i])) {
+                var re = new RegExp('^' + preffixArray[i],"i");
+                return word.replace(re,"");
+            }
+        }
+        return word;
     };
 
     //  detect and format common suffixes

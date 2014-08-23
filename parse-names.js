@@ -17,7 +17,7 @@ var NameParse = (function(){
     // - suffix (II, Phd, Jr, etc)
     NameParse.parse = function (fullastName, detectMiddleName) {
         detectMiddleName = typeof detectMiddleName !== 'undefined' ? detectMiddleName : true;
-        fullastName = NameParse.removePreffix(fullastName).trim();
+        fullastName = fullastName.trim();
 
         var nameParts = [];
         var nickParts = [];
@@ -33,9 +33,12 @@ var NameParse = (function(){
         // Look for a birth / maiden name: Mary Smith (Jones)
         if ((fullastName.indexOf(")", fullastName.length - 1) !== -1) && (fullastName.indexOf("(") !== -1)) {
             birthName = fullastName.substring(fullastName.lastIndexOf("(") + 1, fullastName.length).replace(")","");
-            birthName = birthName.replace(/^born /, '');
+            birthName = NameParse.fix_case(birthName.replace(/^born /, ''));
             fullastName = fullastName.substring(0, fullastName.lastIndexOf("(")).trim();
         }
+
+        nameParts = fullastName.split(" ");
+        fullastName = NameParse.removePreffix(nameParts);
         // split into words
         // completely ignore any words in parentheses
         var testNickStart = new RegExp('^"', 'i');
@@ -174,15 +177,19 @@ var NameParse = (function(){
 
     //  detect and format common suffixes
     NameParse.removePreffix = function (word) {
-        word = this.removeIgnoredChars(word).toLocaleLowerCase();
+        var tempword1 = this.removeIgnoredChars(word[0]).toLocaleLowerCase();
+        if (word.length > 1) {
+            tempword1 += " " + this.removeIgnoredChars(word[1]).toLocaleLowerCase();
+        }
+        var tempword2 = this.removeIgnoredChars(word[0]).toLocaleLowerCase();
         // these are some common suffixes - what am I missing?
         var preffixArray = [
             'mr', 'master', 'mister', 'mrs', 'miss', 'ms', 'dr', 'rev', 'fr',
             'bro', 'chap', 'jud', 'prof', "rabbi", "sr", 'sen', 'the hon',
             'hon', 'amd', 'bg', 'bgen', 'brig gen', 'cpt', 'capt', 'cwo',
             'col', 'cdr', 'cpl', 'ens', '1lt', '1st lt', 'ltjg', '2lt', '2nd lt',
-            'lt', 'gen', 'ltc', 'lt col', 'lcdr', 'ltg', 'lt gen', 'maj', 'mg',
-            'maj gen', 'msg', 'msgt', 'sgt', 'radm', 'vadm', 'brother', 'chaplain',
+            'lt', 'gen', 'ltc', 'lt col', 'lcdr', 'ltg', 'lt gen', 'maj gen', 'mg',
+            'maj', 'msg', 'msgt', 'sgt', 'radm', 'vadm', 'brother', 'chaplain',
             'doctor', 'father', 'judge', 'missus', 'madam', 'professor', 'reverend',
             'senator', 'congressman', 'governor', 'sister', 'the honorable', 'honerable',
             'admiral', 'brigadier general', 'captain', 'chief warrant officer', 'colonel',
@@ -191,14 +198,16 @@ var NameParse = (function(){
             'major general', 'major', 'general', 'rear admiral', 'vice admiral', 'admiral',
             'second lieutenant', 'sergeant'
         ];
-
         for (var i=0; i < preffixArray.length; i++) {
-            if (word.startsWith(preffixArray[i])) {
-                var re = new RegExp('^' + preffixArray[i],"i");
-                return word.replace(re,"");
+            if (tempword1.startsWith(preffixArray[i])) {
+                word.shift();
+                if (!tempword2.startsWith(preffixArray[i])) {
+                    word.shift();
+                }
+                return word.join(" ");
             }
         }
-        return word;
+        return word.join(" ");
     };
 
     //  detect and format common suffixes

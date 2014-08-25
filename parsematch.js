@@ -9,6 +9,8 @@ var databyid = [];
 var childlist = [];
 var marriagedata = [];
 var hideprofile = false;
+var genispouse = [];
+var focusgender = "unknown";
 // Parse MyHeritage Tree from Smart Match
 function parseSmartMatch(htmlstring, familymembers, relation) {
     relation = relation || "";
@@ -30,6 +32,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         genderval = "male";
     } else if ($(genderimage).hasClass('PK_Silhouette_S_150_F_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_150_F_C_LTR')) {
         genderval = "female";
+    }
+    if (relation === "") {
+        focusgender = genderval;
     }
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     var records = parsed.find(".recordFieldsContainer");
@@ -152,6 +157,16 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         // ---------------------- Family Data --------------------
         var famid = 0;
         if (familymembers && children.length > 2) {
+            familystatus.push("family");
+            var familyurl = "http://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + focusid;
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: familyurl
+            }, function (response) {
+                genispouse = JSON.parse(response.source);
+                familystatus.pop();
+            });
             //This section is only run on the focus profile
             alldata["profile"] = profiledata;
             alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();
@@ -635,17 +650,27 @@ function buildForm() {
             }
             var gender = members[member].gender;
             var membersstring = entry.innerHTML;
-            membersstring = membersstring + '<div class="membertitle"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
+            membersstring += '<div class="membertitle"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
                 '<td style="font-size: 90%; padding: 0px;"><input type="checkbox" class="checkslide" name="checkbox' + i + "-" + relationship + '" ' + isChecked(fullname, scored) + '><a name="' + i + "-" + relationship + '">' + escapeHtml(fullname) + '</a></td>' +
                 '<td style="font-size: 130%; float: right; padding: 0px 5px;"><a name="' + i + "-" + relationship + '">&#9662;</a></td></tr></table></div>' +
                 '<div id="slide' + i + "-" + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
-                '<tr><td colspan="2"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '" ' + isEnabled(members[member].profile_id, scored) + '></td></tr>' +
+                '<tr><td colspan="2"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '" ' + isEnabled(members[member].profile_id, scored) + '></td></tr>';
+            if (isChild(relationship)) {
+                var parentrel = "Parent";
+                if (focusgender === "male") {
+                    parentrel = "Mother";
+                } else if (focusgender === "female") {
+                    parentrel = "Father";
+                }
+                membersstring += '<tr><td class="profilediv" colspan="2" style="padding-bottom: 2px;"><span style="margin-top: 3px; float: left;">&nbsp;' + parentrel + ':</span>' + buildParentSelect(members[member].parent_id) + '</td></tr>';
+            }
+            membersstring +=
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored) + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored) + '></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.middleName, scored) + '>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '" ' + isEnabled(nameval.middleName, scored) + '></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.lastName, scored) + '>Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" ' + isEnabled(nameval.lastName, scored) + '></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.birthName, scored) + '>Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" ' + isEnabled(nameval.birthName, scored) + '></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.suffix, scored) + '>Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" ' + isEnabled(nameval.suffix, scored) + '></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.nickName, scored) + '>Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" ' + isEnabled(nameval.nickName, scored) + '></td></tr>';
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.middleName, scored) + '>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '" ' + isEnabled(nameval.middleName, scored) + '></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.lastName, scored) + '>Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" ' + isEnabled(nameval.lastName, scored) + '></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.birthName, scored) + '>Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" ' + isEnabled(nameval.birthName, scored) + '></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.suffix, scored) + '>Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" ' + isEnabled(nameval.suffix, scored) + '></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.nickName, scored) + '>Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" ' + isEnabled(nameval.nickName, scored) + '></td></tr>';
             if (exists(members[member]["occupation"])) {
                 var occupation = members[member]["occupation"];
                 membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored) + '>Occupation: </td><td style="float:right; padding: 0px;"><input type="text" name="occupation" value="' + occupation + '" ' + isEnabled(occupation, scored) + '></td></tr>';
@@ -825,12 +850,41 @@ function setLiving(living,value) {
     }
 }
 
+function isSelected(id1, id2) {
+    if (id1 === id2) {
+        return "selected";
+    } else {
+        return "";
+    }
+}
+
 function isChecked(value, score) {
     if (score && isValue(value)) {
         return "checked";
     } else {
         return "";
     }
+}
+
+function buildParentSelect(id) {
+    var cleanArray = $.unique(childlist);
+    var geniselect = "";
+    var pselect = '<select name="parent" style="width: 215px; float: right; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" >';
+    if (cleanArray.length === 0 && genispouse.length === 1) {
+        geniselect = " selected";
+    } else if (id == -1) {
+        pselect += '<option value="-1" selected>Unknown</option>';
+    }
+    for (var key in cleanArray) if (cleanArray.hasOwnProperty(key)) {
+        if (exists(databyid[cleanArray[key]])) {
+            pselect += '<option value="' + cleanArray[key] + '" ' + isSelected(id, cleanArray[key]) + '>MyH: ' + databyid[cleanArray[key]].name.replace("born ", "") + '</option>';
+        }
+    }
+    for (var key in genispouse) if (genispouse.hasOwnProperty(key)) {
+        pselect += '<option value="' + genispouse[key].union + '"' + geniselect + '>Geni: ' + genispouse[key].name + '</option>';
+    }
+    pselect += '</select>';
+    return pselect;
 }
 
 

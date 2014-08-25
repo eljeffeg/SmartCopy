@@ -131,14 +131,56 @@ function loadPage(request) {
         document.getElementById("smartcopy-container").style.display = "none";
         document.getElementById("loading").style.display = "none";
         setMessage("#f8ff86", 'SmartCopy was unable to determine the matching Geni profile to use as a copy destination.<br/>' +
-            '<strong><span id="changetext">Set Geni Destination Profile</span></strong><input type="text" id="changeprofile"><button id="changefocus">Update</button>');
+            '<strong><span id="changetext">Set Geni Destination Profile</span></strong>' +
+            '<table style="width: 100%;"><tr class="optionrow" style="display: none;">' +
+            '<td id="focusoption" style="width: 100%; text-align: left;"></td></tr>' +
+            '<tr class="optionrow" style="display: none;"><td colspan="2">Or enter URL:</td></tr>' +
+            '<tr><td style="padding-right: 5px;">' +
+            '<input type="text" style="width: 100%;" id="changeprofile"></td>' +
+            '</tr><tr><td style="padding-top: 5px;"><button id="changefocus">Update Destination</button></td></tr></table>');
+
+        var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/g,""));
+        var focusperson = parsed.find(".individualInformationName").text().trim();
+        var focusprofile = parsed.find(".individualInformationProfileLink").attr("href").trim();
+        if (exists(focusprofile)) {
+            focusprofile = focusprofile.replace("http://www.geni.com/", "");
+            var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusprofile;
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: url
+            }, function (response) {
+                var result = JSON.parse(response.source);
+                var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select relative of ' + focusperson + '</option>';
+                if (exists(result)) {
+                    for (var key in result) if (result.hasOwnProperty(key)) {
+                        var person = result[key];
+                        if (exists(person.name)) {
+                            selectsrt += '<option value="' + person.id + '">' + capFL(person.relation) + ": " + person.name +  '</option>';
+                        }
+                    }
+                }
+                selectsrt += '</select>';
+                $('.optionrow').css("display", "table-row");
+                $('#focusoption')[0].innerHTML = selectsrt;
+            });
+        }
         $(function () {
             $('#changefocus').on('click', function () {
                 var profilelink = getProfile($('#changeprofile')[0].value);
+                if (profilelink === "") {
+                    var focusselect = $('#focusselect')[0];
+                    if (exists(focusselect)) {
+                        profilelink = "?profile=" + focusselect.options[focusselect.selectedIndex].value;
+                    }
+                }
+
                 if (profilelink !== "" || devblocksend) {
                     updateLinks(profilelink);
                     focusid = profilelink.replace("?profile=", "");
                     document.querySelector('#message').style.display = "none";
+                    document.getElementById("smartcopy-container").style.display = "block";
+                    document.getElementById("loading").style.display = "block";
                     profilechanged = true;
                     loadPage(request);
                 } else {
@@ -404,6 +446,8 @@ function submitChildren() {
                 var childid = childlist[i];
                 if (childid === -1) {
                     childid = 0;
+                } else if (childid.startsWith("union")) {
+                    continue;
                 }
                 if (!exists(tempadded[childid]) && !exists(spouselist[childid])) {
                     //Add a temp for each spouse which is a parent that is not added
@@ -455,7 +499,12 @@ function submitChildren() {
             if (clid === -1) {
                 clid = 0;
             }
-            var parentunion = spouselist[clid].union;
+            var parentunion;
+            if (clid.startsWith("union")) {
+                parentunion = clid;
+            } else {
+                parentunion = spouselist[clid].union;
+            }
             if (exists(parentunion)) {
                 buildTree(familyout, "add-child", parentunion);
             }
@@ -639,6 +688,8 @@ function parseForm(fs) {
             } else {
                 if (fsinput[item].name === "gender") {
                     objentry[fsinput[item].name] = fsinput[item].options[fsinput[item].selectedIndex].value;
+                } else if (fsinput[item].name === "parent") {
+                    childlist[objentry.profile_id] = fsinput[item].options[fsinput[item].selectedIndex].value;
                 } else if (fsinput[item].value !== "") {
                     objentry[fsinput[item].name] = fsinput[item].value;
                 }

@@ -85,7 +85,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                 break;
                             }
-                            else if (valdate !== null && (valdate.toLowerCase().contains(" cemetery") || valdate.toLowerCase().contains(" grave"))) {
+                            else if (valdate !== null && (valdate.toLowerCase().contains(" cemetery") || valdate.toLowerCase().contains(" grave") || valdate.toLowerCase().endsWith(" cem"))) {
                                 valplace = valdate.trim();
                             } else if (valdate !== null && valdate.toLowerCase().startsWith("marriage to")) {
                                 data.push({name: valdate.replace("Marriage to: ","")});
@@ -121,7 +121,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 if (valplace === "") {
                     var splitplace = vallocal.split(",");
                     var checkplace = splitplace[0].toLowerCase();
-                    if (checkplace.contains(" cemetery") || checkplace.contains(" grave")) {
+                    if (checkplace.contains(" cemetery") || checkplace.contains(" grave") || valdate.toLowerCase().endsWith(" cem")) {
                         valplace = splitplace[0];
                     }
                 }

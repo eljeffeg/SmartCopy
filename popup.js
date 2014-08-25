@@ -7,7 +7,7 @@ var submitcheck = true;
 var buildhistory = [];
 var marriagedates = [];
 chrome.storage.local.get('buildhistory', function (result) {
-    if(exists(buildhistory)) {
+    if(exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
     }
 });
@@ -119,7 +119,7 @@ function loadPage(request) {
         }
     } else {
         var shorturl = tablink.substring(0, tablink.indexOf('showRecord') + 10);
-        for (var i=0;i<buildhistory.length;i++) {
+        for (var i=0;i< buildhistory.length;i++) {
             if(buildhistory[i].url === shorturl) {
                 focusid = buildhistory[i].id;
                 profilechanged = true;

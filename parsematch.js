@@ -187,15 +187,26 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     familystatus.push(r);
                     var row = famlist[r];
                     var subdata = parseInfoData(row);
-                    if (isPartner(title) && marriagedata.length > 0) {
-                        if (setmarriage) {
-                            subdata["marriage"] = marriagedata[0];
-                        } else {
-                            for (var m=0; m < marriagedata.length; m++) {
-                                if (exists(marriagedata[m][0]) && exists(marriagedata[m][0].name)) {
-                                    if (marriagedata[m][0].name === subdata.name) {
-                                        subdata["marriage"] = marriagedata[m];
-                                        break;
+                    if (isPartner(title)) {
+                        if (genderval === "unknown") {
+                            //Sets the focus profile gender if unknown
+                            if (title === "wife" || title === "ex-wife") {
+                                genderval = "male";
+                            } else if (title === "husband" || title === "ex-husband") {
+                                genderval = "female";
+                            }
+                            focusgender = genderval;
+                        }
+                        if (marriagedata.length > 0) {
+                            if (setmarriage) {
+                                subdata["marriage"] = marriagedata[0];
+                            } else {
+                                for (var m=0; m < marriagedata.length; m++) {
+                                    if (exists(marriagedata[m][0]) && exists(marriagedata[m][0].name)) {
+                                        if (marriagedata[m][0].name === subdata.name) {
+                                            subdata["marriage"] = marriagedata[m];
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -290,6 +301,16 @@ function updateInfoData(person, arg) {
 
         if (exists(arg.gender) && person.gender === "unknown") {
             person.gender = arg.gender;
+        }
+
+        if (person.gender === "unknown") {
+            //Try another approach based on relationship to focus
+            var title = arg.title;
+            if (title === "wife" || title === "ex-wife" || title === "mother" || title === "sister" || title === "daughter") {
+                person.gender = "female";
+            } else if (title === "husband" || title === "ex-husband" || title === "father" || title === "brother" || title === "son") {
+                person.gender = "male";
+            }
         }
         if (exists(arg.birthyear) && !exists(person.birth)) {
             person["birth"] = [{"date": arg.birthyear}];

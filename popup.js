@@ -141,9 +141,9 @@ function loadPage(request) {
 
         var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/g,""));
         var focusperson = parsed.find(".individualInformationName").text().trim();
-        var focusprofile = parsed.find(".individualInformationProfileLink").attr("href").trim();
+        var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
         if (exists(focusprofile)) {
-            focusprofile = focusprofile.replace("http://www.geni.com/", "");
+            focusprofile = focusprofile.replace("http://www.geni.com/", "").trim();
             var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusprofile;
             chrome.extension.sendMessage({
                 method: "GET",
@@ -174,7 +174,6 @@ function loadPage(request) {
                         profilelink = "?profile=" + focusselect.options[focusselect.selectedIndex].value;
                     }
                 }
-
                 if (profilelink !== "" || devblocksend) {
                     updateLinks(profilelink);
                     focusid = profilelink.replace("?profile=", "");

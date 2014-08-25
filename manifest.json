@@ -1,8 +1,9 @@
 {
     "manifest_version": 2,
     "name": "HistoryLink SmartCopy",
+    "short_name": "SmartCopy",
     "description": "Copies Smart Match profiles from MyHeritage to Geni.",
-    "version": "0.1.17.1",
+    "version": "0.1.18",
     "icons": { "16": "images/icon16.png",
         "48": "images/icon48.png",
         "128": "images/icon128.png" },

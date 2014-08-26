@@ -120,8 +120,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             if (vallocal !== "") {
                 if (valplace === "") {
                     var splitplace = vallocal.split(",");
-                    var checkplace = splitplace[0].toLowerCase();
-                    if (checkplace.contains(" cemetery") || checkplace.contains(" grave") || valdate.toLowerCase().endsWith(" cem")) {
+                    var checkplace = splitplace[0].toLowerCase().trim();
+                    if (checkplace.contains(" cemetery") || checkplace.contains(" grave") || checkplace.toLowerCase().endsWith(" cem")) {
                         valplace = splitplace[0];
                     }
                 }
@@ -434,9 +434,36 @@ function updateGeo() {
     }
 }
 
+var georound2 = false;
 function updateFamily() {
     if (geostatus.length > 0) {
         setTimeout(updateFamily, 200);
+    } else if (!georound2) {
+        for (var i=0; i < geolocation.length; i++) {
+            if (exists(geolocation[i])) {
+                var location_split = geolocation[i].query.split(",");
+                if (location_split.length > 1) {
+                    geostatus.push(geostatus.length);
+                    location_split.shift();
+                    var location = location_split.join(",");
+                    var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(location);
+                    chrome.extension.sendMessage({
+                        method: "GET",
+                        action: "xhttp",
+                        url: url,
+                        variable: {geoid: i, geolocation: location}
+                    }, function (response) {
+                        var result = jQuery.parseJSON(response.source);
+                        var id = response.variable.geoid;
+                        var georesult = new GeoLocation(result, response.variable.geolocation);
+                        geolocation[id] = compareGeo(georesult, geolocation[id]);
+                        geostatus.pop();
+                    });
+                }
+            }
+        }
+        georound2 = true;
+        updateFamily();
     } else {
         document.getElementById("loading").style.display = "none";
         console.log("Geo Processed...");

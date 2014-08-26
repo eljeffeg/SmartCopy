@@ -576,6 +576,17 @@ function parseForm(fs) {
             if (splitentry.length > 1) {
                 if (splitentry[1] === "date") {
                     var vardate = {};
+                    if (fs.selector === "#profiletable") {
+                        vardate["circa"] = false;
+                        vardate["range"] = "";
+                        vardate["day"] = "";
+                        vardate["month"] = "";
+                        vardate["year"] = "";
+                        vardate["end_circa"] = "";
+                        vardate["end_day"] = "";
+                        vardate["end_month"] = "";
+                        vardate["end_year"] = "";
+                    }
                     var fulldate = fsinput[item].value;
 
                     if (fulldate.startsWith("Circa")) {
@@ -657,7 +668,7 @@ function parseForm(fs) {
                         }
                     }
                 } else if (splitentry[1] === "location" && splitentry.length > 2) {
-                    if (fsinput[item].value !== "") {
+                    if (fsinput[item].value !== "" || fs.selector === "#profiletable") {
                         var varlocation = {};
                         var fieldname = splitentry[2];
                         if (fieldname === "place_name_geo") {

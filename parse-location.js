@@ -72,10 +72,8 @@ function compareGeo(shortGeo, longGeo) {
         location.state = longGeo.state;
         location.country = longGeo.country;
         if (shortGeo.city === longGeo.city && shortGeo.city !== "") {
-            if (longGeo.place === "") {
-                var location_split = longGeo.query.split(",");
-                location.place = location_split.shift();
-            }
+            var location_split = longGeo.query.split(",");
+            location.place = location_split.shift();
         }
     } else {
         location.zip = shortGeo.zip;

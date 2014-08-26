@@ -239,21 +239,22 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             updateGeo(); //Poll until all family requests have returned and continue there
         } else if (children.length > 2) {
             if (isChild(relation.title)) {
-
+                var shorturl = tablink.substring(0, tablink.indexOf('showRecord') + 10);
                 child = children[2];
                 var rows = $(child).find('tr');
                 for (var i = 0; i < rows.length; i++) {
                     var row = rows[i];
                     var relationship = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
-
                     if (isParent(relationship)) {
                         var valfamily = $(row).find(".recordFieldValue");
                         var famlist = $(valfamily).find(".individualsListContainer");
                         for (var r = 0; r < famlist.length; r++) {
                             var row = famlist[r];
                             var urlval = $(row).find(".individualListBodyContainer a").attr("href");
-                            childlist[relation.proid] = $.inArray(urlval, unionurls);
-                            profiledata["parent_id"] = $.inArray(urlval, unionurls);
+                            if (urlval !== shorturl) {
+                                childlist[relation.proid] = $.inArray(urlval, unionurls);
+                                profiledata["parent_id"] = $.inArray(urlval, unionurls);
+                            }
                         }
                     }
                 }

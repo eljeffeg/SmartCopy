@@ -177,11 +177,11 @@ var NameParse = (function(){
 
     //  detect and format common suffixes
     NameParse.removePreffix = function (word) {
-        var tempword1 = this.removeIgnoredChars(word[0]).toLocaleLowerCase();
+        var tempword1 = this.removeIgnoredChars(word[0]).toLocaleLowerCase() + " ";
         if (word.length > 1) {
-            tempword1 += " " + this.removeIgnoredChars(word[1]).toLocaleLowerCase();
+            tempword1 += " " + this.removeIgnoredChars(word[1]).toLocaleLowerCase() + " ";
         }
-        var tempword2 = this.removeIgnoredChars(word[0]).toLocaleLowerCase();
+        var tempword2 = this.removeIgnoredChars(word[0]).toLocaleLowerCase() + " ";
         // these are some common suffixes - what am I missing?
         var preffixArray = [
             'mr', 'master', 'mister', 'mrs', 'miss', 'ms', 'dr', 'rev', 'fr',
@@ -199,9 +199,10 @@ var NameParse = (function(){
             'second lieutenant', 'sergeant'
         ];
         for (var i=0; i < preffixArray.length; i++) {
-            if (tempword1.startsWith(preffixArray[i])) {
+            if (tempword1.startsWith(preffixArray[i] + " ")) {
+                console.log(preffixArray[i]);
                 word.shift();
-                if (!tempword2.startsWith(preffixArray[i])) {
+                if (!tempword2.startsWith(preffixArray[i] + " ")) {
                     word.shift();
                 }
                 return word.join(" ");

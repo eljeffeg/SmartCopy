@@ -93,7 +93,7 @@ function loadPage(request) {
         setMessage("#f8ff86", 'SmartCopy can work with the various language sites of MyHeritage, but you must have an authenticated session with the English website.<br/><a href="http://www.myheritage.com/">Please login to MyHeritage.com</a>');
     }
     else if (request.source.indexOf('pk_family_tabs') === -1 || profilechanged) {
-        if (tablink.contains("/collection-1/")) {
+        if (tablink.contains("/collection-")) {
             document.getElementById("top-container").style.display = "block";
             var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/g,""));
             var focusperson = parsed.find(".recordTitle").text().trim();
@@ -151,6 +151,14 @@ function loadPage(request) {
                 url: url
             }, function (response) {
                 var result = JSON.parse(response.source);
+                result.sort(function(a, b){
+                    var relA=a.relation.toLowerCase(), relB=b.relation.toLowerCase()
+                    if (relA < relB) //sort string ascending
+                        return -1
+                    if (relA > relB)
+                        return 1
+                    return 0 //default return value (no sorting)
+                })
                 var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select relative of ' + focusperson + '</option>';
                 if (exists(result)) {
                     for (var key in result) if (result.hasOwnProperty(key)) {
@@ -362,7 +370,8 @@ var spouselist = [];
 var addchildren = [];
 var submitform = function() {
     if (parsecomplete && submitcheck) {
-
+        document.getElementById("bottomsubmit").style.display = "none";
+        document.getElementById("submitbutton").style.display = "none";
         submitcheck = false; //try to prevent clicking more than once and submitting it twice
         document.getElementById("familydata").style.display = "none";
         document.getElementById("profiledata").style.display = "none";

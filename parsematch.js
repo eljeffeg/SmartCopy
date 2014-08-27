@@ -11,8 +11,15 @@ var marriagedata = [];
 var hideprofile = false;
 var genispouse = [];
 var focusgender = "unknown";
+alldata["family"] = {};
 // Parse MyHeritage Tree from Smart Match
 function parseSmartMatch(htmlstring, familymembers, relation) {
+    if ($(htmlstring).filter('title').text().contains("Marriages")) {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("top-container").style.display = "none";
+        setMessage("#f8ff86", 'This MyHeritage collection is not yet supported by SmartCopy.');
+        return;
+    }
     relation = relation || "";
     var parsed = $('<div>').html(htmlstring.replace(/<img[^>]*>/g, ""));
     /*
@@ -23,6 +30,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
      */
 
     var focusperson = parsed.find(".recordTitle").text().trim();
+    document.getElementById("readstatus").innerText = focusperson;
     var focusdaterange = parsed.find(".recordSubtitle").text().trim();
     //console.log(focusperson);
     var genderdiv = parsed.find(".recordImage");
@@ -53,6 +61,37 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             var row = rows[r];
             var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
 
+            if (isParent(title) || isSibling(title) || isChild(title)) {
+                if (exists($(row).find(".recordFieldValue").contents().get(0))) {
+                    if (!exists(alldata["family"][title])) {
+                        alldata["family"][title] = [];
+                    }
+                    var gendersv = "unknown";
+                    if (isFemale(title)) {
+                        gendersv = "female";
+                    } else if (isMale(title)) {
+                        gendersv = "male";
+                    }
+                    var listrow = $(row).find(".recordFieldValue").contents();
+                    if (listrow.length > 1) {
+                        for (var lr =0;lr < listrow.length; lr++) {
+                            if (listrow[lr].className != "eventSeparator") {
+                                alldata["family"][title].push({name: listrow[lr].nodeValue, gender: gendersv});
+                            }
+                        }
+                    } else {
+                        var splitlr = $(row).find(".recordFieldValue").contents().get(0).nodeValue.split(",");
+                        for (var lr =0;lr < splitlr.length; lr++) {
+                            if (splitlr[lr].trim().length > 4) {
+                                alldata["family"][title].push({name: splitlr[lr].trim(), gender: gendersv});
+                            }
+                        }
+
+                    }
+
+                }
+                continue;
+            }
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
                 && title !== 'occupation' && !(title === 'marriage' && relation === "")) {
                 /*
@@ -63,6 +102,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
 
             if (title === "occupation") {
+                $(row).find(".recordFieldValue").contents()
                 if (exists($(row).find(".recordFieldValue").contents().get(0))) {
                     profiledata[title] = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
                 }
@@ -171,7 +211,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             alldata["profile"] = profiledata;
             alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();
 
-            alldata["family"] = {};
             child = children[2];
 
             var rows = $(child).find('tr');
@@ -307,9 +346,9 @@ function updateInfoData(person, arg) {
         if (person.gender === "unknown") {
             //Try another approach based on relationship to focus
             var title = arg.title;
-            if (title === "wife" || title === "ex-wife" || title === "mother" || title === "sister" || title === "daughter") {
+            if (isFemale(title)) {
                 person.gender = "female";
-            } else if (title === "husband" || title === "ex-husband" || title === "father" || title === "brother" || title === "son") {
+            } else if (isMale(title)) {
                 person.gender = "male";
             }
         }
@@ -852,19 +891,31 @@ function isEnabled(value, score) {
     }
 }
 
+function isFemale(title) {
+    return (title === "wife" || title === "ex-wife" || title === "mother" || title === "sister" || title === "daughter");
+}
+
+function isMale(title) {
+    return (title === "husband" || title === "ex-husband" || title === "father" || title === "brother" || title === "son");
+}
+
 function isSibling(relationship) {
+    relationship = relationship.replace(" (implied)", "");
     return (relationship === "siblings" || relationship === "sibling" || relationship === "brother" || relationship === "sister");
 }
 
 function isChild(relationship) {
+    relationship = relationship.replace(" (implied)", "");
     return (relationship === "children" || relationship === "child" || relationship === "son" || relationship === "daughter");
 }
 
 function isParent(relationship) {
+    relationship = relationship.replace(" (implied)", "");
     return (relationship === "parents" || relationship === "father" || relationship === "mother" || relationship === "parent");
 }
 
 function isPartner(relationship) {
+    relationship = relationship.replace(" (implied)", "");
     return (relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner");
 }
 

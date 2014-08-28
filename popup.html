@@ -10,7 +10,7 @@
     <!-- <span style="display: inline-block; float: right; padding-top: 4px;"><img src="images/CuratorShield.png" width="22" align="right"></span> -->
 </div>
 <div id="backlinks" style="text-align:center;  margin-left: -8px; margin-right: -8px; padding-left: 8px; padding-right: 8px; padding-top: 3px; border-top: solid 1px #ddd;"><span style="margin-right: 8px; margin-top: -3px; font-size: 82%;"><strong><a href="http://historylink.herokuapp.com/history" target="_blank" id="historyurl">History Search</a> <span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylink.herokuapp.com/graph" target="_blank" id="graphurl">Ancestor Graph</a> <span id="curator" style="display: none;"><span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylink.herokuapp.com/leaderboard" target="_blank">Leaderboard</a></span></strong></span></div>
-<div id="smartcopy-container" style="margin-top: 10px; margin-bottom: 10px; padding-right: 5px; padding-left: 5px; display: none;">
+<div id="smartcopy-container" style="margin-top: 10px; padding-right: 5px; padding-left: 5px; display: none;">
     <div id="top-container" style="display: none;">
 
         <table style="width: 100%;">
@@ -81,7 +81,7 @@
                         </td>
                         <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Parse for middle names automatically</td>
                     </tr>
-                     <tr>
+                    <tr>
                         <td style="padding: 3px 0 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
@@ -93,6 +93,19 @@
                             </div>
                         </td>
                         <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Hide event sections with empty fields</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 0 0; width: 58px;">
+                            <div class="onoffswitch">
+                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                       id="exponoffswitch" checked>
+                                <label class="onoffswitch-label" for="exponoffswitch">
+                                    <span class="onoffswitch-inner"></span>
+                                    <span class="onoffswitch-switch"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Enable experimental collection parsing</td>
                     </tr>
                 </table>
             </div>
@@ -144,13 +157,14 @@
         </div>
         <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
             <div style="text-align: center; padding-top: 2px; padding-right: 10px; padding-left: 10px;"><img src="images/spinner.gif" style="height:24px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Updating Geni...</strong>
-                <div style="padding-top: 5px;">Leaving this window before completion could result in an incomplete data copy.</div></div>
+            <div id="updatestatus"></div></div>
+
         </div>
-        <div id="bottomsubmit" style="padding-top: 8px; text-align: center; display: none;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;">Submit</a></div>
+        <div id="bottomsubmit" style="padding-top: 15px; text-align: center; display: none;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;">Submit</a></div>
     </form>
 </div>
 
-<div class='colorbox' id='message' style="display:none; margin-bottom: 15px; margin-right: 5px; margin-left: 5px; background-color:#D3D3D3;"></div>
+<div class='colorbox' id='message' style="display:none; margin-bottom: 15px; margin-right: 9px; margin-left: 9px; background-color:#D3D3D3;"></div>
 <script src="jquery.js"></script>
 <script src="parse-location.js"></script>
 <script src="parse-names.js"></script>

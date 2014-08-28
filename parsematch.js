@@ -47,7 +47,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     var records = parsed.find(".recordFieldsContainer");
     if (records.length > 0 && records[0].hasChildNodes()) {
-
+        var famid = 0;
         // ---------------------- Profile Data --------------------
         if (focusdaterange !== "") {
             profiledata["daterange"] = focusdaterange;
@@ -61,7 +61,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             var row = rows[r];
             var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
 
-            if (isParent(title) || isSibling(title) || isChild(title)) {
+            if (isParent(title) || isSibling(title) || isChild(title) || isPartner(title)) {
                 if (exists($(row).find(".recordFieldValue").contents().get(0))) {
                     if (!exists(alldata["family"][title])) {
                         alldata["family"][title] = [];
@@ -76,24 +76,25 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     if (listrow.length > 1) {
                         for (var lr =0;lr < listrow.length; lr++) {
                             if (listrow[lr].className != "eventSeparator") {
-                                alldata["family"][title].push({name: listrow[lr].nodeValue, gender: gendersv});
+                                alldata["family"][title].push({name: listrow[lr].nodeValue, gender: gendersv, profile_id: famid, title: title});
                             }
                         }
                     } else {
                         var splitlr = $(row).find(".recordFieldValue").contents().get(0).nodeValue.split(",");
                         for (var lr =0;lr < splitlr.length; lr++) {
                             if (splitlr[lr].trim().length > 4) {
-                                alldata["family"][title].push({name: splitlr[lr].trim(), gender: gendersv});
+                                alldata["family"][title].push({name: splitlr[lr].trim(), gender: gendersv,  profile_id: famid, title: title});
                             }
                         }
 
                     }
 
                 }
+                famid++;
                 continue;
             }
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
-                && title !== 'occupation' && !(title === 'marriage' && relation === "")) {
+                && title !== 'occupation' && title !== 'cemetery' && !(title === 'marriage' && relation === "")) {
                 /*
                  This will exclude residence, since the API seems to only support current residence.
                  It also will remove Military Service and any other entry not explicitly defined above.
@@ -108,7 +109,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
                 continue;
             }
-
+            if (title === "cemetery") {
+                title = "burial";
+            }
             var valdate = "";
             var vallocal = $(row).find(".map_callout_link").text().trim();
             var valplace = "";
@@ -157,6 +160,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             if (valdate !== "") {
                 data.push({date: valdate});
             }
+
             if (vallocal !== "") {
                 if (valplace === "") {
                     var splitplace = vallocal.split(",");
@@ -169,6 +173,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 geoid++;
             }
 
+            if (exists(profiledata[title]) && profiledata[title].length > data.length) {
+                continue;
+            }
             if (title !== 'marriage') {
                 profiledata[title] = data;
             } else if (!$.isEmptyObject(data)) {
@@ -195,7 +202,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         }
 
         // ---------------------- Family Data --------------------
-        var famid = 0;
+
         if (familymembers && children.length > 2) {
             familystatus.push("family");
             var familyurl = "http://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + focusid;
@@ -255,9 +262,10 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     //console.log(subdata);
                     var urlval = $(row).find(".individualListBodyContainer a").attr("href");
                     var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
-                    subdata["url"] = shorturl;
+                    var itemid = getParameterByName('itemId', shorturl);
+                    subdata["itemId"] = itemid;
                     subdata["profile_id"] = famid;
-                    unionurls[famid] = shorturl;
+                    unionurls[famid] = itemid;
                     famid ++;
                     //Grab data from the profile's page as it contains more detailed information
                     chrome.extension.sendMessage({
@@ -278,7 +286,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             updateGeo(); //Poll until all family requests have returned and continue there
         } else if (children.length > 2) {
             if (isChild(relation.title)) {
-                var shorturl = tablink.substring(0, tablink.indexOf('showRecord') + 10);
+                var itemid = getParameterByName('itemId', tablink);
                 child = children[2];
                 var rows = $(child).find('tr');
                 for (var i = 0; i < rows.length; i++) {
@@ -289,8 +297,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         var famlist = $(valfamily).find(".individualsListContainer");
                         for (var r = 0; r < famlist.length; r++) {
                             var row = famlist[r];
-                            var urlval = $(row).find(".individualListBodyContainer a").attr("href");
-                            if (urlval !== shorturl) {
+                            var urlval = getParameterByName('itemId', $(row).find(".individualListBodyContainer a").attr("href"));
+                            if (urlval !== itemid) {
                                 childlist[relation.proid] = $.inArray(urlval, unionurls);
                                 profiledata["parent_id"] = $.inArray(urlval, unionurls);
                             }
@@ -308,7 +316,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
 }
 
 function updateInfoData(person, arg) {
-    person["url"] = arg["url"];  //TODO Not currently used - future follow profile
+    person["itemId"] = arg["itemId"];
     person["profile_id"] = arg["profile_id"];
 
     if (exists(arg.name)) {
@@ -892,10 +900,12 @@ function isEnabled(value, score) {
 }
 
 function isFemale(title) {
+    title = title.replace(" (implied)", "");
     return (title === "wife" || title === "ex-wife" || title === "mother" || title === "sister" || title === "daughter");
 }
 
 function isMale(title) {
+    title = title.replace(" (implied)", "");
     return (title === "husband" || title === "ex-husband" || title === "father" || title === "brother" || title === "son");
 }
 

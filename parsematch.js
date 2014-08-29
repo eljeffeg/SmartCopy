@@ -10,6 +10,7 @@ var childlist = [];
 var marriagedata = [];
 var hideprofile = false;
 var genispouse = [];
+var myhspouse = [];
 var focusgender = "unknown";
 alldata["family"] = {};
 // Parse MyHeritage Tree from Smart Match
@@ -248,6 +249,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                 genderval = "female";
                             }
                             focusgender = genderval;
+                            profiledata["gender"] = genderval;
                         }
                         if (marriagedata.length > 0) {
                             if (setmarriage) {
@@ -309,6 +311,23 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                 profiledata["parent_id"] = $.inArray(urlval, unionurls);
                             }
                         }
+                    }
+                }
+            } else if (isPartner(relation.title)) {
+                myhspouse.push(relation.proid);
+            }
+            if (genderval === "unknown") {
+                child = children[2];
+                var rows = $(child).find('tr');
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
+                    if (isPartner(title) && isFemale(title)) {
+                        profiledata["gender"] = "male";
+                        break;
+                    } else if (isPartner(title) && isMale(title)) {
+                        profiledata["gender"] = "female";
+                        break;
                     }
                 }
             }
@@ -1019,17 +1038,16 @@ function isChecked(value, score) {
 }
 
 function buildParentSelect(id) {
-    var cleanArray = $.unique(childlist);
     var geniselect = "";
     var pselect = '<select name="parent" style="width: 215px; float: right; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" >';
-    if (cleanArray.length === 0 && genispouse.length === 1) {
+    if (myhspouse.length === 0 && genispouse.length === 1) {
         geniselect = " selected";
     } else if (id == -1) {
         pselect += '<option value="-1" selected>Unknown</option>';
     }
-    for (var key in cleanArray) if (cleanArray.hasOwnProperty(key)) {
-        if (exists(databyid[cleanArray[key]])) {
-            pselect += '<option value="' + cleanArray[key] + '" ' + isSelected(id, cleanArray[key]) + '>MyH: ' + databyid[cleanArray[key]].name.replace("born ", "") + '</option>';
+    for (var key in myhspouse) if (myhspouse.hasOwnProperty(key)) {
+        if (exists(databyid[myhspouse[key]])) {
+            pselect += '<option value="' + myhspouse[key] + '" ' + isSelected(id, myhspouse[key]) + '>MyH: ' + databyid[myhspouse[key]].name.replace("born ", "") + '</option>';
         }
     }
     for (var key in genispouse) if (genispouse.hasOwnProperty(key)) {
@@ -1038,10 +1056,6 @@ function buildParentSelect(id) {
     pselect += '</select>';
     return pselect;
 }
-
-
-//"birth":{"date":{"day":26,"month":9,"year":1974},"location":{"city":"Milford","state":"Massachusetts","country":"US","country_code":"US","latitude":42.14294,"longitude":-71.51654}}
-
 
 
 

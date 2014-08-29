@@ -404,7 +404,11 @@ var submitform = function() {
                 var familyout = parseForm(fs);
                 if(!$.isEmptyObject(familyout)) {
                     if (actionname[1] !== "child") {
-                        document.getElementById("updatestatus").innerText = "Adding " + capFL(actionname[1]);
+                        var statusaction = actionname[1];
+                        if (statusaction === "sibling" || statusaction === "parent" || statusaction === "partner") {
+                            statusaction += "s";
+                        }
+                        document.getElementById("updatestatus").innerText = "Adding " + capFL(statusaction);
                         buildTree(familyout, "add-" + actionname[1], focusid);
                     } else {
                         addchildren[familyout.profile_id] = familyout;
@@ -815,14 +819,14 @@ $(function () {
             var placeobj = document.getElementsByClassName("geoplace");
             for (var i=0;i < placeobj.length; i++) {
                 placeobj[i].style.display = "none";
-                $(placeobj[i]).find(":input:text").prop("disabled", true);
+                //$(placeobj[i]).find(":input:text").prop("disabled", true);
             }
             $(".geoicon").attr("src", "images/geoon.png");
         } else {
             var locobj = document.getElementsByClassName("geoloc");
             for (var i=0;i < locobj.length; i++) {
                 locobj[i].style.display = "none";
-                $(locobj[i]).find(":input:text").prop("disabled", true);
+                //$(locobj[i]).find(":input:text").prop("disabled", true);
             }
             var placeobj = document.getElementsByClassName("geoplace");
             for (var i=0;i < placeobj.length; i++) {

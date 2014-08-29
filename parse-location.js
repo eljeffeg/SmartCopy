@@ -58,6 +58,9 @@
             }
         }
     }
+    if (location.place === "" && location.city === "" && location.county === "" && location.state === "" && location.country === "") {
+        location.place = location.query;
+    }
     return location;
 };
 

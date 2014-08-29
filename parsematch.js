@@ -271,6 +271,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     var urlval = $(row).find(".individualListBodyContainer a").attr("href");
                     var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
                     var itemid = getParameterByName('itemId', shorturl);
+                    subdata["url"] = urlval;
                     subdata["itemId"] = itemid;
                     subdata["profile_id"] = famid;
                     unionurls[famid] = itemid;
@@ -341,6 +342,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
 }
 
 function updateInfoData(person, arg) {
+    person["url"] = arg["url"];
     person["itemId"] = arg["itemId"];
     person["profile_id"] = arg["profile_id"];
 

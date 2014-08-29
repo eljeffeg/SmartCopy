@@ -403,6 +403,9 @@ var submitform = function() {
                 var actionname = entry.name.split("-"); //get the relationship
                 var familyout = parseForm(fs);
                 if(!$.isEmptyObject(familyout)) {
+                    if (exists(databyid[familyout.profile_id])) {
+                       familyout["about_me"] = "Source: profile information read from [" +  databyid[familyout.profile_id].url + " MyHeritage Match]";
+                    }
                     if (actionname[1] !== "child") {
                         var statusaction = actionname[1];
                         if (statusaction === "sibling" || statusaction === "parent" || statusaction === "partner") {

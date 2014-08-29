@@ -109,6 +109,7 @@ function loadPage(request) {
             if (focusrange !== "") {
                 document.getElementById("focusrange").innerText = focusrange;
             }
+            console.log("Parsing Family...");
             parseSmartMatch(request.source, proaccount);
 
             if (!proaccount) {
@@ -364,7 +365,10 @@ $(function () {
     $('.checkall').on('click', function () {
         var fs = $(this).closest('div').find('fieldset');
         fs.find(':checkbox').prop('checked', this.checked);
-        fs.find('input:text,select,input:hidden').attr('disabled', !this.checked);
+        var ffs = fs.find('input:text,select,input:hidden');
+        ffs.filter(function(item) {
+            return (ffs[item].type !== "checkbox");
+        }).attr('disabled', !this.checked);
     });
 });
 
@@ -385,11 +389,10 @@ var submitform = function() {
 
         // --------------------- Update Profile Data ---------------------
 
-        var fs = $('#profiletable');
         document.getElementById("updatestatus").innerText = "Update: " + focusname;
+        var fs = $('#profiletable');
         var profileout = parseForm(fs);
         buildTree(profileout, "update", focusid);
-
 
         // --------------------- Add Family Data ---------------------
         var privateprofiles = $('.checkslide');
@@ -399,10 +402,13 @@ var submitform = function() {
                 fs = $("#" + entry.name.replace("checkbox", "slide"));
                 var actionname = entry.name.split("-"); //get the relationship
                 var familyout = parseForm(fs);
-                if (actionname[1] !== "child") {
-                    buildTree(familyout, "add-" + actionname[1], focusid);
-                } else {
-                    addchildren[familyout.profile_id] = familyout;
+                if(!$.isEmptyObject(familyout)) {
+                    if (actionname[1] !== "child") {
+                        document.getElementById("updatestatus").innerText = "Adding " + capFL(actionname[1]);
+                        buildTree(familyout, "add-" + actionname[1], focusid);
+                    } else {
+                        addchildren[familyout.profile_id] = familyout;
+                    }
                 }
             }
         }
@@ -417,7 +423,6 @@ function buildTree(data, action, sendid) {
         var id = "";
         if (exists(data.profile_id)) {
             id = data.profile_id;
-            document.getElementById("updatestatus").innerText = "Adding: " + databyid[id].name;
             delete data.profile_id;
         }
 
@@ -458,6 +463,9 @@ function submitChildren() {
         setTimeout(submitChildren, 200);
     } else if (!checkchildren) {
         checkchildren = true;
+        if (addchildren.length > 0) {
+            document.getElementById("updatestatus").innerText = "Adding Children";
+        }
         var tempadded = [];
         for(var i = 0; i < addchildren.length; i++) {
             if (exists(addchildren[i])) {
@@ -809,6 +817,7 @@ $(function () {
                 placeobj[i].style.display = "none";
                 $(placeobj[i]).find(":input:text").prop("disabled", true);
             }
+            $(".geoicon").attr("src", "images/geoon.png");
         } else {
             var locobj = document.getElementsByClassName("geoloc");
             for (var i=0;i < locobj.length; i++) {
@@ -824,6 +833,7 @@ $(function () {
                     return (pinput[item].value !== ""  && checkbox.checked);
                 }).prop("disabled", false);
             }
+            $(".geoicon").attr("src", "images/geooff.png");
         }
     }
     $('#birthonoffswitch').on('click', function() {

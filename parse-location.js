@@ -66,7 +66,6 @@ function compareGeo(shortGeo, longGeo) {
     location.query = longGeo.query;
     location.place = longGeo.place; //longGeo has the Cemetery & Grave filter
     if (location.place === "") {
-        location.zip = longGeo.zip;
         location.city = longGeo.city;
         location.county = longGeo.county;
         location.state = longGeo.state;
@@ -76,13 +75,20 @@ function compareGeo(shortGeo, longGeo) {
             location.place = location_split.shift();
         }
     } else {
-        location.zip = shortGeo.zip;
         location.city = shortGeo.city;
         location.county = shortGeo.county;
         location.state = shortGeo.state;
         location.country = shortGeo.country;
     }
-
+    /**
+     *  else if (shortGeo.county === longGeo.county && shortGeo.county !== "") {
+            location.place = location_split.shift();
+        } else if (shortGeo.state === longGeo.state && shortGeo.state !== "") {
+            location.place = location_split.shift();
+        } else if (shortGeo.country === longGeo.country && shortGeo.country !== "") {
+            location.place = location_split.shift();
+        }
+     */
     /**
     if (shortGeo.city === longGeo.city && shortGeo.city !== "") {
             if (longGeo.place === "") {

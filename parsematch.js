@@ -78,6 +78,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             if (listrow[lr].className != "eventSeparator") {
                                 alldata["family"][title].push({name: listrow[lr].nodeValue, gender: gendersv, profile_id: famid, title: title});
                             }
+                            famid++;
                         }
                     } else {
                         var splitlr = $(row).find(".recordFieldValue").contents().get(0).nodeValue.split(",");
@@ -85,12 +86,10 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             if (splitlr[lr].trim().length > 4) {
                                 alldata["family"][title].push({name: splitlr[lr].trim(), gender: gendersv,  profile_id: famid, title: title});
                             }
+                            famid++;
                         }
-
                     }
-
                 }
-                famid++;
                 continue;
             }
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
@@ -128,7 +127,10 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                 break;
                             }
-                            else if (valdate !== null && (valdate.toLowerCase().contains(" cemetery") || valdate.toLowerCase().contains(" grave") || valdate.toLowerCase().endsWith(" cem"))) {
+                            else if (valdate !== null && (valdate.toLowerCase().contains(" cemetery") || valdate.toLowerCase().contains(" grave") || valdate.toLowerCase().endsWith(" cem") || valdate.toLowerCase().endsWith(" cem."))) {
+                                if (valdate.toLowerCase().endsWith(" cem") || valdate.toLowerCase().endsWith(" cem.")) {
+                                    valdate = valdate.replace(/ cem\.?/i, " Cemetery");
+                                }
                                 valplace = valdate.trim();
                             } else if (valdate !== null && valdate.toLowerCase().startsWith("marriage to")) {
                                 data.push({name: valdate.replace("Marriage to: ","")});
@@ -165,8 +167,12 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 if (valplace === "") {
                     var splitplace = vallocal.split(",");
                     var checkplace = splitplace[0].toLowerCase().trim();
-                    if (checkplace.contains(" cemetery") || checkplace.contains(" grave") || checkplace.toLowerCase().endsWith(" cem")) {
-                        valplace = splitplace[0];
+                    if (checkplace.contains(" cemetery") || checkplace.contains(" grave") || checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.")) {
+                        if (checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.")) {
+                            valplace = splitplace[0].replace(/ cem\.?/i, " Cemetery").trim();;
+                        } else {
+                            valplace = splitplace[0].trim();;
+                        }
                     }
                 }
                 data.push({location: vallocal, geolocation: geoid, geoplace: valplace});
@@ -548,7 +554,14 @@ function buildForm() {
             '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
         div[0].innerHTML = membersstring;
     }
-
+    var geoplace = "table-row";
+    var geoauto = "none";
+    var geoicon = "geooff.png";
+    if ($('#geoonoffswitch').prop('checked')) {
+        geoplace = "none";
+        geoauto = "table-row";
+        geoicon = "geoon.png";
+    }
     // ---------------------- Profile Data --------------------
     for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
         var title = listvalues[list];
@@ -599,15 +612,10 @@ function buildForm() {
                     var county = geovar1.county;
                     var state = geovar1.state;
                     var country = geovar1.country;
-                    var geoplace = "table-row";
-                    var geoauto = "none";
-                    if ($('#geoonoffswitch').prop('checked')) {
-                        geoplace = "none";
-                        geoauto = "table-row";
-                    }
                     locationval = locationval +
-                        '<tr class="geoplace"style="display: ' + geoplace + ';"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place:</td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, scored) + '></td></tr>' +
-                        '<tr class="geoloc" style="display: ' + geoauto + ';"><td colspan="2" style="font-size: 90%;padding: 0;"><div class="membertitle" style="margin-top: 4px; margin-left: 3px; margin-right: 2px; padding-left: 5px;"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
+                        '<tr><td colspan="2" style="font-size: 90%;padding: 0;"><div class="membertitle" style="margin-top: 4px; margin-left: 3px; margin-right: 2px; padding-left: 5px; padding-right: 2px;">' +
+                        '<img class="geoicon" style="cursor: pointer; float:right; padding-top: 1px;" src="images/' + geoicon + '" height="16px"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
+                        '<tr class="geoplace"style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place:</td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, scored) + '></td></tr>' +
                         '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, scored) + '>Place: </td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, scored) + '></td></tr>' +
                         '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, scored) + '>City: </td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, scored) + '></td></tr>' +
                         '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, scored) + '>County: </td><td style="float:right;padding: 0;"><input type="text" name="' + title + ':location:county" value="' + county + '" ' + isEnabled(county, scored) + '></td></tr>' +
@@ -626,8 +634,9 @@ function buildForm() {
             }
             if (!locationadded) {
                 locationval = locationval +
-                    '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") +';"><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" disabled></td></tr>' +
-                    '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;None</div></td></tr>' +
+                    '<tr class="hiddenrow" style="display: ' + isHidden(hidden) +';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
+                    '<img class="geoicon" style="cursor: pointer; float:right; padding-top: 1px;" src="images/' + geoicon + '" height="16px"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
+                    '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" disabled></td></tr>' +
                     '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name_geo" disabled></td></tr>' +
                     '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" name="'+title+':location:city" disabled></td></tr>' +
                     '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" name="'+title+':location:county" disabled></td></tr>' +
@@ -646,8 +655,9 @@ function buildForm() {
                 membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" name="cause_of_death" disabled></td></tr>';
             }
             membersstring = membersstring +
-                '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") +';"><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" disabled></td></tr>' +
-                '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;None</div></td></tr>' +
+                '<tr class="hiddenrow" style="display: ' + isHidden(hidden) +';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
+                '<img class="geoicon" style="cursor: pointer; float:right; padding-top: 1px;" src="images/' + geoicon + '" height="16px"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
+                '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" disabled></td></tr>' +
                 '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name_geo" disabled></td></tr>' +
                 '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" name="'+title+':location:city" disabled></td></tr>' +
                 '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" name="'+title+':location:county" disabled></td></tr>' +
@@ -803,15 +813,10 @@ function buildForm() {
                             var county = geovar2.county;
                             var state = geovar2.state;
                             var country = geovar2.country;
-                            var geoplace = "table-row";
-                            var geoauto = "none";
-                            if ($('#geoonoffswitch').prop('checked')) {
-                                geoplace = "none";
-                                geoauto = "table-row";
-                            }
                             locationval = locationval +
-                                '<tr class="geoplace" style="display: ' + geoplace + ';"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" value="' + place + '" ' + isEnabled(place, scored) + '></td></tr>' +
-                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
+                                '<tr><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
+                                '<img class="geoicon" style="cursor: pointer; float:right; padding-top: 1px;" src="images/' + geoicon + '" height="16px"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
+                                '<tr class="geoplace" style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" value="' + place + '" ' + isEnabled(place, scored) + '></td></tr>' +
                                 '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, scored) + '>Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, scored) + '></td></tr>' +
                                 '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, scored) + '>City: </td><td style="float:right;"><input type="text" name="'+title+':location:city" value="' + city + '" ' + isEnabled(city, scored) + '></td></tr>' +
                                 '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, scored) + '>County: </td><td style="float:right;"><input type="text" name="'+title+':location:county" value="' + county + '" ' + isEnabled(county, scored) + '></td></tr>' +
@@ -830,8 +835,9 @@ function buildForm() {
                     }
                     if (!locationadded) {
                         locationval = locationval +
-                            '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") +';"><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" disabled></td></tr>' +
-                            '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;None</div></td></tr>' +
+                            '<tr class="hiddenrow" style="display: ' + isHidden(hidden) +';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
+                            '<img class="geoicon" style="cursor: pointer; float:right; padding-top: 1px;" src="images/' + geoicon + '" height="16px"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
+                            '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" disabled></td></tr>' +
                             '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name_geo" disabled></td></tr>' +
                             '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" name="'+title+':location:city" disabled></td></tr>' +
                             '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" name="'+title+':location:county" disabled></td></tr>' +
@@ -848,8 +854,9 @@ function buildForm() {
                         membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" name="cause_of_death" disabled></td></tr>';
                     }
                     membersstring = membersstring +
-                        '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") +';"><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" disabled></td></tr>' +
-                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;None</div></td></tr>' +
+                        '<tr class="hiddenrow" style="display: ' + isHidden(hidden) +';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
+                        '<img class="geoicon" style="cursor: pointer; float:right; padding-top: 1px;" src="images/' + geoicon + '" height="16px"><strong>&#x276f; </strong>' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
+                        '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" disabled></td></tr>' +
                         '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name_geo" disabled></td></tr>' +
                         '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" name="'+title+':location:city" disabled></td></tr>' +
                         '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" name="'+title+':location:county" disabled></td></tr>' +
@@ -879,12 +886,47 @@ function buildForm() {
             fs.find('input:text,select,input:hidden').attr('disabled', !this.checked);
         });
     });
+    $(function () {
+        $('.geoicon').on('click', function () {
+            var fs = $(this);
+            if (fs.attr("src") === "images/geoon.png") {
+                fs.attr("src", "images/geooff.png");
+                var tb = $(this).closest('tr').next();
+                tb[0].style.display = "table-row";
+                tb = tb.next();
+                tb[0].style.display = "none"; //place
+                tb = tb.next();
+                tb[0].style.display = "none"; //city
+                tb = tb.next();
+                tb[0].style.display = "none"; //county
+                tb = tb.next();
+                tb[0].style.display = "none"; //state
+                tb = tb.next();
+                tb[0].style.display = "none"; //country
+            } else {
+                fs.attr("src", "images/geoon.png");
+                var tb = $(this).closest('tr').next();
+                tb[0].style.display = "none";
+                tb = tb.next();
+                tb[0].style.display = "table-row"; //place
+                tb = tb.next();
+                tb[0].style.display = "table-row"; //city
+                tb = tb.next();
+                tb[0].style.display = "table-row"; //county
+                tb = tb.next();
+                tb[0].style.display = "table-row"; //state
+                tb = tb.next();
+                tb[0].style.display = "table-row"; //country
+            }
+        });
+    });
 
     if (i > 0) {
         document.getElementById("familydata").style.display = "block";
     }
     document.getElementById("bottomsubmit").style.display = "block";
     parsecomplete = true;
+    console.log("Process Complete...");
 }
 
 function isValue(object) {

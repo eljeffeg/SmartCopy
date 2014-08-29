@@ -121,7 +121,7 @@ function loadPage(request) {
             document.getElementById("top-container").style.display = "block";
             document.getElementById("submitbutton").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage("#f8ff86", 'This MyHeritage collection is not yet supported by SmartCopy.');
+            setMessage("#f8ff86", 'This MyHeritage collection is not fully supported by SmartCopy. You could try enabling experimental collection parsing under options.');
         }
     } else {
         var itemId = getParameterByName('itemId', tablink);
@@ -404,7 +404,7 @@ var submitform = function() {
                 var familyout = parseForm(fs);
                 if(!$.isEmptyObject(familyout)) {
                     if (exists(databyid[familyout.profile_id])) {
-                       familyout["about_me"] = "Source: profile information read from [" +  databyid[familyout.profile_id].url + " MyHeritage Match]";
+                       familyout["about_me"] = "* Created from [" +  databyid[familyout.profile_id].url + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: " + moment.utc().format("MMM D YYYY, H:MM:ss UTC");
                     }
                     if (actionname[1] !== "child") {
                         var statusaction = actionname[1];

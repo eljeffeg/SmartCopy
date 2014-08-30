@@ -811,8 +811,16 @@ function reverseRelationship(relationship) {
         } else {
             return "sibling";
         }
+    } else if (relationship === "partner") {
+        return "partner";
+    } else if (relationship === "ex-wife") {
+        return "ex-husband";
+    } else if (relationship === "ex-husband") {
+        return "ex-wife";
+    } else if (relationship === "ex-partner") {
+        return "ex-partner";
     } else {
-        return relationship;
+        return "";
     }
 }
 

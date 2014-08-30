@@ -326,6 +326,19 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     });
                 }
             }
+            if (genderval === "unknown") {
+                //last attempt to determine gender - check if the lastname != birthname, assume female
+                var nametest = NameParse.parse(focusperson);
+                if (nametest.suffix !== "") {
+                    genderval = "male";
+                    focusgender = genderval;
+                    profiledata["gender"] = genderval;
+                } else if (nametest.birthName !== "" && nametest.lastName !== nametest.birthName) {
+                    genderval = "female";
+                    focusgender = genderval;
+                    profiledata["gender"] = genderval;
+                }
+            }
             updateGeo(); //Poll until all family requests have returned and continue there
         } else if (children.length > 2) {
             if (isChild(relation.title)) {
@@ -358,12 +371,26 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     var row = rows[i];
                     var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
                     if (isPartner(title) && isFemale(title)) {
-                        profiledata["gender"] = "male";
+                        genderval = "male";
+                        profiledata["gender"] = genderval;
                         break;
                     } else if (isPartner(title) && isMale(title)) {
-                        profiledata["gender"] = "female";
+                        genderval = "female";
+                        profiledata["gender"] = genderval;
                         break;
                     }
+                }
+            }
+            if (genderval === "unknown") {
+                //last attempt to determine gender - check if the lastname != birthname, assume female
+                var nametest = NameParse.parse(focusperson);
+                if (nametest.suffix !== "") {
+                    genderval = "male";
+                    focusgender = genderval;
+                    profiledata["gender"] = genderval;
+                } else if (nametest.birthName !== "" && nametest.lastName !== nametest.birthName) {
+                    genderval = "female";
+                    profiledata["gender"] = genderval;
                 }
             }
         } else if (relation === "") {

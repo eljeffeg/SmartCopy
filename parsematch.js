@@ -56,6 +56,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         var children = records[0].childNodes;
         var child = children[0];
         var rows = $(child).find('tr');
+        var burialdtflag = false;
+        var deathdtflag = false;
         for (var r = 0; r < rows.length; r++) {
 
             // console.log(row);
@@ -183,10 +185,42 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             if (exists(profiledata[title]) && profiledata[title].length > data.length) {
                 continue;
             }
+            if (title === "burial" && valdate !== "") {
+                burialdtflag = true;
+            } else if (title === "death" && valdate !== "") {
+                deathdtflag = true;
+            }
             if (title !== 'marriage') {
                 profiledata[title] = data;
             } else if (!$.isEmptyObject(data)) {
                 marriagedata.push(data);
+            }
+        }
+        if (!burialdtflag && deathdtflag && $('#burialonoffswitch').prop('checked')) {
+            var data = [];
+            var dd = profiledata["death"][0]["date"];
+            if (dd.startsWith("Between")) {
+                var btsplit = dd.split(" and ");
+                if (btsplit.length > 1) {
+                    dd = btsplit[1];
+                }
+            }
+            if (dd.startsWith("After Circa") || dd.startsWith("Circa After")) {
+                dd = dd.trim();
+            } else if (dd.startsWith("After")) {
+                dd = dd.replace("After", "After Circa").trim();
+            } else if (dd.startsWith("Before Circa") || dd.startsWith("Circa Before") ) {
+                dd = dd.trim();
+            } else if (dd.startsWith("Before")) {
+                dd = dd.replace("Before", "Before Circa").trim();
+            } else if (dd.startsWith("Circa")) {
+                dd = "After " + dd.trim();
+            } else if (!dd.startsWith("Between")) {
+                dd = "After Circa " + dd.trim();
+            }
+            if (!dd.startsWith("Between")) {
+                data.push({date: dd})
+                profiledata["burial"] = data;
             }
         }
 
@@ -1043,6 +1077,9 @@ function buildParentSelect(id) {
     var geniselect = "";
     var pselect = '<select name="parent" style="width: 215px; float: right; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" >';
     if (myhspouse.length === 0 && genispouse.length === 1) {
+        geniselect = " selected";
+    } else if ($('#geniparentonoffswitch').prop('checked') && myhspouse.length === 1 && genispouse.length === 1) {
+        id = -1;
         geniselect = " selected";
     } else if (id == -1) {
         pselect += '<option value="-1" selected>Unknown</option>';

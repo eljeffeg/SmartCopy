@@ -200,7 +200,6 @@ var NameParse = (function(){
         ];
         for (var i=0; i < preffixArray.length; i++) {
             if (tempword1.startsWith(preffixArray[i] + " ")) {
-                console.log(preffixArray[i]);
                 word.shift();
                 if (!tempword2.startsWith(preffixArray[i] + " ")) {
                     word.shift();

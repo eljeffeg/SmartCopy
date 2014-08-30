@@ -7,7 +7,6 @@ var tablink;
 var submitcheck = true;
 var buildhistory = [];
 var marriagedates = [];
-var experimental = true;
 chrome.storage.local.get('buildhistory', function (result) {
     if(exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
@@ -403,8 +402,9 @@ var submitform = function() {
                 var actionname = entry.name.split("-"); //get the relationship
                 var familyout = parseForm(fs);
                 if(!$.isEmptyObject(familyout)) {
-                    if (exists(databyid[familyout.profile_id])) {
-                       familyout["about_me"] = "* Created from [" +  databyid[familyout.profile_id].url + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: " + moment.utc().format("MMM D YYYY, H:MM:ss UTC");
+                    var fdata = databyid[familyout.profile_id];
+                    if (exists(fdata)) {
+                        familyout["about_me"] = "* Created from [" +  fdata.url + " MyHeritage Match] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:MM:ss UTC") + "''";
                     }
                     if (actionname[1] !== "child") {
                         var statusaction = actionname[1];
@@ -768,7 +768,7 @@ function addHistory(id, itemId) {
 }
 
 function supportedCollection() {
-    if (experimental) {
+    if ($('#exponoffswitch').prop('checked')) {
         return (tablink.contains("/collection-"));
     } else {
         return (tablink.contains("/collection-1/"));
@@ -780,6 +780,40 @@ function getParameterByName(name, url) {
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
         results = regex.exec(url);
     return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+
+function reverseRelationship(relationship) {
+    if (relationship === "wife") {
+        return "husband";
+    } else if (relationship === "husband") {
+        return "wife";
+    } else if (relationship === "son" || relationship === "daughter" || relationship === "child" || relationship === "children") {
+        if (focusgender === "male") {
+            return "father";
+        } else if (focusgender === "female") {
+            return "mother";
+        } else {
+            return "parent";
+        }
+    } else if (relationship === "parents" || relationship === "parent" || relationship === "father" || relationship === "mother") {
+        if (focusgender === "male") {
+            return "son";
+        } else if (focusgender === "female") {
+            return "daughter";
+        } else {
+            return "child";
+        }
+    } else if (relationship === "siblings" || relationship === "sibling" || relationship === "sister" || relationship === "brother") {
+        if (focusgender === "male") {
+            return "brother";
+        } else if (focusgender === "female") {
+            return "sister";
+        } else {
+            return "sibling";
+        }
+    } else {
+        return relationship;
+    }
 }
 
 // ----- Persistent Options -----
@@ -913,7 +947,16 @@ $(function () {
     });
     $('#exponoffswitch').on('click', function () {
         chrome.storage.local.set({'excollection': this.checked});
-        experimental = this.checked;
+    });
+    $('#geniparentonoffswitch').on('click', function () {
+        chrome.storage.local.set({'geniparent': this.checked});
+        $("#gparentchange").css("display", "block");
+        //TODO Make this a live change
+    });
+    $('#burialonoffswitch').on('click', function () {
+        chrome.storage.local.set({'burialdate': this.checked});
+        $("#burialchange").css("display", "block");
+        //TODO Make this a live change
     });
     $('#hideemptyonoffswitch').on('click', function () {
         chrome.storage.local.set({'hideempty': this.checked});
@@ -970,8 +1013,22 @@ chrome.storage.local.get('hideempty', function (result) {
 });
 
 chrome.storage.local.get('excollection', function (result) {
-    experimental = result.excollection;
+    var experimental = result.excollection;
     if(exists(experimental)) {
         $('#exponoffswitch').prop('checked', experimental);
+    }
+});
+
+chrome.storage.local.get('burialdate', function (result) {
+    var burialchecked = result.burialdate;
+    if(exists(burialchecked)) {
+        $('#burialonoffswitch').prop('checked', burialchecked);
+    }
+});
+
+chrome.storage.local.get('geniparent', function (result) {
+    var gparentchecked = result.geniparent;
+    if(exists(gparentchecked)) {
+        $('#geniparentonoffswitch').prop('checked', gparentchecked);
     }
 });

@@ -68,7 +68,7 @@ function compareGeo(shortGeo, longGeo) {
     var location = {};
     location.query = longGeo.query;
     location.place = longGeo.place; //longGeo has the Cemetery & Grave filter
-    if (location.place === "") {
+    if (location.place === "" || shortGeo.place === shortGeo.query) {
         location.city = longGeo.city;
         location.county = longGeo.county;
         location.state = longGeo.state;

@@ -305,7 +305,6 @@ function getProfile(profile_id) {
 }
 
 var exlinks = document.getElementsByClassName("expandlinks");
-var sllinks = document.getElementsByClassName("familydiv");
 
 var expandAll = function() {
     var expandmembers = $(this).closest('div').find('.memberexpand');
@@ -324,13 +323,6 @@ var expandAll = function() {
 for(var i=0;i<exlinks.length;i++){
     exlinks[i].addEventListener('click', expandAll, false);
 }
-
-for(var i=0;i<sllinks.length;i++){
-    sllinks[i].addEventListener('click', function(event) {
-        expandFamily(event.target.name);
-    });
-}
-
 
 function expandFamily(member) {
     $('#slide'+member).slideToggle();
@@ -357,7 +349,7 @@ function capFL(string)
 }
 
 function exists(object) {
-    return (typeof object !== "undefined");
+    return (typeof object !== "undefined" && object !== null);
 }
 
 $(function () {

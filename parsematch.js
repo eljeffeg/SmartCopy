@@ -57,6 +57,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         var child = children[0];
         var rows = $(child).find('tr');
         var burialdtflag = false;
+        var buriallcflag = false;
         var deathdtflag = false;
         for (var r = 0; r < rows.length; r++) {
 
@@ -84,12 +85,15 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             famid++;
                         }
                     } else {
-                        var splitlr = $(row).find(".recordFieldValue").contents().get(0).nodeValue.split(",");
-                        for (var lr =0;lr < splitlr.length; lr++) {
-                            if (splitlr[lr].trim().length > 4) {
-                                alldata["family"][title].push({name: splitlr[lr].trim(), gender: gendersv,  profile_id: famid, title: title});
+                        var splitlrnv = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
+                        if (exists(splitlrnv)) {
+                            var splitlr = splitlrnv.split(",");
+                            for (var lr =0;lr < splitlr.length; lr++) {
+                                if (splitlr[lr].trim().length > 4) {
+                                    alldata["family"][title].push({name: splitlr[lr].trim(), gender: gendersv,  profile_id: famid, title: title});
+                                }
+                                famid++;
                             }
-                            famid++;
                         }
                     }
                 }
@@ -190,6 +194,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             } else if (title === "death" && valdate !== "") {
                 deathdtflag = true;
             }
+            if (title === "burial" && valdate === "" && vallocal !== "") {
+                buriallcflag = true;
+            }
             if (title !== 'marriage') {
                 profiledata[title] = data;
             } else if (!$.isEmptyObject(data)) {
@@ -220,6 +227,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
             if (!dd.startsWith("Between")) {
                 data.push({date: dd})
+                if (buriallcflag) {
+                    data.push(profiledata["burial"][0]);
+                }
                 profiledata["burial"] = data;
             }
         }
@@ -800,7 +810,9 @@ function buildForm() {
         }
 
         var div = $("#" + relationship);
-        div[0].style.display = "block";
+        if (members.length > 0) {
+            div[0].style.display = "block";
+        }
         var parentscore = scored;
         var skipprivate = $('#privateonoffswitch').prop('checked');
         for (var member in members) if (members.hasOwnProperty(member)) {
@@ -836,11 +848,16 @@ function buildForm() {
                     nameval.birthName = nameval.lastName;
                 }
             }
+            var displayname = "";
+            if (nameval.prefix !== "") {
+                displayname = nameval.displayname;
+            }
             var gender = members[member].gender;
+            var bgcolor = genderColor(gender);
             var membersstring = entry.innerHTML;
-            membersstring += '<div class="membertitle"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
-                '<td style="font-size: 90%; padding: 0px;"><input type="checkbox" class="checkslide" name="checkbox' + i + "-" + relationship + '" ' + isChecked(fullname, scored) + '><a name="' + i + "-" + relationship + '">' + escapeHtml(fullname) + '</a></td>' +
-                '<td style="font-size: 130%; float: right; padding: 0px 5px;"><a name="' + i + "-" + relationship + '">&#9662;</a></td></tr></table></div>' +
+            membersstring += '<div class="membertitle" style="background-color: ' + bgcolor + '"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
+                '<td><input type="checkbox" class="checkslide" name="checkbox' + i + "-" + relationship + '" ' + isChecked(fullname, scored) + '></td>' +
+                '<td class="expandcontrol" name="' + i + "-" + relationship + '"  style="cursor: pointer; width: 100%;"><span style="font-size: 90%;">' + escapeHtml(fullname) + '</span><span style="font-size: 130%; float: right; padding: 0px 5px;">&#9662;</td></tr></table></div>' +
                 '<div id="slide' + i + "-" + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
                 '<tr><td colspan="2"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '" ' + isEnabled(members[member].profile_id, scored) + '></td></tr>';
             if (isChild(relationship)) {
@@ -858,12 +875,15 @@ function buildForm() {
                     '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.lastName, scored) + '>Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" ' + isEnabled(nameval.lastName, scored) + '></td></tr>' +
                     '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.birthName, scored) + '>Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" ' + isEnabled(nameval.birthName, scored) + '></td></tr>' +
                     '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.suffix, scored) + '>Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" ' + isEnabled(nameval.suffix, scored) + '></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.nickName, scored) + '>Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" ' + isEnabled(nameval.nickName, scored) + '></td></tr>';
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.nickName, scored) + '>Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" ' + isEnabled(nameval.nickName, scored) + '></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(displayname, scored) + '>Display Name: </td><td style="float:right; padding: 0px;"><input type="text" name="display_name" value="' + displayname + '" ' + isEnabled(displayname, scored) + '></td></tr>';
             if (exists(members[member]["occupation"])) {
                 var occupation = members[member]["occupation"];
                 membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored) + '>Occupation: </td><td style="float:right; padding: 0px;"><input type="text" name="occupation" value="' + occupation + '" ' + isEnabled(occupation, scored) + '></td></tr>';
+            } else {
+                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow" id="occupation"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right;"><input type="text" name="occupation" disabled></td></tr>';
             }
-            membersstring = membersstring + '<tr><td class="profilediv" style="padding: 2px; 0px;"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-top: 2px;"><select style="width: 151px; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
+            membersstring = membersstring + '<tr><td class="profilediv" style="padding: 2px; 0px;"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-top: 2px;"><select class="genderselect" style="width: 151px; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
                 '<option value="male" '+ setGender("male", gender) + '>Male</option><option value="female" '+ setGender("female", gender) + '>Female</option><option value="unknown" '+ setGender("unknown", gender) + '>Unknown</option></select></td></tr>' +
                 '<tr><td class="profilediv" style="padding: 2px; 0px;"><input type="checkbox" class="checknext" ' + isChecked(living, scored) + '>Vital: </td><td style="float:right; padding-top: 2px;"><select style="width: 151px; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, scored) + '>' +
                 '<option value=false '+ setLiving("deceased", living) + '>Deceased</option><option value=true '+ setLiving("living", living) + '>Living</option></select></td></tr>';
@@ -955,6 +975,20 @@ function buildForm() {
             i++;
         }
     }
+
+    $(function () {
+        $('.genderselect').on('change', function() {
+            var genselect = $(this);
+            var gendercolor = genderColor(genselect[0].options[genselect[0].selectedIndex].value);
+            genselect.closest('.memberexpand').prev('.membertitle').css('background-color', gendercolor);
+        });
+    });
+
+    $(function () {
+        $('.expandcontrol').on('click', function() {
+            expandFamily($(this).attr("name"));
+        });
+    });
 
     $(function () {
         $('.checknext').on('click', function () {
@@ -1065,6 +1099,16 @@ function isHidden(value, geo) {
     } else {
         return "table-row";
     }
+}
+
+function genderColor(gender) {
+    var bgcolor = "#c5fac9";
+    if (gender === "male") {
+        bgcolor = "#d1e3fb";
+    } else if (gender === "female") {
+        bgcolor = "#fdd4e4";
+    }
+    return bgcolor;
 }
 
 function setGender(gender,value) {

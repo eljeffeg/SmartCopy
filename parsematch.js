@@ -134,9 +134,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                 break;
                             }
-                            else if (valdate !== null && (valdate.toLowerCase().contains(" cemetery") || valdate.toLowerCase().contains(" grave") || valdate.toLowerCase().endsWith(" cem") || valdate.toLowerCase().endsWith(" cem."))) {
+                            else if (valdate !== null && (valdate.toLowerCase().contains(" cemetery") || valdate.toLowerCase().contains(" cemetary") || valdate.toLowerCase().contains(" grave") || valdate.toLowerCase().endsWith(" cem") || valdate.toLowerCase().endsWith(" cem."))) {
                                 if (valdate.toLowerCase().endsWith(" cem") || valdate.toLowerCase().endsWith(" cem.")) {
                                     valdate = valdate.replace(/ cem\.?/i, " Cemetery");
+                                } else if (valdate.toLowerCase().contains(" cemetary")) {
+                                    valdate = valdate.replace(/ cemetary/i, " Cemetery");
                                 }
                                 valplace = valdate.trim();
                             } else if (valdate !== null && valdate.toLowerCase().startsWith("marriage to")) {
@@ -174,19 +176,21 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 if (valplace === "") {
                     var splitplace = vallocal.split(",");
                     var checkplace = splitplace[0].toLowerCase().trim();
-                    if (checkplace.contains(" cemetery") || checkplace.contains(" grave") || checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.")) {
+                    if (checkplace.contains(" cemetery") || checkplace.contains(" cemetary") || checkplace.contains(" grave") || checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.")) {
                         if (checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.")) {
-                            valplace = splitplace[0].replace(/ cem\.?/i, " Cemetery").trim();;
+                            valplace = splitplace[0].replace(/ cem\.?/i, " Cemetery").trim();
+                        } else if (checkplace.contains(" cemetary")) {
+                            valplace = splitplace[0].replace(/ cemetary/i, " Cemetery").trim();
                         } else {
-                            valplace = splitplace[0].trim();;
+                            valplace = splitplace[0];
+                            valplace = valplace.trim();
                         }
                     }
                 }
                 data.push({location: vallocal, geolocation: geoid, geoplace: valplace});
                 geoid++;
             }
-
-            if (exists(profiledata[title]) && profiledata[title].length > data.length) {
+            if (exists(profiledata[title]) && profiledata[title].length >= data.length) {
                 continue;
             }
             if (title === "burial" && valdate !== "") {

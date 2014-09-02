@@ -96,7 +96,7 @@ function queryGeo(locationset, test) {
             place = checkPlace(location);
             if (place !== "") {
                 var splitplace = location.split(",");
-                splitplace.pop();  //remove the place from the query
+                splitplace.shift();  //remove the place from the query
                 location = splitplace.join(",");
             }
         }

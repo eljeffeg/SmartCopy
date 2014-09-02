@@ -1,6 +1,5 @@
 ;
 var GeoLocation = function (results, query) {
-    console.log(query);
     var location = {};
     if (!exists(results["results"])) {
         return location;
@@ -13,6 +12,7 @@ var GeoLocation = function (results, query) {
         var locationset = [];
         for (var i = 0; i < results.length; i++) {
             locationset[i] = parseGoogle(results[i]);
+            locationset[i].query = query || "";
         }
         for (var i = 1; i < results.length; i++) {
             location = compareGeo(locationset[i], locationset[0]);
@@ -111,18 +111,16 @@ function checkPlace(location) {
 function queryGeo(locationset, test) {
     //locationset should contain "location", "id", and optionally "place" if detected prior to date.
     if (exists(locationset.location)) {
-        var unittest = test || false;
+        var unittest = "";
+        if (exists(test) && test !== "") {
+            unittest = JSON.parse(test);
+        }
         var place = "";
         var location = locationset.location;
         if (exists(locationset.place) && locationset.place !== "") {
             place = locationset.place;
         } else {
             place = checkPlace(location);
-            if (place !== "") {
-                var splitplace = location.split(",");
-                splitplace.shift();  //remove the place from the query
-                location = splitplace.join(",");
-            }
         }
         geostatus.push(geostatus.length);
         var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(location);
@@ -130,10 +128,11 @@ function queryGeo(locationset, test) {
             method: "GET",
             action: "xhttp",
             url: url,
-            variable: {id: locationset.id, place: place, location: locationset.location}
+            variable: {id: locationset.id, place: place, location: locationset.location, unittest: unittest}
         }, function (response) {
             var result = jQuery.parseJSON(response.source);
             var id = response.variable.id;
+            var unittest = response.variable.unittest;
             var full_location = response.variable.location;
             var georesult = new GeoLocation(result, full_location);
             if (response.variable.place !== "") {
@@ -151,41 +150,161 @@ function queryGeo(locationset, test) {
                     method: "GET",
                     action: "xhttp",
                     url: url,
-                    variable: {id: id, location: short_location}
+                    variable: {id: id, location: short_location, unittest: unittest}
                 }, function (response) {
                     var result = jQuery.parseJSON(response.source);
                     var id = response.variable.id;
+                    var unittest = response.variable.unittest;
                     var georesult = new GeoLocation(result, response.variable.location);
-                    geolocation[id] = compareGeo(georesult, geolocation[id], unittest);
+                    geolocation[id] = compareGeo(georesult, geolocation[id]);
+                    if (unittest !== "") {
+                        print(geolocation[id], unittest);
+                    }
                     geostatus.pop();
                 });
             } else {
-                if (unittest) {
-                    print(geolocation[id]);
+                if (unittest !== "") {
+                    print(geolocation[id], unittest);
                 }
                 geostatus.pop();
             }
+
         });
     }
 }
 
-function compareGeo(shortGeo, longGeo, logging) {
-    var location = {};
-// check for inconsistent results
-    var ambig = false;
-    if ((shortGeo.country !== "") && (longGeo.country !== "") && (shortGeo.country !== longGeo.country)) {
+function matchGeoFields(g1, g2, cnt) {
+    if (cnt < 1) {
+        return false;
+    }
+    if (g1.country === g2.country) {
+        if (cnt === 1) {
+            return true;
+        } else if (g1.state === g2.state) {
+            if (cnt === 2) {
+                return true;
+            } else if (g1.county === g2.county) {
+                if (cnt === 3) {
+                    return true;
+                } else if (g1.city === g2.city) {
+                    if (cnt === 4) {
+                        return true;
+                    } else if (g1.place === g2.place) {
+                        if (cnt === 5) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return false;
+};
+
+function countGeoFields(list) {
+    var fldcount = 0;
+    if (list.country !== "") {
+        fldcount++;
+    }
+    if (list.state !== "") {
+        fldcount++;
+    }
+    if (list.county !== "") {
+        fldcount++;
+    }
+    if (list.city !== "") {
+        fldcount++;
+    }
+    return fldcount;
+};
+
+function compareGeo(shortGeo, longGeo) {
+
+     var location = {};
+     // check for inconsistent results
+     var ambig = false;
+     if ((shortGeo.country !== "") && (longGeo.country !== "") && (shortGeo.country !== longGeo.country)) {
         ambig = true;
     }
-    if ((shortGeo.state !== "") && (longGeo.state !== "") && (shortGeo.state !== longGeo.state)) {
+     if ((shortGeo.state !== "") && (longGeo.state !== "") && (shortGeo.state !== longGeo.state)) {
         ambig = true;
     }
-    if ((shortGeo.county !== "") && (longGeo.county !== "") && (shortGeo.county !== longGeo.county)) {
+     if ((shortGeo.county !== "") && (longGeo.county !== "") && (shortGeo.county !== longGeo.county)) {
         ambig = true;
     }
-// don't check more than that.
-    if ((longGeo.count > 1) && (shortGeo.count > 1)) {
+     // don't check more than that.
+     if ((longGeo.count > 1) && (shortGeo.count > 1)) {
         ambig = true;
     }
+
+     // get number of fields 'used' by each
+     var numShortFields = countGeoFields(shortGeo);
+     var numLongFields = countGeoFields(longGeo);
+     console.log("Short: ", numShortFields, shortGeo);
+     console.log("Long: ", numLongFields, longGeo);
+     // extract difference between the queries
+     var location_split = longGeo.query.split(",");
+
+     if (((longGeo.count > 1) && (shortGeo.count > 1)) || ((longGeo.count === 1) && (shortGeo.count > 1))) {
+// if neither had unique data, or only Long did, use Long results (which at least has .place set)
+        location = longGeo;
+
+        console.log("used long when both had multiples");
+    } else if ((longGeo.count > 1) && (shortGeo.count === 1)) {
+// if only Short has unique results, use it, adding long's query diff
+        location = shortGeo;
+        console.log("used short when long had multiples");
+// ... unless we suspect the 'place' is a state
+        if (numShortFields === 1) {
+            location.state = location_split[0];
+            console.log("used q.split as state");
+        } else {
+            location.place = location_split[0];
+            console.log("used q.split as place");
+        }
+    } else {
+// both returns are unique (count=1), so see how they match up
+        if (numShortFields > numLongFields) {
+// case of only one value in the short query, use query diff? (e.g.: Virgina, USA)
+            location = shortGeo;
+            console.log("used short when short had more fields");
+// ... do we suspect the 'place' is a state?
+            if (numShortFields === 1) {
+                location.state = location_split[0];
+                console.log("used q.split as state");
+            } else {
+                location.place = location_split[0];
+                console.log("used q.split as place");
+            }
+        } else if (numShortFields < numLongFields) {
+            location = longGeo;
+            console.log("used long when long had more fields");
+        } else {
+// both have the same number of fields & same contents for them,
+// use Short results + long.place
+            if (matchGeoFields(shortGeo, longGeo, numShortFields)) {
+                location = shortGeo;
+                console.log("used short when fields are the same");
+// ... do we suspect the 'place' is a state?
+                if (numShortFields === 1) {
+                    location.state = location_split[0];
+                    console.log("used q.split as state");
+                } else {
+                    location.place = location_split[0];
+                    console.log("used q.split as place");
+                }
+            } else {
+// both has same number of fields, but they differ in contents
+// use long results
+                location = longGeo;
+                console.log("used long when field contents differ");
+            }
+        }
+    }
+
+     location.query = longGeo.query;
+     return location;
+/*
     var location = {};
     location.query = longGeo.query;
     location.place = longGeo.place; //longGeo has the Cemetery & Grave filter
@@ -199,19 +318,29 @@ function compareGeo(shortGeo, longGeo, logging) {
             location.place = location_split.shift();
         }
     } else {
-        location = shortGeo;
-        location.place = longGeo.place; //longGeo has the Cemetery & Grave filter
-    }
-    location.query = longGeo.query;
-    location.ambiguous = ambig;
-    if (location.ambiguous) {
-        console.log(" Warning: Location is ambiguous!", location.query);
-    }
-    if (logging) {
-        print(location);
+        if (shortGeo.city === "" && longGeo.city !== "") {
+            location.city = longGeo.city;
+        } else {
+            location.city = shortGeo.city;
+        }
+        if (shortGeo.county === "" && longGeo.county !== "") {
+            location.county = longGeo.county;
+        } else {
+            location.county = shortGeo.county;
+        }
+        if (shortGeo.state === "" && longGeo.state !== "") {
+             location.state = longGeo.state;
+        } else {
+             location.state = shortGeo.state;
+        }
+        if (shortGeo.country === "" && lonGeo.country !== "") {
+            location.country = longGeo.country;
+        } else {
+            location.country = shortGeo.country;
+        }
     }
     return location;
-
+*/
     /**
      var location = {};
      location.query = longGeo.query;
@@ -276,7 +405,7 @@ function compareGeo(shortGeo, longGeo, logging) {
     }*/
 }
 
-function print(location) {
+function print(location, unittest) {
     console.log("---------------------------------------");
     console.log("Query: " + location.query);
     console.log("Place: " + location.place);
@@ -284,5 +413,15 @@ function print(location) {
     console.log("County: " + location.county);
     console.log("State: " + location.state);
     console.log("Country: " + location.country);
+
+    if (exists(unittest) && matchGeoFields(location, unittest, 5)) {
+        console.log("Matching: " + JSON.stringify(location));
+        console.log("%cPassed", 'background: #222; color: #55da7e');
+    } else {
+        console.log("Expected: " + JSON.stringify(unittest));
+        console.log("Received: " + JSON.stringify(location));
+        console.log("%cFailed", 'background: #222; color: #fb1520');
+    }
     console.log("---------------------------------------\n")
 }
+

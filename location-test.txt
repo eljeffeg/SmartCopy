@@ -1,5 +1,5 @@
-Virginia, USA
-Albany, New York
-Parkdale Cemetery, Texas, USA
-Leesburg Cemetary, Leesburg, Washington, Tennessee
-Wicomico Parish, Northumberland, Virginia, USA
+Virginia, USA|{"place":"","zip":"","city":"","county":"","state":"Virginia","country":"United States","count":1,"query":"Virginia, USA","ambiguous":false}
+Albany, New York|{"place":"","zip":"","city":"Albany","county":"Albany County","state":"New York","country":"United States","count":1,"query":"Albany, New York","ambiguous":true}
+Parkdale Cemetery, Texas, USA|{"place":"Parkdale Cemetery","zip":"75025","city":"Plano","county":"Collin County","state":"Texas","country":"United States","count":1,"query":"Parkdale Cemetery, Texas, USA","ambiguous":false}
+Leesburg Cemetary, Leesburg, Washington, Tennessee|{"place":"Leesburg Cemetery","zip":"","city":"Leesburg","county":"Washington County","state":"Tennessee","country":"United States","count":1,"query":"Leesburg Cemetary, Leesburg, Washington, Tennessee","ambiguous":false}
+Wicomico Parish, Northumberland, Virginia, USA|{"place":"Wicomico Parish","zip":"","city":"","county":"Northumberland County","state":"Virginia","country":"United States","count":1,"query":"Wicomico Parish, Northumberland, Virginia, USA","ambiguous":false}

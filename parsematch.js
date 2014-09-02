@@ -527,8 +527,9 @@ function updateGeo() {
                 var lines = data.split("\n");
                 $.each(lines, function(n, location) {
                     if (location !== "") {
-                        var locationset = {id: geoid, location: location};
-                        queryGeo(locationset, true);
+                        var splitloc = location.split("|");
+                        var locationset = {id: geoid, location: splitloc[0]};
+                        queryGeo(locationset, splitloc[1]);
                         geoid++;
                     }
                 });

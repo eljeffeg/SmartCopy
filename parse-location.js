@@ -1,71 +1,95 @@
-;var GeoLocation = function (results, query) {
-
+;
+var GeoLocation = function (results, query) {
+    console.log(query);
     var location = {};
+    if (!exists(results["results"])) {
+        return location;
+    }
+    results = results["results"];
+
+    if (results.length === 1) {
+        location = parseGoogle(results[0]);
+    } else if (results.length > 1) {
+        var locationset = [];
+        for (var i = 0; i < results.length; i++) {
+            locationset[i] = parseGoogle(results[i]);
+        }
+        for (var i = 1; i < results.length; i++) {
+            location = compareGeo(locationset[i], locationset[0]);
+        }
+    }
+    location.count = results.length;
     location.query = query || "";
+    if (location.place === "" && location.city === "" && location.county === "" && location.state === "" && location.country === "") {
+        location.place = location.query;
+    }
+
+    return location;
+}
+
+function parseGoogle(result) {
+    var location = {};
     location.place = "";
     location.zip = "";
     location.city = "";
     location.county = "";
     location.state = "";
     location.country = "";
-    location.count = 0;
+    for (var i = 0; i < result.address_components.length; i++) {
+        var long_name = result.address_components[i].long_name;
+        switch (result.address_components[i].types.join(",")) {
+            case 'point_of_interest,establishment':
+                location.place = long_name;
+                break;
+            case 'establishment':
+                location.place = long_name;
+                break;
+            case 'postal_code':
+            case 'postal_code_prefix,postal_code':
+                location.zip = long_name;
+                break;
+            case 'sublocality,political':
+            case 'locality,political':
+                if (isNaN(long_name)) {
+                    location.city = long_name;
+                }
+                break;
+            case 'neighborhood,political':
+            case 'administrative_area_level_3,political':
+                if (location.city === "" && isNaN(long_name)) {
+                    //If the city is not in locality, use admin area 3
+                    location.city = long_name;
+                }
+                break;
 
-    if (!exists(results["results"])) {
-        return location;
-    }
-    results = results["results"];
-    location.count = results.length;
+            case '':
+                if (location.city === "" && isNaN(long_name)) {
+                    //If the city is not in locality or admin area 3
+                    location.city = long_name;
+                }
+                break;
 
-    if (results.length >= 1) {
-        for (var i = 0; i < results[0].address_components.length; i++) {
-            var long_name = results[0].address_components[i].long_name;
-            switch (results[0].address_components[i].types.join(",")) {
-                case 'establishment':
-                    location.place = long_name;
-                    break;
-                case 'postal_code':
-                case 'postal_code_prefix,postal_code':
-                    location.zip = long_name;
-                    break;
-                case 'sublocality,political':
-                case 'locality,political':
-                    if (isNaN(long_name)) {
-                        location.city = long_name;
-                    }
-                    break;
-                case 'neighborhood,political':
-                case 'administrative_area_level_3,political':
-                    if (location.city === "" && isNaN(long_name)) {
-                        //If the city is not in locality, use admin area 3
-                        location.city = long_name;
-                    }
-                    break;
+            case 'administrative_area_level_2,political':
+                if (isNaN(long_name)) {
+                    location.county = long_name;
+                }
+                break;
 
-                case 'administrative_area_level_2,political':
-                    if (isNaN(long_name)) {
-                        location.county = long_name;
-                    }
-                    break;
+            case 'administrative_area_level_1,political':
+                if (isNaN(long_name)) {
+                    location.state = long_name;
+                }
+                break;
 
-                case 'administrative_area_level_1,political':
-                    if (isNaN(long_name)) {
-                        location.state = long_name;
-                    }
-                    break;
-
-                case 'country,political':
-                    if (isNaN(long_name)) {
-                        location.country = long_name;
-                    }
-                    break;
-            }
+            case 'country,political':
+                if (isNaN(long_name)) {
+                    location.country = long_name;
+                }
+                break;
         }
     }
-    if (location.place === "" && location.city === "" && location.county === "" && location.state === "" && location.country === "") {
-        location.place = location.query;
-    }
     return location;
-};
+}
 
 function checkPlace(location) {
     var splitplace = location.split(",");
@@ -162,22 +186,21 @@ function compareGeo(shortGeo, longGeo, logging) {
     if ((longGeo.count > 1) && (shortGeo.count > 1)) {
         ambig = true;
     }
-    if (((longGeo.count > 1) && (shortGeo.count > 1)) || ((longGeo.count === 1) && (shortGeo.count > 1))) {
-        location = longGeo;
-    } else if ((longGeo.count > 1) && (shortGeo.count === 1)) {
-        location = shortGeo;
-    } else {
-// both counts = 1
-        location.place = longGeo.place; //longGeo has the Cemetery & Grave filter
+    var location = {};
+    location.query = longGeo.query;
+    location.place = longGeo.place; //longGeo has the Cemetery & Grave filter
+    if (location.place === "" || shortGeo.place === shortGeo.query) {
         location.city = longGeo.city;
         location.county = longGeo.county;
         location.state = longGeo.state;
         location.country = longGeo.country;
-        if ((shortGeo.city === longGeo.city) && (shortGeo.city !== "")) {
+        if (shortGeo.city === longGeo.city && shortGeo.city !== "") {
             var location_split = longGeo.query.split(",");
             location.place = location_split.shift();
-            location.city = shortGeo.city;
         }
+    } else {
+        location = shortGeo;
+        location.place = longGeo.place; //longGeo has the Cemetery & Grave filter
     }
     location.query = longGeo.query;
     location.ambiguous = ambig;

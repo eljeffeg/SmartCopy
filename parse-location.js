@@ -85,17 +85,23 @@ function checkPlace(location) {
 }
 
 function queryGeo(locationset, test) {
-    var unittest = test || false;
     //locationset should contain "location", "id", and optionally "place" if detected prior to date.
     if (exists(locationset.location)) {
+        var unittest = test || false;
         var place = "";
+        var location = locationset.location;
         if (exists(locationset.place) && locationset.place !== "") {
             place = locationset.place;
         } else {
-            place = checkPlace(locationset.location);
+            place = checkPlace(location);
+            if (place !== "") {
+                var splitplace = location.split(",");
+                splitplace.pop();  //remove the place from the query
+                location = splitplace.join(",");
+            }
         }
         geostatus.push(geostatus.length);
-        var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(locationset.location);
+        var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(location);
         chrome.extension.sendMessage({
             method: "GET",
             action: "xhttp",

@@ -1,4 +1,5 @@
 var devblocksend = false;
+var locationtest = true;
 var proaccount = true;
 var profilechanged = false;
 var focusid;
@@ -396,7 +397,7 @@ var submitform = function() {
                 if(!$.isEmptyObject(familyout)) {
                     var fdata = databyid[familyout.profile_id];
                     if (exists(fdata)) {
-                        familyout["about_me"] = "* Created from [" +  fdata.url + " MyHeritage Match] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:MM:ss UTC") + "''";
+                        familyout["about_me"] = "* Updated from [" +  fdata.url + " MyHeritage Match] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:MM:ss UTC") + "''";
                     }
                     if (actionname[1] !== "child") {
                         var statusaction = actionname[1];

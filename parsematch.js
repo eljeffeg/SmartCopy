@@ -45,6 +45,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     if (relation === "") {
         focusgender = genderval;
     }
+    var aboutdata = "";
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     var records = parsed.find(".recordFieldsContainer");
     if (records.length > 0 && records[0].hasChildNodes()) {
@@ -99,6 +100,20 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
                 continue;
             }
+            if (title.startsWith("info") || title.startsWith("notes") || title.startsWith("military") || title.startsWith("immigration") || title === "emigration" || title === "residence" || title === "census" || title === "politics" || title === "religion") {
+                var aboutinfo = $(row).find(".recordFieldValue").html();
+                if (exists(aboutinfo)) {
+                    aboutinfo = aboutinfo.replace('<div class="eventSeparator"></div>',' - ');
+                    aboutinfo = $('<div>').html(aboutinfo).text();
+                    if (aboutinfo.contains("jQuery(function()")) {
+                        var splitinfo = aboutinfo.split("jQuery(function()");
+                        aboutinfo = splitinfo[0];
+                        aboutinfo = aboutinfo.trim();
+                    }
+                    aboutdata += "* '''" + capFL(title) + "''': " + aboutinfo + "\n";
+                }
+                continue;
+            }
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
                 && title !== 'occupation' && title !== 'cemetery' && !(title === 'marriage' && relation === "")) {
                 /*
@@ -109,7 +124,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
 
             if (title === "occupation") {
-                $(row).find(".recordFieldValue").contents()
                 if (exists($(row).find(".recordFieldValue").contents().get(0))) {
                     profiledata[title] = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
                 }
@@ -134,13 +148,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                 break;
                             }
-                            else if (valdate !== null && (valdate.toLowerCase().contains(" cemetery") || valdate.toLowerCase().contains(" cemetary") || valdate.toLowerCase().contains(" grave") || valdate.toLowerCase().endsWith(" cem") || valdate.toLowerCase().endsWith(" cem."))) {
-                                if (valdate.toLowerCase().endsWith(" cem") || valdate.toLowerCase().endsWith(" cem.")) {
-                                    valdate = valdate.replace(/ cem\.?/i, " Cemetery");
-                                } else if (valdate.toLowerCase().contains(" cemetary")) {
-                                    valdate = valdate.replace(/ cemetary/i, " Cemetery");
-                                }
-                                valplace = valdate.trim();
+                            else if (valdate !== null && checkPlace(valdate) !== "") {
+                                valplace = checkPlace(valdate);
                             } else if (valdate !== null && valdate.toLowerCase().startsWith("marriage to")) {
                                 data.push({name: valdate.replace("Marriage to: ","")});
                             } else {
@@ -173,21 +182,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
 
             if (vallocal !== "") {
-                if (valplace === "") {
-                    var splitplace = vallocal.split(",");
-                    var checkplace = splitplace[0].toLowerCase().trim();
-                    if (checkplace.contains(" cemetery") || checkplace.contains(" cemetary") || checkplace.contains(" grave") || checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.")) {
-                        if (checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.")) {
-                            valplace = splitplace[0].replace(/ cem\.?/i, " Cemetery").trim();
-                        } else if (checkplace.contains(" cemetary")) {
-                            valplace = splitplace[0].replace(/ cemetary/i, " Cemetery").trim();
-                        } else {
-                            valplace = splitplace[0];
-                            valplace = valplace.trim();
-                        }
-                    }
-                }
-                data.push({location: vallocal, geolocation: geoid, geoplace: valplace});
+                data.push({id: geoid, location: vallocal, place: valplace});
                 geoid++;
             }
             if (exists(profiledata[title]) && profiledata[title].length >= data.length) {
@@ -207,7 +202,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 marriagedata.push(data);
             }
         }
-        if (!burialdtflag && deathdtflag && $('#burialonoffswitch').prop('checked')) {
+        if (!burialdtflag && buriallcflag && deathdtflag && $('#burialonoffswitch').prop('checked')) {
             var data = [];
             var dd = profiledata["death"][0]["date"];
             if (dd.startsWith("Between")) {
@@ -231,9 +226,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
             if (!dd.startsWith("Between")) {
                 data.push({date: dd})
-                if (buriallcflag) {
-                    data.push(profiledata["burial"][0]);
-                }
+                data.push(profiledata["burial"][0]);
                 profiledata["burial"] = data;
             }
         }
@@ -254,6 +247,10 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             if (marriagedata.length === 1 && pcount === 1) {
                 setmarriage = true;
             }
+        }
+        if (aboutdata !== "") {
+            aboutdata = "==Notes==\n" + aboutdata;
+            //console.log(aboutdata);
         }
 
         // ---------------------- Family Data --------------------
@@ -520,28 +517,22 @@ function updateGeo() {
             var title = listvalues[list];
             var memberobj = alldata["profile"][title];
             if (exists(memberobj)) {
-
                 for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
-                    if (exists(memberobj[item].location)) {
-                        geostatus.push(geostatus.length);
-                        var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(memberobj[item].location);
-                        chrome.extension.sendMessage({
-                            method: "GET",
-                            action: "xhttp",
-                            url: url,
-                            variable: {geoid: memberobj[item].geolocation, geoplace: memberobj[item].geoplace, geolocation: memberobj[item].location}
-                        }, function (response) {
-                            var result = jQuery.parseJSON(response.source);
-                            var georesult = new GeoLocation(result, response.variable.geolocation);
-                            if (response.variable.geoplace !== "") {
-                                georesult.place = response.variable.geoplace;
-                            }
-                            geolocation[response.variable.geoid] = georesult;
-                            geostatus.pop();
-                        });
-                    }
+                    queryGeo(memberobj[item]);
                 }
             }
+        }
+        if (locationtest) {
+            $.get('location-test.txt', function(data) {
+                var lines = data.split("\n");
+                $.each(lines, function(n, location) {
+                    if (location !== "") {
+                        var locationset = {id: geoid, location: location};
+                        queryGeo(locationset, true);
+                        geoid++;
+                    }
+                });
+            });
         }
 
         var obj = alldata["family"];
@@ -554,29 +545,10 @@ function updateGeo() {
                     var title = listvalues[list];
                     var memberobj = members[member][title];
                     if (exists(memberobj)) {
-
                         for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
-                            if (exists(memberobj[item].location)) {
-                                geostatus.push(geostatus.length);
-                                var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(memberobj[item].location);
-                                chrome.extension.sendMessage({
-                                    method: "GET",
-                                    action: "xhttp",
-                                    url: url,
-                                    variable: {geoid: memberobj[item].geolocation, geoplace: memberobj[item].geoplace, geolocation: memberobj[item].location}
-                                }, function (response) {
-                                    var result = jQuery.parseJSON(response.source);
-                                    var georesult = new GeoLocation(result, response.variable.geolocation);
-                                    if (response.variable.geoplace !== "") {
-                                        georesult.place = response.variable.geoplace;
-                                    }
-                                    geolocation[response.variable.geoid] = georesult;
-                                    geostatus.pop();
-                                });
-                            }
+                            queryGeo(memberobj[item]);
                         }
                     }
-
                 }
             }
         }
@@ -584,36 +556,9 @@ function updateGeo() {
     }
 }
 
-var georound2 = false;
 function updateFamily() {
     if (geostatus.length > 0) {
         setTimeout(updateFamily, 200);
-    } else if (!georound2) {
-        for (var i=0; i < geolocation.length; i++) {
-            if (exists(geolocation[i])) {
-                var location_split = geolocation[i].query.split(",");
-                if (location_split.length > 1) {
-                    geostatus.push(geostatus.length);
-                    location_split.shift();
-                    var location = location_split.join(",");
-                    var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(location);
-                    chrome.extension.sendMessage({
-                        method: "GET",
-                        action: "xhttp",
-                        url: url,
-                        variable: {geoid: i, geolocation: location}
-                    }, function (response) {
-                        var result = jQuery.parseJSON(response.source);
-                        var id = response.variable.geoid;
-                        var georesult = new GeoLocation(result, response.variable.geolocation);
-                        geolocation[id] = compareGeo(georesult, geolocation[id]);
-                        geostatus.pop();
-                    });
-                }
-            }
-        }
-        georound2 = true;
-        updateFamily();
     } else {
         document.getElementById("loading").style.display = "none";
         console.log("Geo Processed...");
@@ -702,7 +647,7 @@ function buildForm() {
                         ck++;
                     }
                     var place = obj[item].location;
-                    var geovar1 = geolocation[obj[item].geolocation];
+                    var geovar1 = geolocation[obj[item].id];
                     var placegeo = geovar1.place;
                     var city = geovar1.city;
                     var county = geovar1.county;
@@ -913,7 +858,7 @@ function buildForm() {
                         }
                         if (exists(memberobj[item].location)) {
                             var place = memberobj[item].location;
-                            var geovar2 = geolocation[memberobj[item].geolocation];
+                            var geovar2 = geolocation[memberobj[item].id];
                             var placegeo = geovar2.place;
                             var city = geovar2.city;
                             var county = geovar2.county;
@@ -1150,11 +1095,16 @@ function isChecked(value, score) {
 
 function buildParentSelect(id) {
     var geniselect = "";
+    var scorefactors = alldata["scorefactors"];
+    var spousescore = scorefactors.contains("spouse");
+    var geniparent = $('#geniparentonoffswitch').prop('checked');
     var pselect = '<select name="parent" style="width: 215px; float: right; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" >';
     if (myhspouse.length === 0 && genispouse.length === 1) {
         geniselect = " selected";
-    } else if ($('#geniparentonoffswitch').prop('checked') && myhspouse.length === 1 && genispouse.length === 1) {
+    } else if (geniparent && myhspouse.length === 1 && genispouse.length === 1 && !spousescore) {
         id = -1;
+        geniselect = " selected";
+    } else if (id == -1 && geniparent && genispouse.length === 1) {
         geniselect = " selected";
     } else if (id == -1) {
         pselect += '<option value="-1" selected>Unknown</option>';

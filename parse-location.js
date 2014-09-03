@@ -1,4 +1,4 @@
-;
+var verbose = false;
 var GeoLocation = function (results, query) {
     var location = {};
     if (!exists(results["results"])) {
@@ -7,19 +7,20 @@ var GeoLocation = function (results, query) {
     results = results["results"];
 
     if (results.length === 1) {
-        location = parseGoogle(results[0]);
+        location = parseGoogle(results[0], query);
     } else if (results.length > 1) {
         var locationset = [];
         for (var i = 0; i < results.length; i++) {
-            locationset[i] = parseGoogle(results[i]);
+            locationset[i] = parseGoogle(results[i], query);
             locationset[i].query = query || "";
         }
         for (var i = 1; i < results.length; i++) {
             location = compareGeo(locationset[i], locationset[0]);
         }
+    } else {
+        location = parseGoogle("", query);
     }
     location.count = results.length;
-    location.query = query || "";
     if (location.place === "" && location.city === "" && location.county === "" && location.state === "" && location.country === "") {
         location.place = location.query;
     }
@@ -27,65 +28,78 @@ var GeoLocation = function (results, query) {
     return location;
 }
 
-function parseGoogle(result) {
+function parseGoogle(result, query) {
     var location = {};
+    location.query = query || "";
     location.place = "";
     location.zip = "";
     location.city = "";
     location.county = "";
     location.state = "";
     location.country = "";
-    for (var i = 0; i < result.address_components.length; i++) {
-        var long_name = result.address_components[i].long_name;
-        switch (result.address_components[i].types.join(",")) {
-            case 'point_of_interest,establishment':
-                location.place = long_name;
-                break;
-            case 'establishment':
-                location.place = long_name;
-                break;
-            case 'postal_code':
-            case 'postal_code_prefix,postal_code':
-                location.zip = long_name;
-                break;
-            case 'sublocality,political':
-            case 'locality,political':
-                if (isNaN(long_name)) {
-                    location.city = long_name;
-                }
-                break;
-            case 'neighborhood,political':
-            case 'administrative_area_level_3,political':
-                if (location.city === "" && isNaN(long_name)) {
-                    //If the city is not in locality, use admin area 3
-                    location.city = long_name;
-                }
-                break;
+    if (exists(result.address_components)) {
+        for (var i = 0; i < result.address_components.length; i++) {
+            var long_name = result.address_components[i].long_name;
+            switch (result.address_components[i].types.join(",")) {
+                case 'point_of_interest,establishment':
+                    location.place = long_name;
+                    break;
+                case 'establishment':
+                    location.place = long_name;
+                    break;
+                case 'postal_code':
+                case 'postal_code_prefix,postal_code':
+                    location.zip = long_name;
+                    break;
+                case 'sublocality,political':
+                case 'locality,political':
+                    if (isNaN(long_name)) {
+                        location.city = long_name;
+                    }
+                    break;
+                case 'neighborhood,political':
+                case 'administrative_area_level_3,political':
+                    if (location.city === "" && isNaN(long_name)) {
+                        //If the city is not in locality, use admin area 3
+                        location.city = long_name;
+                    }
+                    break;
 
-            case '':
-                if (location.city === "" && isNaN(long_name)) {
-                    //If the city is not in locality or admin area 3
-                    location.city = long_name;
-                }
-                break;
+                case '':
+                    if (location.city === "" && isNaN(long_name)) {
+                        //If the city is not in locality or admin area 3
+                        location.city = long_name;
+                    }
+                    break;
 
-            case 'administrative_area_level_2,political':
-                if (isNaN(long_name)) {
-                    location.county = long_name;
-                }
-                break;
+                case 'administrative_area_level_2,political':
+                    if (isNaN(long_name)) {
+                        location.county = long_name;
+                    }
+                    break;
 
-            case 'administrative_area_level_1,political':
-                if (isNaN(long_name)) {
-                    location.state = long_name;
-                }
-                break;
+                case 'administrative_area_level_1,political':
+                    if (isNaN(long_name)) {
+                        location.state = long_name;
+                    }
+                    break;
 
-            case 'country,political':
-                if (isNaN(long_name)) {
-                    location.country = long_name;
-                }
-                break;
+                case 'country,political':
+                    if (isNaN(long_name)) {
+                        location.country = long_name;
+                    }
+                    break;
+            }
+        }
+        var split = location.query.split(",");
+        if (split.length === 1) {
+            var count = countGeoFields(location);
+            if (count > 3) {
+                //Only one field but returning 4 - seems unlikely to be accurate
+                var subquery = location.query;
+                location = parseGoogle("", subquery);
+                location.place = subquery;
+            }
         }
     }
     return location;
@@ -95,7 +109,9 @@ function checkPlace(location) {
     var splitplace = location.split(",");
     var checkplace = splitplace[0].toLowerCase().trim();
     var place = "";
-    if (checkplace.contains(" cemetery") || checkplace.contains(" cemetary") || checkplace.contains(" grave") || checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.")) {
+    if (checkplace.contains(" cemetery") || checkplace.contains(" cemetary") || checkplace.contains(" grave") ||
+        checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.") ||
+        checkplace.toLowerCase().endsWith(" territory")) {
         if (checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.")) {
             place = splitplace[0].replace(/ cem\.?/i, " Cemetery").trim();
         } else if (checkplace.contains(" cemetary")) {
@@ -116,9 +132,9 @@ function queryGeo(locationset, test) {
             unittest = JSON.parse(test);
         }
         var place = "";
-        var location = locationset.location;
+        var location = locationset.location.trim();
         if (exists(locationset.place) && locationset.place !== "") {
-            place = locationset.place;
+            place = locationset.place.trim();
         } else {
             place = checkPlace(location);
         }
@@ -166,6 +182,11 @@ function queryGeo(locationset, test) {
                 if (unittest !== "") {
                     print(geolocation[id], unittest);
                 }
+                if (verbose) {
+                    console.log(full_location);
+                    console.log(JSON.stringify(geolocation[id]));
+                }
+
                 geostatus.pop();
             }
 
@@ -219,128 +240,127 @@ function countGeoFields(list) {
 };
 
 function compareGeo(shortGeo, longGeo) {
+    var location = {};
+    // check for inconsistent results
+    var ambig = false;
+    if ((shortGeo.country !== "") && (longGeo.country !== "") && (shortGeo.country !== longGeo.country)) {
+        ambig = true;
+    }
+    if ((shortGeo.state !== "") && (longGeo.state !== "") && (shortGeo.state !== longGeo.state)) {
+        ambig = true;
+    }
+    if ((shortGeo.county !== "") && (longGeo.county !== "") && (shortGeo.county !== longGeo.county)) {
+        ambig = true;
+    }
+    // don't check more than that.
+    if ((longGeo.count > 1) && (shortGeo.count > 1)) {
+        ambig = true;
+    }
 
-     var location = {};
-     // check for inconsistent results
-     var ambig = false;
-     if ((shortGeo.country !== "") && (longGeo.country !== "") && (shortGeo.country !== longGeo.country)) {
-        ambig = true;
+    // get number of fields 'used' by each
+    var numShortFields = countGeoFields(shortGeo);
+    var numLongFields = countGeoFields(longGeo);
+    if (verbose){
+        console.log(longGeo.query);
+        console.log("Short: ", numShortFields, shortGeo);
+        console.log("Long: ", numLongFields, longGeo);
     }
-     if ((shortGeo.state !== "") && (longGeo.state !== "") && (shortGeo.state !== longGeo.state)) {
-        ambig = true;
-    }
-     if ((shortGeo.county !== "") && (longGeo.county !== "") && (shortGeo.county !== longGeo.county)) {
-        ambig = true;
-    }
-     // don't check more than that.
-     if ((longGeo.count > 1) && (shortGeo.count > 1)) {
-        ambig = true;
-    }
+    // extract difference between the queries
+    var location_split = longGeo.query.split(",");
 
-     // get number of fields 'used' by each
-     var numShortFields = countGeoFields(shortGeo);
-     var numLongFields = countGeoFields(longGeo);
-     console.log("Short: ", numShortFields, shortGeo);
-     console.log("Long: ", numLongFields, longGeo);
-     // extract difference between the queries
-     var location_split = longGeo.query.split(",");
-
-     if (((longGeo.count > 1) && (shortGeo.count > 1)) || ((longGeo.count === 1) && (shortGeo.count > 1))) {
+    if (((longGeo.count > 1) && (shortGeo.count > 1)) || ((longGeo.count === 1) && (shortGeo.count > 1))) {
 // if neither had unique data, or only Long did, use Long results (which at least has .place set)
         location = longGeo;
 
-        console.log("used long when both had multiples");
+        if (verbose){console.log("used long when both had multiples");}
     } else if ((longGeo.count > 1) && (shortGeo.count === 1)) {
 // if only Short has unique results, use it, adding long's query diff
         location = shortGeo;
-        console.log("used short when long had multiples");
+        if (verbose){console.log("used short when long had multiples");}
 // ... unless we suspect the 'place' is a state
         if (numShortFields === 1) {
             location.state = location_split[0];
-            console.log("used q.split as state");
+            if (verbose){console.log("used q.split as state");}
         } else {
             location.place = location_split[0];
-            console.log("used q.split as place");
+            if (verbose){console.log("used q.split as place");}
         }
     } else {
 // both returns are unique (count=1), so see how they match up
         if (numShortFields > numLongFields) {
 // case of only one value in the short query, use query diff? (e.g.: Virgina, USA)
             location = shortGeo;
-            console.log("used short when short had more fields");
+            if (verbose){console.log("used short when short had more fields");}
 // ... do we suspect the 'place' is a state?
-            if (numShortFields === 1) {
+            if (numShortFields === 1 && location.state === "") {
                 location.state = location_split[0];
-                console.log("used q.split as state");
-            } else {
-                location.place = location_split[0];
-                console.log("used q.split as place");
+                if (verbose){console.log("used q.split as state");}
             }
         } else if (numShortFields < numLongFields) {
             location = longGeo;
-            console.log("used long when long had more fields");
+            if (verbose){console.log("used long when long had more fields");}
         } else {
 // both have the same number of fields & same contents for them,
 // use Short results + long.place
             if (matchGeoFields(shortGeo, longGeo, numShortFields)) {
                 location = shortGeo;
-                console.log("used short when fields are the same");
+                if (verbose){console.log("used short when fields are the same");}
 // ... do we suspect the 'place' is a state?
                 if (numShortFields === 1) {
                     location.state = location_split[0];
-                    console.log("used q.split as state");
+                    if (verbose){console.log("used q.split as state");}
                 } else {
                     location.place = location_split[0];
-                    console.log("used q.split as place");
+                    if (verbose){console.log("used q.split as place");}
                 }
             } else {
 // both has same number of fields, but they differ in contents
 // use long results
                 location = longGeo;
-                console.log("used long when field contents differ");
+                if (verbose){console.log("used long when field contents differ");}
             }
         }
     }
 
-     location.query = longGeo.query;
-     return location;
-/*
-    var location = {};
     location.query = longGeo.query;
-    location.place = longGeo.place; //longGeo has the Cemetery & Grave filter
-    if (location.place === "" || shortGeo.place === shortGeo.query) {
-        location.city = longGeo.city;
-        location.county = longGeo.county;
-        location.state = longGeo.state;
-        location.country = longGeo.country;
-        if (shortGeo.city === longGeo.city && shortGeo.city !== "") {
-            var location_split = longGeo.query.split(",");
-            location.place = location_split.shift();
-        }
-    } else {
-        if (shortGeo.city === "" && longGeo.city !== "") {
-            location.city = longGeo.city;
-        } else {
-            location.city = shortGeo.city;
-        }
-        if (shortGeo.county === "" && longGeo.county !== "") {
-            location.county = longGeo.county;
-        } else {
-            location.county = shortGeo.county;
-        }
-        if (shortGeo.state === "" && longGeo.state !== "") {
-             location.state = longGeo.state;
-        } else {
-             location.state = shortGeo.state;
-        }
-        if (shortGeo.country === "" && lonGeo.country !== "") {
-            location.country = longGeo.country;
-        } else {
-            location.country = shortGeo.country;
-        }
-    }
     return location;
-*/
+    /*
+     var location = {};
+     location.query = longGeo.query;
+     location.place = longGeo.place; //longGeo has the Cemetery & Grave filter
+     if (location.place === "" || shortGeo.place === shortGeo.query) {
+     location.city = longGeo.city;
+     location.county = longGeo.county;
+     location.state = longGeo.state;
+     location.country = longGeo.country;
+     if (shortGeo.city === longGeo.city && shortGeo.city !== "") {
+     var location_split = longGeo.query.split(",");
+     location.place = location_split.shift();
+     }
+     } else {
+     if (shortGeo.city === "" && longGeo.city !== "") {
+     location.city = longGeo.city;
+     } else {
+     location.city = shortGeo.city;
+     }
+     if (shortGeo.county === "" && longGeo.county !== "") {
+     location.county = longGeo.county;
+     } else {
+     location.county = shortGeo.county;
+     }
+     if (shortGeo.state === "" && longGeo.state !== "") {
+     location.state = longGeo.state;
+     } else {
+     location.state = shortGeo.state;
+     }
+     if (shortGeo.country === "" && lonGeo.country !== "") {
+     location.country = longGeo.country;
+     } else {
+     location.country = shortGeo.country;
+     }
+     }
+     return location;
+     */
     /**
      var location = {};
      location.query = longGeo.query;
@@ -415,7 +435,7 @@ function print(location, unittest) {
     console.log("Country: " + location.country);
 
     if (exists(unittest) && matchGeoFields(location, unittest, 5)) {
-        console.log("Matching: " + JSON.stringify(location));
+        console.log("Matching: " + JSON.stringify(unittest));
         console.log("%cPassed", 'background: #222; color: #55da7e');
     } else {
         console.log("Expected: " + JSON.stringify(unittest));

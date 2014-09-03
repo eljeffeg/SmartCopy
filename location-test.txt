@@ -1,5 +1,9 @@
-Virginia, USA|{"place":"","zip":"","city":"","county":"","state":"Virginia","country":"United States","count":1,"query":"Virginia, USA","ambiguous":false}
-Albany, New York|{"place":"","zip":"","city":"Albany","county":"Albany County","state":"New York","country":"United States","count":1,"query":"Albany, New York","ambiguous":true}
-Parkdale Cemetery, Texas, USA|{"place":"Parkdale Cemetery","zip":"75025","city":"Plano","county":"Collin County","state":"Texas","country":"United States","count":1,"query":"Parkdale Cemetery, Texas, USA","ambiguous":false}
-Leesburg Cemetary, Leesburg, Washington, Tennessee|{"place":"Leesburg Cemetery","zip":"","city":"Leesburg","county":"Washington County","state":"Tennessee","country":"United States","count":1,"query":"Leesburg Cemetary, Leesburg, Washington, Tennessee","ambiguous":false}
-Wicomico Parish, Northumberland, Virginia, USA|{"place":"Wicomico Parish","zip":"","city":"","county":"Northumberland County","state":"Virginia","country":"United States","count":1,"query":"Wicomico Parish, Northumberland, Virginia, USA","ambiguous":false}
+Virginia, USA|{"place":"","city":"","county":"","state":"Virginia","country":"United States"}
+Albany, New York|{"place":"","city":"Albany","county":"Albany County","state":"New York","country":"United States"}
+Parkdale Cemetery, Texas, USA|{"place":"Parkdale Cemetery","city":"Plano","county":"Collin County","state":"Texas","country":"United States"}
+Leesburg Cemetary, Leesburg, Washington, Tennessee|{"place":"Leesburg Cemetery","city":"","county":"Washington County","state":"Tennessee","country":"United States"}
+Wicomico Parish, Northumberland, Virginia, USA|{"place":"Wicomico Parish","city":"","county":"Northumberland County","state":"Virginia","country":"United States"}
+Green, North Carolina, United States|{"place":"Green","city":"","county":"","state":"North Carolina","country":"United States"}
+Tennessee Territory|{"place":"Tennessee Territory","city":"","county":"","state":"","country":""}
+Oklahoma|{"place":"","city":"","county":"","state":"Oklahoma","country":"United States"}
+Paul's Valley, OK|{"place":"","city":"Pauls Valley","county":"Garvin County","state":"Oklahoma","country":"United States"}

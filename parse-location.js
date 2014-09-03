@@ -1,17 +1,20 @@
-var verbose = false;
+var verbose = true;
 var GeoLocation = function (results, query) {
     var location = {};
     if (!exists(results["results"])) {
+        location.count = 0;
         return location;
     }
     results = results["results"];
 
     if (results.length === 1) {
         location = parseGoogle(results[0], query);
+        location.count = 1;
     } else if (results.length > 1) {
         var locationset = [];
         for (var i = 0; i < results.length; i++) {
             locationset[i] = parseGoogle(results[i], query);
+            locationset[i].count = results.length;
             locationset[i].query = query || "";
         }
         for (var i = 1; i < results.length; i++) {
@@ -19,8 +22,9 @@ var GeoLocation = function (results, query) {
         }
     } else {
         location = parseGoogle("", query);
+        location.count = 0;
     }
-    location.count = results.length;
+
     if (location.place === "" && location.city === "" && location.county === "" && location.state === "" && location.country === "") {
         location.place = location.query;
     }
@@ -151,9 +155,8 @@ function queryGeo(locationset, test) {
             var unittest = response.variable.unittest;
             var full_location = response.variable.location;
             var georesult = new GeoLocation(result, full_location);
-            if (response.variable.place !== "") {
-                georesult.place = response.variable.place;
-            }
+            georesult.place = response.variable.place;
+
             geolocation[id] = georesult;
 
             // ----- Stage 2: Run again with one item removed from front for comparison -----
@@ -263,69 +266,86 @@ function compareGeo(shortGeo, longGeo) {
     // get number of fields 'used' by each
     var numShortFields = countGeoFields(shortGeo);
     var numLongFields = countGeoFields(longGeo);
+    var minOfFields = Math.min(numShortFields,numLongFields);
+    if (verbose) { console.log("Return counts: ",shortGeo.count,longGeo.count); };
+    if (verbose) { console.log("Field counts: ",numShortFields,numLongFields,minOfFields); };
+    var fields_match = matchGeoFields(shortGeo, longGeo, minOfFields);
     if (verbose){
-        console.log(longGeo.query);
+        console.log("Match? ",fields_match," : ",longGeo.query);
         console.log("Short: ", numShortFields, shortGeo);
         console.log("Long: ", numLongFields, longGeo);
     }
     // extract difference between the queries
     var location_split = longGeo.query.split(",");
-
-    if (((longGeo.count > 1) && (shortGeo.count > 1)) || ((longGeo.count === 1) && (shortGeo.count > 1))) {
+    if (exists(longGeo.place) && (longGeo.place !== "")) {
+        location_split[0] = longGeo.place;
+    };
+    if (numLongFields === 0 && numShortFields > 0) {
+        location = shortGeo;
+    }
+    else if (numLongFields > 0 && numShortFields === 0) {
+        location = longGeo;
+    }
+    else if (((longGeo.count !== 1) && (shortGeo.count !== 1)) || ((longGeo.count === 1) && (shortGeo.count !== 1))) {
 // if neither had unique data, or only Long did, use Long results (which at least has .place set)
         location = longGeo;
 
-        if (verbose){console.log("used long when both had multiples");}
-    } else if ((longGeo.count > 1) && (shortGeo.count === 1)) {
+        if (verbose){console.log("used long when both had 0 or multiples");}
+    } else if ((longGeo.count !== 1) && (shortGeo.count === 1)) {
 // if only Short has unique results, use it, adding long's query diff
         location = shortGeo;
-        if (verbose){console.log("used short when long had multiples");}
-// ... unless we suspect the 'place' is a state
+        if (verbose){console.log("used short when long had 0 or multiples");}
+// ... do we suspect the 'place' is a state?
         if (numShortFields === 1) {
             location.state = location_split[0];
-            if (verbose){console.log("used q.split as state");}
+            if (verbose){console.log("used loc.split[0] as state");}
         } else {
             location.place = location_split[0];
-            if (verbose){console.log("used q.split as place");}
+            if (verbose){console.log("used loc.split[0] as place");}
         }
     } else {
 // both returns are unique (count=1), so see how they match up
-        if (numShortFields > numLongFields) {
+        if ((numShortFields > numLongFields) && (fields_match)) {
 // case of only one value in the short query, use query diff? (e.g.: Virgina, USA)
             location = shortGeo;
-            if (verbose){console.log("used short when short had more fields");}
+            if (verbose){console.log("used short when short had more fields & match");}
 // ... do we suspect the 'place' is a state?
-            if (numShortFields === 1 && location.state === "") {
+            if (numShortFields === 1) {
                 location.state = location_split[0];
-                if (verbose){console.log("used q.split as state");}
+                if (verbose){console.log("used loc.split[0] as state");}
+            } else {
+                location.place = location_split[0];
+                if (verbose){console.log("used loc.split[0] as place");}
             }
-        } else if (numShortFields < numLongFields) {
+        } else if ((numShortFields < numLongFields) && (fields_match)) {
             location = longGeo;
-            if (verbose){console.log("used long when long had more fields");}
+            if (verbose){console.log("used long when long had more fields & match");}
         } else {
 // both have the same number of fields & same contents for them,
 // use Short results + long.place
-            if (matchGeoFields(shortGeo, longGeo, numShortFields)) {
+            if ((numShortFields === numLongFields) && (fields_match)) {
                 location = shortGeo;
-                if (verbose){console.log("used short when fields are the same");}
+                if (verbose){console.log("used short when min fields are the same");}
 // ... do we suspect the 'place' is a state?
                 if (numShortFields === 1) {
                     location.state = location_split[0];
-                    if (verbose){console.log("used q.split as state");}
+                    if (verbose){console.log("used loc.split[0] as state");}
                 } else {
                     location.place = location_split[0];
-                    if (verbose){console.log("used q.split as place");}
+                    if (verbose){console.log("used loc.split[0] as place");}
                 }
             } else {
 // both has same number of fields, but they differ in contents
 // use long results
                 location = longGeo;
-                if (verbose){console.log("used long when field contents differ");}
+                ambig = true;
+                if (verbose){console.log("used long when field contents differ (marked ambiguous)");}
             }
         }
     }
 
-    location.query = longGeo.query;
+//    location.query = longGeo.query;
+    location.ambiguous = ambig;
     return location;
     /*
      var location = {};
@@ -447,4 +467,3 @@ function print(location, unittest) {
     }
     console.log("---------------------------------------\n")
 }
-

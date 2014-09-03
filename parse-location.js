@@ -166,12 +166,15 @@ function queryGeo(locationset, test) {
                     method: "GET",
                     action: "xhttp",
                     url: url,
-                    variable: {id: id, location: short_location, unittest: unittest}
+                    variable: {id: id, location: short_location, unittest: unittest, place: response.variable.place}
                 }, function (response) {
                     var result = jQuery.parseJSON(response.source);
                     var id = response.variable.id;
                     var unittest = response.variable.unittest;
                     var georesult = new GeoLocation(result, response.variable.location);
+                    if (response.variable.place !== "") {
+                        georesult.place = response.variable.place;
+                    }
                     geolocation[id] = compareGeo(georesult, geolocation[id]);
                     if (unittest !== "") {
                         print(geolocation[id], unittest);

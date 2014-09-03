@@ -30,7 +30,7 @@ var GeoLocation = function (results, query) {
     }
 
     return location;
-}
+};
 
 function parseGoogle(result, query) {
     var location = {};
@@ -226,8 +226,7 @@ function matchGeoFields(g1, g2, cnt) {
         }
     }
     return false;
-};
-
+}
 function countGeoFields(list) {
     var fldcount = 0;
     if (list.country !== "") {
@@ -243,8 +242,7 @@ function countGeoFields(list) {
         fldcount++;
     }
     return fldcount;
-};
-
+}
 function compareGeo(shortGeo, longGeo) {
     var location = {};
     // check for inconsistent results
@@ -267,8 +265,10 @@ function compareGeo(shortGeo, longGeo) {
     var numShortFields = countGeoFields(shortGeo);
     var numLongFields = countGeoFields(longGeo);
     var minOfFields = Math.min(numShortFields,numLongFields);
-    if (verbose) { console.log("Return counts: ",shortGeo.count,longGeo.count); };
-    if (verbose) { console.log("Field counts: ",numShortFields,numLongFields,minOfFields); };
+    if (verbose) {
+        console.log("Return counts: ",shortGeo.count,longGeo.count);
+        console.log("Field counts: ",numShortFields,numLongFields,minOfFields);
+    }
     var fields_match = matchGeoFields(shortGeo, longGeo, minOfFields);
     if (verbose){
         console.log("Match? ",fields_match," : ",longGeo.query);
@@ -279,14 +279,14 @@ function compareGeo(shortGeo, longGeo) {
     var location_split = longGeo.query.split(",");
     if (exists(longGeo.place) && (longGeo.place !== "")) {
         location_split[0] = longGeo.place;
-    };
+    }
     if (numLongFields === 0 && numShortFields > 0) {
         location = shortGeo;
     }
     else if (numLongFields > 0 && numShortFields === 0) {
         location = longGeo;
     }
-    else if (((longGeo.count !== 1) && (shortGeo.count !== 1)) || ((longGeo.count === 1) && (shortGeo.count !== 1))) {
+    else if ((longGeo.count === 1) && (shortGeo.count !== 1)) {
 // if neither had unique data, or only Long did, use Long results (which at least has .place set)
         location = longGeo;
 

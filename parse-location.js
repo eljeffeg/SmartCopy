@@ -1,4 +1,4 @@
-var verbose = true;
+var verbose = false;
 var GeoLocation = function (results, query) {
     var location = {};
     if (!exists(results["results"])) {
@@ -10,7 +10,7 @@ var GeoLocation = function (results, query) {
     if (results.length === 1) {
         location = parseGoogle(results[0], query);
         location.count = 1;
-    } else if (results.length > 1) {
+/*    } else if (results.length > 1) {
         var locationset = [];
         for (var i = 0; i < results.length; i++) {
             locationset[i] = parseGoogle(results[i], query);
@@ -19,7 +19,7 @@ var GeoLocation = function (results, query) {
         }
         for (var i = 1; i < results.length; i++) {
             location = compareGeo(locationset[i], locationset[0]);
-        }
+        } */
     } else {
         location = parseGoogle("", query);
         location.count = 0;
@@ -159,11 +159,17 @@ function queryGeo(locationset, test) {
 
             geolocation[id] = georesult;
 
-            // ----- Stage 2: Run again with one item removed from front for comparison -----
+			// ----- if 1st lookup was not unique (count > 1), AND only one element in the original string
             var location_split = full_location.split(",");
             if (location_split.length > 1) {
                 location_split.shift();
-                var short_location = location_split.join(",");
+            } else if (location_split.length === 1) {
+				// ..... ... assume it is a solitary "state" name and force that as the type of location...
+            	location_split[0] = location_split[0] + " State";
+            };
+            // ----- Stage 2: Run again with one item removed from front, or modified, for comparison -----
+            var short_location = location_split.join(",");
+            if (location_split.length > 0) {
                 var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(short_location);
                 chrome.extension.sendMessage({
                     method: "GET",
@@ -227,6 +233,7 @@ function matchGeoFields(g1, g2, cnt) {
     }
     return false;
 }
+
 function countGeoFields(list) {
     var fldcount = 0;
     if (list.country !== "") {
@@ -243,6 +250,7 @@ function countGeoFields(list) {
     }
     return fldcount;
 }
+
 function compareGeo(shortGeo, longGeo) {
     var location = {};
     // check for inconsistent results
@@ -273,24 +281,23 @@ function compareGeo(shortGeo, longGeo) {
     if (verbose){
         console.log("Match? ",fields_match," : ",longGeo.query);
         console.log("Short: ", numShortFields, shortGeo);
-        console.log("Long: ", numLongFields, longGeo);
+        console.log("Long:  ", numLongFields, longGeo);
     }
     // extract difference between the queries
     var location_split = longGeo.query.split(",");
     if (exists(longGeo.place) && (longGeo.place !== "")) {
         location_split[0] = longGeo.place;
     }
-    if (numLongFields === 0 && numShortFields > 0) {
+/*    if (numLongFields === 0 && numShortFields > 0) {
         location = shortGeo;
     }
     else if (numLongFields > 0 && numShortFields === 0) {
         location = longGeo;
     }
-    else if ((longGeo.count === 1) && (shortGeo.count !== 1)) {
+    else */ if (((longGeo.count !== 1) && (shortGeo.count !== 1)) || ((longGeo.count === 1) && (shortGeo.count !== 1))) {
 // if neither had unique data, or only Long did, use Long results (which at least has .place set)
         location = longGeo;
-
-        if (verbose){console.log("used long when both had 0 or multiples");}
+        if (verbose){console.log("used long when short or both had 0 or multiples");}
     } else if ((longGeo.count !== 1) && (shortGeo.count === 1)) {
 // if only Short has unique results, use it, adding long's query diff
         location = shortGeo;
@@ -298,10 +305,10 @@ function compareGeo(shortGeo, longGeo) {
 // ... do we suspect the 'place' is a state?
         if (numShortFields === 1) {
             location.state = location_split[0];
-            if (verbose){console.log("used loc.split[0] as state");}
-        } else {
+            if (verbose){console.log("... & used loc.split[0] as state");}
+        } else if ((numShortFields > 1) && (location.state !== location_split[0])) {
             location.place = location_split[0];
-            if (verbose){console.log("used loc.split[0] as place");}
+            if (verbose){console.log("... & used loc.split[0] as place (when not same as state)");}
         }
     } else {
 // both returns are unique (count=1), so see how they match up
@@ -312,10 +319,10 @@ function compareGeo(shortGeo, longGeo) {
 // ... do we suspect the 'place' is a state?
             if (numShortFields === 1) {
                 location.state = location_split[0];
-                if (verbose){console.log("used loc.split[0] as state");}
+                if (verbose){console.log("... & used loc.split[0] as state");}
             } else {
                 location.place = location_split[0];
-                if (verbose){console.log("used loc.split[0] as place");}
+                if (verbose){console.log("... & used loc.split[0] as place");}
             }
         } else if ((numShortFields < numLongFields) && (fields_match)) {
             location = longGeo;
@@ -329,17 +336,20 @@ function compareGeo(shortGeo, longGeo) {
 // ... do we suspect the 'place' is a state?
                 if (numShortFields === 1) {
                     location.state = location_split[0];
-                    if (verbose){console.log("used loc.split[0] as state");}
+                    if (verbose){console.log("... & used loc.split[0] as state");}
                 } else {
                     location.place = location_split[0];
-                    if (verbose){console.log("used loc.split[0] as place");}
+                    if (verbose){console.log("... & used loc.split[0] as place");}
                 }
             } else {
 // both has same number of fields, but they differ in contents
-// use long results
+// use long results ... but this could really go either way!  (perhaps retain both for user to choose)
                 location = longGeo;
-                ambig = true;
-                if (verbose){console.log("used long when field contents differ (marked ambiguous)");}
+                if (verbose){console.log("used long when field contents differ");}
+                if (!(ambig)) {
+	                ambig = true;
+	                if (verbose){console.log("... and marked ambiguous");}
+                }
             }
         }
     }

@@ -137,6 +137,17 @@ function queryGeo(locationset, test) {
         }
         var place = "";
         var location = locationset.location.trim();
+        if (location.contains("\?")) {
+            var questionmark = parseGoogle("");
+            if (location !== "?") {
+                questionmark.place = location;
+            }
+            geolocation[locationset.id] = questionmark;
+            if (unittest !== "") {
+                print(geolocation[locationset.id], unittest);
+            }
+            return;
+        }
         if (exists(locationset.place) && locationset.place !== "") {
             place = locationset.place.trim();
         } else {
@@ -166,7 +177,7 @@ function queryGeo(locationset, test) {
             } else if (location_split.length === 1) {
 				// ..... ... assume it is a solitary "state" name and force that as the type of location...
             	location_split[0] = location_split[0] + " State";
-            };
+            }
             // ----- Stage 2: Run again with one item removed from front, or modified, for comparison -----
             var short_location = location_split.join(",");
             if (location_split.length > 0) {
@@ -183,6 +194,8 @@ function queryGeo(locationset, test) {
                     var georesult = new GeoLocation(result, response.variable.location);
                     if (response.variable.place !== "") {
                         georesult.place = response.variable.place;
+                    } else if (countGeoFields(georesult) === 0) {
+                        georesult.place = georesult.place.replace(" State", "");
                     }
                     geolocation[id] = compareGeo(georesult, geolocation[id]);
                     if (unittest !== "") {

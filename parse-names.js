@@ -46,9 +46,15 @@ var NameParse = (function(){
         // completely ignore any words in parentheses
         var testNickStart = new RegExp('^"', 'i');
         var testNickEnd = new RegExp('"$', 'i');
+        var testNickStart2 = new RegExp("^'", 'i');
+        var testNickEnd2 = new RegExp("'$", 'i');
         nameParts = fullastName.split(" ").filter(function(namePart){
-            if (namePart.indexOf("(") !== -1 || namePart.indexOf(")") !== -1 || testNickStart.test(namePart) || testNickEnd.test(namePart)) {
-                nickParts.push(namePart);
+            if (namePart.indexOf("(") !== -1 || namePart.indexOf(")") !== -1 || testNickStart.test(namePart) || testNickEnd.test(namePart) || testNickStart2.test(namePart) || testNickEnd2.test(namePart)) {
+                namePart = namePart.replace(testNickStart, "");
+                namePart = namePart.replace(testNickEnd, "");
+                namePart = namePart.replace(testNickStart2, "");
+                namePart = namePart.replace(testNickEnd2, "");
+                nickParts.push(capFL(namePart));
             } else {
                 return true;
             }

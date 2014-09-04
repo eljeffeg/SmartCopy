@@ -1,10 +1,11 @@
 Virginia, USA|{"place":"","city":"","county":"","state":"Virginia","country":"United States"}
 Albany, New York|{"place":"","city":"Albany","county":"Albany County","state":"New York","country":"United States"}
 Parkdale Cemetery, Texas, USA|{"place":"Parkdale Cemetery","city":"Plano","county":"Collin County","state":"Texas","country":"United States"}
-Leesburg Cemetary, Leesburg, Washington, Tennessee|{"place":"Leesburg Cemetery","city":"","county":"Washington County","state":"Tennessee","country":"United States"}
+Leesburg Cemetary, Leesburg, Washington, Tennessee|{"place":"Leesburg Cemetery","city":"","county":"Washington County","state":"Tennessee","country":"United States"}|Misspelled Cemetery
 Wicomico Parish, Northumberland, Virginia, USA|{"place":"Wicomico Parish","city":"","county":"Northumberland County","state":"Virginia","country":"United States"}
-Green, North Carolina, United States|{"place":"Green","city":"","county":"","state":"North Carolina","country":"United States"}
+Green, North Carolina, United States|{"place":"Green","city":"","county":"","state":"North Carolina","country":"United States"}|Misspelled city
 Tennessee Territory|{"place":"Tennessee Territory","city":"","county":"","state":"","country":""}
 Oklahoma|{"place":"","city":"","county":"","state":"Oklahoma","country":"United States"}
 Paul's Valley, OK|{"place":"","city":"Pauls Valley","county":"Garvin County","state":"Oklahoma","country":"United States"}
 Nation Cem, Blountsville, Blount Co, AL|{"place":"Nation Cemetery","city":"Blountsville","county":"Blount County","state":"Alabama","country":"United States"}
+PA ?|{"place":"PA ?","city":"","county":"","state":"","country":""}|Deal with question marks

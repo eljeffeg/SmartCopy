@@ -19,7 +19,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         document.getElementById("loading").style.display = "none";
         document.getElementById("top-container").style.display = "none";
         setMessage("#f8ff86", 'This MyHeritage collection is not yet supported by SmartCopy.');
-        return;
+        return "";
     }
     relation = relation || "";
     var parsed = $('<div>').html(htmlstring.replace(/<img[^>]*>/g, ""));
@@ -225,7 +225,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 dd = "After Circa " + dd.trim();
             }
             if (!dd.startsWith("Between")) {
-                data.push({date: dd})
+                data.push({date: dd});
                 data.push(profiledata["burial"][0]);
                 profiledata["burial"] = data;
             }
@@ -806,9 +806,9 @@ function buildForm() {
             var bgcolor = genderColor(gender);
             var membersstring = entry.innerHTML;
             membersstring += '<div class="membertitle" style="background-color: ' + bgcolor + '"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
-                '<td><input type="checkbox" class="checkslide" name="checkbox' + i + "-" + relationship + '" ' + isChecked(fullname, scored) + '></td>' +
-                '<td class="expandcontrol" name="' + i + "-" + relationship + '"  style="cursor: pointer; width: 100%;"><span style="font-size: 90%;">' + escapeHtml(fullname) + '</span><span style="font-size: 130%; float: right; padding: 0px 5px;">&#9662;</td></tr></table></div>' +
-                '<div id="slide' + i + "-" + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
+                '<td><input type="checkbox" class="checkslide" name="checkbox' + i + '-' + relationship + '" ' + isChecked(fullname, scored) + '></td>' +
+                '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;"><span style="font-size: 90%;">' + escapeHtml(fullname) + '</span><span style="font-size: 130%; float: right; padding: 0px 5px;">&#9662;</td></tr></table></div>' +
+                '<div id="slide' + i + '-' + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
                 '<tr><td colspan="2"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '" ' + isEnabled(members[member].profile_id, scored) + '></td></tr>';
             if (isChild(relationship)) {
                 var parentrel = "Parent";

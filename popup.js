@@ -74,7 +74,8 @@ function startsWithMH(stringToCheck, query) {
 
 function updateLinks(focusprofile) {
     $("#historyurl").attr("href", "http://historylink.herokuapp.com/history" + focusprofile);
-    $("#graphurl").attr("href", "http://historylink.herokuapp.com/graph" + focusprofile);
+    $("#graphurl").attr("href", "http://historylink.herokuapp.com/graph" + focusprofile + "&color=gender");
+    $("#descendanturl").attr("href", "http://historylink.herokuapp.com/graph" + focusprofile + "&type=descendant&color=gender");
 }
 
 chrome.extension.onMessage.addListener(function (request, sender, callback) {

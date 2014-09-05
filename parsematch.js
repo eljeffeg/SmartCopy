@@ -12,6 +12,7 @@ var hideprofile = false;
 var genispouse = [];
 var myhspouse = [];
 var focusgender = "unknown";
+var focusabout = "";
 alldata["family"] = {};
 // Parse MyHeritage Tree from Smart Match
 function parseSmartMatch(htmlstring, familymembers, relation) {
@@ -249,7 +250,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
         }
         if (aboutdata !== "") {
-            aboutdata = "==Notes==\n" + aboutdata;
+            profiledata["about"] = "==Notes==\n" + aboutdata;
+            // "\n--------------------\n"  Merge separator
             //console.log(aboutdata);
         }
 
@@ -264,6 +266,19 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 url: familyurl
             }, function (response) {
                 genispouse = JSON.parse(response.source);
+                familystatus.pop();
+            });
+            familystatus.push("about");
+            var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me&profile=" + focusid;
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: abouturl
+            }, function (response) {
+                var about_return = JSON.parse(response.source);
+                if (!$.isEmptyObject(about_return) && exists(about_return.about_me)) {
+                    focusabout = about_return.about_me;
+                }
                 familystatus.pop();
             });
             //This section is only run on the focus profile
@@ -407,6 +422,19 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         } else if (relation === "") {
             alldata["profile"] = profiledata;
             alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();
+            familystatus.push("about");
+            var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me&profile=" + focusid;
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: abouturl
+            }, function (response) {
+                var about_return = JSON.parse(response.source);
+                if (!$.isEmptyObject(about_return) && exists(about_return.about_me)) {
+                    focusabout = about_return.about_me;
+                }
+                familystatus.pop();
+            });
             updateGeo();
         }
     }

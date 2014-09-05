@@ -197,7 +197,12 @@ function queryGeo(locationset, test) {
                     } else if (countGeoFields(georesult) === 0) {
                         georesult.place = georesult.place.replace(" State", "");
                     }
-                    geolocation[id] = compareGeo(georesult, geolocation[id]);
+                    var georesult = compareGeo(georesult, geolocation[id]);
+                    if (georesult.place === georesult.state) {
+                        georesult.place = "";
+                    }
+                    geolocation[id] = georesult;
+
                     if (unittest !== "") {
                         print(geolocation[id], unittest);
                     }

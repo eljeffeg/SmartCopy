@@ -124,6 +124,19 @@
                         <td style="padding: 3px 0 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                       id="sourceonoffswitch"  checked>
+                                <label class="onoffswitch-label" for="sourceonoffswitch">
+                                    <span class="onoffswitch-inner"></span>
+                                    <span class="onoffswitch-switch"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Add source reference to About section</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 0 0; width: 58px;">
+                            <div class="onoffswitch">
+                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="exponoffswitch">
                                 <label class="onoffswitch-label" for="exponoffswitch">
                                     <span class="onoffswitch-inner"></span>
@@ -141,7 +154,8 @@
         <div id="profiledata" style="display: none; text-align: center;">
 
             <strong>Profile Data</strong>
-            <div class="shadoweffect" style="font-weight: bold;"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall">Update Profile
+            <div class="shadoweffect" style="font-weight: bold;"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall">Update Profile<span id="updateslide" style="font-size: 130%; cursor: pointer; float: right; padding: 0px 4px;">&#9662;</span>
+
                 <fieldset id="profilefield" class="fieldeffect">
                     <table style="width: 100%; border-spacing: 0; border-collapse: collapse;" id="profiletable">
                     </table>

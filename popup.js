@@ -1,5 +1,5 @@
 var devblocksend = false;
-var locationtest = true;
+var locationtest = false;
 var proaccount = true;
 var profilechanged = false;
 var focusid;
@@ -358,10 +358,16 @@ $(function () {
     $('.checkall').on('click', function () {
         var fs = $(this).closest('div').find('fieldset');
         fs.find(':checkbox').prop('checked', this.checked);
-        var ffs = fs.find('input:text,select,input:hidden');
+        var ffs = fs.find('input:text,select,input:hidden,textarea');
         ffs.filter(function(item) {
             return (ffs[item].type !== "checkbox");
         }).attr('disabled', !this.checked);
+    });
+});
+
+$(function () {
+    $('#updateslide').on('click', function() {
+        $('#profilefield').slideToggle();
     });
 });
 
@@ -385,6 +391,23 @@ var submitform = function() {
         document.getElementById("updatestatus").innerText = "Update: " + focusname;
         var fs = $('#profiletable');
         var profileout = parseForm(fs);
+        var about = "";
+        var sourcecheck = $('#sourceonoffswitch').prop('checked');
+        if (exists(profileout["about_me"])) {
+            about = profileout["about_me"];
+        }
+        if (sourcecheck) {
+            if (focusabout !== "") {
+                about = focusabout + "\n--------------------\n" + about;
+            }
+            profileout["about_me"] = about + "\nUpdated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:MM:ss UTC") + "''\n";
+        } else if (about !== "") {
+            if (focusabout !== "") {
+                about = focusabout + "\n--------------------\n" + about;
+            }
+            profileout["about_me"] = about;
+        }
+
         buildTree(profileout, "update", focusid);
 
         // --------------------- Add Family Data ---------------------
@@ -398,7 +421,16 @@ var submitform = function() {
                 if(!$.isEmptyObject(familyout)) {
                     var fdata = databyid[familyout.profile_id];
                     if (exists(fdata)) {
-                        familyout["about_me"] = "* Updated from [" +  fdata.url + " MyHeritage Match] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:MM:ss UTC") + "''";
+                        about = "";
+                        if (exists(familyout["about_me"])) {
+                            about = familyout["about_me"];
+                        }
+                        if (sourcecheck) {
+                            about = about + "\nUpdated from [" +  fdata.url + " MyHeritage Match] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:MM:ss UTC") + "''\n";
+                        }
+                        if (about !== "") {
+                            familyout["about_me"] = about;
+                        }
                     }
                     if (actionname[1] !== "child") {
                         var statusaction = actionname[1];
@@ -600,7 +632,7 @@ document.getElementById('optionbutton').addEventListener('click', slideoptions, 
 function parseForm(fs) {
     var objentry = {};
     var marentry = {};
-    var rawinput = fs.find('input:text,select,input:hidden');
+    var rawinput = fs.find('input:text,select,input:hidden,textarea');
     var fsinput = rawinput.filter(function(item) {
         return ($(rawinput[item]).closest('tr').css('display') !== 'none');
     });
@@ -950,6 +982,9 @@ $(function () {
     $('#exponoffswitch').on('click', function () {
         chrome.storage.local.set({'excollection': this.checked});
     });
+    $('#sourceonoffswitch').on('click', function () {
+        chrome.storage.local.set({'addsource': this.checked});
+    });
     $('#geniparentonoffswitch').on('click', function () {
         chrome.storage.local.set({'geniparent': this.checked});
         $("#gparentchange").css("display", "block");
@@ -1032,5 +1067,12 @@ chrome.storage.local.get('geniparent', function (result) {
     var gparentchecked = result.geniparent;
     if(exists(gparentchecked)) {
         $('#geniparentonoffswitch').prop('checked', gparentchecked);
+    }
+});
+
+chrome.storage.local.get('addsource', function (result) {
+    var sourcechecked = result.addsource;
+    if(exists(sourcechecked)) {
+        $('#sourceonoffswitch').prop('checked', sourcechecked);
     }
 });

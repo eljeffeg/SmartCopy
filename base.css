@@ -42,6 +42,7 @@ body {
 .fieldeffect {
     border: 1px solid #ddd;
     padding: 6px 8px 4px;
+    margin-top: 2px;
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
     -o-border-radius: 4px;

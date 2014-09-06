@@ -66,8 +66,15 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             // console.log(row);
             var row = rows[r];
             var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
-
-            if (isParent(title) || isSibling(title) || isChild(title) || isPartner(title)) {
+            if (title === "gender") {
+                if (exists($(row).find(".recordFieldValue").contents().get(0))) {
+                    genderval = $(row).find(".recordFieldValue").contents().get(0).nodeValue.toLowerCase();
+                    profiledata["gender"] = genderval;
+                }
+                continue;
+            }
+            if (familymembers && (isParent(title) || isSibling(title) || isChild(title) || isPartner(title))) {
+                //This is for Census pages that don't contain the Family members section
                 if (exists($(row).find(".recordFieldValue").contents().get(0))) {
                     if (!exists(alldata["family"][title])) {
                         alldata["family"][title] = [];
@@ -79,10 +86,12 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         gendersv = "male";
                     }
                     var listrow = $(row).find(".recordFieldValue").contents();
+                    var household = parsed.find('.groupTable').find('tr');
                     if (listrow.length > 1) {
                         for (var lr =0;lr < listrow.length; lr++) {
-                            if (listrow[lr].className != "eventSeparator") {
-                                alldata["family"][title].push({name: listrow[lr].nodeValue, gender: gendersv, profile_id: famid, title: title});
+                            var listrowval = listrow[lr];
+                            if (listrowval.className != "eventSeparator") {
+                                alldata["family"][title].push({name: listrowval.nodeValue, gender: gendersv, profile_id: famid, title: title});
                             }
                             famid++;
                         }
@@ -91,8 +100,45 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         if (exists(splitlrnv)) {
                             var splitlr = splitlrnv.split(",");
                             for (var lr =0;lr < splitlr.length; lr++) {
-                                if (splitlr[lr].trim().length > 4) {
-                                    alldata["family"][title].push({name: splitlr[lr].trim(), gender: gendersv,  profile_id: famid, title: title});
+                                var splitval = splitlr[lr];
+                                if (splitval.trim().length > 4) {
+                                    if (household.length > 0) {
+                                        for (var i = 0; i < household.length; i++) {
+                                            var hv = $(household[i]).find('td');
+                                            for (var x = 0; x < hv.length; x++) {
+                                                if ($(hv[x]).text() === splitval.trim()) {
+                                                    var gethref = $(hv[x]).find('a');
+                                                    if (exists(gethref[0])) {
+                                                        familystatus.push(familystatus.length);
+                                                        var subdata = {name: splitval.trim(), gender: gendersv, title: title};
+                                                        var urlval = gethref[0].href;
+                                                        var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                                        var itemid = getParameterByName('itemId', shorturl);
+                                                        subdata["url"] = urlval;
+                                                        subdata["itemId"] = itemid;
+                                                        subdata["profile_id"] = famid;
+                                                        unionurls[famid] = itemid;
+                                                        chrome.extension.sendMessage({
+                                                            method: "GET",
+                                                            action: "xhttp",
+                                                            url: shorturl,
+                                                            variable: subdata
+                                                        }, function (response) {
+                                                            var arg = response.variable;
+                                                            var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
+                                                            person = updateInfoData(person, arg);
+                                                            databyid[arg.profile_id] = person;
+                                                            alldata["family"][arg.title].push(person);
+                                                            familystatus.pop();
+                                                        });
+                                                    }
+                                                    continue;
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        alldata["family"][title].push({name: splitval.trim(), gender: gendersv,  profile_id: famid, title: title});
+                                    }
                                 }
                                 famid++;
                             }
@@ -101,7 +147,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
                 continue;
             }
-            if (title.startsWith("info") || title.startsWith("notes") || title.startsWith("military") || title.startsWith("immigration") || title === "emigration" || title === "residence" || title === "census" || title === "politics" || title === "religion") {
+            if (title.startsWith("info") || title.startsWith("notes") || title.startsWith("military") || title.startsWith("immigration") ||
+                title.startsWith("visa") || title === "emigration" || title === "ethnicity" || title === "race" || title === "residence" ||
+                title === "census" || title === "politics" || title === "religion") {
                 var aboutinfo = $(row).find(".recordFieldValue").html();
                 if (exists(aboutinfo)) {
                     aboutinfo = aboutinfo.replace('<div class="eventSeparator"></div>',' - ');
@@ -250,9 +298,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
         }
         if (aboutdata !== "") {
-            profiledata["about"] = "==Notes==\n" + aboutdata;
+            profiledata["about"] = aboutdata;
             // "\n--------------------\n"  Merge separator
-            //console.log(aboutdata);
         }
 
         // ---------------------- Family Data --------------------
@@ -624,6 +671,19 @@ function buildForm() {
             '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
         div[0].innerHTML = membersstring;
     }
+    if (exists(alldata["profile"].about)) {
+        x += 1;
+        var about = alldata["profile"].about;
+        var div = $("#profiletable");
+        var membersstring = div[0].innerHTML;
+        membersstring = membersstring + '<tr><td colspan="2"><div class="profilediv" style="font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, true) + '>About:</div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, true) + '>' + about + '</textarea></div></td></tr>';
+        div[0].innerHTML = membersstring;
+    } else {
+        var div = $("#profiletable");
+        var membersstring = div[0].innerHTML;
+        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow" id="about"><td colspan="2"><div class="profilediv"><input type="checkbox" class="checknext">About:</div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
+        div[0].innerHTML = membersstring;
+    }
     var geoplace = "table-row";
     var geoauto = "none";
     var geoicon = "geooff.png";
@@ -835,7 +895,7 @@ function buildForm() {
             var membersstring = entry.innerHTML;
             membersstring += '<div class="membertitle" style="background-color: ' + bgcolor + '"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
                 '<td><input type="checkbox" class="checkslide" name="checkbox' + i + '-' + relationship + '" ' + isChecked(fullname, scored) + '></td>' +
-                '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;"><span style="font-size: 90%;">' + escapeHtml(fullname) + '</span><span style="font-size: 130%; float: right; padding: 0px 5px;">&#9662;</td></tr></table></div>' +
+                '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;"><span style="font-size: 90%;">' + escapeHtml(fullname) + '</span><span style="font-size: 130%; float: right; padding: 0px 5px;">&#9662;</span></td></tr></table></div>' +
                 '<div id="slide' + i + '-' + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
                 '<tr><td colspan="2"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '" ' + isEnabled(members[member].profile_id, scored) + '></td></tr>';
             if (isChild(relationship)) {
@@ -865,7 +925,12 @@ function buildForm() {
                 '<option value="male" '+ setGender("male", gender) + '>Male</option><option value="female" '+ setGender("female", gender) + '>Female</option><option value="unknown" '+ setGender("unknown", gender) + '>Unknown</option></select></td></tr>' +
                 '<tr><td class="profilediv" style="padding: 2px; 0px;"><input type="checkbox" class="checknext" ' + isChecked(living, scored) + '>Vital: </td><td style="float:right; padding-top: 2px;"><select style="width: 151px; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, scored) + '>' +
                 '<option value=false '+ setLiving("deceased", living) + '>Deceased</option><option value=true '+ setLiving("living", living) + '>Living</option></select></td></tr>';
-
+            if (exists(members[member].about)) {
+                var about = members[member].about;
+                membersstring = membersstring + '<tr><td colspan="2"><div class="profilediv" style="font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scored) + '>About:</div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scored) + '>' + about + '</textarea></div></td></tr>';
+            } else {
+                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow" id="about"><td colspan="2"><div class="profilediv"><input type="checkbox" class="checknext">About:</div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
+            }
             for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
                 var title = listvalues[list];
                 if (relationship !== "partner" && title === "marriage") {
@@ -970,14 +1035,14 @@ function buildForm() {
 
     $(function () {
         $('.checknext').on('click', function () {
-            $(this).closest('tr').find("input:text,select,input:hidden").attr("disabled", !this.checked);
+            $(this).closest('tr').find("input:text,select,input:hidden,textarea").attr("disabled", !this.checked);
         });
     });
     $(function () {
         $('.checkslide').on('click', function () {
             var fs = $("#" + this.name.replace("checkbox", "slide"));
             fs.find(':checkbox').prop('checked', this.checked);
-            fs.find('input:text,select,input:hidden').attr('disabled', !this.checked);
+            fs.find('input:text,select,input:hidden,textarea').attr('disabled', !this.checked);
         });
     });
     $(function () {

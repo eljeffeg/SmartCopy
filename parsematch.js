@@ -49,6 +49,23 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     var aboutdata = "";
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     var records = parsed.find(".recordFieldsContainer");
+    if (familymembers) {
+        //Parses pages like Census that have entries at the bottom in Household section
+        var household = parsed.find('.groupTable').find('tr');
+        if (household.length > 0) {
+            var housearray = [];
+            for (var i = 0; i < household.length; i++) {
+                var hv = $(household[i]).find('td');
+                for (var x = 0; x < hv.length; x++) {
+                    var urlval = $(hv[x]).find('a');
+                    if (urlval.length > 0) {
+                        housearray.push({name: $(hv[x]).text(), url: urlval[0].href});
+                    }
+                }
+            }
+        }
+    }
+
     if (records.length > 0 && records[0].hasChildNodes()) {
         var famid = 0;
         // ---------------------- Profile Data --------------------
@@ -86,7 +103,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         gendersv = "male";
                     }
                     var listrow = $(row).find(".recordFieldValue").contents();
-                    var household = parsed.find('.groupTable').find('tr');
                     if (listrow.length > 1) {
                         for (var lr =0;lr < listrow.length; lr++) {
                             var listrowval = listrow[lr];
@@ -102,38 +118,33 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             for (var lr =0;lr < splitlr.length; lr++) {
                                 var splitval = splitlr[lr];
                                 if (splitval.trim().length > 4) {
-                                    if (household.length > 0) {
-                                        for (var i = 0; i < household.length; i++) {
-                                            var hv = $(household[i]).find('td');
-                                            for (var x = 0; x < hv.length; x++) {
-                                                if ($(hv[x]).text() === splitval.trim()) {
-                                                    var gethref = $(hv[x]).find('a');
-                                                    if (exists(gethref[0])) {
-                                                        familystatus.push(familystatus.length);
-                                                        var subdata = {name: splitval.trim(), gender: gendersv, title: title};
-                                                        var urlval = gethref[0].href;
-                                                        var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
-                                                        var itemid = getParameterByName('itemId', shorturl);
-                                                        subdata["url"] = urlval;
-                                                        subdata["itemId"] = itemid;
-                                                        subdata["profile_id"] = famid;
-                                                        unionurls[famid] = itemid;
-                                                        chrome.extension.sendMessage({
-                                                            method: "GET",
-                                                            action: "xhttp",
-                                                            url: shorturl,
-                                                            variable: subdata
-                                                        }, function (response) {
-                                                            var arg = response.variable;
-                                                            var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
-                                                            person = updateInfoData(person, arg);
-                                                            databyid[arg.profile_id] = person;
-                                                            alldata["family"][arg.title].push(person);
-                                                            familystatus.pop();
-                                                        });
-                                                    }
-                                                    continue;
-                                                }
+                                    if (exists(housearray)) {
+                                        for (var i = 0; i < housearray.length; i++) {
+                                            if (housearray[i].name === splitval.trim()) {
+                                                familystatus.push(familystatus.length);
+                                                var subdata = {name: splitval.trim(), gender: gendersv, title: title};
+                                                var urlval = housearray[i].url;
+                                                var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                                var itemid = getParameterByName('itemId', shorturl);
+                                                subdata["url"] = urlval;
+                                                subdata["itemId"] = itemid;
+                                                subdata["profile_id"] = famid;
+                                                unionurls[famid] = itemid;
+                                                chrome.extension.sendMessage({
+                                                    method: "GET",
+                                                    action: "xhttp",
+                                                    url: shorturl,
+                                                    variable: subdata
+                                                }, function (response) {
+                                                    var arg = response.variable;
+                                                    var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
+                                                    person = updateInfoData(person, arg);
+                                                    databyid[arg.profile_id] = person;
+                                                    alldata["family"][arg.title].push(person);
+                                                    familystatus.pop();
+                                                });
+                                                housearray.splice(i, 1);
+                                                break;
                                             }
                                         }
                                     } else {

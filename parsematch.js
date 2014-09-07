@@ -50,6 +50,29 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     var records = parsed.find(".recordFieldsContainer");
     if (familymembers) {
+        familystatus.push("family");
+        var familyurl = "http://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + focusid;
+        chrome.extension.sendMessage({
+            method: "GET",
+            action: "xhttp",
+            url: familyurl
+        }, function (response) {
+            genispouse = JSON.parse(response.source);
+            familystatus.pop();
+        });
+        familystatus.push("about");
+        var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me&profile=" + focusid;
+        chrome.extension.sendMessage({
+            method: "GET",
+            action: "xhttp",
+            url: abouturl
+        }, function (response) {
+            var about_return = JSON.parse(response.source);
+            if (!$.isEmptyObject(about_return) && exists(about_return.about_me)) {
+                focusabout = about_return.about_me;
+            }
+            familystatus.pop();
+        });
         //Parses pages like Census that have entries at the bottom in Household section
         var household = parsed.find('.groupTable').find('tr');
         if (household.length > 0) {
@@ -316,29 +339,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         // ---------------------- Family Data --------------------
 
         if (familymembers && children.length > 2) {
-            familystatus.push("family");
-            var familyurl = "http://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + focusid;
-            chrome.extension.sendMessage({
-                method: "GET",
-                action: "xhttp",
-                url: familyurl
-            }, function (response) {
-                genispouse = JSON.parse(response.source);
-                familystatus.pop();
-            });
-            familystatus.push("about");
-            var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me&profile=" + focusid;
-            chrome.extension.sendMessage({
-                method: "GET",
-                action: "xhttp",
-                url: abouturl
-            }, function (response) {
-                var about_return = JSON.parse(response.source);
-                if (!$.isEmptyObject(about_return) && exists(about_return.about_me)) {
-                    focusabout = about_return.about_me;
-                }
-                familystatus.pop();
-            });
             //This section is only run on the focus profile
             alldata["profile"] = profiledata;
             alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();

@@ -139,41 +139,46 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         if (exists(splitlrnv)) {
                             var splitlr = splitlrnv.split(",");
                             for (var lr =0;lr < splitlr.length; lr++) {
-                                var splitval = splitlr[lr];
-                                if (splitval.trim().length > 4) {
-                                    if (exists(housearray)) {
-                                        for (var i = 0; i < housearray.length; i++) {
-                                            if (housearray[i].name === splitval.trim()) {
-                                                familystatus.push(familystatus.length);
-                                                var subdata = {name: splitval.trim(), gender: gendersv, title: title};
-                                                var urlval = housearray[i].url;
-                                                var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
-                                                var itemid = getParameterByName('itemId', shorturl);
-                                                subdata["url"] = urlval;
-                                                subdata["itemId"] = itemid;
-                                                subdata["profile_id"] = famid;
-                                                unionurls[famid] = itemid;
-                                                chrome.extension.sendMessage({
-                                                    method: "GET",
-                                                    action: "xhttp",
-                                                    url: shorturl,
-                                                    variable: subdata
-                                                }, function (response) {
-                                                    var arg = response.variable;
-                                                    var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
-                                                    person = updateInfoData(person, arg);
-                                                    databyid[arg.profile_id] = person;
-                                                    alldata["family"][arg.title].push(person);
-                                                    familystatus.pop();
-                                                });
-                                                housearray.splice(i, 1);
-                                                break;
-                                            }
-                                        }
-                                    } else {
-                                        alldata["family"][title].push({name: splitval.trim(), gender: gendersv,  profile_id: famid, title: title});
-                                    }
+                                if (NameParse.is_suffix(splitlr[lr]) && lr !== 0) {
+                                    splitlr[lr-1] += "," + splitlr[lr];
+                                    splitlr.splice(lr, 1);
                                 }
+                            }
+                            for (var lr =0;lr < splitlr.length; lr++) {
+                                var splitval = splitlr[lr];
+                                if (exists(housearray)) {
+                                    for (var i = 0; i < housearray.length; i++) {
+                                        if (housearray[i].name === splitval.trim()) {
+                                            familystatus.push(familystatus.length);
+                                            var subdata = {name: splitval.trim(), gender: gendersv, title: title};
+                                            var urlval = housearray[i].url;
+                                            var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                            var itemid = getParameterByName('itemId', shorturl);
+                                            subdata["url"] = urlval;
+                                            subdata["itemId"] = itemid;
+                                            subdata["profile_id"] = famid;
+                                            unionurls[famid] = itemid;
+                                            chrome.extension.sendMessage({
+                                                method: "GET",
+                                                action: "xhttp",
+                                                url: shorturl,
+                                                variable: subdata
+                                            }, function (response) {
+                                                var arg = response.variable;
+                                                var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
+                                                person = updateInfoData(person, arg);
+                                                databyid[arg.profile_id] = person;
+                                                alldata["family"][arg.title].push(person);
+                                                familystatus.pop();
+                                            });
+                                            housearray.splice(i, 1);
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    alldata["family"][title].push({name: splitval.trim(), gender: gendersv,  profile_id: famid, title: title});
+                                }
+
                                 famid++;
                             }
                         }
@@ -508,9 +513,10 @@ function updateInfoData(person, arg) {
         //This compares the data on the focus profile to the linked profile and uses most complete
         //Sometimes more information is shown on the SM, but when you click the link it goes <Private>
         var mname = $('#mnameonoffswitch').prop('checked');
+        var tempname = NameParse.parse(person.name, mname);
+        var argname = NameParse.parse(arg.name, mname);
         if (person.name.startsWith("\<Private\>") && !arg.name.startsWith("\<Private\>")) {
             if (!arg.name.contains("(born ") && person.name.contains("(born ")) {
-                var tempname = NameParse.parse(person.name, mname);
                 if (arg.name.contains(tempname.birthName)) {
                     if (arg.name.contains(tempname.lastName)) {
                         arg.name = arg.name.replace(tempname.birthName, "(born " + tempname.birthName + ")");
@@ -524,14 +530,25 @@ function updateInfoData(person, arg) {
             person.name = arg.name;
             person["alive"] = true;
         }
-        if (arg.name.contains(",") && !person.name.contains(",")) {
-            var tempname = NameParse.parse(person.name, mname);
-            var argname = NameParse.parse(arg.name, mname);
-            if (argname.suffix !== "" && tempname.suffix === "") {
-                person.name += ", " + argname.suffix;
+        if (argname.suffix !== "" && tempname.suffix === "") {
+            person.name += ", " + argname.suffix;
+        }
+        if (tempname.lastName !== argname.lastName && tempname.lastName.toLowerCase() === argname.lastName.toLowerCase()) {
+            //Check if one is CamelCase
+            var tlast = tempname.lastName.substring(1, tempname.lastName.length);
+            var alast = argname.lastName.substring(1, argname.lastName.length);
+            if(!NameParse.is_camel_case(tlast) && NameParse.is_camel_case(alast)){
+                person.name = person.name.replace(tempname.lastName, argname.lastName);
             }
         }
-
+        if (tempname.birthName !== argname.birthName && tempname.birthName.toLowerCase() === argname.birthName.toLowerCase()) {
+            //Check if one is CamelCase
+            var tlast = tempname.birthName.substring(1, tempname.birthName.length);
+            var alast = argname.birthName.substring(1, argname.birthName.length);
+            if(!NameParse.is_camel_case(tlast) && NameParse.is_camel_case(alast)){
+                person.name = person.name.replace(tempname.birthName, argname.birthName);
+            }
+        }
         if (exists(arg.gender) && person.gender === "unknown") {
             person.gender = arg.gender;
         }

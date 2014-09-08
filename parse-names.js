@@ -218,7 +218,7 @@ var NameParse = (function(){
 
     //  detect and format common suffixes
     NameParse.is_suffix = function (word) {
-        word = this.removeIgnoredChars(word).toLocaleLowerCase();
+        word = this.removeIgnoredChars(word).toLocaleLowerCase().trim();
         // these are some common suffixes - what am I missing?
         var suffixArray = [
             'I','II','III','IV','V','Senior','Junior','Jr','Sr','PhD','APR','RPh','PE','MD','MA','DMD','CME',

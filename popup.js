@@ -397,14 +397,16 @@ var submitform = function() {
             about = profileout["about_me"];
         }
         if (sourcecheck) {
-            if (focusabout !== "") {
+            if (!focusabout.contains("Updated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
                 about = focusabout + "\n--------------------\n" + about;
+                profileout["about_me"] = about + "* Updated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:MM:ss UTC") + "''\n";
+            } else {
+                if (about !== "") {
+                    profileout["about_me"] = focusabout + "\n--------------------\n" + about;
+                }
             }
-            profileout["about_me"] = about + "\nUpdated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:MM:ss UTC") + "''\n";
         } else if (about !== "") {
-            if (focusabout !== "") {
-                about = focusabout + "\n--------------------\n" + about;
-            }
+            about = focusabout + "\n--------------------\n" + about;
             profileout["about_me"] = about;
         }
 
@@ -426,7 +428,7 @@ var submitform = function() {
                             about = familyout["about_me"];
                         }
                         if (sourcecheck) {
-                            about = about + "\nUpdated from [" +  fdata.url + " MyHeritage Match] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:MM:ss UTC") + "''\n";
+                            about = about + "* Updated from [" +  fdata.url + " MyHeritage Match] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:MM:ss UTC") + "''\n";
                         }
                         if (about !== "") {
                             familyout["about_me"] = about;

@@ -21,3 +21,4 @@ Isle of Skye, Inverness-shire County, Scotland|{"place":"Isle of Skye","city":""
 Montgomery County, North Carolina, US|{"place":"","city":"","county":"Montgomery County","state":"North Carolina","country":"United States"}|county getting put in Place
 Beaverdam Baptist Church, Kershaw County, S.C.|{"place":"Beaverdam Baptist Church","city":"","county":"Kershaw County","state":"South Carolina","country":"United States"}|(current test 1.28.10(j) works on this)
 Rhode Island|{"place":"","city":"","county":"","state":"Rhode Island","country":"United States"}
+Files Valley Cemetery, Files Valley, Hill County, Texas, USA|{"place":"Files Valley Cemetery","city":"","county":"Hill County","state":"Texas","country":"United States"}

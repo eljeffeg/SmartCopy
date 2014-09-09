@@ -398,16 +398,17 @@ var submitform = function() {
         }
         if (sourcecheck) {
             if (!focusabout.contains("Updated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
-                about = focusabout + "\n--------------------\n" + about;
+                if (focusabout !== "") {
+                    about = focusabout + "\n--------------------\n" + about;
+                }
                 profileout["about_me"] = about + "* Updated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:MM:ss UTC") + "''\n";
             } else {
                 if (about !== "") {
                     profileout["about_me"] = focusabout + "\n--------------------\n" + about;
                 }
             }
-        } else if (about !== "") {
-            about = focusabout + "\n--------------------\n" + about;
-            profileout["about_me"] = about;
+        } else if (about !== "" && focusabout !== "") {
+            profileout["about_me"] = focusabout + "\n--------------------\n" + about;
         }
 
         buildTree(profileout, "update", focusid);

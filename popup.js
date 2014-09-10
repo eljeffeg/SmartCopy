@@ -395,20 +395,23 @@ var submitform = function() {
         var sourcecheck = $('#sourceonoffswitch').prop('checked');
         if (exists(profileout["about_me"])) {
             about = profileout["about_me"];
+            if (!about.endsWith("\n")) {
+                about += "\n";
+            }
         }
         if (sourcecheck) {
             if (!focusabout.contains("Updated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
                 if (focusabout !== "") {
-                    about = focusabout + "\n--------------------\n" + about;
+                    about = focusabout + "\n" + about;
                 }
                 profileout["about_me"] = about + "* Updated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:MM:ss UTC") + "''\n";
             } else {
                 if (about !== "") {
-                    profileout["about_me"] = focusabout + "\n--------------------\n" + about;
+                    profileout["about_me"] = focusabout + "\n" + about;
                 }
             }
         } else if (about !== "" && focusabout !== "") {
-            profileout["about_me"] = focusabout + "\n--------------------\n" + about;
+            profileout["about_me"] = focusabout + "\n" + about;
         }
 
         buildTree(profileout, "update", focusid);

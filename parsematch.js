@@ -700,11 +700,15 @@ function buildForm() {
         div[0].innerHTML = membersstring;
     }
     if (exists(alldata["profile"].about)) {
+        var scoreabout = true;
+        if (focusabout.contains(alldata["profile"].about)) {
+            scoreabout = false;
+        }
         x += 1;
         var about = alldata["profile"].about;
         var div = $("#profiletable");
         var membersstring = div[0].innerHTML;
-        membersstring = membersstring + '<tr><td colspan="2"><div class="profilediv" style="font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, true) + '>About:</div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, true) + '>' + about + '</textarea></div></td></tr>';
+        membersstring = membersstring + '<tr><td colspan="2"><div class="profilediv" style="font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scoreabout) + '>About:</div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scoreabout) + '>' + about + '</textarea></div></td></tr>';
         div[0].innerHTML = membersstring;
     } else {
         var div = $("#profiletable");

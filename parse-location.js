@@ -2,6 +2,7 @@ var verbose = false;
 var GeoLocation = function (results, query) {
     var location = {};
     if (!exists(results["results"])) {
+    	location.query = query || "";
         location.count = 0;
         return location;
     }
@@ -10,26 +11,46 @@ var GeoLocation = function (results, query) {
     if (results.length === 1) {
         location = parseGoogle(results[0], query);
         location.count = 1;
-/*    } else if (results.length > 1) {
+        location.query = query || "";
+    } else if (results.length > 1) {
+		// Find the common fields across the multiple returns, if any
         var locationset = [];
         for (var i = 0; i < results.length; i++) {
             locationset[i] = parseGoogle(results[i], query);
             locationset[i].count = results.length;
             locationset[i].query = query || "";
         }
-        for (var i = 1; i < results.length; i++) {
-            location = compareGeo(locationset[i], locationset[0]);
-        } */
+		var numCommon = countGeoFields(locationset[0]);  // only have 5 max: Country, State, County, City, Place
+        for (var i = 1; (i < results.length) && (numCommon > 0); i++) {
+            location = getGeoCommon(locationset[i], locationset[0], numCommon);
+            if (numCommon > location.numCommon) {
+				if (verbose) {
+        			console.log("...Multiple GeoLocation ",i," reduced from ",numCommon," for ",locationset[0]," to ",location.numCommon," for ",location);
+        		}
+            }
+            numCommon = location.numCommon;
+            locationset[0] = location;
+            }
+        if (numCommon > 0) {
+        	location.count = 1;  // treat it as 'unique'
+        } else {
+        	location.count = results.length;
+        	location.ambiguous = true;
+        }
+        location.query = query || "";
     } else {
         location = parseGoogle("", query);
         location.count = 0;
+        location.query = query || "";
     }
 
     if (location.place === "" && location.city === "" && location.county === "" && location.state === "" && location.country === "") {
         location.place = location.query;
+        location.count = 0;
+        location.query = query || "";
     }
 
-    return location;
+    return location
 };
 
 function parseGoogle(result, query) {
@@ -266,10 +287,61 @@ function countGeoFields(list) {
     if (list.city !== "") {
         fldcount++;
     }
+    if (list.place !== "") {
+    	fldcount++;
+    }
     return fldcount;
 }
 
+function getGeoCommon (testGeo, refGeo, numCommon) {
+	var location = refGeo;
+	location.numCommon = numCommon
+	if (numCommon < 1) {
+		return location;
+	}
+	var ambig = false;
+	var numTest = countGeoFields(testGeo);
+	var numRef = countGeoFields(refGeo);
+	var cmnCount = 0;
+	if ((testGeo.country === refGeo.country) && (numCommon > 0)) {
+		cmnCount++;
+	}
+	if ((testGeo.state === refGeo.state) && (numCommon > 1)) {
+		cmnCount++;
+	}
+	if ((testGeo.county === refGeo.county) && (numCommon > 2)) {
+		cmnCount++;
+	}
+	if ((testGeo.city === refGeo.city) && (numCommon > 3)) {
+		cmnCount++;
+	}
+	if ((testGeo.place === refGeo.place) && (numCommon > 4)) {
+		cmnCount++;
+	}
+	// clear out 'reference' if there are fewer in common
+	if (cmnCount < numCommon) {
+		location.numCommon = cmnCount;
+		if (cmnCount < 5) {
+			location.place = "";
+		}
+		if (cmnCount < 4) {
+			location.city = "";
+		}
+		if (cmnCount < 3) {
+			location.county = "";
+		}
+		if (cmnCount < 2) {
+			location.state = "";
+		}
+		if (cmnCount < 1) {
+			location.country = "";
+		}
+	}
+	return location
+}
+
 function compareGeo(shortGeo, longGeo) {
+	// compare the results of two diffent queries
     var location = {};
     // check for inconsistent results
     var ambig = false;
@@ -479,6 +551,7 @@ function compareGeo(shortGeo, longGeo) {
 function print(location, unittest) {
     console.log("---------------------------------------");
     console.log("Query: " + location.query);
+    console.log("Count: " + location.count);
     console.log("Place: " + location.place);
     console.log("City: " + location.city);
     console.log("County: " + location.county);

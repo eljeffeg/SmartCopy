@@ -1,6 +1,6 @@
 var devblocksend = false;
 var locationtest = false;
-var proaccount = true;
+var accountinfo;
 var profilechanged = false;
 var focusid;
 var focusname;
@@ -8,6 +8,7 @@ var tablink;
 var submitcheck = true;
 var buildhistory = [];
 var marriagedates = [];
+var loggedin = false;
 chrome.storage.local.get('buildhistory', function (result) {
     if(exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
@@ -49,23 +50,137 @@ if (!String.prototype.contains) {
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log(chrome.app.getDetails().name + " v" + chrome.app.getDetails().version);
+    loadLogin();
     checkAccount();
     chrome.tabs.getSelected(null, function (tab) {
         tablink = tab.url;
         if (startsWithMH(tablink,"research/collection")) {
-            loadLogin();
+            getPageCode();
         } else if (startsWithMH(tablink,"matchingresult")) {
+            document.querySelector('#loginspinner').style.display = "none";
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Matches on this results page.');
-        } else {
-            setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.')
-        }
-        if (tablink.startsWith("http://www.geni.com/people/") || tablink.startsWith("http://www.geni.com/family-tree/")) {
+        } else if (tablink.startsWith("http://www.geni.com/people/") || tablink.startsWith("http://www.geni.com/family-tree/")) {
             var focusprofile = getProfile(tablink);
+            focusid = focusprofile.replace("?profile=", "");
             updateLinks(focusprofile);
-
+            userAccess();
+        } else {
+            setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.');
+            document.querySelector('#loginspinner').style.display = "none";
         }
     });
 });
+
+function userAccess() {
+    if (loggedin && exists(accountinfo)) {
+        if(accountinfo.curator) {
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: "http://historylink.herokuapp.com/account?profile=" + focusid,
+                variable: ""
+            }, function (response) {
+                document.querySelector('#loginspinner').style.display = "none";
+                var responsedata = JSON.parse(response.source);
+                var accessdialog = document.querySelector('#useraccess');
+                if (!responsedata.big_tree) {
+                    accessdialog.style.display = "block";
+                    accessdialog.style.marginBottom = "-2px";
+                    accessdialog.style.backgroundColor = "#AFC8FF";
+                    accessdialog.innerHTML = "This profile is not in the big tree.";
+                    setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.');
+                }
+                else if (responsedata.claimed && !responsedata.curator) {
+                    if (responsedata.pro) {
+                        if (!responsedata.user) {
+                            accessdialog.style.display = "block";
+                            accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
+                                '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke their access.</div>';
+                            document.getElementById('grantbutton').addEventListener('click', useradd, false);
+                        } else {
+                            accessdialog.style.display = "block";
+                            if (responsedata.user.revoked == null) {
+                                accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
+                                    '<div>Tree-building rights were granted by <a href="http://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>';
+                                document.getElementById('revokebutton').addEventListener('click', userrevoke, false);
+                            } else {
+                                accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
+                                    '<div>Tree-building rights were revoked by <a href="http://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>';
+                                document.getElementById('grantbutton').addEventListener('click', userrestore, false);
+                            }
+                        }
+                    } else {
+                        accessdialog.style.display = "block";
+                        accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This basic user has limited access to SmartCopy.</strong></div>' +
+                                '<div>Non-Pro Geni users have the ability to update the focus profile but can not add family members.</div>';
+                    }
+                } else {
+                    setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.');
+                }
+            });
+        } else {
+            setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.');
+        }
+    } else {
+        setTimeout(userAccess, 200);
+    }
+}
+
+function userrestore() {
+    document.querySelector('#useraccess').style.display = "none";
+    document.querySelector('#loginspinner').style.display = "block";
+    var prefixurl = "http://historylink.herokuapp.com/account?profile=" + focusid;
+    chrome.extension.sendMessage({
+        method: "GET",
+        action: "xhttp",
+        url: prefixurl + "&action=add_user",
+        variable: ""
+    }, function (response) {
+        window.close();
+    });
+}
+
+function useradd() {
+    document.querySelector('#useraccess').style.display = "none";
+    document.querySelector('#loginspinner').style.display = "block";
+    var prefixurl = "http://historylink.herokuapp.com/account?profile=" + focusid;
+    chrome.extension.sendMessage({
+        method: "GET",
+        action: "xhttp",
+        url: prefixurl + "&action=add_user",
+        variable: ""
+    }, function (response) {
+    });
+    chrome.tabs.getSelected(null, function(tab){
+        chrome.tabs.update(tab.id, {url: "http://www.geni.com/threads/new/" + focusid.replace("profile-g", "") + "?return_here=true"}, function() {
+            chrome.tabs.executeScript(null, {
+                code: "document.getElementById('thread_subject').value='SmartCopy Invite';" +
+                    "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, " +
+                    "which is a chrome extension that allows you to copy data from MyHeritage Record and Smart Matches into the Geni tree.\\n\\n" +
+                    "The extension can be downloaded here: http://historylink.herokuapp.com/smartcopy\\n" +
+                    "More information and discussion can be found in the Geni project: http://www.geni.com/projects/SmartCopy/18783\\n\\n" +
+                    "SmartCopy can be a powerful tool to help us build the world tree, but could also quickly create duplication and introduce bad data. " +
+                    "You are expected to be responsible with using this tool, attempt to merge any duplicates that arise, and work through relationship conflicts (get curator assistance if necessary).';"
+            }, function() {
+                window.close();
+            })
+        });
+    });
+}
+
+function userrevoke() {
+    document.querySelector('#useraccess').style.display = "none";
+    document.querySelector('#loginspinner').style.display = "block";
+    var prefixurl = "http://historylink.herokuapp.com/account?profile=" + focusid;
+    chrome.extension.sendMessage({
+        method: "GET",
+        action: "xhttp",
+        url: prefixurl + "&action=revoke_user",
+        variable: ""
+    }, function (response) {
+        window.close();
+    });
+}
 
 function startsWithMH(stringToCheck, query) {
     var searchPattern = new RegExp('^https?://www\.myheritage\..*?/' + query, 'i');
@@ -111,12 +226,16 @@ function loadPage(request) {
                 document.getElementById("focusrange").innerText = focusrange;
             }
             console.log("Parsing Family...");
-            parseSmartMatch(request.source, proaccount);
+            parseSmartMatch(request.source, (accountinfo.pro && accountinfo.user));
 
-            if (!proaccount) {
+            if (!accountinfo.pro) {
                 document.getElementById("loading").style.display = "none";
                 $("#familymembers").attr('disabled', 'disabled');
                 setMessage("#f8ff86", 'The copying of Family Members is only available to Geni Pro Members.');
+            } else if (!accountinfo.user) {
+                document.getElementById("loading").style.display = "none";
+                $("#familymembers").attr('disabled', 'disabled');
+                setMessage("#f8ff86", 'Copying Family Members has been restricted to trusted Geni users.  You may request this ability from a Curator.');
             }
         } else {
             document.getElementById("top-container").style.display = "block";
@@ -158,14 +277,14 @@ function loadPage(request) {
                 url: url
             }, function (response) {
                 var result = JSON.parse(response.source);
-                result.sort(function(a, b){
-                    var relA=a.relation.toLowerCase(), relB=b.relation.toLowerCase()
+                result.sort(function (a, b) {
+                    var relA = a.relation.toLowerCase(), relB = b.relation.toLowerCase();
                     if (relA < relB) //sort string ascending
-                        return -1
+                        return -1;
                     if (relA > relB)
-                        return 1
-                    return 0 //default return value (no sorting)
-                })
+                        return 1;
+                    return 0; //default return value (no sorting)
+                });
                 var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select relative of ' + focusperson + '</option>';
                 if (exists(result)) {
                     for (var key in result) if (result.hasOwnProperty(key)) {
@@ -215,26 +334,31 @@ function setMessage(color, messagetext) {
 }
 
 function getPageCode() {
-    document.getElementById("smartcopy-container").style.display = "block";
-    document.getElementById("loading").style.display = "block";
-    if (tablink.startsWith("http://www.myheritage.com/")) {
-        chrome.tabs.executeScript(null, {
-            file: "getPagesSource.js"
-        }, function () {
-            // If you try and inject into an extensions page or the webstore/NTP you'll get an error
-            if (chrome.extension.lastError) {
-                message.innerText = 'There was an error injecting script : \n' + chrome.extension.lastError.message;
-            }
-        });
+    if (loggedin && exists(accountinfo)) {
+        document.querySelector('#loginspinner').style.display = "none";
+        document.getElementById("smartcopy-container").style.display = "block";
+        document.getElementById("loading").style.display = "block";
+        if (tablink.startsWith("http://www.myheritage.com/")) {
+            chrome.tabs.executeScript(null, {
+                file: "getPagesSource.js"
+            }, function () {
+                // If you try and inject into an extensions page or the webstore/NTP you'll get an error
+                if (chrome.extension.lastError) {
+                    message.innerText = 'There was an error injecting script : \n' + chrome.extension.lastError.message;
+                }
+            });
+        } else {
+            var url = tablink.replace(/https?:\/\/www\.myheritage\..*?\//i,"http://www.myheritage.com/") + "&lang=EN";
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: url
+            }, function (response) {
+                loadPage(response);
+            });
+        }
     } else {
-        var url = tablink.replace(/https?:\/\/www\.myheritage\..*?\//i,"http://www.myheritage.com/") + "&lang=EN";
-        chrome.extension.sendMessage({
-            method: "GET",
-            action: "xhttp",
-            url: url
-        }, function (response) {
-            loadPage(response);
-        });
+        setTimeout(getPageCode, 200);
     }
 }
 
@@ -248,7 +372,7 @@ function checkAccount() {
                 //display leaderboard link if user is a curator - page itself still verifies
                 document.getElementById("curator").style.display = "inline-block";
             }
-            proaccount = response.pro;
+            accountinfo = response;
         }
     };
     xhr.send();
@@ -262,13 +386,13 @@ function loadLogin() {
     }, function (responseText) {
         if (responseText.source === "<script>window.open('', '_self', ''); window.close();</script>") {
             console.log("Logged In...");
-            getPageCode();
+            loggedin = true;
         } else {
             console.log("Logged Out...");
             var w = 600;
             var h = 450;
-            var left = (screen.width / 2) - (w / 2);
-            var top = (screen.height / 2) - (h / 2);
+            var left = Math.round((screen.width / 2) - (w / 2));
+            var top = Math.round((screen.height / 2) - (h / 2));
             //redirect helps it close the window properly.. not sure why
             chrome.windows.create({'url': 'redirect.html', 'type': 'panel', 'width': w, 'height': h, 'left': left, 'top': top, 'focused': true}, function (window) {
                 //grab the window.id if needed
@@ -618,7 +742,7 @@ function submitWait() {
             '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g","") + '" target="_blank">tree view</a>, ' +
             '<a href="http://www.geni.com/' + focusid.replace("profile-g","") + '" target="_blank">profile view</a></div>';
         document.getElementById("message").style.display = "none";
-        $('#updating').css('margin-bottom', "15px")
+        $('#updating').css('margin-bottom', "15px");
         console.log("Tree Updated...");
         if (devblocksend) {
             console.log("******** Dev Mode - Blocked Sending ********")

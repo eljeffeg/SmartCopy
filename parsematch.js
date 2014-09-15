@@ -429,7 +429,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
             }
             updateGeo(); //Poll until all family requests have returned and continue there
-        } else if (children.length > 2) {
+        } else if (children.length > 2 && exists(relation.title)) {
             if (isChild(relation.title)) {
                 var itemid = getParameterByName('itemId', tablink);
                 child = children[2];

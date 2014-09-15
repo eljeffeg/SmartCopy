@@ -24,3 +24,5 @@ Rhode Island|{"place":"","city":"","county":"","state":"Rhode Island","country":
 Files Valley Cemetery, Files Valley, Hill County, Texas, USA|{"place":"Files Valley Cemetery","city":"","county":"Hill County","state":"Texas","country":"United States"}
 Charlesbourg Quâebec Canada|{"place":"Charlesbourg","city":"Quebec City","county":"Communauté-Urbaine-de-Québec","state":"Quebec","country":"Canada"}
 Rensselaer, Rensselaer, New York, United States of America|{"place":"","city":"Rensselaer","county":"Rensselaer County","state":"New York","country":"United States"}
+Perry, Kentucky, United States|{"place":"","city":"","county":"Perry County","state":"Kentucky","country":"United States"}
+Mayhew Yocum Cemetery, Don Lawson Farm, Menifee County, Kentucky|{"place":"Mayhew Yocum Cemetery, Don Lawson Farm","city":"","county":"Menifee County","state":"Kentucky","country":"United States"}

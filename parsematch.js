@@ -203,7 +203,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 continue;
             }
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
-                && title !== 'occupation' && title !== 'cemetery' && !(title === 'marriage' && relation === "")) {
+                && title !== 'occupation' && title !== 'cemetery' && title !== 'christening'
+                && !(title === 'marriage' && relation === "")) {
                 /*
                  This will exclude residence, since the API seems to only support current residence.
                  It also will remove Military Service and any other entry not explicitly defined above.
@@ -219,6 +220,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
             if (title === "cemetery") {
                 title = "burial";
+            }
+            if (title === "christening") {
+                title = "baptism";
             }
             var valdate = "";
             var vallocal = $(row).find(".map_callout_link").text().trim();

@@ -95,7 +95,7 @@ function userAccess() {
                         if (!responsedata.user) {
                             accessdialog.style.display = "block";
                             accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
-                                '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke their access.</div>';
+                                '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>';
                             document.getElementById('grantbutton').addEventListener('click', useradd, false);
                         } else {
                             accessdialog.style.display = "block";
@@ -156,11 +156,13 @@ function useradd() {
             chrome.tabs.executeScript(null, {
                 code: "document.getElementById('thread_subject').value='SmartCopy Invite';" +
                     "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, " +
-                    "which is a chrome extension that allows you to copy data from MyHeritage Record and Smart Matches into the Geni tree.\\n\\n" +
+                    "which is a Google Chrome extension that allows you to copy data from MyHeritage Record and Smart Matches into the Geni tree.\\n\\n" +
                     "The extension can be downloaded here: http://historylink.herokuapp.com/smartcopy\\n" +
                     "More information and discussion can be found in the Geni project: http://www.geni.com/projects/SmartCopy/18783\\n\\n" +
-                    "SmartCopy can be a powerful tool to help us build the world tree, but could also quickly create duplication and introduce bad data. " +
-                    "You are expected to be responsible with using this tool, attempt to merge any duplicates that arise, and work through relationship conflicts (get curator assistance if necessary).';"
+                    "Before using SmartCopy, please read the cautionary notes and feedback request in the Project Description.\\n\\n" +
+                    "SmartCopy can be a powerful tool to help us build the world tree, but it could also quickly create duplication and introduce bad data. " +
+                    "Users granted rights to SmartCopy are expected to be responsible with using this tool, attempt to merge any duplicates that arise, and work through relationship conflicts (get curator assistance if necessary)." +
+                    "';"
             }, function() {
                 window.close();
             })
@@ -406,6 +408,9 @@ function getProfile(profile_id) {
     if (profile_id.length > 0) {
         if (profile_id.indexOf("profile-") != -1) {
             profile_id = profile_id.substring(profile_id.lastIndexOf('/') + 1);
+        }
+        if (profile_id.indexOf("#/tab") != -1) {
+            profile_id = profile_id.substring(0, profile_id.lastIndexOf('#/tab'));
         }
         if (profile_id.indexOf("/") != -1) {
             //Grab the GUID from a URL

@@ -1,5 +1,5 @@
 var devblocksend = false;
-var locationtest = true;
+var locationtest = false;
 var accountinfo;
 var profilechanged = false;
 var focusid;

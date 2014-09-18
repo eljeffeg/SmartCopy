@@ -11,11 +11,11 @@ Nation Cem, Blountsville, Blount Co, AL|{"place":"Nation Cemetery","city":"Bloun
 PA ?|{"place":"PA ?","city":"","county":"","state":"","country":""}|Deal with question marks
 Chepultepec, Blount Co, AL|{"place":"","city":"Chepultepec","county":"Blount County","state":"Alabama","country":"United States"}
 Harrison Church Cem., Pinesville, Mecklenburg Co., NC|{"place":"Harrison Church Cemetery","city":"Pineville","county":"Mecklenburg County","state":"North Carolina","country":"United States"}|Pinesville sometimes works, sometimes doesn't! - 0.1.28.10 = 28j
-Point Lookout, MD|{"place":"Point Lookout","city":"St. Inigoes","county":"St. Mary's County","state":"Maryland","country":"United States"}
-Long Island, Queens, New York, USA|{"place":"Long Island","city":"","county":"Queens County","state":"New York","country":"United States"}
+Point Lookout, MD|{"place":"Point Lookout","city":"St. Inigoes","county":"St. Mary's County","state":"Maryland","country":"United States", "alt": {"place":"","city":"St. Inigoes","county":"St. Mary's County","state":"Maryland","country":"United States"}}
+Long Island, Queens, New York, USA|{"place":"Long Island, Queens","city":"New York","county":"Queens County","state":"New York","country":"United States", "alt": {"place":"","city":"New York","county":"Queens County","state":"New York","country":"United States"}}
 Cripplebush, Kings, New York, USA|{"place":"Cripplebush","city":"","county":"Kings County","state":"New York","country":"United States"}
 Newton, Kings, New York, USA|{"place":"Newton","city":"","county":"Kings County","state":"New York","country":"United States"}
-Jamaica, Queens, New York, USA|{"place":"Jamaica","city":"","county":"Queens County","state":"New York","country":"United States"}
+Jamaica, Queens, New York, USA|{"place":"Jamaica, Queens","city":"New York","county":"Queens County","state":"New York","country":"United States", "alt": {"place":"","city":"New York","county":"Queens County","state":"New York","country":"United States"}}
 Saint Jones Neck, Kent, Delaware, USA|{"place":"Saint Jones Neck","city":"","county":"Kent County","state":"Delaware","country":"United States"}|(same place as Jone's Neck, Delaware, USA)
 Isle of Skye, Inverness-shire County, Scotland|{"place":"Isle of Skye","city":"","county":"Inverness-shire County","state":"Scotland","country":"United Kingdom"}
 Montgomery County, North Carolina, US|{"place":"","city":"","county":"Montgomery County","state":"North Carolina","country":"United States"}|county getting put in Place
@@ -25,5 +25,5 @@ Files Valley Cemetery, Files Valley, Hill County, Texas, USA|{"place":"Files Val
 Charlesbourg Quâebec Canada|{"place":"Charlesbourg","city":"Quebec","county":"Communauté-Urbaine-de-Québec","state":"Quebec","country":"Canada"}
 Rensselaer, Rensselaer, New York, United States of America|{"place":"","city":"Rensselaer","county":"Rensselaer County","state":"New York","country":"United States"}
 Perry, Kentucky, United States|{"place":"","city":"","county":"Perry County","state":"Kentucky","country":"United States"}
-Mayhew Yocum Cemetery, Don Lawson Farm, Menifee County, Kentucky|{"place":"Mayhew Yocum Cemetery, Don Lawson Farm","city":"","county":"Menifee County","state":"Kentucky","country":"United States"}
+Mayhew Yocum Cemetery, Don Lawson Farm, Menifee County, Kentucky|{"place":"Mayhew Yocum Cemetery, Don Lawson Farm","city":"","county":"Menifee County","state":"Kentucky","country":"United States", "alt": {"place":"Mayhew Yocum Cemetery","city":"","county":"Menifee County","state":"Kentucky","country":"United States"}}
 Measham|{"place":"","city":"Measham","county":"Leicestershire","state":"England","country":"United Kingdom"}

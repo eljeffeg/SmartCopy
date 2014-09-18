@@ -1,4 +1,4 @@
-var verbose = true;
+var verbose = false;
 var countryPattern = new RegExp(' County', 'i');
 var GeoLocation = function (results, query) {
     var location = {};
@@ -11,7 +11,7 @@ var GeoLocation = function (results, query) {
     if (results.length === 1) {
         location = parseGoogle(results[0], query);
         location.count = 1;
-/*    } else if (results.length > 1) {
+    } else if (results.length > 1) {
         var locationset = [];
         for (var i = 0; i < results.length; i++) {
             locationset[i] = parseGoogle(results[i], query);
@@ -20,7 +20,7 @@ var GeoLocation = function (results, query) {
         }
         for (var i = 1; i < results.length; i++) {
             location = compareGeo(locationset[i], locationset[0]);
-        } */
+        }
     } else {
         location = parseGoogle("", query);
         location.count = 0;
@@ -46,32 +46,28 @@ function parseGoogle(result, query) {
         for (var i = 0; i < result.address_components.length; i++) {
             var long_name = result.address_components[i].long_name.replace(/^\d, /, "");
             switch (result.address_components[i].types.join(",")) {
-                case 'point_of_interest,establishment':
-                    location.place = long_name;
-                    break;
-                case 'establishment':
-                    location.place = long_name;
-                    break;
                 case 'postal_code':
                 case 'postal_code_prefix,postal_code':
                     location.zip = long_name;
                     break;
+                case 'point_of_interest,establishment':
+                case 'natural_feature,establishment':
                 case 'sublocality_level_1,sublocality,political':
+                case 'sublocality,political':
+                case 'neighborhood,political':
                     if (location.place === "") {
                         location.place = long_name;
+                    } else {
+                        location.place += ", " + long_name;
                     }
                     break;
-                case 'sublocality,political':
-                    if (location.place === "") {
-                        location.place = long_name;
-                    }
+                case 'establishment':
                     break;
                 case 'locality,political':
                     if (isNaN(long_name)) {
                         location.city = long_name;
                     }
                     break;
-                case 'neighborhood,political':
                 case 'administrative_area_level_3,political':
                     if (location.city === "" && isNaN(long_name)) {
                         //If the city is not in locality, use admin area 3
@@ -336,6 +332,7 @@ function compareGeo(shortGeo, longGeo) {
      }
      else */
     if (numLongFields === 0 && numShortFields === 0) {
+        if (verbose){console.log("both have 0 - look at place");}
         if (longGeo.place !== "") {
             location = longGeo;
         } else {
@@ -527,8 +524,12 @@ function print(location, unittest) {
     } else {
         console.log("Expected: " + JSON.stringify(unittest));
         console.log("Received: " + JSON.stringify(location));
-        console.log("%cFailed: " + fcount, 'background: #222; color: #fb1520');
-        fcount++;
+        if (exists(unittest.alt) && matchGeoFields(location, unittest.alt, 5)) {
+             console.log("%cAcceptable", 'background: #222; color: #EDDD00');
+        } else {
+             console.log("%cFailed: (" + fcount + ")", 'background: #222; color: #fb1520');
+             fcount++;
+        }
     }
     console.log("---------------------------------------\n")
 }

@@ -44,7 +44,7 @@ function parseGoogle(result, query) {
     location.country = "";
     if (exists(result.address_components)) {
         for (var i = 0; i < result.address_components.length; i++) {
-            var long_name = result.address_components[i].long_name.replace(/^\d, /, "");
+            var long_name = result.address_components[i].long_name.replace(/^\d*, /, "");
             switch (result.address_components[i].types.join(",")) {
                 case 'postal_code':
                 case 'postal_code_prefix,postal_code':

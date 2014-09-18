@@ -633,7 +633,7 @@ function updateGeo() {
             $.get('location-test.txt', function(data) {
                 var lines = data.split("\n");
                 $.each(lines, function(n, location) {
-                    if (location !== "") {
+                    if (location !== "" && !location.startsWith("#")) {
                         var splitloc = location.split("|");
                         var locationset = {id: geoid, location: splitloc[0]};
                         queryGeo(locationset, splitloc[1]);

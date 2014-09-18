@@ -10,7 +10,7 @@ Paul's Valley, OK|{"place":"","city":"Pauls Valley","county":"Garvin County","st
 Nation Cem, Blountsville, Blount Co, AL|{"place":"Nation Cemetery","city":"Blountsville","county":"Blount County","state":"Alabama","country":"United States"}
 PA ?|{"place":"PA ?","city":"","county":"","state":"","country":""}|Deal with question marks
 Chepultepec, Blount Co, AL|{"place":"","city":"Chepultepec","county":"Blount County","state":"Alabama","country":"United States"}
-Harrison Church Cem., Pinesville, Mecklenburg Co., NC|{"place":"Harrison Church Cemetery","city":"Pinesville","county":"Mecklenburg County","state":"North Carolina","country":"United States"}|Pinesville sometimes works, sometimes doesn't! - 0.1.28.10 = 28j
+Harrison Church Cem., Pinesville, Mecklenburg Co., NC|{"place":"Harrison Church Cemetery","city":"Pineville","county":"Mecklenburg County","state":"North Carolina","country":"United States"}|Pinesville sometimes works, sometimes doesn't! - 0.1.28.10 = 28j
 Point Lookout, MD|{"place":"Point Lookout","city":"St. Inigoes","county":"St. Mary's County","state":"Maryland","country":"United States"}
 Long Island, Queens, New York, USA|{"place":"Long Island","city":"","county":"Queens County","state":"New York","country":"United States"}
 Cripplebush, Kings, New York, USA|{"place":"Cripplebush","city":"","county":"Kings County","state":"New York","country":"United States"}
@@ -21,8 +21,9 @@ Isle of Skye, Inverness-shire County, Scotland|{"place":"Isle of Skye","city":""
 Montgomery County, North Carolina, US|{"place":"","city":"","county":"Montgomery County","state":"North Carolina","country":"United States"}|county getting put in Place
 Beaverdam Baptist Church, Kershaw County, S.C.|{"place":"Beaverdam Baptist Church","city":"","county":"Kershaw County","state":"South Carolina","country":"United States"}|(current test 1.28.10(j) works on this)
 Rhode Island|{"place":"","city":"","county":"","state":"Rhode Island","country":"United States"}
-Files Valley Cemetery, Files Valley, Hill County, Texas, USA|{"place":"Files Valley Cemetery","city":"","county":"Hill County","state":"Texas","country":"United States"}
-Charlesbourg Quâebec Canada|{"place":"Charlesbourg","city":"Quebec City","county":"Communauté-Urbaine-de-Québec","state":"Quebec","country":"Canada"}
+Files Valley Cemetery, Files Valley, Hill County, Texas, USA|{"place":"Files Valley Cemetery","city":"Files Valley","county":"Hill County","state":"Texas","country":"United States"}
+Charlesbourg Quâebec Canada|{"place":"Charlesbourg","city":"Quebec","county":"Communauté-Urbaine-de-Québec","state":"Quebec","country":"Canada"}
 Rensselaer, Rensselaer, New York, United States of America|{"place":"","city":"Rensselaer","county":"Rensselaer County","state":"New York","country":"United States"}
 Perry, Kentucky, United States|{"place":"","city":"","county":"Perry County","state":"Kentucky","country":"United States"}
 Mayhew Yocum Cemetery, Don Lawson Farm, Menifee County, Kentucky|{"place":"Mayhew Yocum Cemetery, Don Lawson Farm","city":"","county":"Menifee County","state":"Kentucky","country":"United States"}
+Measham|{"place":"","city":"Measham","county":"Leicestershire","state":"England","country":"United Kingdom"}

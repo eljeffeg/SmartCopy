@@ -1,4 +1,5 @@
-var verbose = false;
+var verbose = true;
+var countryPattern = new RegExp(' County', 'i');
 var GeoLocation = function (results, query) {
     var location = {};
     if (!exists(results["results"])) {
@@ -43,7 +44,7 @@ function parseGoogle(result, query) {
     location.country = "";
     if (exists(result.address_components)) {
         for (var i = 0; i < result.address_components.length; i++) {
-            var long_name = result.address_components[i].long_name;
+            var long_name = result.address_components[i].long_name.replace(/^\d, /, "");
             switch (result.address_components[i].types.join(",")) {
                 case 'point_of_interest,establishment':
                     location.place = long_name;
@@ -55,7 +56,16 @@ function parseGoogle(result, query) {
                 case 'postal_code_prefix,postal_code':
                     location.zip = long_name;
                     break;
+                case 'sublocality_level_1,sublocality,political':
+                    if (location.place === "") {
+                        location.place = long_name;
+                    }
+                    break;
                 case 'sublocality,political':
+                    if (location.place === "") {
+                        location.place = long_name;
+                    }
+                    break;
                 case 'locality,political':
                     if (isNaN(long_name)) {
                         location.city = long_name;
@@ -96,13 +106,22 @@ function parseGoogle(result, query) {
             }
         }
         var split = location.query.split(",");
-        if (split.length === 1) {
+        if (split.length === 1 && (location.query.startsWith(" ") || location.query.contains("Territory"))) {
             var count = countGeoFields(location);
             if (count > 3) {
                 //Only one field but returning 4 - seems unlikely to be accurate
                 var subquery = location.query;
                 location = parseGoogle("", subquery);
-                location.place = subquery;
+                location.place = subquery.trim();
+            }
+        } else if (location.county === "") {
+            if (countryPattern.test(location.query)) {
+                for (var i=0;i<split.length;i++) {
+                    if (countryPattern.test(split[i])) {
+                        location.county = split[i].trim();
+                        break;
+                    }
+                }
             }
         }
     }
@@ -166,17 +185,17 @@ function queryGeo(locationset, test) {
             var unittest = response.variable.unittest;
             var full_location = response.variable.location;
             var georesult = new GeoLocation(result, full_location);
-            georesult.place = response.variable.place;
+            georesult.place = response.variable.place.trim();
 
             geolocation[id] = georesult;
 
-			// ----- if 1st lookup was not unique (count > 1), AND only one element in the original string
+            // ----- if 1st lookup was not unique (count > 1), AND only one element in the original string
             var location_split = full_location.split(",");
             if (location_split.length > 1) {
                 location_split.shift();
             } else if (location_split.length === 1) {
-				// ..... ... assume it is a solitary "state" name and force that as the type of location...
-            	location_split[0] = location_split[0] + " State";
+                // ..... ... assume it is a solitary "state" name and force that as the type of location...
+                location_split[0] = location_split[0] + " State";
             }
             // ----- Stage 2: Run again with one item removed from front, or modified, for comparison -----
             var short_location = location_split.join(",");
@@ -193,9 +212,11 @@ function queryGeo(locationset, test) {
                     var unittest = response.variable.unittest;
                     var georesult = new GeoLocation(result, response.variable.location);
                     if (response.variable.place !== "") {
-                        georesult.place = response.variable.place;
+                        georesult.place = response.variable.place.trim();
                     } else if (countGeoFields(georesult) === 0) {
-                        georesult.place = georesult.place.replace(" State", "");
+                        if (!georesult.place.contains(" States")) {
+                            georesult.place = georesult.place.replace(" State", "").trim();
+                        }
                     }
                     var georesult = compareGeo(georesult, geolocation[id]);
                     if (georesult.place === georesult.state) {
@@ -306,13 +327,21 @@ function compareGeo(shortGeo, longGeo) {
     if (exists(longGeo.place) && (longGeo.place !== "")) {
         location_split[0] = longGeo.place;
     }
-/*    if (numLongFields === 0 && numShortFields > 0) {
-        location = shortGeo;
-    }
-    else if (numLongFields > 0 && numShortFields === 0) {
-        location = longGeo;
-    }
-    else */ if (((longGeo.count !== 1) && (shortGeo.count !== 1)) || ((longGeo.count === 1) && (shortGeo.count !== 1))) {
+
+    /*    if (numLongFields === 0 && numShortFields > 0) {
+     location = shortGeo;
+     }
+     else if (numLongFields > 0 && numShortFields === 0) {
+     location = longGeo;
+     }
+     else */
+    if (numLongFields === 0 && numShortFields === 0) {
+        if (longGeo.place !== "") {
+            location = longGeo;
+        } else {
+            location = shortGeo;
+        }
+    } else if (((longGeo.count !== 1) && (shortGeo.count !== 1)) || ((longGeo.count === 1) && (shortGeo.count !== 1))) {
 // if neither had unique data, or only Long did, use Long results (which at least has .place set)
         location = longGeo;
         if (verbose){console.log("used long when short or both had 0 or multiples");}
@@ -338,7 +367,7 @@ function compareGeo(shortGeo, longGeo) {
             if (numShortFields === 1) {
                 location.state = location_split[0];
                 if (verbose){console.log("... & used loc.split[0] as state");}
-            } else {
+            } else if (location_split[0] !== location.query && location_split[0] + " State" !== location.query) {
                 location.place = location_split[0];
                 if (verbose){console.log("... & used loc.split[0] as place");}
             }
@@ -355,7 +384,7 @@ function compareGeo(shortGeo, longGeo) {
                 if (numShortFields === 1) {
                     location.state = location_split[0];
                     if (verbose){console.log("... & used loc.split[0] as state");}
-                } else {
+                }  else if (location_split[0] !== location.query && location_split[0] + " State" !== location.query) {
                     location.place = location_split[0];
                     if (verbose){console.log("... & used loc.split[0] as place");}
                 }
@@ -365,11 +394,16 @@ function compareGeo(shortGeo, longGeo) {
                 location = longGeo;
                 if (verbose){console.log("used long when field contents differ");}
                 if (!(ambig)) {
-	                ambig = true;
-	                if (verbose){console.log("... and marked ambiguous");}
+                    ambig = true;
+                    if (verbose){console.log("... and marked ambiguous");}
                 }
             }
         }
+    }
+
+    if (location.county === "" && countryPattern.test(location.place)) {
+        location.county = location.place;
+        location.place = "";
     }
 
 //    location.query = longGeo.query;
@@ -476,6 +510,8 @@ function compareGeo(shortGeo, longGeo) {
     }*/
 }
 
+var fcount = 1;
+
 function print(location, unittest) {
     console.log("---------------------------------------");
     console.log("Query: " + location.query);
@@ -491,7 +527,8 @@ function print(location, unittest) {
     } else {
         console.log("Expected: " + JSON.stringify(unittest));
         console.log("Received: " + JSON.stringify(location));
-        console.log("%cFailed", 'background: #222; color: #fb1520');
+        console.log("%cFailed: " + fcount, 'background: #222; color: #fb1520');
+        fcount++;
     }
     console.log("---------------------------------------\n")
 }

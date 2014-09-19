@@ -68,20 +68,14 @@ function parseGoogle(result, query) {
                         location.city = long_name;
                     }
                     break;
+                case '':
+                case 'postal_town':
                 case 'administrative_area_level_3,political':
                     if (location.city === "" && isNaN(long_name)) {
                         //If the city is not in locality, use admin area 3
                         location.city = long_name;
                     }
                     break;
-
-                case '':
-                    if (location.city === "" && isNaN(long_name)) {
-                        //If the city is not in locality or admin area 3
-                        location.city = long_name;
-                    }
-                    break;
-
                 case 'administrative_area_level_2,political':
                     if (isNaN(long_name)) {
                         location.county = long_name;
@@ -508,6 +502,8 @@ function compareGeo(shortGeo, longGeo) {
 }
 
 var fcount = 1;
+var acount = 1;
+var pcount = 1;
 
 function print(location, unittest) {
     console.log("---------------------------------------");
@@ -520,15 +516,17 @@ function print(location, unittest) {
 
     if (exists(unittest) && matchGeoFields(location, unittest, 5)) {
         console.log("Matching: " + JSON.stringify(unittest));
-        console.log("%cPassed", 'background: #222; color: #55da7e');
+        console.log("%cPassed (" + pcount + ")", 'background: #222; color: #55da7e');
+        pcount++;
     } else {
         console.log("Expected: " + JSON.stringify(unittest));
         console.log("Received: " + JSON.stringify(location));
         if (exists(unittest.alt) && matchGeoFields(location, unittest.alt, 5)) {
-             console.log("%cAcceptable", 'background: #222; color: #EDDD00');
+            console.log("%cAcceptable (" + acount + ")", 'background: #222; color: #EDDD00');
+            acount++;
         } else {
-             console.log("%cFailed: (" + fcount + ")", 'background: #222; color: #fb1520');
-             fcount++;
+            console.log("%cFailed (" + fcount + ")", 'background: #222; color: #FF231A');
+            fcount++;
         }
     }
     console.log("---------------------------------------\n")

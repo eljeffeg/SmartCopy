@@ -406,6 +406,9 @@ function loadLogin() {
 function getProfile(profile_id) {
     //Gets the profile id from the Geni URL
     if (profile_id.length > 0) {
+        if (profile_id.indexOf("&resolve=") != -1) {
+            profile_id = profile_id.substring(profile_id.lastIndexOf('#') + 1);
+        }
         if (profile_id.indexOf("profile-") != -1) {
             profile_id = profile_id.substring(profile_id.lastIndexOf('/') + 1);
         }

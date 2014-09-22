@@ -8,6 +8,9 @@ var unionurls = [];
 var databyid = [];
 var childlist = [];
 var marriagedata = [];
+var parentmarset = [];
+var parentmarriage;
+var parentflag = false;
 var hideprofile = false;
 var genispouse = [];
 var myhspouse = [];
@@ -202,9 +205,10 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
                 continue;
             }
+
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
                 && title !== 'occupation' && title !== 'cemetery' && title !== 'christening'
-                && !(title === 'marriage' && relation === "")) {
+                && !(title === 'marriage' && (relation === "" || isParent(relation.title)))) {
                 /*
                  This will exclude residence, since the API seems to only support current residence.
                  It also will remove Military Service and any other entry not explicitly defined above.
@@ -288,10 +292,53 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             if (title === "burial" && valdate === "" && vallocal !== "") {
                 buriallcflag = true;
             }
+
             if (title !== 'marriage') {
                 profiledata[title] = data;
             } else if (!$.isEmptyObject(data)) {
-                marriagedata.push(data);
+                if (relation === "") {
+                    //focus profile
+                    marriagedata.push(data);
+                } else {
+                    //parent profiles
+                    if (!parentflag) {
+                        parentmarset.push(data);
+                    } else {
+                        //attempt to match up parent with multiple spouses via matching date / location
+                        for (var pm = 0; pm < parentmarset.length; pm++) {
+                            var pmd = true;
+                            var pml = true;
+                            var pmp = true;
+                            var pmatch = parentmarset[pm];
+                            for (pid = 0; pid < pmatch.length; pid++) {
+                                if(exists(pmatch[pid].date)) {
+                                    if (exists(data[pid].date) && pmatch[pid].date === data[pid].date) {
+                                        pmd = true;
+                                    } else {
+                                        pmd = false;
+                                    }
+                                } else if (exists(pmatch[pid].location)) {
+                                    if (exists(data[pid].location) && pmatch[pid].location === data[pid].location) {
+                                        pml = true;
+                                    } else {
+                                        pml = false;
+                                    }
+                                } else if (exists(pmatch[pid].place)) {
+                                    if (exists(data[pid].place) && pmatch[pid].place === data[pid].place) {
+                                        pmp = true;
+                                    } else {
+                                        pmp = false;
+                                    }
+                                }
+                            }
+                            if (pmd && pml & pmp) {
+                                parentmarriage = pmatch;
+                                profiledata["marriage"] = pmatch;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
         if (!burialdtflag && buriallcflag && deathdtflag && $('#burialonoffswitch').prop('checked')) {
@@ -322,7 +369,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 profiledata["burial"] = data;
             }
         }
-
+        if (relation !== "" && isParent(relation.title)) {
+            parentflag = true;
+        }
         var setmarriage = false;
         if (marriagedata.length > 0 && familymembers && children.length > 2) {
             child = children[2];
@@ -456,6 +505,17 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
             } else if (isPartner(relation.title)) {
                 myhspouse.push(relation.proid);
+            } else if (isParent(relation.title)) {
+                child = children[2];
+                var rows = $(child).find('tr');
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
+                    if (isPartner(title)){
+                        profiledata["mstatus"] = title;
+                        break;
+                    }
+                }
             }
             if (genderval === "unknown") {
                 child = children[2];
@@ -617,8 +677,8 @@ function updateGeo() {
     if (familystatus.length > 0) {
         setTimeout(updateGeo, 200);
     } else {
-        document.getElementById("loading").style.display = "none";
         console.log("Family Processed...");
+        document.getElementById("readstatus").innerHTML = "Determining Locations";
         var listvalues = ["birth", "baptism", "marriage", "death", "burial"];
         for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
             var title = listvalues[list];
@@ -668,9 +728,10 @@ function updateFamily() {
     if (geostatus.length > 0) {
         setTimeout(updateFamily, 200);
     } else {
-        document.getElementById("loading").style.display = "none";
         console.log("Geo Processed...");
+        document.getElementById("readstatus").innerHTML = "";
         buildForm();
+        document.getElementById("loading").style.display = "none";
     }
 }
 
@@ -969,7 +1030,7 @@ function buildForm() {
             }
             for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
                 var title = listvalues[list];
-                if (relationship !== "partner" && title === "marriage") {
+                if ((relationship !== "partner" && relationship !== "parent") && title === "marriage") {
                     continue;  //Skip marriage date fields if not partner
                 }
                 var memberobj = members[member][title];

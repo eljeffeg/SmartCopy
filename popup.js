@@ -112,7 +112,7 @@ function userAccess() {
                     } else {
                         accessdialog.style.display = "block";
                         accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This basic user has limited access to SmartCopy.</strong></div>' +
-                                '<div>Non-Pro Geni users have the ability to update the focus profile but can not add family members.</div>';
+                            '<div>Non-Pro Geni users have the ability to update the focus profile but can not add family members.</div>';
                     }
                 } else {
                     setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.');
@@ -507,6 +507,7 @@ $(function () {
 var submitstatus = [];
 var tempspouse = [];
 var spouselist = [];
+var parentlist = [];
 var addchildren = [];
 var submitform = function() {
     if (parsecomplete && submitcheck) {
@@ -606,20 +607,60 @@ function buildTree(data, action, sendid) {
         }, function (response) {
             var result = JSON.parse(response.source);
             var id = response.variable.id;
-            if (response.variable.relation === "partner") {
-                spouselist[id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: databyid[id].status};
-            }
-            submitstatus.pop();
             if (exists(databyid[id])) {
+                if (response.variable.relation === "partner") {
+                    spouselist[id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: databyid[id].status};
+                } else if (response.variable.relation === "parent") {
+                    if (parentlist.length > 0) {
+                        if (exists(parentlist[0].id) && (exists(marriagedates[id]) || exists(marriagedates[parentlist[0].id]))) {
+                            if (exists(marriagedates[id])) {
+                                var pid = id;
+                            } else {
+                                var pid = parentlist[0].id;
+                            }
+                            submitstatus.push(submitstatus.length);
+                            var source = JSON.parse(response.source);
+                            var familyurl = "http://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + source.id;
+                            chrome.extension.sendMessage({
+                                method: "GET",
+                                action: "xhttp",
+                                variable: {id: pid},
+                                url: familyurl
+                            }, function (response) {
+                                var source2 = JSON.parse(response.source);
+                                var rid = response.variable.id;
+                                if (exists(source2[0].union)) {
+                                    spouselist[rid] = {union: source2[0].union, status: databyid[rid].mstatus};
+                                }
+                                submitstatus.pop();
+                            });
+                        }
+                    } else {
+                        parentlist.push({id: id, status: databyid[id].mstatus});
+                    }
+                }
                 addHistory(result.id, databyid[id].itemId);
             }
-
+            submitstatus.pop();
         });
     } else if (!$.isEmptyObject(data) && devblocksend) {
         if (exists(data.profile_id)) {
             var id = data.profile_id;
             if (exists(databyid[id])) {
                 spouselist[id] = {union: "union"+id, status: databyid[id].status};
+                if (parentlist.length > 0) {
+                    if (exists(marriagedates[id])) {
+                        spouselist[id] = {union: "union"+id, status: databyid[id].mstatus};
+                    } else if (exists(marriagedates[parentlist[0].id])) {
+                        var pid = parentlist[0];
+                        spouselist[pid.id] = {union: "union"+pid.id, status: pid.mstatus};
+                    } else {
+                        console.log("No Parent");
+                    }
+                    console.log("Add Union: " + JSON.stringify(spouselist[id]));
+                } else {
+                    parentlist.push({id: id, status: databyid[id].mstatus});
+                }
             }
             delete data.profile_id;
         }

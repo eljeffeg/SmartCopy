@@ -632,6 +632,22 @@ function updateInfoData(person, arg) {
         if (exists(arg.deathyear) && !exists(person.death)) {
             person["death"] = [{"date": arg.deathyear}];
         }
+        if (!exists(person["death"]) && exists(person["birth"])) {
+            var fulldate = null;
+            for (var b = 0; b < person["birth"].length; b++) {
+                if (exists(person["birth"][b].date)) {
+                    fulldate = person["birth"][b].date;
+                    break;
+                }
+            }
+            if (fulldate !== null) {
+                var birthval = parseDate(fulldate, false);
+                var agelimit = moment.utc().format("YYYY") - 95;
+                if (exists(birthval.year) && birthval.year >= agelimit) {
+                    person["alive"] = true;
+                }
+            }
+        }
         if (exists(arg.marriage)) {
             delete arg["marriage"][0].name;
             person["marriage"] = arg["marriage"];
@@ -915,31 +931,36 @@ function buildForm() {
     for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
         var members = obj[relationship];
         var scored = false;
+        var sibcheck = false;
+        var childck = false;
+        var partnerck = false;
+        var parentck = false;
+        var scoreused = false;
         //Use a common naming scheme
         if (isSibling(relationship)) {
             if (scorefactors.contains("sibling")) {
                 scored = true;
-                $('#addsiblingck').prop('checked', true);
+                sibcheck = true;
             }
             relationship = "sibling";
         } else if (isChild(relationship)) {
             if (scorefactors.contains("child")) {
                 scored = true;
-                $('#addchildck').prop('checked', true);
+                childck = true;
             }
             relationship = "child";
         }
         else if (isParent(relationship)) {
             if (scorefactors.contains("parent")) {
                 scored = true;
-                $('#addparentck').prop('checked', true);
+                parentck = true;
             }
             relationship = "parent";
         }
         else if (isPartner(relationship)) {
             if (scorefactors.contains("spouse")) {
                 scored = true;
-                $('#addpartnerck').prop('checked', true);
+                partnerck = true;
             }
             relationship = "partner";
         }
@@ -967,6 +988,8 @@ function buildForm() {
             }
             if (skipprivate && fullname.startsWith("\<Private\>")) {
                 scored = false;
+            } else {
+                scoreused = true;
             }
             if (exists(members[member].alive)){
                 living = members[member].alive;
@@ -1113,6 +1136,17 @@ function buildForm() {
 
             //log("  " + members[member].name);
             i++;
+        }
+        if (scoreused) {
+            if (childck) {
+                $('#addchildck').prop('checked', true);
+            } else if (sibcheck) {
+                $('#addsiblingck').prop('checked', true);
+            } else if (parentck) {
+                $('#addparentck').prop('checked', true);
+            } else if (partnerck) {
+                $('#addpartnerck').prop('checked', true);
+            }
         }
     }
 

@@ -821,82 +821,8 @@ function parseForm(fs) {
             var splitentry = fsinput[item].name.split(":");
             if (splitentry.length > 1) {
                 if (splitentry[1] === "date") {
-                    var vardate = {};
-                    if (fs.selector === "#profiletable") {
-                        vardate["circa"] = false;
-                        vardate["range"] = "";
-                        vardate["day"] = "";
-                        vardate["month"] = "";
-                        vardate["year"] = "";
-                        vardate["end_circa"] = "";
-                        vardate["end_day"] = "";
-                        vardate["end_month"] = "";
-                        vardate["end_year"] = "";
-                    }
-                    var fulldate = fsinput[item].value;
-
-                    if (fulldate.startsWith("Circa")) {
-                        vardate["circa"] = true;
-                        fulldate = fulldate.replace("Circa ", "");
-                    }
-                    if (fulldate.startsWith("After")) {
-                        vardate["range"] = "after";
-                        fulldate = fulldate.replace("After ", "");
-                        if (fulldate.startsWith("Circa")) {
-                            vardate["circa"] = true;
-                            fulldate = fulldate.replace("Circa ", "");
-                        }
-                    } else if (fulldate.startsWith("Before")) {
-                        vardate["range"] = "before";
-                        fulldate = fulldate.replace("Before ", "");
-                        if (fulldate.startsWith("Circa")) {
-                            vardate["circa"] = true;
-                            fulldate = fulldate.replace("Circa ", "");
-                        }
-                    } else if (fulldate.startsWith("Between")) {
-                        vardate["range"] = "between";
-                        fulldate = fulldate.replace("Between ", "");
-                        if (fulldate.startsWith("Circa")) {
-                            vardate["circa"] = true;
-                            fulldate = fulldate.replace("Circa ", "");
-                        }
-                        var btsplit = fulldate.split(" and ");
-                        if (btsplit.length > 1) {
-                            fulldate = btsplit[0];
-                            if (btsplit[1].startsWith("Circa ")) {
-                                vardate["end_circa"] = true;
-                                btsplit[1] = btsplit[1].replace("Circa ", "").trim();
-                            }
-                            var dt = moment(btsplit[1].trim(), dateformatter);
-                            if (isNaN(btsplit[1])) {
-                                var splitd = btsplit[1].split(" ");
-                                if (splitd.length > 2) {
-                                    vardate["end_day"] = dt.get('date');
-                                    vardate["end_month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
-                                } else {
-                                    vardate["end_month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
-                                }
-                            }
-                            if (dt.get('year') !== 0) {
-                                vardate["end_year"] = dt.get('year');
-                            }
-                        }
-
-                    }
-                    var dt = moment(fulldate.trim(), dateformatter);
-                    //TODO Probably need to do some more checking below to make sure it doesn't improperly default dates
-                    if (isNaN(fulldate)) {
-                        var splitd = fulldate.split(" ");
-                        if (splitd.length > 2) {
-                            vardate["day"] = dt.get('date');
-                            vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
-                        } else {
-                            vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
-                        }
-                    }
-                    if (dt.get('year') !== 0) {
-                        vardate["year"] = dt.get('year');
-                    }
+                    var updatefd = (fs.selector === "#profiletable");
+                    var vardate = parseDate(fsinput[item].value, updatefd);
 
                     if (!$.isEmptyObject(vardate)) {
                         var finalentry = {};
@@ -962,6 +888,84 @@ function parseForm(fs) {
         marriagedates[objentry.profile_id] = marentry;
     }
     return objentry;
+}
+
+function parseDate(fulldate, update) {
+    var vardate = {};
+    if (update) {
+        vardate["circa"] = false;
+        vardate["range"] = "";
+        vardate["day"] = "";
+        vardate["month"] = "";
+        vardate["year"] = "";
+        vardate["end_circa"] = "";
+        vardate["end_day"] = "";
+        vardate["end_month"] = "";
+        vardate["end_year"] = "";
+    }
+
+    if (fulldate.startsWith("Circa")) {
+        vardate["circa"] = true;
+        fulldate = fulldate.replace("Circa ", "");
+    }
+    if (fulldate.startsWith("After")) {
+        vardate["range"] = "after";
+        fulldate = fulldate.replace("After ", "");
+        if (fulldate.startsWith("Circa")) {
+            vardate["circa"] = true;
+            fulldate = fulldate.replace("Circa ", "");
+        }
+    } else if (fulldate.startsWith("Before")) {
+        vardate["range"] = "before";
+        fulldate = fulldate.replace("Before ", "");
+        if (fulldate.startsWith("Circa")) {
+            vardate["circa"] = true;
+            fulldate = fulldate.replace("Circa ", "");
+        }
+    } else if (fulldate.startsWith("Between")) {
+        vardate["range"] = "between";
+        fulldate = fulldate.replace("Between ", "");
+        if (fulldate.startsWith("Circa")) {
+            vardate["circa"] = true;
+            fulldate = fulldate.replace("Circa ", "");
+        }
+        var btsplit = fulldate.split(" and ");
+        if (btsplit.length > 1) {
+            fulldate = btsplit[0];
+            if (btsplit[1].startsWith("Circa ")) {
+                vardate["end_circa"] = true;
+                btsplit[1] = btsplit[1].replace("Circa ", "").trim();
+            }
+            var dt = moment(btsplit[1].trim(), dateformatter);
+            if (isNaN(btsplit[1])) {
+                var splitd = btsplit[1].split(" ");
+                if (splitd.length > 2) {
+                    vardate["end_day"] = dt.get('date');
+                    vardate["end_month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                } else {
+                    vardate["end_month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                }
+            }
+            if (dt.get('year') !== 0) {
+                vardate["end_year"] = dt.get('year');
+            }
+        }
+    }
+    var dt = moment(fulldate.trim(), dateformatter);
+    //TODO Probably need to do some more checking below to make sure it doesn't improperly default dates
+    if (isNaN(fulldate)) {
+        var splitd = fulldate.split(" ");
+        if (splitd.length > 2) {
+            vardate["day"] = dt.get('date');
+            vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+        } else {
+            vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+        }
+    }
+    if (dt.get('year') !== 0) {
+        vardate["year"] = dt.get('year');
+    }
+    return vardate;
 }
 
 function addHistory(id, itemId) {

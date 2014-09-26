@@ -456,7 +456,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     chrome.extension.sendMessage({
                         method: "GET",
                         action: "xhttp",
-                        url: shorturl,
+                        url: urlval,
                         variable: subdata
                     }, function (response) {
                         var arg = response.variable;
@@ -632,10 +632,10 @@ function updateInfoData(person, arg) {
         if (exists(arg.deathyear) && !exists(person.death)) {
             person["death"] = [{"date": arg.deathyear}];
         }
-        if (!exists(person["death"]) && exists(person["birth"])) {
+        if (!tablink.contains("/collection-1/") && !exists(person["death"]) && exists(person["birth"])) {
             var fulldate = null;
             for (var b = 0; b < person["birth"].length; b++) {
-                if (exists(person["birth"][b].date)) {
+                if (exists(person["birth"][b].date) && person["birth"][b].date.trim() !== "") {
                     fulldate = person["birth"][b].date;
                     break;
                 }
@@ -1015,7 +1015,11 @@ function buildForm() {
             var membersstring = entry.innerHTML;
             membersstring += '<div class="membertitle" style="background-color: ' + bgcolor + '"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
                 '<td><input type="checkbox" class="checkslide" name="checkbox' + i + '-' + relationship + '" ' + isChecked(fullname, scored) + '></td>' +
-                '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;"><span style="font-size: 90%;">' + escapeHtml(fullname) + '</span><span style="font-size: 130%; float: right; padding: 0px 5px;">&#9662;</span></td></tr></table></div>' +
+                '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;"><span style="font-size: 90%;">' + escapeHtml(fullname) + '</span>';
+            if (!living) {
+              membersstring += '<span style="float: right; position: relative; margin-right: -10px; margin-bottom: -5px; right: 8px; top: -3px; margin-left: -8px;"><img src="/images/deceased.png"></span>';
+            }
+            membersstring += '<span style="font-size: 130%; float: right; padding: 0px 8px;">&#9662;</span></td></tr></table></div>' +
                 '<div id="slide' + i + '-' + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
                 '<tr><td colspan="2"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '" ' + isEnabled(members[member].profile_id, scored) + '></td></tr>';
             if (isChild(relationship)) {

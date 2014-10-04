@@ -47,18 +47,26 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
 
     var imagebox = $(htmlstring).find(".recordImageBoxContainer");
-    var image = imagebox.find('a');
-    if (exists(image[0])) {
-        var image = image[0].href;
-        var thumb = imagebox.find('img.recordImage').attr('src');
-        if (image.startsWith("http://www.findagrave.com")) {
-            profiledata["image"] = thumb.replace("http://records.myheritageimages.com/wvrcontent/findagrave_photos", "http://image1.findagrave.com");
-        } else if (image.startsWith("http://billiongraves.com")) {
-            profiledata["image"] = thumb.replace("thumbnails", "images")
+    var thumb = imagebox.find('img.recordImage').attr('src');
+    if (exists(thumb)) {
+        var imageref = imagebox.find('a');
+        if (exists(imageref[0])) {
+            var image = imageref[0].href;
+            if (image.startsWith("http://www.findagrave.com")) {
+                profiledata["image"] = thumb.replace("http://records.myheritageimages.com/wvrcontent/findagrave_photos", "http://image1.findagrave.com");
+            } else if (image.startsWith("http://billiongraves.com")) {
+                profiledata["image"] = thumb.replace("thumbnails", "images")
+            } else {
+                profiledata["image"] = image;
+            }
+            profiledata["thumb"] = thumb;
         } else {
-            profiledata["image"] = image;
+            var photobox = parsed.find(".recordRelatedPhotosContainer");
+            if (exists(photobox[0])) {
+                profiledata["image"] = thumb;
+                profiledata["thumb"] = thumb;
+            }
         }
-        profiledata["thumb"] = thumb;
     }
 
     var records = parsed.find(".recordFieldsContainer");

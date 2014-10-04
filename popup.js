@@ -9,6 +9,8 @@ var submitcheck = true;
 var buildhistory = [];
 var marriagedates = [];
 var loggedin = false;
+var updatecount = 1;
+var updatetotal = 0;
 chrome.storage.local.get('buildhistory', function (result) {
     if(exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
@@ -509,6 +511,8 @@ var tempspouse = [];
 var spouselist = [];
 var parentlist = [];
 var addchildren = [];
+var photosubmit = [];
+var focusphotoinfo = null;
 var submitform = function() {
     if (parsecomplete && submitcheck) {
         document.getElementById("bottomsubmit").style.display = "none";
@@ -519,35 +523,41 @@ var submitform = function() {
         document.getElementById("updating").style.display = "block";
         setMessage("#f8ff86", 'Leaving this window before completion could result in an incomplete data copy.');
 
-        // --------------------- Update Profile Data ---------------------
-
-        document.getElementById("updatestatus").innerText = "Update: " + focusname;
-        var fs = $('#profiletable');
-        var profileout = parseForm(fs);
         var about = "";
         var sourcecheck = $('#sourceonoffswitch').prop('checked');
-        if (exists(profileout["about_me"])) {
-            about = profileout["about_me"];
-            if (!about.endsWith("\n")) {
-                about += "\n";
-            }
-        }
-        if (sourcecheck) {
-            if (!focusabout.contains("Updated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
-                if (focusabout !== "") {
-                    about = focusabout + "\n" + about;
-                }
-                profileout["about_me"] = about + "* Updated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
-            } else {
-                if (about !== "") {
-                    profileout["about_me"] = focusabout + "\n" + about;
-                }
-            }
-        } else if (about !== "" && focusabout !== "") {
-            profileout["about_me"] = focusabout + "\n" + about;
-        }
+        var fs = $('#profiletable');
+        var profileout = parseForm(fs);
 
-        buildTree(profileout, "update", focusid);
+        // --------------------- Update Profile Data ---------------------
+        if (!$.isEmptyObject(profileout)) {
+            document.getElementById("updatestatus").innerText = "Update: " + focusname;
+            if (exists(profileout["about_me"])) {
+                about = profileout["about_me"];
+                if (!about.endsWith("\n")) {
+                    about += "\n";
+                }
+            }
+            if (sourcecheck) {
+                if (!focusabout.contains("Updated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
+                    if (focusabout !== "") {
+                        about = focusabout + "\n" + about;
+                    }
+                    profileout["about_me"] = about + "* Updated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                } else {
+                    if (about !== "") {
+                        profileout["about_me"] = focusabout + "\n" + about;
+                    }
+                }
+            } else if (about !== "" && focusabout !== "") {
+                profileout["about_me"] = focusabout + "\n" + about;
+            }
+            if (exists(profileout.photo)) {
+                var shorturl = tablink.substring(0, tablink.indexOf('showRecord') + 10);
+                focusphotoinfo = {photo: profileout.photo, title: focusname, description: "Source: " + shorturl};
+                delete profileout.photo;
+            }
+            buildTree(profileout, "update", focusid);
+        }
 
         // --------------------- Add Family Data ---------------------
         var privateprofiles = $('.checkslide');
@@ -557,7 +567,9 @@ var submitform = function() {
                 fs = $("#" + entry.name.replace("checkbox", "slide"));
                 var actionname = entry.name.split("-"); //get the relationship
                 var familyout = parseForm(fs);
-                if(!$.isEmptyObject(familyout)) {
+                var tempfamilyout = jQuery.extend(true, {}, familyout);
+                delete tempfamilyout.profile_id;  //check to see if it's only the hidden profile_id
+                if(!$.isEmptyObject(tempfamilyout)) {
                     var fdata = databyid[familyout.profile_id];
                     if (exists(fdata)) {
                         about = "";
@@ -570,6 +582,11 @@ var submitform = function() {
                         if (about !== "") {
                             familyout["about_me"] = about;
                         }
+                    }
+                    if (exists(familyout.photo)) {
+                        var shorturl = fdata.url.substring(0, fdata.url.indexOf('showRecord') + 10);
+                        photosubmit[familyout.profile_id] = {photo: familyout.photo, title: fdata.name, description: "Source: " + shorturl};
+                        delete familyout.photo;
                     }
                     if (actionname[1] !== "child") {
                         var statusaction = actionname[1];
@@ -591,7 +608,9 @@ var submitform = function() {
 
 function buildTree(data, action, sendid) {
     if(!$.isEmptyObject(data) && !devblocksend) {
-        submitstatus.push(submitstatus.length);
+        updatetotal += 1;
+        document.getElementById("updatetotal").innerText = updatetotal;
+        submitstatus.push(updatetotal);
         var id = "";
         if (exists(data.profile_id)) {
             id = data.profile_id;
@@ -608,6 +627,9 @@ function buildTree(data, action, sendid) {
             var result = JSON.parse(response.source);
             var id = response.variable.id;
             if (exists(databyid[id])) {
+                if (exists(result.id)) {
+                    databyid[id]["geni_id"] = result.id;
+                }
                 if (response.variable.relation === "partner") {
                     spouselist[id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: databyid[id].status};
                 } else if (response.variable.relation === "parent") {
@@ -618,7 +640,9 @@ function buildTree(data, action, sendid) {
                             } else {
                                 var pid = parentlist[0].id;
                             }
-                            submitstatus.push(submitstatus.length);
+                            updatetotal += 1;
+                            document.getElementById("updatetotal").innerText = updatetotal;
+                            submitstatus.push(updatetotal);
                             var source = JSON.parse(response.source);
                             var familyurl = "http://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + source.id;
                             chrome.extension.sendMessage({
@@ -632,6 +656,8 @@ function buildTree(data, action, sendid) {
                                 if (exists(source2[0].union)) {
                                     spouselist[rid] = {union: source2[0].union, status: databyid[rid].mstatus};
                                 }
+                                updatecount += 1;
+                                document.getElementById("updatecount").innerText = Math.min(updatecount, updatetotal).toString();
                                 submitstatus.pop();
                             });
                         }
@@ -641,12 +667,16 @@ function buildTree(data, action, sendid) {
                 }
                 addHistory(result.id, databyid[id].itemId);
             }
+            updatecount += 1;
+            document.getElementById("updatecount").innerText = Math.min(updatecount, updatetotal).toString();
             submitstatus.pop();
         });
     } else if (!$.isEmptyObject(data) && devblocksend) {
+        console.log(action + " on " + sendid);
         if (exists(data.profile_id)) {
             var id = data.profile_id;
             if (exists(databyid[id])) {
+                databyid[id]["geni_id"] = "profile-123456";
                 spouselist[id] = {union: "union"+id, status: databyid[id].status};
                 if (parentlist.length > 0) {
                     if (exists(marriagedates[id])) {
@@ -670,6 +700,7 @@ function buildTree(data, action, sendid) {
 }
 
 var checkchildren = false;
+var checkpictures = false;
 function submitChildren() {
     if (submitstatus.length > 0) {
         setTimeout(submitChildren, 200);
@@ -725,6 +756,28 @@ function submitChildren() {
                     //Process the Union Update
                 } else if (!$.isEmptyObject(marriageupdate) &&  devblocksend) {
                     console.log("Marriage Update: " + JSON.stringify(marriageupdate));
+                }
+            }
+        }
+        submitChildren();
+    } else if (!checkpictures) {
+        checkpictures = true;
+        if (exists(focusphotoinfo) || photosubmit.length > 0) {
+            var count = photosubmit.length;
+            if (exists(focusphotoinfo)) {
+                count += 1;
+            }
+            var photodialog = "1 Photo";
+            if (count > 1) {
+                photodialog = count + " Photos";
+            }
+            document.getElementById("updatestatus").innerText = "Uploading " + photodialog;
+            if (exists(focusphotoinfo)) {
+                buildTree(focusphotoinfo, "add-photo", focusid);
+            }
+            for (var p=0;p < photosubmit.length; p++) {
+                if (exists(photosubmit[p]) && exists(databyid[p])) {
+                    buildTree(photosubmit[p], "add-photo", databyid[p].geni_id);
                 }
             }
         }

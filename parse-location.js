@@ -3,6 +3,7 @@ var countryPattern = new RegExp(' County', 'i');
 var GeoLocation = function (results, query) {
     var location = {};
     if (!exists(results["results"])) {
+        location.query = query || "";
         location.count = 0;
         return location;
     }
@@ -16,17 +17,20 @@ var GeoLocation = function (results, query) {
         for (var i = 0; i < results.length; i++) {
             locationset[i] = parseGoogle(results[i], query);
             locationset[i].count = results.length;
-            locationset[i].query = query || "";
         }
-        for (var i = 1; i < results.length; i++) {
-            location = compareGeo(locationset[i], locationset[0]);
+        var locationstate = locationset[0];
+        for (var i = 0; i < results.length; i++) {
+            locationstate = compareGeo(locationset[i], locationstate);
         }
+        location = locationstate;
+
     } else {
         location = parseGoogle("", query);
         location.count = 0;
     }
 
     if (location.place === "" && location.city === "" && location.county === "" && location.state === "" && location.country === "") {
+        location.count = 0;
         location.place = location.query;
     }
 
@@ -134,7 +138,7 @@ function checkPlace(location) {
             place = place.trim();
         }
     }
-    return place
+    return place;
 }
 
 function queryGeo(locationset, test) {
@@ -183,7 +187,7 @@ function queryGeo(locationset, test) {
             var location_split = full_location.split(",");
             if (location_split.length > 1) {
                 location_split.shift();
-            } else if (location_split.length === 1) {
+            } else if (location_split.length === 1 && georesult.count > 1) {
                 // ..... ... assume it is a solitary "state" name and force that as the type of location...
                 location_split[0] = location_split[0] + " State";
             }
@@ -397,108 +401,8 @@ function compareGeo(shortGeo, longGeo) {
         location.place = "";
     }
 
-//    location.query = longGeo.query;
     location.ambiguous = ambig;
     return location;
-    /*
-     var location = {};
-     location.query = longGeo.query;
-     location.place = longGeo.place; //longGeo has the Cemetery & Grave filter
-     if (location.place === "" || shortGeo.place === shortGeo.query) {
-     location.city = longGeo.city;
-     location.county = longGeo.county;
-     location.state = longGeo.state;
-     location.country = longGeo.country;
-     if (shortGeo.city === longGeo.city && shortGeo.city !== "") {
-     var location_split = longGeo.query.split(",");
-     location.place = location_split.shift();
-     }
-     } else {
-     if (shortGeo.city === "" && longGeo.city !== "") {
-     location.city = longGeo.city;
-     } else {
-     location.city = shortGeo.city;
-     }
-     if (shortGeo.county === "" && longGeo.county !== "") {
-     location.county = longGeo.county;
-     } else {
-     location.county = shortGeo.county;
-     }
-     if (shortGeo.state === "" && longGeo.state !== "") {
-     location.state = longGeo.state;
-     } else {
-     location.state = shortGeo.state;
-     }
-     if (shortGeo.country === "" && lonGeo.country !== "") {
-     location.country = longGeo.country;
-     } else {
-     location.country = shortGeo.country;
-     }
-     }
-     return location;
-     */
-    /**
-     var location = {};
-     location.query = longGeo.query;
-     location.place = longGeo.place; //longGeo has the Cemetery & Grave filter
-     if (location.place === "" || shortGeo.place === shortGeo.query) {
-        location.city = longGeo.city;
-        location.county = longGeo.county;
-        location.state = longGeo.state;
-        location.country = longGeo.country;
-        if (shortGeo.city === longGeo.city && shortGeo.city !== "") {
-            var location_split = longGeo.query.split(",");
-            location.place = location_split.shift();
-        }
-    } else {
-        location.city = shortGeo.city;
-        location.county = shortGeo.county;
-        location.state = shortGeo.state;
-        location.country = shortGeo.country;
-    }
-     */
-
-    /**
-     *  else if (shortGeo.county === longGeo.county && shortGeo.county !== "") {
-            location.place = location_split.shift();
-        } else if (shortGeo.state === longGeo.state && shortGeo.state !== "") {
-            location.place = location_split.shift();
-        } else if (shortGeo.country === longGeo.country && shortGeo.country !== "") {
-            location.place = location_split.shift();
-        }
-     */
-    /**
-     if (shortGeo.city === longGeo.city && shortGeo.city !== "") {
-            if (longGeo.place === "") {
-                location.place = location_split.shift();
-            }
-    } else if (shortGeo.county === longGeo.county && shortGeo.county !== "") {
-        if (shortGeo.city === "" && longGeo.city !== "") {
-            location.city = longGeo.city;
-        }
-    } else if (shortGeo.state === longGeo.state && shortGeo.state !== "") {
-        if (shortGeo.county === "" && longGeo.county !== "") {
-            location.county = longGeo.county;
-            if (location.city === "" && longGeo.city !== "") {
-                location.city = longGeo.city;
-            }
-        }
-    } else if (shortGeo.country === longGeo.country && shortGeo.country !== "") {
-        if (shortGeo.state === "" && longGeo.state !== "") {
-            location.state = longGeo.state;
-            if (location.county === "" && longGeo.county !== "") {
-                location.county = longGeo.county;
-                if (location.city === "" && longGeo.city !== "") {
-                    location.city = longGeo.city;
-                }
-            }
-        }
-    } else if (shortGeo.country === "") {
-        location.country = longGeo.country;
-        location.state = longGeo.state;
-        location.county = longGeo.county;
-        location.city = longGeo.city;
-    }*/
 }
 
 var fcount = 1;
@@ -508,6 +412,7 @@ var pcount = 1;
 function print(location, unittest) {
     console.log("---------------------------------------");
     console.log("Query: " + location.query);
+    console.log("Count: " + location.count);
     console.log("Place: " + location.place);
     console.log("City: " + location.city);
     console.log("County: " + location.county);

@@ -205,16 +205,19 @@ function queryGeo(locationset, test) {
                     var id = response.variable.id;
                     var unittest = response.variable.unittest;
                     var georesult = new GeoLocation(result, response.variable.location);
-                    if (response.variable.place !== "") {
-                        georesult.place = response.variable.place.trim();
-                    } else if (countGeoFields(georesult) === 0) {
-                        if (!georesult.place.contains(" States")) {
+                    if (countGeoFields(georesult) === 0 && countGeoFields(geolocation[id]) === 0) {
+                        georesult = geolocation[id];
+                        georesult.place = geolocation[id].query;
+                    } else {
+                        if (countGeoFields(georesult) === 0 && !georesult.place.contains(" States")) {
                             georesult.place = georesult.place.replace(" State", "").trim();
                         }
-                    }
-                    var georesult = compareGeo(georesult, geolocation[id]);
-                    if (georesult.place === georesult.state) {
-                        georesult.place = "";
+                        georesult = compareGeo(georesult, geolocation[id]);
+                        if (response.variable.place !== "") {
+                            georesult.place = response.variable.place.trim();
+                        } else if (georesult.place === georesult.state) {
+                            georesult.place = "";
+                        }
                     }
                     geolocation[id] = georesult;
 
@@ -269,16 +272,16 @@ function matchGeoFields(g1, g2, cnt) {
 
 function countGeoFields(list) {
     var fldcount = 0;
-    if (list.country !== "") {
+    if (exists(list.country) && list.country.trim() !== "") {
         fldcount++;
     }
-    if (list.state !== "") {
+    if (exists(list.state) && list.state.trim() !== "") {
         fldcount++;
     }
-    if (list.county !== "") {
+    if (exists(list.county) && list.county.trim() !== "") {
         fldcount++;
     }
-    if (list.city !== "") {
+    if (exists(list.city) && list.city.trim() !== "") {
         fldcount++;
     }
     return fldcount;

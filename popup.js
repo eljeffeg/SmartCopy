@@ -672,11 +672,11 @@ function buildTree(data, action, sendid) {
             submitstatus.pop();
         });
     } else if (!$.isEmptyObject(data) && devblocksend) {
-        console.log(action + " on " + sendid);
         if (exists(data.profile_id)) {
             var id = data.profile_id;
             if (exists(databyid[id])) {
-                databyid[id]["geni_id"] = "profile-123456";
+                databyid[id]["geni_id"] = "profile-123456" + id.toString();
+                console.log(action + " on " + databyid[id]["geni_id"]);
                 spouselist[id] = {union: "union"+id, status: databyid[id].status};
                 if (parentlist.length > 0) {
                     if (exists(marriagedates[id])) {
@@ -762,27 +762,6 @@ function submitChildren() {
         submitChildren();
     } else if (!checkpictures) {
         checkpictures = true;
-        if (exists(focusphotoinfo) || photosubmit.length > 0) {
-            var count = photosubmit.length;
-            if (exists(focusphotoinfo)) {
-                count += 1;
-            }
-            var photodialog = "1 Photo";
-            if (count > 1) {
-                photodialog = count + " Photos";
-            }
-            document.getElementById("updatestatus").innerText = "Uploading " + photodialog;
-            if (exists(focusphotoinfo)) {
-                buildTree(focusphotoinfo, "add-photo", focusid);
-            }
-            for (var p=0;p < photosubmit.length; p++) {
-                if (exists(photosubmit[p]) && exists(databyid[p])) {
-                    buildTree(photosubmit[p], "add-photo", databyid[p].geni_id);
-                }
-            }
-        }
-        submitChildren();
-    } else {
         // --------------------- Add Child Data ---------------------
         for (var child in addchildren) if (addchildren.hasOwnProperty(child)) {
             var familyout = addchildren[child];
@@ -797,6 +776,32 @@ function submitChildren() {
             }
             if (exists(parentunion)) {
                 buildTree(familyout, "add-child", parentunion);
+            }
+        }
+        submitChildren();
+    } else {
+        if (exists(focusphotoinfo) || photosubmit.length > 0) {
+            var count = 0;
+            if (exists(focusphotoinfo)) {
+                count += 1;
+            }
+            for (var p=0;p < photosubmit.length; p++) {
+                if (exists(photosubmit[p]) && exists(databyid[p])) {
+                    count += 1;
+                }
+            }
+            var photodialog = "1 Photo";
+            if (count > 1) {
+                photodialog = count + " Photos";
+            }
+            document.getElementById("updatestatus").innerText = "Uploading " + photodialog;
+            if (exists(focusphotoinfo)) {
+                buildTree(focusphotoinfo, "add-photo", focusid);
+            }
+            for (var p=0;p < photosubmit.length; p++) {
+                if (exists(photosubmit[p]) && exists(databyid[p])) {
+                    buildTree(photosubmit[p], "add-photo", databyid[p].geni_id);
+                }
             }
         }
         submitWait();

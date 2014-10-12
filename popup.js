@@ -14,8 +14,38 @@ var updatetotal = 0;
 chrome.storage.local.get('buildhistory', function (result) {
     if(exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
+        buildHistoryBox();
     }
 });
+
+function buildHistoryBox() {
+    var historytext = "";
+    for (var i=0; i < buildhistory.length; i++) {
+        var name = buildhistory[i].id;
+        if (exists(buildhistory[i].name)) {
+            name = buildhistory[i].name;
+        }
+        var datetxt = "";
+        if (exists(buildhistory[i].date)) {
+            datetxt = moment(buildhistory[i].date).format("MM-DD@HH:mm") + ': ';
+        }
+        historytext += '<li>' + datetxt + '<a href="http://www.geni.com/' + buildhistory[i].id + '" target="_blank">' + name + '</a></li>';
+    }
+    historytext += "";
+    document.getElementById("historybox").innerHTML = historytext;
+}
+
+function buildHistorySelect() {
+    var historytext = "";
+    for (var i=0; i < buildhistory.length; i++) {
+        var name = buildhistory[i].id;
+        if (exists(buildhistory[i].name)) {
+            name = buildhistory[i].name;
+        }
+        historytext += '<option value="' + buildhistory[i].id + '">History: ' + name +  '</option>';
+    }
+    return historytext;
+}
 
 var dateformatter = ["MMM YYYY", "MMM D YYYY", "YYYY", "MM/ /YYYY"];
 //noinspection JSUnusedGlobalSymbols
@@ -117,7 +147,11 @@ function userAccess() {
                             '<div>Non-Pro Geni users have the ability to update the focus profile but can not add family members.</div>';
                     }
                 } else {
+                    accessdialog.style.display = "block";
+                    accessdialog.style.marginBottom = "-2px";
+                    accessdialog.innerHTML = "<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...";
                     setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.');
+                    buildResearch();
                 }
             });
         } else {
@@ -297,11 +331,21 @@ function loadPage(request) {
                             selectsrt += '<option value="' + person.id + '">' + capFL(person.relation) + ": " + person.name +  '</option>';
                         }
                     }
+                    if (buildhistory.length > 0) {
+                        selectsrt += '<option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>';
+                    }
                 }
+                selectsrt += buildHistorySelect();
                 selectsrt += '</select>';
                 $('.optionrow').css("display", "table-row");
                 $('#focusoption')[0].innerHTML = selectsrt;
             });
+        } else {
+            var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select from History</option>';
+            selectsrt += buildHistorySelect();
+            selectsrt += '</select>';
+            $('.optionrow').css("display", "table-row");
+            $('#focusoption')[0].innerHTML = selectsrt;
         }
         $(function () {
             $('#changefocus').on('click', function () {
@@ -505,6 +549,12 @@ $(function () {
     });
 });
 
+$(function () {
+    $('#showhistory').on('click', function () {
+        $('#historybox').slideToggle();
+    });
+});
+
 // Form submission
 var submitstatus = [];
 var tempspouse = [];
@@ -557,6 +607,7 @@ var submitform = function() {
                 delete profileout.photo;
             }
             buildTree(profileout, "update", focusid);
+            document.getElementById("updatestatus").innerText = "Updating Profile";
             profileupdatestatus = "Updating Profile & ";
         }
 
@@ -673,7 +724,7 @@ function buildTree(data, action, sendid) {
                         parentlist.push({id: id, status: databyid[id].mstatus});
                     }
                 }
-                addHistory(result.id, databyid[id].itemId);
+                addHistory(result.id, databyid[id].itemId, databyid[id].name);
             }
             if (action !== "add-photo" && action !== "delete") {
                 updatecount += 1;
@@ -711,7 +762,7 @@ function buildTree(data, action, sendid) {
 
 var checkchildren = false;
 var checkpictures = false;
-var photocount = 1;
+var photocount = 0;
 var photototal = 0;
 var photoprogress = 0;
 function submitChildren() {
@@ -881,6 +932,7 @@ function submitWait() {
             '<a href="http://www.geni.com/' + focusid.replace("profile-g","") + '" target="_blank">profile view</a></div>';
         document.getElementById("message").style.display = "none";
         $('#updating').css('margin-bottom', "15px");
+        buildHistoryBox();
         console.log("Tree Updated...");
         if (devblocksend) {
             console.log("******** Dev Mode - Blocked Sending ********")
@@ -1057,8 +1109,8 @@ function parseDate(fulldate, update) {
     return vardate;
 }
 
-function addHistory(id, itemId) {
-    buildhistory.unshift({id: id, itemId: itemId});
+function addHistory(id, itemId, name) {
+    buildhistory.unshift({id: id, itemId: itemId, name: name, date: Date.now()});
     if (buildhistory.length > 50) {
         buildhistory.pop();
     }

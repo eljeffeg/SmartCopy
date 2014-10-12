@@ -61,8 +61,10 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
             profiledata["thumb"] = thumb;
         } else {
-            var photobox = parsed.find(".recordRelatedPhotosContainer");
-            if (exists(photobox[0])) {
+            //var photobox = parsed.find(".recordRelatedPhotosContainer");  Area for multiple pics
+            //example:http://www.myheritage.com/research/collection-1/myheritage-family-trees?action=showRecord&itemId=187339442-1-500348&groupId&indId=externalindividual-60b8fd397ede07a7734908636547b649&callback_token=aJ246ziA8CCB8WycR8ujZxNXfJpZjcXsgCkoDd6U&mrid=0fcad2868a0e76a3fa94f97921debb00
+            var paperclip = parsed.find(".paperClip");
+            if (exists(paperclip[0])) {
                 profiledata["image"] = thumb;
                 profiledata["thumb"] = thumb;
             }

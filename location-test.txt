@@ -22,9 +22,10 @@ Montgomery County, North Carolina, US|{"place":"","city":"","county":"Montgomery
 Beaverdam Baptist Church, Kershaw County, S.C.|{"place":"Beaverdam Baptist Church","city":"","county":"Kershaw County","state":"South Carolina","country":"United States"}|(current test 1.28.10(j) works on this)
 Rhode Island|{"place":"","city":"","county":"","state":"Rhode Island","country":"United States"}
 Files Valley Cemetery, Files Valley, Hill County, Texas, USA|{"place":"Files Valley Cemetery","city":"Files Valley","county":"Hill County","state":"Texas","country":"United States"}
-Charlesbourg Quâebec Canada|{"place":"Charlesbourg","city":"Quebec","county":"Communauté-Urbaine-de-Québec","state":"Quebec","country":"Canada"}
+Charlesbourg Quâebec Canada|{"place":"Charlesbourg","city":"Quebec City","county":"Communauté-Urbaine-de-Québec","state":"Quebec","country":"Canada"}
 Rensselaer, Rensselaer, New York, United States of America|{"place":"","city":"Rensselaer","county":"Rensselaer County","state":"New York","country":"United States"}
 Perry, Kentucky, United States|{"place":"","city":"","county":"Perry County","state":"Kentucky","country":"United States"}
 Mayhew Yocum Cemetery, Don Lawson Farm, Menifee County, Kentucky|{"place":"Mayhew Yocum Cemetery, Don Lawson Farm","city":"","county":"Menifee County","state":"Kentucky","country":"United States", "alt": {"place":"Mayhew Yocum Cemetery","city":"","county":"Menifee County","state":"Kentucky","country":"United States"}}
 Measham|{"place":"","city":"Measham","county":"Leicestershire","state":"England","country":"United Kingdom"}
 All Saints, Leicester, Leicestershire, England|{"place":"All Saints","city":"Leicester","county":"Leicestershire","state":"England","country":"United Kingdom", "alt": {"place":"","city":"Leicester","county":"Leicestershire","state":"England","country":"United Kingdom"}}
+Bulloch Co, GA|{"place":"","city":"","county":"Bulloch County","state":"Georgia","country":"United States"}

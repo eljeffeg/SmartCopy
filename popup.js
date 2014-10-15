@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (startsWithMH(tablink,"matchingresult")) {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Matches on this results page.');
-        } else if (tablink.startsWith("http://www.geni.com/people/") || tablink.startsWith("http://www.geni.com/family-tree/")) {
+        } else if (tablink.startsWith("http://www.geni.com/people") || tablink.startsWith("http://www.geni.com/family-tree") || tablink.startsWith("http://www.geni.com/profile")) {
             var focusprofile = getProfile(tablink);
             focusid = focusprofile.replace("?profile=", "");
             updateLinks(focusprofile);
@@ -266,7 +266,13 @@ function loadPage(request) {
                 focusid = focusprofile.replace("http://www.geni.com/", "");
                 updateLinks("?profile=" + focusid);
             }
-            document.getElementById("focusname").innerHTML = '<a href="http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a>";
+            var focusprofileurl = "";
+            if (focusid.startsWith("profile-g")) {
+                focusprofileurl = "http://www.geni.com/profile/index/" + focusid.replace("profile-g", "");
+            } else {
+                focusprofileurl = "http://www.geni.com/" + focusid;
+            }
+            document.getElementById("focusname").innerHTML = '<a href="' + focusprofileurl + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a>";
             if (focusrange !== "") {
                 document.getElementById("focusrange").innerText = focusrange;
             }
@@ -941,10 +947,16 @@ function submitWait() {
                 buildTree("", "delete", tempspouse[i]);
             }
         }
+        var focusprofileurl = "";
+        if (focusid.startsWith("profile-g")) {
+            focusprofileurl = "http://www.geni.com/profile/index/" + focusid.replace("profile-g", "");
+        } else {
+            focusprofileurl = "http://www.geni.com/" + focusid;
+        }
         document.getElementById("updating").innerHTML = '<div style="text-align: center; font-size: 110%;"><strong>Geni Tree Updated</strong></div>' +
             '<div style="text-align: center; padding:5px;"><b>View Profile:</b> ' +
             '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g","") + '" target="_blank">tree view</a>, ' +
-            '<a href="http://www.geni.com/' + focusid.replace("profile-g","") + '" target="_blank">profile view</a></div>';
+            '<a href="' + focusprofileurl + '" target="_blank">profile view</a></div>';
         document.getElementById("message").style.display = "none";
         $('#updating').css('margin-bottom', "15px");
         buildHistoryBox();

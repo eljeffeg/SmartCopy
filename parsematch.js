@@ -769,8 +769,37 @@ function buildForm() {
     var x = 0;
     var ck = 0;
     var div = $("#profiletable");
+    var membersstring = div[0].innerHTML;
+    var nameval = NameParse.parse(focusname, $('#mnameonoffswitch').prop('checked'));
+    var displayname = "";
+    if (nameval.prefix !== "") {
+        displayname = nameval.displayname;
+    }
+    var namescore = scorefactors.contains("middle name");
+    if (namescore) {
+        membersstring +=
+        '<tr><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" disabled></td></tr>' +
+            '<tr><td class="profilediv"><input type="checkbox" class="checknext" checked>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '"></td></tr>' +
+            '<tr><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" disabled></td></tr>' +
+            '<tr><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" disabled></td></tr>' +
+            '<tr><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" disabled></td></tr>' +
+            '<tr><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" disabled></td></tr>' +
+            '<tr><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" name="display_name" value="' + displayname + '" disabled></td></tr>' +
+            '<tr><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
+    } else {
+        membersstring +=
+        '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" disabled></td></tr>' +
+            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '" disabled></td></tr>' +
+            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" disabled></td></tr>' +
+            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" disabled></td></tr>' +
+            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" disabled></td></tr>' +
+            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" disabled></td></tr>' +
+            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" name="display_name" value="' + displayname + '" disabled></td></tr>' +
+            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
+    }
+    div[0].innerHTML = membersstring;
     if (exists(alldata["profile"]["thumb"])) {
-        var membersstring = div[0].innerHTML;
+        membersstring = div[0].innerHTML;
         var title = "photo";
         var scorephoto = false;
         if (scorefactors.contains(title) && $('#photoonoffswitch').prop('checked')) {
@@ -785,7 +814,7 @@ function buildForm() {
         div[0].innerHTML = membersstring;
     }
     if (exists(alldata["profile"]["occupation"])) {
-        var membersstring = div[0].innerHTML;
+        membersstring = div[0].innerHTML;
         if (x > 0) {
             membersstring = membersstring + '<tr><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
         }
@@ -802,14 +831,14 @@ function buildForm() {
             capFL(title) + ':</td><td style="float:right;padding: 0;"><input type="text" name="' + title + '" value="' + occupation + '" ' + isEnabled(occupation, scoreoccupation) + '></td></tr>';
         div[0].innerHTML = membersstring;
     } else {
-        var membersstring = div[0].innerHTML;
+        membersstring = div[0].innerHTML;
         membersstring = membersstring +
             '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow" id="occupation"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right;"><input type="text" name="occupation" disabled></td></tr>' +
             '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
         div[0].innerHTML = membersstring;
     }
     if (exists(alldata["profile"].about)) {
-        var membersstring = div[0].innerHTML;
+        membersstring = div[0].innerHTML;
         if (x > 0) {
             membersstring = membersstring + '<tr><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
         }
@@ -822,7 +851,7 @@ function buildForm() {
         membersstring = membersstring + '<tr><td colspan="2"><div class="profilediv" style="font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scoreabout) + '>About:</div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scoreabout) + '>' + about + '</textarea></div></td></tr>';
         div[0].innerHTML = membersstring;
     } else {
-        var membersstring = div[0].innerHTML;
+        membersstring = div[0].innerHTML;
         membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow" id="about"><td colspan="2"><div class="profilediv"><input type="checkbox" class="checknext">About:</div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
         div[0].innerHTML = membersstring;
     }
@@ -838,7 +867,7 @@ function buildForm() {
     for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
         var title = listvalues[list];
         obj = alldata["profile"][title];
-        var membersstring = div[0].innerHTML;
+        membersstring = div[0].innerHTML;
         if (exists(obj)) {
             if (x > 0) {
                 membersstring = membersstring + '<tr><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';

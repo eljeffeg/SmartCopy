@@ -51,15 +51,17 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     if (exists(thumb)) {
         var imageref = imagebox.find('a');
         if (exists(imageref[0])) {
-            var image = imageref[0].href;
-            if (image.startsWith("http://www.findagrave.com")) {
-                profiledata["image"] = thumb.replace("http://records.myheritageimages.com/wvrcontent/findagrave_photos", "http://image1.findagrave.com");
-            } else if (image.startsWith("http://billiongraves.com")) {
-                profiledata["image"] = thumb.replace("thumbnails", "images")
-            } else {
-                profiledata["image"] = image;
+            if (!thumb.startsWith("http://recordsthumbnail.myheritageimages.com")) {
+                var image = imageref[0].href;
+                if (image.startsWith("http://www.findagrave.com")) {
+                    profiledata["image"] = thumb.replace("http://records.myheritageimages.com/wvrcontent/findagrave_photos", "http://image1.findagrave.com");
+                } else if (image.startsWith("http://billiongraves.com")) {
+                    profiledata["image"] = thumb.replace("thumbnails", "images")
+                } else {
+                    profiledata["image"] = image;
+                }
+                profiledata["thumb"] = thumb;
             }
-            profiledata["thumb"] = thumb;
         } else {
             //var photobox = parsed.find(".recordRelatedPhotosContainer");  Area for multiple pics
             //example:http://www.myheritage.com/research/collection-1/myheritage-family-trees?action=showRecord&itemId=187339442-1-500348&groupId&indId=externalindividual-60b8fd397ede07a7734908636547b649&callback_token=aJ246ziA8CCB8WycR8ujZxNXfJpZjcXsgCkoDd6U&mrid=0fcad2868a0e76a3fa94f97921debb00
@@ -771,7 +773,7 @@ function buildForm() {
         var membersstring = div[0].innerHTML;
         var title = "photo";
         var scorephoto = false;
-        if (scorefactors.contains(title)) {
+        if (scorefactors.contains(title) && $('#photoonoffswitch').prop('checked')) {
             scorephoto = true;
             ck++;
         }
@@ -779,7 +781,7 @@ function buildForm() {
         var image = alldata["profile"]["image"];
         membersstring = membersstring +
             '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(thumbnail, scorephoto) + '>' +
-            capFL(title) + ':</td><td style="float:right;padding: 0;"><input type="hidden" name="' + title + '" value="' + image + '" ' + isEnabled(thumbnail, scorephoto) + '><img src="' + thumbnail + '"></td></tr>';
+            capFL(title) + ':</td><td style="float:right;padding: 0;"><input type="hidden" class="photocheck" name="' + title + '" value="' + image + '" ' + isEnabled(thumbnail, scorephoto) + '><img src="' + thumbnail + '"></td></tr>';
         div[0].innerHTML = membersstring;
     }
     if (exists(alldata["profile"]["occupation"])) {
@@ -954,6 +956,7 @@ function buildForm() {
     //console.log("");
     //console.log(JSON.stringify(obj));
     var i = 0;
+    var photoscore = $('#photoonoffswitch').prop('checked');
     for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
         var members = obj[relationship];
         var scored = false;
@@ -1061,8 +1064,8 @@ function buildForm() {
                 var thumbnail = members[member]["thumb"];
                 var image = members[member]["image"];
                 membersstring = membersstring +
-                    '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(thumbnail, scored) + '>' +
-                    "Photo" + ':</td><td style="float:right;padding: 0;"><input type="hidden" name="photo" value="' + image + '" ' + isEnabled(thumbnail, scored) + '><img src="' + thumbnail + '"></td></tr>';
+                    '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext photocheck" ' + isChecked(thumbnail, (scored && photoscore)) + '>' +
+                    "Photo" + ':</td><td style="float:right;padding: 0;"><input type="hidden" class="photocheck" name="photo" value="' + image + '" ' + isEnabled(thumbnail, scored) + '><img src="' + thumbnail + '"></td></tr>';
             }
             membersstring +=
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored) + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored) + '></td></tr>' +
@@ -1205,7 +1208,7 @@ function buildForm() {
         $('.checknext').on('click', function () {
             $(this).closest('tr').find("input:text,select,input:hidden,textarea").attr("disabled", !this.checked);
             if (this.checked) {
-                var personslide = $(this).closest('.familydiv');
+                var personslide = $(this).closest('.memberexpand').prev('.membertitle');
                 personslide.find('.checkslide').prop('checked', true);
                 personslide.find('input:hidden').attr('disabled', false);
             }
@@ -1214,8 +1217,12 @@ function buildForm() {
     $(function () {
         $('.checkslide').on('click', function () {
             var fs = $("#" + this.name.replace("checkbox", "slide"));
-            fs.find(':checkbox').prop('checked', this.checked);
-            var ffs = fs.find('input:text,select,input:hidden,textarea');
+            var ffs = fs.find(':checkbox');
+            var photoon = $('#photoonoffswitch').prop('checked');
+            ffs.filter(function(item) {
+                return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
+            }).prop('checked', this.checked);
+            ffs = fs.find('input:text,select,input:hidden,textarea');
             ffs.filter(function(item) {
                 return (ffs[item].type !== "checkbox");
             }).attr('disabled', !this.checked);

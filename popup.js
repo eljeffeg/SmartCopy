@@ -11,6 +11,7 @@ var marriagedates = [];
 var loggedin = false;
 var updatecount = 1;
 var updatetotal = 0;
+var recordtype = "MyHeritage Match";
 chrome.storage.local.get('buildhistory', function (result) {
     if(exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
@@ -27,7 +28,9 @@ function buildHistoryBox() {
         }
         var datetxt = "";
         if (exists(buildhistory[i].date)) {
-            datetxt = moment(buildhistory[i].date).format("MM-DD@HH:mm") + ': ';
+            var day = new Date(buildhistory[i].date);
+            datetxt = (day.getMonth()+1) + "-" + day.getDate() + "@" + day.getHours() + ":" + day.getMinutes() + ": ";
+            //moment(buildhistory[i].date).format("MM-DD@HH:mm") + ': ';
         }
         historytext += '<li>' + datetxt + '<a href="http://www.geni.com/' + buildhistory[i].id + '" target="_blank">' + name + '</a></li>';
     }
@@ -253,13 +256,17 @@ function loadPage(request) {
             document.getElementById("top-container").style.display = "block";
             var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/g,""));
             focusname= parsed.find(".recordTitle").text().trim();
+            recordtype = parsed.find(".infoGroupTitle");
+            if (exists(recordtype[0])) {
+                recordtype = recordtype[0].innerText;
+            }
             var focusrange = parsed.find(".recordSubtitle").text().trim();
             if (!profilechanged) {
                 var focusprofile = parsed.find(".individualInformationProfileLink").attr("href").trim();
                 focusid = focusprofile.replace("http://www.geni.com/", "");
                 updateLinks("?profile=" + focusid);
             }
-            document.getElementById("focusname").innerText = focusname;
+            document.getElementById("focusname").innerHTML = '<a href="http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a>";
             if (focusrange !== "") {
                 document.getElementById("focusrange").innerText = focusrange;
             }
@@ -549,9 +556,16 @@ $(function () {
     });
 });
 
+var showhistorycheck = true;
 $(function () {
     $('#showhistory').on('click', function () {
         $('#historybox').slideToggle();
+        showhistorycheck = !showhistorycheck;
+        if (showhistorycheck) {
+            document.getElementById('showhistory').innerText = "Show History";
+        } else {
+            document.getElementById('showhistory').innerText = "Hide History";
+        }
     });
 });
 
@@ -588,11 +602,12 @@ var submitform = function() {
                 }
             }
             if (sourcecheck) {
-                if (!focusabout.contains("Updated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
+
+                if (!focusabout.contains("Updated from [" +  tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
                     if (focusabout !== "") {
                         about = focusabout + "\n" + about;
                     }
-                    profileout["about_me"] = about + "* Updated from [" +  tablink + " MyHeritage Match] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                    profileout["about_me"] = about + "* Updated from [" +  tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                 } else {
                     if (about !== "") {
                         profileout["about_me"] = focusabout + "\n" + about;
@@ -629,7 +644,7 @@ var submitform = function() {
                             about = familyout["about_me"];
                         }
                         if (sourcecheck) {
-                            about = about + "* Updated from [" +  fdata.url + " MyHeritage Match] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                            about = about + "* Updated from [" +  fdata.url + " " + recordtype + "] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                         }
                         if (about !== "") {
                             familyout["about_me"] = about;
@@ -1309,6 +1324,9 @@ $(function () {
     $('#sourceonoffswitch').on('click', function () {
         chrome.storage.local.set({'addsource': this.checked});
     });
+    $('#photoonoffswitch').on('click', function () {
+        chrome.storage.local.set({'addphoto': this.checked});
+    });
     $('#geniparentonoffswitch').on('click', function () {
         chrome.storage.local.set({'geniparent': this.checked});
         $("#gparentchange").css("display", "block");
@@ -1398,5 +1416,12 @@ chrome.storage.local.get('addsource', function (result) {
     var sourcechecked = result.addsource;
     if(exists(sourcechecked)) {
         $('#sourceonoffswitch').prop('checked', sourcechecked);
+    }
+});
+
+chrome.storage.local.get('addphoto', function (result) {
+    var addphotochecked = result.addphoto;
+    if(exists(addphotochecked)) {
+        $('#photoonoffswitch').prop('checked', addphotochecked);
     }
 });

@@ -1,6 +1,6 @@
 
 function buildResearch() {
-    var fields = "name,first_name,last_name,maiden_name,birth,death";
+    var fields = "name,first_name,last_name,maiden_name,birth,death,gender";
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -35,7 +35,7 @@ function buildGoogle(responsedata) {
 function buildFamilySearch(responsedata) {
     var query = 'results?count=75&query=%2Bgivenname%3A' + responsedata.first_name;
     var lastname = responsedata.last_name;
-    if (exists(responsedata.maiden_name) && responsedata.maiden_name !== responsedata.last_name) {
+    if (exists(responsedata.maiden_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
         lastname = responsedata.maiden_name;
         query += '~%20%2Bspouse_surname%3A' + responsedata.last_name;
     }
@@ -127,7 +127,7 @@ function buildAncestry(responsedata) {
 function buildRootsWeb(responsedata) {
     var query = 'http://wc.rootsweb.ancestry.com/cgi-bin/igm.cgi?op=Search&includedb=&lang=en&ti=&skipdb=&period=All&fuzzy=Y&submit.x=Search&given=' + responsedata.first_name;
     var lastname = responsedata.last_name;
-    if (exists(responsedata.maiden_name) && responsedata.maiden_name !== responsedata.last_name) {
+    if (exists(responsedata.maiden_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
         lastname = responsedata.maiden_name;
         query += '&spouse=' + responsedata.last_name;
     }

@@ -266,27 +266,31 @@ function loadPage(request) {
                 focusid = focusprofile.replace("http://www.geni.com/", "");
                 updateLinks("?profile=" + focusid);
             }
-            var focusprofileurl = "";
-            if (focusid.startsWith("profile-g")) {
-                focusprofileurl = "http://www.geni.com/profile/index/" + focusid.replace("profile-g", "");
-            } else {
-                focusprofileurl = "http://www.geni.com/" + focusid;
-            }
-            document.getElementById("focusname").innerHTML = '<a href="' + focusprofileurl + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a>";
-            if (focusrange !== "") {
-                document.getElementById("focusrange").innerText = focusrange;
-            }
-            console.log("Parsing Family...");
-            parseSmartMatch(request.source, (accountinfo.pro && accountinfo.user));
+            if (exists(focusid)) {
+                var focusprofileurl = "";
+                if (focusid.startsWith("profile-g")) {
+                    focusprofileurl = "http://www.geni.com/profile/index/" + focusid.replace("profile-g", "");
+                } else {
+                    focusprofileurl = "http://www.geni.com/" + focusid;
+                }
+                document.getElementById("focusname").innerHTML = '<a href="' + focusprofileurl + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a>";
+                if (focusrange !== "") {
+                    document.getElementById("focusrange").innerText = focusrange;
+                }
+                console.log("Parsing Family...");
+                parseSmartMatch(request.source, (accountinfo.pro && accountinfo.user));
 
-            if (!accountinfo.pro) {
-                document.getElementById("loading").style.display = "none";
-                $("#familymembers").attr('disabled', 'disabled');
-                setMessage("#f8ff86", 'The copying of Family Members is only available to Geni Pro Members.');
-            } else if (!accountinfo.user) {
-                document.getElementById("loading").style.display = "none";
-                $("#familymembers").attr('disabled', 'disabled');
-                setMessage("#f8ff86", 'Copying Family Members has been restricted to trusted Geni users.  You may request this ability from a Curator.');
+                if (!accountinfo.pro) {
+                    document.getElementById("loading").style.display = "none";
+                    $("#familymembers").attr('disabled', 'disabled');
+                    setMessage("#f8ff86", 'The copying of Family Members is only available to Geni Pro Members.');
+                } else if (!accountinfo.user) {
+                    document.getElementById("loading").style.display = "none";
+                    $("#familymembers").attr('disabled', 'disabled');
+                    setMessage("#f8ff86", 'Copying Family Members has been restricted to trusted Geni users.  You may request this ability from a Curator.');
+                }
+            } else {
+                loadSelectPage(request);
             }
         } else {
             document.getElementById("top-container").style.display = "block";
@@ -304,87 +308,90 @@ function loadPage(request) {
                 return;
             }
         }
+        loadSelectPage(request);
+    }
+}
 
-        document.getElementById("smartcopy-container").style.display = "none";
-        document.getElementById("loading").style.display = "none";
-        setMessage("#f8ff86", 'SmartCopy was unable to determine the matching Geni profile to use as a copy destination.<br/>' +
-            '<strong><span id="changetext">Set Geni Destination Profile</span></strong>' +
-            '<table style="width: 100%;"><tr class="optionrow" style="display: none;">' +
-            '<td id="focusoption" style="width: 100%; text-align: left;"></td></tr>' +
-            '<tr class="optionrow" style="display: none;"><td colspan="2">Or enter URL:</td></tr>' +
-            '<tr><td style="padding-right: 5px;">' +
-            '<input type="text" style="width: 100%;" id="changeprofile"></td>' +
-            '</tr><tr><td style="padding-top: 5px;"><button id="changefocus">Update Destination</button></td></tr></table>');
+function loadSelectPage(request) {
+    document.getElementById("smartcopy-container").style.display = "none";
+    document.getElementById("loading").style.display = "none";
+    setMessage("#f8ff86", 'SmartCopy was unable to determine the matching Geni profile to use as a copy destination.<br/>' +
+        '<strong><span id="changetext">Set Geni Destination Profile</span></strong>' +
+        '<table style="width: 100%;"><tr class="optionrow" style="display: none;">' +
+        '<td id="focusoption" style="width: 100%; text-align: left;"></td></tr>' +
+        '<tr class="optionrow" style="display: none;"><td colspan="2">Or enter URL:</td></tr>' +
+        '<tr><td style="padding-right: 5px;">' +
+        '<input type="text" style="width: 100%;" id="changeprofile"></td>' +
+        '</tr><tr><td style="padding-top: 5px;"><button id="changefocus">Update Destination</button></td></tr></table>');
 
-        var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/g,""));
-        var focusperson = parsed.find(".individualInformationName").text().trim();
-        var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
-        if (exists(focusprofile)) {
-            focusprofile = focusprofile.replace("http://www.geni.com/", "").trim();
-            var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusprofile;
-            chrome.extension.sendMessage({
-                method: "GET",
-                action: "xhttp",
-                url: url
-            }, function (response) {
-                var result = JSON.parse(response.source);
-                result.sort(function (a, b) {
-                    var relA = a.relation.toLowerCase(), relB = b.relation.toLowerCase();
-                    if (relA < relB) //sort string ascending
-                        return -1;
-                    if (relA > relB)
-                        return 1;
-                    return 0; //default return value (no sorting)
-                });
-                var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select relative of ' + focusperson + '</option>';
-                if (exists(result)) {
-                    for (var key in result) if (result.hasOwnProperty(key)) {
-                        var person = result[key];
-                        if (exists(person.name)) {
-                            selectsrt += '<option value="' + person.id + '">' + capFL(person.relation) + ": " + person.name +  '</option>';
-                        }
-                    }
-                    if (buildhistory.length > 0) {
-                        selectsrt += '<option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>';
+    var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/g,""));
+    var focusperson = parsed.find(".individualInformationName").text().trim();
+    var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
+    if (exists(focusprofile)) {
+        focusprofile = focusprofile.replace("http://www.geni.com/", "").trim();
+        var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusprofile;
+        chrome.extension.sendMessage({
+            method: "GET",
+            action: "xhttp",
+            url: url
+        }, function (response) {
+            var result = JSON.parse(response.source);
+            result.sort(function (a, b) {
+                var relA = a.relation.toLowerCase(), relB = b.relation.toLowerCase();
+                if (relA < relB) //sort string ascending
+                    return -1;
+                if (relA > relB)
+                    return 1;
+                return 0; //default return value (no sorting)
+            });
+            var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select relative of ' + focusperson + '</option>';
+            if (exists(result)) {
+                for (var key in result) if (result.hasOwnProperty(key)) {
+                    var person = result[key];
+                    if (exists(person.name)) {
+                        selectsrt += '<option value="' + person.id + '">' + capFL(person.relation) + ": " + person.name +  '</option>';
                     }
                 }
-                selectsrt += buildHistorySelect();
-                selectsrt += '</select>';
-                $('.optionrow').css("display", "table-row");
-                $('#focusoption')[0].innerHTML = selectsrt;
-            });
-        } else {
-            var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select from History</option>';
+                if (buildhistory.length > 0) {
+                    selectsrt += '<option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>';
+                }
+            }
             selectsrt += buildHistorySelect();
             selectsrt += '</select>';
             $('.optionrow').css("display", "table-row");
             $('#focusoption')[0].innerHTML = selectsrt;
-        }
-        $(function () {
-            $('#changefocus').on('click', function () {
-                var profilelink = getProfile($('#changeprofile')[0].value);
-                if (profilelink === "") {
-                    var focusselect = $('#focusselect')[0];
-                    if (exists(focusselect)) {
-                        profilelink = "?profile=" + focusselect.options[focusselect.selectedIndex].value;
-                    }
-                }
-                if (profilelink !== "" || devblocksend) {
-                    updateLinks(profilelink);
-                    focusid = profilelink.replace("?profile=", "");
-                    document.querySelector('#message').style.display = "none";
-                    document.getElementById("smartcopy-container").style.display = "block";
-                    document.getElementById("loading").style.display = "block";
-                    profilechanged = true;
-                    loadPage(request);
-                } else {
-                    var invalidtext = $("#changetext")[0];
-                    invalidtext.innerText = "Invalid Profile Id - Try Again";
-                    invalidtext.style.color ='red';
-                }
-            });
         });
+    } else {
+        var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select from History</option>';
+        selectsrt += buildHistorySelect();
+        selectsrt += '</select>';
+        $('.optionrow').css("display", "table-row");
+        $('#focusoption')[0].innerHTML = selectsrt;
     }
+    $(function () {
+        $('#changefocus').on('click', function () {
+            var profilelink = getProfile($('#changeprofile')[0].value);
+            if (profilelink === "") {
+                var focusselect = $('#focusselect')[0];
+                if (exists(focusselect)) {
+                    profilelink = "?profile=" + focusselect.options[focusselect.selectedIndex].value;
+                }
+            }
+            if (profilelink !== "" || devblocksend) {
+                updateLinks(profilelink);
+                focusid = profilelink.replace("?profile=", "");
+                document.querySelector('#message').style.display = "none";
+                document.getElementById("smartcopy-container").style.display = "block";
+                document.getElementById("loading").style.display = "block";
+                profilechanged = true;
+                loadPage(request);
+            } else {
+                var invalidtext = $("#changetext")[0];
+                invalidtext.innerText = "Invalid Profile Id - Try Again";
+                invalidtext.style.color ='red';
+            }
+        });
+    });
 }
 
 function setMessage(color, messagetext) {
@@ -1137,11 +1144,13 @@ function parseDate(fulldate, update) {
 }
 
 function addHistory(id, itemId, name) {
-    buildhistory.unshift({id: id, itemId: itemId, name: name, date: Date.now()});
-    if (buildhistory.length > 50) {
-        buildhistory.pop();
+    if (exists(id)) {
+        buildhistory.unshift({id: id, itemId: itemId, name: name, date: Date.now()});
+        if (buildhistory.length > 50) {
+            buildhistory.pop();
+        }
+        chrome.storage.local.set({'buildhistory': buildhistory});
     }
-    chrome.storage.local.set({'buildhistory': buildhistory});
 }
 
 function supportedCollection() {

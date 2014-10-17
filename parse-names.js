@@ -50,16 +50,46 @@ var NameParse = (function(){
         var testNickEnd2 = new RegExp("'$", 'i');
         nameParts = fullastName.split(" ").filter(function(namePart){
             if (namePart.indexOf("(") !== -1 || namePart.indexOf(")") !== -1 || testNickStart.test(namePart) || testNickEnd.test(namePart) || testNickStart2.test(namePart) || testNickEnd2.test(namePart)) {
-                namePart = namePart.replace(testNickStart, "");
-                namePart = namePart.replace(testNickEnd, "");
-                namePart = namePart.replace(testNickStart2, "");
-                namePart = namePart.replace(testNickEnd2, "");
-                nickParts.push(capFL(namePart));
+                nickParts.push(namePart);
+                return false;
             } else {
                 return true;
             }
         });
+        if (nickParts.length > 1 && !fullastName.contains(nickParts.join(" "))) {
+            //This process is done to capture nicknames with more than 1 space, such as John "Captain Black Jack" Geary.
+            var start = false;
+            var nameParts2 = fullastName.split(" ");
+            for (var n = 0; n < nameParts2.length; n++) {
+                if (!start && nameParts2[n] === nickParts[0]) {
+                    start = true;
+                } else if (start) {
+                    nickParts.splice(nickParts.length - 1, 0, nameParts2[n]);
+                    if (fullastName.contains(nickParts.join(" "))) {
+                        break;
+                    }
+                }
+            }
 
+            for (var n = 1; n < nickParts.length - 1; n++) {
+                for (var x = 0; x < nameParts.length; x++) {
+                    if (nickParts[n] === nameParts[x]) {
+                        nameParts.splice(x, 1);
+                        break;
+                    }
+                }
+            }
+        }
+        if (nickParts.length > 0) {
+            for (var n = 0; n < nickParts.length; n++) {
+                namePart = nickParts[n];
+                namePart = namePart.replace(testNickStart, "");
+                namePart = namePart.replace(testNickEnd, "");
+                namePart = namePart.replace(testNickStart2, "");
+                namePart = namePart.replace(testNickEnd2, "");
+                nickParts[n] = capFL(namePart);
+            }
+        }
 
         var numWords = nameParts.length;
         // is the first word a title? (Mr. Mrs, etc)
@@ -121,6 +151,8 @@ var NameParse = (function(){
         }
 
         if (nickParts.length > 0) {
+            /*
+            Can't recall why I did all this... commenting for now and just doing a join(" ")
             if (nickParts[0].indexOf("(") !== -1 && nickParts[0].indexOf(")") === -1 && nickParts.length > 1) {
                 if (nickParts[1].indexOf(")") !== -1) {
                     nickParts[0] += " " + nickParts.pop(nickParts[1]);
@@ -131,6 +163,9 @@ var NameParse = (function(){
                 }
             }
             var nickfirst = nickParts[0].replace("(","");
+            */
+            var nickfirst = nickParts.join(" ");
+            nickfirst = nickfirst.replace("(","");
             nickfirst = nickfirst.replace(")","");
             nickfirst = nickfirst.replace(/"/g,'');
             nickfirst = this.fix_case(nickfirst.trim());
@@ -188,7 +223,7 @@ var NameParse = (function(){
                 }
             }
             return word.join(" ");
-        };
+        }
     };
 
     NameParse.removeIgnoredChars = function (word) {

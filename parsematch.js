@@ -213,7 +213,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
             if (title.startsWith("info") || title.startsWith("notes") || title.startsWith("military") || title.startsWith("immigration") ||
                 title.startsWith("visa") || title === "emigration" || title === "ethnicity" || title === "race" || title === "residence" ||
-                title === "census" || title === "politics" || title === "religion") {
+                title === "census" || title === "politics" || title === "religion" || title === "ostracized" || title === "family death" ||
+                title === "family reunion") {
                 var aboutinfo = $(row).find(".recordFieldValue").html();
                 if (exists(aboutinfo)) {
                     aboutinfo = aboutinfo.replace('<div class="eventSeparator"></div>',' - ');
@@ -1253,7 +1254,7 @@ function buildForm() {
             }).prop('checked', this.checked);
             ffs = fs.find('input:text,select,input:hidden,textarea');
             ffs.filter(function(item) {
-                return (ffs[item].type !== "checkbox");
+                return !((ffs[item].type === "checkbox") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked));
             }).attr('disabled', !this.checked);
         });
     });

@@ -33,11 +33,11 @@ function buildGoogle(responsedata) {
 }
 
 function buildFamilySearch(responsedata) {
-    var query = 'results?count=75&query=%2Bgivenname%3A' + responsedata.first_name;
+    var query = 'results?count=75&query=%2Bgivenname%3A' + responsedata.first_name.replace("'","");
     var lastname = responsedata.last_name;
     if (exists(responsedata.maiden_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
-        lastname = responsedata.maiden_name;
-        query += '~%20%2Bspouse_surname%3A' + responsedata.last_name;
+        lastname = responsedata.maiden_name.replace("'","");
+        query += '~%20%2Bspouse_surname%3A' + responsedata.last_name.replace("'","");
     }
     query += '~%20%2Bsurname%3A' + lastname;
     if (exists(responsedata.birth)) {
@@ -57,6 +57,7 @@ function buildFamilySearch(responsedata) {
         }
     }
     query += '~';
+    query = query.replace(/[\u2018\u2019]/g, "'");
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>FamilySearch</strong>';
     researchstring += '<li><a href="https://familysearch.org/search/tree/' + query + '" target="_blank">FamilySearch (Genealogies)</a></li>';
     researchstring += '<li><a href="https://familysearch.org/search/record/' + query + '" target="_blank">FamilySearch (Records)</a></li>';

@@ -29,10 +29,18 @@ function buildHistoryBox() {
         var datetxt = "";
         if (exists(buildhistory[i].date)) {
             var day = new Date(buildhistory[i].date);
-            datetxt = (day.getMonth()+1) + "-" + day.getDate() + "@" + day.getHours() + ":" + day.getMinutes() + ": ";
+            datetxt = (("00" + (day.getMonth()+1))).slice(-2) + "-" + ("00" + day.getDate()).slice(-2) + "@" + ("00" + day.getHours()).slice(-2) + ":" + ("00" + day.getMinutes()).slice(-2) + ": ";
             //moment(buildhistory[i].date).format("MM-DD@HH:mm") + ': ';
         }
-        historytext += '<li>' + datetxt + '<a href="http://www.geni.com/' + buildhistory[i].id + '" target="_blank">' + name + '</a></li>';
+        var focusprofileurl = "";
+        if (exists(buildhistory[i].id)) {
+            if (buildhistory[i].id.startsWith("profile-g")) {
+                focusprofileurl = "http://www.geni.com/profile/index/" + buildhistory[i].id.replace("profile-g", "");
+            } else {
+                focusprofileurl = "http://www.geni.com/" + buildhistory[i].id;
+            }
+            historytext += '<li>' + datetxt + '<a href="' + focusprofileurl + '" target="_blank">' + name + '</a></li>';
+        }
     }
     historytext += "";
     document.getElementById("historybox").innerHTML = historytext;
@@ -89,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
     checkAccount();
     chrome.tabs.getSelected(null, function (tab) {
         tablink = tab.url;
-        if (startsWithMH(tablink,"research/collection")) {
+        if (startsWithMH(tablink,"research/collection") || tablink.startsWith("http://www.findagrave.com")) {
             getPageCode();
         } else if (startsWithMH(tablink,"matchingresult")) {
             document.querySelector('#loginspinner').style.display = "none";
@@ -97,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (tablink.startsWith("http://www.geni.com/people") || tablink.startsWith("http://www.geni.com/family-tree") || tablink.startsWith("http://www.geni.com/profile")) {
             var focusprofile = getProfile(tablink);
             focusid = focusprofile.replace("?profile=", "");
+            document.getElementById("addhistoryblock").style.display = "block";
             updateLinks(focusprofile);
             userAccess();
         } else {
@@ -251,20 +260,49 @@ function loadPage(request) {
         document.getElementById("loading").style.display = "none";
         setMessage("#f8ff86", 'SmartCopy can work with the various language sites of MyHeritage, but you must have an authenticated session with the English website.<br/><a href="http://www.myheritage.com/">Please login to MyHeritage.com</a>');
     }
-    else if (request.source.indexOf('pk_family_tabs') === -1 || profilechanged) {
+    else if ((tablink.contains("myheritage") && request.source.indexOf('pk_family_tabs') === -1) || profilechanged) {
         if (supportedCollection()) {
             document.getElementById("top-container").style.display = "block";
-            var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/g,""));
-            focusname= parsed.find(".recordTitle").text().trim();
-            recordtype = parsed.find(".infoGroupTitle");
-            if (exists(recordtype[0])) {
-                recordtype = recordtype[0].innerText;
-            }
-            var focusrange = parsed.find(".recordSubtitle").text().trim();
-            if (!profilechanged) {
-                var focusprofile = parsed.find(".individualInformationProfileLink").attr("href").trim();
-                focusid = focusprofile.replace("http://www.geni.com/", "");
-                updateLinks("?profile=" + focusid);
+            var focusrange = "";
+            if (tablink.contains("myheritage")) {
+                var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig,""));
+                focusname = parsed.find(".recordTitle").text().trim();
+                recordtype = parsed.find(".infoGroupTitle");
+                if (exists(recordtype[0])) {
+                    recordtype = recordtype[0].innerText;
+                }
+                focusrange = parsed.find(".recordSubtitle").text().trim();
+                if (!profilechanged) {
+                    var focusprofile = parsed.find(".individualInformationProfileLink").attr("href").trim();
+                    focusid = focusprofile.replace("http://www.geni.com/", "");
+                    updateLinks("?profile=" + focusid);
+                }
+                if (recordtype === "Find a Grave") {
+                    var findagraveurl = request.source.match('http://www.findagrave.com/cgi-bin(.*?)"');
+                    if (exists(findagraveurl) && exists(findagraveurl[1])) {
+                        tablink = "http://www.findagrave.com/cgi-bin" + findagraveurl[1];
+                        profilechanged = true;
+                        chrome.extension.sendMessage({
+                            method: "GET",
+                            action: "xhttp",
+                            url: tablink
+                        }, function (response) {
+                            loadPage(response);
+                        });
+                        return;
+                    }
+                }
+            } else if (tablink.startsWith("http://www.findagrave.com")) {
+                var parsed = $(request.source.replace(/<img[^>]*>/ig,""));
+                var fperson = parsed.find(".plus2").find("b");
+                focusname = getPersonName(fperson[0].innerHTML);
+                recordtype = "Find A Grave Memorial";
+                var title = parsed.filter('title').text().replace(" - Find A Grave Memorial", "");
+                if (title.contains("(")) {
+                    splitrange = title.split("(");
+                    focusrange = splitrange[1];
+                    focusrange = focusrange.replace(")","").trim();
+                }
             }
             if (exists(focusid)) {
                 var focusprofileurl = "";
@@ -278,7 +316,11 @@ function loadPage(request) {
                     document.getElementById("focusrange").innerText = focusrange;
                 }
                 console.log("Parsing Family...");
-                parseSmartMatch(request.source, (accountinfo.pro && accountinfo.user));
+                if (tablink.contains("/collection-")) {
+                    parseSmartMatch(request.source, (accountinfo.pro && accountinfo.user));
+                } else if (tablink.startsWith("http://www.findagrave.com")) {
+                    parseFindAGrave(request.source, (accountinfo.pro && accountinfo.user));
+                }
 
                 if (!accountinfo.pro) {
                     document.getElementById("loading").style.display = "none";
@@ -324,7 +366,7 @@ function loadSelectPage(request) {
         '<input type="text" style="width: 100%;" id="changeprofile"></td>' +
         '</tr><tr><td style="padding-top: 5px;"><button id="changefocus">Update Destination</button></td></tr></table>');
 
-    var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/g,""));
+    var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig,""));
     var focusperson = parsed.find(".individualInformationName").text().trim();
     var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
     if (exists(focusprofile)) {
@@ -406,7 +448,7 @@ function getPageCode() {
         document.querySelector('#loginspinner').style.display = "none";
         document.getElementById("smartcopy-container").style.display = "block";
         document.getElementById("loading").style.display = "block";
-        if (tablink.startsWith("http://www.myheritage.com/")) {
+        if (tablink.startsWith("http://www.myheritage.com/") || tablink.startsWith("http://www.findagrave.com")) {
             chrome.tabs.executeScript(null, {
                 file: "getPagesSource.js"
             }, function () {
@@ -582,6 +624,13 @@ $(function () {
     });
 });
 
+$(function () {
+    $('#addhistory').on('click', function () {
+        addHistory(focusid, tablink, focusname);
+        buildHistoryBox();
+    });
+});
+
 // Form submission
 var submitstatus = [];
 var tempspouse = [];
@@ -686,6 +735,7 @@ var submitform = function() {
     submitChildren();
 };
 
+var noerror = true;
 function buildTree(data, action, sendid) {
     if(!$.isEmptyObject(data) && !devblocksend) {
         if (action !== "add-photo" && action !== "delete") {
@@ -707,7 +757,13 @@ function buildTree(data, action, sendid) {
             data: $.param(data),
             variable: {id: id, relation: action.replace("add-","")}
         }, function (response) {
-            var result = JSON.parse(response.source);
+            try{
+                var result = JSON.parse(response.source);
+            }catch(e){
+                noerror = false;
+                setMessage("#f9acac", 'There was a problem adding a ' + response.variable.relation + ' to Geni. Error Response: "' + e.message + '"');
+                console.log(e); //error in the above string(in this case,yes)!
+            }
             var id = response.variable.id;
             if (exists(databyid[id])) {
                 if (exists(result.id)) {
@@ -919,12 +975,7 @@ function submitChildren() {
 }
 
 function buildTempSpouse(parentid) {
-    var tgender = "unknown";
-    if (focusgender === "male") {
-        tgender = "female";
-    } else if (focusgender === "female") {
-        tgender = "male";
-    }
+    var tgender = reverseGender(focusgender);
     if (!devblocksend) {
         submitstatus.push(submitstatus.length);
         chrome.extension.sendMessage({
@@ -964,8 +1015,10 @@ function submitWait() {
             '<div style="text-align: center; padding:5px;"><b>View Profile:</b> ' +
             '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g","") + '" target="_blank">tree view</a>, ' +
             '<a href="' + focusprofileurl + '" target="_blank">profile view</a></div>';
-        document.getElementById("message").style.display = "none";
-        $('#updating').css('margin-bottom', "15px");
+        if (noerror) {
+            document.getElementById("message").style.display = "none";
+            $('#updating').css('margin-bottom', "15px");
+        }
         buildHistoryBox();
         console.log("Tree Updated...");
         if (devblocksend) {
@@ -1155,7 +1208,7 @@ function addHistory(id, itemId, name) {
 
 function supportedCollection() {
     if ($('#exponoffswitch').prop('checked')) {
-        return (tablink.contains("/collection-"));
+        return (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com"));
     } else {
         return (tablink.contains("/collection-1/"));
     }

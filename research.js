@@ -8,6 +8,7 @@ function buildResearch() {
         variable: ""
     }, function (response) {
         var responsedata = JSON.parse(response.source);
+        focusname = responsedata.name;
         var accessdialog = document.querySelector('#useraccess');
         var researchstring = "<div style='font-size: 115%;'><strong>Research this Person</strong></div><div style='padding-top: 2px; padding-bottom: 5px;'>";
         //researchstring += buildAncestry(responsedata);

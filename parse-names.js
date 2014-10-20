@@ -96,57 +96,73 @@ var NameParse = (function(){
         var salutation = this.is_salutation(nameParts[0]);
         var suffix = this.is_suffix(nameParts[numWords - 1]);
         // set the range for the middle part of the name (trim prefixes & suffixes)
-        var start = (salutation) ? 1 : 0;
-        var end = (suffix) ? numWords - 1 : numWords;
-
-        word = nameParts[start];
-        // if we start off with an initial, we'll call it the first name
-        if (this.is_initial(word)) {
-            // if so, do a look-ahead to see if they go by their middle name
-            // for ex: "R. Jason Smith" => "Jason Smith" & "R." is stored as an initial
-            // but "R. J. Smith" => "R. Smith" and "J." is stored as an initial
-            if (this.is_initial(nameParts[start + 1])) {
-                firstName += " " + word.toLocaleUpperCase();
-            } else {
-                middleName += " " + word.toLocaleUpperCase();
-            }
-        } else {
-            firstName += " " + this.fix_case(word);
-        }
-
-        // concat the first name
-        for (i=start + 1; i<(end - 1); i++) {
-            word = nameParts[i];
-            // move on to parsing the last name if we find an indicator of a compound last name (Von, Van, etc)
-            // we do not check earlier to allow for rare cases where an indicator is actually the first name (like "Von Fabella")
-            if (this.is_compound_lastName(word)) {
-                break;
-            }
-
+        var checkmiddlesuffix = true; //sometimes the suffix is in the middle of the name like "William Edwin Jr. Butts"
+        while (checkmiddlesuffix) {
+            checkmiddlesuffix = false;
+            var start = (salutation) ? 1 : 0;
+            var end = (suffix) ? numWords - 1 : numWords;
+            word = nameParts[start];
+            // if we start off with an initial, we'll call it the first name
             if (this.is_initial(word)) {
-                middleName += " " + word.toLocaleUpperCase();
+                // if so, do a look-ahead to see if they go by their middle name
+                // for ex: "R. Jason Smith" => "Jason Smith" & "R." is stored as an initial
+                // but "R. J. Smith" => "R. Smith" and "J." is stored as an initial
+                if (this.is_initial(nameParts[start + 1])) {
+                    firstName += " " + word.toLocaleUpperCase();
+                } else {
+                    middleName += " " + word.toLocaleUpperCase();
+                }
             } else {
                 firstName += " " + this.fix_case(word);
             }
-        }
 
-        // check that we have more than 1 word in our string
-        if ((end - start) > 1) {
-            // concat the last name
-            for (j=i; j<end; j++) {
-                lastName += " " + this.fix_case(nameParts[j]);
-            }
-            lastName = this.removeIgnoredChars(lastName);
-        }
-
-        if (detectMiddleName) {
-            var checkmiddle = firstName.trim().split(" ");
-            if ((middleName.trim() === "") && (checkmiddle.length > 1)) {
-                middleName = checkmiddle.pop();
-                while (checkmiddle.length > 2) {
-                    middleName = checkmiddle.pop() + " " + middleName;
+            // concat the first name
+            for (i=start + 1; i<(end - 1); i++) {
+                word = nameParts[i];
+                // move on to parsing the last name if we find an indicator of a compound last name (Von, Van, etc)
+                // we do not check earlier to allow for rare cases where an indicator is actually the first name (like "Von Fabella")
+                if (this.is_compound_lastName(word)) {
+                    break;
                 }
-                firstName = checkmiddle.join(" ");
+
+                if (this.is_initial(word)) {
+                    middleName += " " + word.toLocaleUpperCase();
+                } else {
+                    firstName += " " + this.fix_case(word);
+                }
+            }
+
+            // check that we have more than 1 word in our string
+            if ((end - start) > 1) {
+                // concat the last name
+                for (j=i; j<end; j++) {
+                    lastName += " " + this.fix_case(nameParts[j]);
+                }
+                lastName = this.removeIgnoredChars(lastName);
+            }
+
+            if (detectMiddleName) {
+                var checkmiddle = firstName.trim().split(" ");
+                if ((middleName.trim() === "") && (checkmiddle.length > 1)) {
+                    middleName = checkmiddle.pop();
+                    while (checkmiddle.length > 2) {
+                        middleName = checkmiddle.pop() + " " + middleName;
+                    }
+                    firstName = checkmiddle.join(" ");
+                }
+            }
+            if (!suffix && this.is_suffix(middleName)) {
+                suffix = middleName;
+                checkmiddlesuffix = true;
+                for (i=start + 1; i<(end - 1); i++) {
+                    if (nameParts[i] === middleName) {
+                        nameParts.splice(i,1);
+                        break;
+                    }
+                }
+                firstName = "";
+                middleName = "";
+                lastName = "";
             }
         }
 
@@ -204,7 +220,7 @@ var NameParse = (function(){
                 'hon', 'amd', 'bg', 'bgen', 'brig gen', 'cpt', 'capt', 'cwo',
                 'col', 'cdr', 'cpl', 'ens', '1lt', '1st lt', 'ltjg', '2lt', '2nd lt',
                 'lt', 'gen', 'ltc', 'lt col', 'lcdr', 'ltg', 'lt gen', 'maj gen', 'mg',
-                'maj', 'msg', 'msgt', 'sgt', 'radm', 'vadm', 'brother', 'chaplain',
+                'pvt', 'maj', 'msg', 'msgt', 'sgt', 'radm', 'vadm', 'brother', 'chaplain',
                 'doctor', 'father', 'judge', 'missus', 'madam', 'professor', 'reverend',
                 'senator', 'congressman', 'governor', 'sister', 'the honorable', 'honerable',
                 'admiral', 'brigadier general', 'captain', 'chief warrant officer', 'colonel',

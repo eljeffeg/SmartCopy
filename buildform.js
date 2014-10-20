@@ -17,688 +17,6 @@ var myhspouse = [];
 var focusgender = "unknown";
 var focusabout = "";
 alldata["family"] = {};
-// Parse MyHeritage Tree from Smart Match
-function parseSmartMatch(htmlstring, familymembers, relation) {
-    if ($(htmlstring).filter('title').text().contains("Marriages")) {
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("top-container").style.display = "none";
-        setMessage("#f8ff86", 'This MyHeritage collection is not yet supported by SmartCopy.');
-        return "";
-    }
-    relation = relation || "";
-    var parsed = $('<div>').html(htmlstring.replace(/<img[^>]*>/g, ""));
-
-    var focusperson = parsed.find(".recordTitle").text().trim();
-    document.getElementById("readstatus").innerText = focusperson;
-    var focusdaterange = parsed.find(".recordSubtitle").text().trim();
-    //console.log(focusperson);
-    var genderdiv = parsed.find(".recordImage");
-    var genderimage = $(genderdiv).find('.PK_Silhouette');
-    var genderval = "unknown";
-    if ($(genderimage).hasClass('PK_Silhouette_S_150_M_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_150_M_C_LTR')) {
-        genderval = "male";
-    } else if ($(genderimage).hasClass('PK_Silhouette_S_150_F_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_150_F_C_LTR')) {
-        genderval = "female";
-    }
-    if (relation === "") {
-        focusgender = genderval;
-    }
-    var aboutdata = "";
-    var profiledata = {name: focusperson, gender: genderval, status: relation.title};
-
-    var imagebox = $(htmlstring).find(".recordImageBoxContainer");
-    var thumb = imagebox.find('img.recordImage').attr('src');
-    if (exists(thumb)) {
-        var imageref = imagebox.find('a');
-        if (exists(imageref[0])) {
-            if (!thumb.startsWith("http://recordsthumbnail.myheritageimages.com")) {
-                var image = imageref[0].href;
-                if (image.startsWith("http://www.findagrave.com")) {
-                    profiledata["image"] = thumb.replace("http://records.myheritageimages.com/wvrcontent/findagrave_photos", "http://image1.findagrave.com");
-                } else if (image.startsWith("http://billiongraves.com")) {
-                    profiledata["image"] = thumb.replace("thumbnails", "images")
-                } else {
-                    profiledata["image"] = image;
-                }
-                profiledata["thumb"] = thumb;
-            }
-        } else {
-            //var photobox = parsed.find(".recordRelatedPhotosContainer");  Area for multiple pics
-            //example:http://www.myheritage.com/research/collection-1/myheritage-family-trees?action=showRecord&itemId=187339442-1-500348&groupId&indId=externalindividual-60b8fd397ede07a7734908636547b649&callback_token=aJ246ziA8CCB8WycR8ujZxNXfJpZjcXsgCkoDd6U&mrid=0fcad2868a0e76a3fa94f97921debb00
-            var paperclip = parsed.find(".paperClip");
-            if (exists(paperclip[0])) {
-                profiledata["image"] = thumb;
-                profiledata["thumb"] = thumb;
-            }
-        }
-    }
-
-    var records = parsed.find(".recordFieldsContainer");
-    if (familymembers) {
-        familystatus.push("family");
-        var familyurl = "http://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + focusid;
-        chrome.extension.sendMessage({
-            method: "GET",
-            action: "xhttp",
-            url: familyurl
-        }, function (response) {
-            genispouse = JSON.parse(response.source);
-            familystatus.pop();
-        });
-        familystatus.push("about");
-        var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me&profile=" + focusid;
-        chrome.extension.sendMessage({
-            method: "GET",
-            action: "xhttp",
-            url: abouturl
-        }, function (response) {
-            var about_return = JSON.parse(response.source);
-            if (!$.isEmptyObject(about_return) && exists(about_return.about_me)) {
-                focusabout = about_return.about_me;
-            }
-            familystatus.pop();
-        });
-        //Parses pages like Census that have entries at the bottom in Household section
-        var household = parsed.find('.groupTable').find('tr');
-        if (household.length > 0) {
-            var housearray = [];
-            for (var i = 0; i < household.length; i++) {
-                var hv = $(household[i]).find('td');
-                for (var x = 0; x < hv.length; x++) {
-                    var urlval = $(hv[x]).find('a');
-                    if (urlval.length > 0) {
-                        housearray.push({name: $(hv[x]).text(), url: urlval[0].href});
-                    }
-                }
-            }
-        }
-    }
-
-    if (records.length > 0 && records[0].hasChildNodes()) {
-        var famid = 0;
-        // ---------------------- Profile Data --------------------
-        if (focusdaterange !== "") {
-            profiledata["daterange"] = focusdaterange;
-        }
-        var children = records[0].childNodes;
-        var child = children[0];
-        var rows = $(child).find('tr');
-        var burialdtflag = false;
-        var buriallcflag = false;
-        var deathdtflag = false;
-        for (var r = 0; r < rows.length; r++) {
-
-            // console.log(row);
-            var row = rows[r];
-            var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
-            if (title === "gender") {
-                if (exists($(row).find(".recordFieldValue").contents().get(0))) {
-                    genderval = $(row).find(".recordFieldValue").contents().get(0).nodeValue.toLowerCase();
-                    profiledata["gender"] = genderval;
-                }
-                continue;
-            }
-            if (familymembers && (isParent(title) || isSibling(title) || isChild(title) || isPartner(title))) {
-                //This is for Census pages that don't contain the Family members section
-                if (exists($(row).find(".recordFieldValue").contents().get(0))) {
-                    if (!exists(alldata["family"][title])) {
-                        alldata["family"][title] = [];
-                    }
-                    var gendersv = "unknown";
-                    if (isFemale(title)) {
-                        gendersv = "female";
-                    } else if (isMale(title)) {
-                        gendersv = "male";
-                    }
-                    var listrow = $(row).find(".recordFieldValue").contents();
-                    if (listrow.length > 1) {
-                        for (var lr =0;lr < listrow.length; lr++) {
-                            var listrowval = listrow[lr];
-                            if (listrowval.className != "eventSeparator") {
-                                alldata["family"][title].push({name: listrowval.nodeValue, gender: gendersv, profile_id: famid, title: title});
-                            }
-                            famid++;
-                        }
-                    } else {
-                        var splitlrnv = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
-                        if (exists(splitlrnv)) {
-                            var splitlr = splitlrnv.split(",");
-                            for (var lr =0;lr < splitlr.length; lr++) {
-                                if (NameParse.is_suffix(splitlr[lr]) && lr !== 0) {
-                                    splitlr[lr-1] += "," + splitlr[lr];
-                                    splitlr.splice(lr, 1);
-                                }
-                            }
-                            for (var lr =0;lr < splitlr.length; lr++) {
-                                var splitval = splitlr[lr];
-                                if (exists(housearray)) {
-                                    for (var i = 0; i < housearray.length; i++) {
-                                        if (housearray[i].name === splitval.trim()) {
-                                            familystatus.push(familystatus.length);
-                                            var subdata = {name: splitval.trim(), gender: gendersv, title: title};
-                                            var urlval = housearray[i].url;
-                                            var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
-                                            var itemid = getParameterByName('itemId', shorturl);
-                                            subdata["url"] = urlval;
-                                            subdata["itemId"] = itemid;
-                                            subdata["profile_id"] = famid;
-                                            unionurls[famid] = itemid;
-                                            chrome.extension.sendMessage({
-                                                method: "GET",
-                                                action: "xhttp",
-                                                url: shorturl,
-                                                variable: subdata
-                                            }, function (response) {
-                                                var arg = response.variable;
-                                                var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
-                                                person = updateInfoData(person, arg);
-                                                databyid[arg.profile_id] = person;
-                                                alldata["family"][arg.title].push(person);
-                                                familystatus.pop();
-                                            });
-                                            housearray.splice(i, 1);
-                                            break;
-                                        }
-                                    }
-                                } else {
-                                    alldata["family"][title].push({name: splitval.trim(), gender: gendersv,  profile_id: famid, title: title});
-                                }
-
-                                famid++;
-                            }
-                        }
-                    }
-                }
-                continue;
-            }
-            if (title.startsWith("info") || title.startsWith("notes") || title.startsWith("military") || title.startsWith("immigration") ||
-                title.startsWith("visa") || title === "emigration" || title === "ethnicity" || title === "race" || title === "residence" ||
-                title === "census" || title === "politics" || title === "religion" || title === "ostracized" || title === "family death" ||
-                title === "family reunion") {
-                var aboutinfo = $(row).find(".recordFieldValue").html();
-                if (exists(aboutinfo)) {
-                    aboutinfo = aboutinfo.replace('<div class="eventSeparator"></div>',' - ');
-                    aboutinfo = $('<div>').html(aboutinfo).text();
-                    if (aboutinfo.contains("jQuery(function()")) {
-                        var splitinfo = aboutinfo.split("jQuery(function()");
-                        aboutinfo = splitinfo[0];
-                        aboutinfo = aboutinfo.trim();
-                    }
-                    aboutdata += "* '''" + capFL(title) + "''': " + aboutinfo + "\n";
-                }
-                continue;
-            }
-
-            if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
-                && title !== 'occupation' && title !== 'cemetery' && title !== 'christening'
-                && !(title === 'marriage' && (relation === "" || isParent(relation.title)))) {
-                /*
-                 This will exclude residence, since the API seems to only support current residence.
-                 It also will remove Military Service and any other entry not explicitly defined above.
-                 */
-                continue;  //move to the next entry
-            }
-
-            if (title === "occupation") {
-                if (exists($(row).find(".recordFieldValue").contents().get(0))) {
-                    profiledata[title] = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
-                }
-                continue;
-            }
-            if (title === "cemetery") {
-                title = "burial";
-            }
-            if (title === "christening") {
-                title = "baptism";
-            }
-            var valdate = "";
-            var vallocal = $(row).find(".map_callout_link").text().trim();
-            var valplace = "";
-            //var vdate = $(row).find(".recordFieldValue");
-            //var valdate = vdate.clone().children().remove().end().text().trim();
-            var data = [];
-            var fielddata = $(row).find(".recordFieldValue").contents();
-            dance:
-                for (var i=0; i < fielddata.length; i++) {
-                    if (exists(fielddata.get(i))) {
-                        valdate = fielddata.get(i).nodeValue;
-                        var verifydate = moment(valdate, dateformatter, true).isValid();
-                        if (!verifydate) {
-                            if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
-                                break;
-                            }
-                            else if (valdate !== null && checkPlace(valdate) !== "") {
-                                valplace = checkPlace(valdate);
-                            } else if (valdate !== null && valdate.toLowerCase().startsWith("marriage to")) {
-                                data.push({name: valdate.replace("Marriage to: ","")});
-                            } else {
-                                if (fielddata.get(i).hasChildNodes()) {
-                                    var checkchild = fielddata.get(i).childNodes;
-                                    for (var x=0; x < checkchild.length; x++) {
-                                        valdate = checkchild[x].nodeValue;
-                                        verifydate = moment(valdate, dateformatter, true).isValid();
-                                        if (!verifydate) {
-                                            if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
-                                                break dance;
-                                            }
-                                            valdate = "";
-                                        } else {
-                                            break dance;
-                                        }
-                                    }
-                                } else {
-                                    valdate = "";
-                                }
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-                }
-
-            if (valdate !== "") {
-                data.push({date: valdate});
-            }
-
-            if (vallocal !== "") {
-                data.push({id: geoid, location: vallocal, place: valplace});
-                geoid++;
-            }
-            if (exists(profiledata[title]) && profiledata[title].length >= data.length) {
-                continue;
-            }
-            if (title === "burial" && valdate !== "") {
-                burialdtflag = true;
-            } else if (title === "death" && valdate !== "") {
-                deathdtflag = true;
-            }
-            if (title === "burial" && valdate === "" && vallocal !== "") {
-                buriallcflag = true;
-            }
-
-            if (title !== 'marriage') {
-                profiledata[title] = data;
-            } else if (!$.isEmptyObject(data)) {
-                if (relation === "") {
-                    //focus profile
-                    marriagedata.push(data);
-                } else {
-                    //parent profiles
-                    if (!parentflag) {
-                        parentmarset.push(data);
-                    } else {
-                        //attempt to match up parent with multiple spouses via matching date / location
-                        for (var pm = 0; pm < parentmarset.length; pm++) {
-                            var pmd = true;
-                            var pml = true;
-                            var pmp = true;
-                            var pmatch = parentmarset[pm];
-                            for (var pid = 0; pid < pmatch.length; pid++) {
-                                if(exists(pmatch[pid].date)) {
-                                    pmd = exists(data[pid].date) && pmatch[pid].date === data[pid].date;
-                                } else if (exists(pmatch[pid].location)) {
-                                    pml = exists(data[pid].location) && pmatch[pid].location === data[pid].location;
-                                } else if (exists(pmatch[pid].place)) {
-                                    pmp = exists(data[pid].place) && pmatch[pid].place === data[pid].place;
-                                }
-                            }
-                            if (pmd && pml && pmp) {
-                                parentmarriage = pmatch;
-                                profiledata["marriage"] = pmatch;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (!burialdtflag && buriallcflag && deathdtflag && $('#burialonoffswitch').prop('checked')) {
-            var data = [];
-            var dd = profiledata["death"][0]["date"];
-            if (dd.startsWith("Between")) {
-                var btsplit = dd.split(" and ");
-                if (btsplit.length > 1) {
-                    dd = btsplit[1];
-                }
-            }
-            if (dd.startsWith("After Circa") || dd.startsWith("Circa After")) {
-                dd = dd.trim();
-            } else if (dd.startsWith("After")) {
-                dd = dd.replace("After", "After Circa").trim();
-            } else if (dd.startsWith("Before Circa") || dd.startsWith("Circa Before") ) {
-                dd = dd.trim();
-            } else if (dd.startsWith("Before")) {
-                dd = dd.replace("Before", "Before Circa").trim();
-            } else if (dd.startsWith("Circa")) {
-                dd = "After " + dd.trim();
-            } else if (!dd.startsWith("Between")) {
-                dd = "After Circa " + dd.trim();
-            }
-            if (!dd.startsWith("Between")) {
-                data.push({date: dd});
-                data.push(profiledata["burial"][0]);
-                profiledata["burial"] = data;
-            }
-        }
-        if (relation !== "" && isParent(relation.title)) {
-            parentflag = true;
-        }
-        var setmarriage = false;
-        if (marriagedata.length > 0 && familymembers && children.length > 2) {
-            child = children[2];
-            var pcount = 0;
-            var rows = $(child).find('tr');
-            for (var i = 0; i < rows.length; i++) {
-                var row = rows[i];
-                var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
-                if (isPartner(title)) {
-                    //TODO Checking could be done if one profile is private and another not
-                    pcount++;
-                }
-            }
-            if (marriagedata.length === 1 && pcount === 1) {
-                setmarriage = true;
-            }
-        }
-        if (aboutdata !== "") {
-            profiledata["about"] = aboutdata;
-            // "\n--------------------\n"  Merge separator
-        }
-
-        // ---------------------- Family Data --------------------
-
-        if (familymembers && children.length > 2) {
-            //This section is only run on the focus profile
-            alldata["profile"] = profiledata;
-            alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();
-
-            child = children[2];
-
-            var rows = $(child).find('tr');
-
-            for (var i = 0; i < rows.length; i++) {
-                var row = rows[i];
-                var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
-                var valfamily = $(row).find(".recordFieldValue");
-                var famlist = $(valfamily).find(".individualsListContainer");
-                alldata["family"][title] = [];
-
-                for (var r = 0; r < famlist.length; r++) {
-                    familystatus.push(r);
-                    var row = famlist[r];
-                    var subdata = parseInfoData(row);
-                    if (isPartner(title)) {
-                        if (genderval === "unknown") {
-                            //Sets the focus profile gender if unknown
-                            if (title === "wife" || title === "ex-wife") {
-                                genderval = "male";
-                            } else if (title === "husband" || title === "ex-husband") {
-                                genderval = "female";
-                            }
-                            focusgender = genderval;
-                            profiledata["gender"] = genderval;
-                        }
-                        if (marriagedata.length > 0) {
-                            if (setmarriage) {
-                                subdata["marriage"] = marriagedata[0];
-                            } else {
-                                for (var m=0; m < marriagedata.length; m++) {
-                                    if (exists(marriagedata[m][0]) && exists(marriagedata[m][0].name)) {
-                                        if (marriagedata[m][0].name === subdata.name) {
-                                            subdata["marriage"] = marriagedata[m];
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    subdata["title"] = title;
-                    //console.log(subdata);
-                    var urlval = $(row).find(".individualListBodyContainer a").attr("href");
-                    var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
-                    var itemid = getParameterByName('itemId', shorturl);
-                    subdata["url"] = urlval;
-                    subdata["itemId"] = itemid;
-                    subdata["profile_id"] = famid;
-                    unionurls[famid] = itemid;
-                    famid ++;
-                    //Grab data from the profile's page as it contains more detailed information
-                    chrome.extension.sendMessage({
-                        method: "GET",
-                        action: "xhttp",
-                        url: urlval,
-                        variable: subdata
-                    }, function (response) {
-                        var arg = response.variable;
-                        var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
-                        person = updateInfoData(person, arg);
-                        databyid[arg.profile_id] = person;
-                        alldata["family"][arg.title].push(person);
-                        familystatus.pop();
-                    });
-                }
-            }
-            if (genderval === "unknown") {
-                //last attempt to determine gender - check if the lastname != birthname, assume female
-                var nametest = NameParse.parse(focusperson);
-                if (nametest.suffix !== "") {
-                    genderval = "male";
-                    focusgender = genderval;
-                    profiledata["gender"] = genderval;
-                } else if (nametest.birthName !== "" && nametest.lastName !== nametest.birthName) {
-                    genderval = "female";
-                    focusgender = genderval;
-                    profiledata["gender"] = genderval;
-                }
-            }
-            updateGeo(); //Poll until all family requests have returned and continue there
-        } else if (children.length > 2 && exists(relation.title)) {
-            if (isChild(relation.title)) {
-                var itemid = getParameterByName('itemId', tablink);
-                child = children[2];
-                var rows = $(child).find('tr');
-                for (var i = 0; i < rows.length; i++) {
-                    var row = rows[i];
-                    var relationship = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
-                    if (isParent(relationship)) {
-                        var valfamily = $(row).find(".recordFieldValue");
-                        var famlist = $(valfamily).find(".individualsListContainer");
-                        for (var r = 0; r < famlist.length; r++) {
-                            var row = famlist[r];
-                            var urlval = getParameterByName('itemId', $(row).find(".individualListBodyContainer a").attr("href"));
-                            if (urlval !== itemid) {
-                                childlist[relation.proid] = $.inArray(urlval, unionurls);
-                                profiledata["parent_id"] = $.inArray(urlval, unionurls);
-                            }
-                        }
-                    }
-                }
-            } else if (isPartner(relation.title)) {
-                myhspouse.push(relation.proid);
-            } else if (isParent(relation.title)) {
-                child = children[2];
-                var rows = $(child).find('tr');
-                for (var i = 0; i < rows.length; i++) {
-                    var row = rows[i];
-                    var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
-                    if (isPartner(title)){
-                        profiledata["mstatus"] = title;
-                        break;
-                    }
-                }
-            }
-            if (genderval === "unknown") {
-                child = children[2];
-                var rows = $(child).find('tr');
-                for (var i = 0; i < rows.length; i++) {
-                    var row = rows[i];
-                    var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
-                    if (isPartner(title) && isFemale(title)) {
-                        genderval = "male";
-                        profiledata["gender"] = genderval;
-                        break;
-                    } else if (isPartner(title) && isMale(title)) {
-                        genderval = "female";
-                        profiledata["gender"] = genderval;
-                        break;
-                    }
-                }
-            }
-            if (genderval === "unknown") {
-                //last attempt to determine gender - check if the lastname != birthname, assume female
-                var nametest = NameParse.parse(focusperson);
-                if (nametest.suffix !== "") {
-                    genderval = "male";
-                    focusgender = genderval;
-                    profiledata["gender"] = genderval;
-                } else if (nametest.birthName !== "" && nametest.lastName !== nametest.birthName) {
-                    genderval = "female";
-                    profiledata["gender"] = genderval;
-                }
-            }
-        } else if (relation === "") {
-            alldata["profile"] = profiledata;
-            alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();
-            familystatus.push("about");
-            var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me&profile=" + focusid;
-            chrome.extension.sendMessage({
-                method: "GET",
-                action: "xhttp",
-                url: abouturl
-            }, function (response) {
-                var about_return = JSON.parse(response.source);
-                if (!$.isEmptyObject(about_return) && exists(about_return.about_me)) {
-                    focusabout = about_return.about_me;
-                }
-                familystatus.pop();
-            });
-            updateGeo();
-        }
-    }
-    return profiledata;
-}
-
-function updateInfoData(person, arg) {
-    person["url"] = arg["url"];
-    person["itemId"] = arg["itemId"];
-    person["profile_id"] = arg["profile_id"];
-
-    if (exists(arg.name)) {
-        //This compares the data on the focus profile to the linked profile and uses most complete
-        //Sometimes more information is shown on the SM, but when you click the link it goes <Private>
-        var mname = $('#mnameonoffswitch').prop('checked');
-        var tempname = NameParse.parse(person.name, mname);
-        var argname = NameParse.parse(arg.name, mname);
-        if (person.name.startsWith("\<Private\>") && !arg.name.startsWith("\<Private\>")) {
-            if (!arg.name.contains("(born ") && person.name.contains("(born ")) {
-                if (arg.name.contains(tempname.birthName)) {
-                    if (arg.name.contains(tempname.lastName)) {
-                        arg.name = arg.name.replace(tempname.birthName, "(born " + tempname.birthName + ")");
-                    } else {
-                        arg.name = arg.name.replace(tempname.birthName, tempname.lastName + " (born " + tempname.birthName + ")");
-                    }
-                } else {
-                    arg.name = arg.name.trim() + " (born " + tempname.birthName + ")";
-                }
-            }
-            person.name = arg.name;
-            person["alive"] = true;
-        }
-        if (argname.suffix !== "" && tempname.suffix === "") {
-            person.name += ", " + argname.suffix;
-        }
-        if (tempname.lastName !== argname.lastName && tempname.lastName.toLowerCase() === argname.lastName.toLowerCase()) {
-            //Check if one is CamelCase
-            var tlast = tempname.lastName.substring(1, tempname.lastName.length);
-            var alast = argname.lastName.substring(1, argname.lastName.length);
-            if(!NameParse.is_camel_case(tlast) && NameParse.is_camel_case(alast)){
-                person.name = person.name.replace(tempname.lastName, argname.lastName);
-            }
-        }
-        if (tempname.birthName !== argname.birthName && tempname.birthName.toLowerCase() === argname.birthName.toLowerCase()) {
-            //Check if one is CamelCase
-            var tlast = tempname.birthName.substring(1, tempname.birthName.length);
-            var alast = argname.birthName.substring(1, argname.birthName.length);
-            if(!NameParse.is_camel_case(tlast) && NameParse.is_camel_case(alast)){
-                person.name = person.name.replace(tempname.birthName, argname.birthName);
-            }
-        }
-        if (exists(arg.gender) && person.gender === "unknown") {
-            person.gender = arg.gender;
-        }
-
-        if (person.gender === "unknown") {
-            //Try another approach based on relationship to focus
-            var title = arg.title;
-            if (isFemale(title)) {
-                person.gender = "female";
-            } else if (isMale(title)) {
-                person.gender = "male";
-            }
-        }
-        if (exists(arg.birthyear) && !exists(person.birth)) {
-            person["birth"] = [{"date": arg.birthyear}];
-        }
-        if (exists(arg.deathyear) && !exists(person.death)) {
-            person["death"] = [{"date": arg.deathyear}];
-        }
-        if (!tablink.contains("/collection-1/") && !exists(person["death"]) && exists(person["birth"])) {
-            var fulldate = null;
-            for (var b = 0; b < person["birth"].length; b++) {
-                if (exists(person["birth"][b].date) && person["birth"][b].date.trim() !== "") {
-                    fulldate = person["birth"][b].date;
-                    break;
-                }
-            }
-            if (fulldate !== null) {
-                var birthval = parseDate(fulldate, false);
-                var agelimit = moment.utc().format("YYYY") - 95;
-                if (exists(birthval.year) && birthval.year >= agelimit) {
-                    person["alive"] = true;
-                }
-            }
-        }
-        if (exists(arg.marriage)) {
-            delete arg["marriage"][0].name;
-            person["marriage"] = arg["marriage"];
-        }
-    }
-    return person;
-}
-
-function parseInfoData(row) {
-    var obj = {};
-    var name = $(row).find(".individualNameLink").text();
-    if (!name.startsWith("\<Private\>")) {
-        obj["name"] = name.trim();
-    }
-    var drange = $(row).find(".immediateMemberDateRange").text();
-    if (drange.length > 0) {
-        if (drange.contains(" - ")) {
-            var splitr = drange.trim().split(" - ");
-            if (splitr[0] !== "?") {
-                obj["birthyear"] = splitr[0];
-            }
-            if (splitr[1] !== "?") {
-                obj["deathyear"] = splitr[1];
-            }
-        } else if (!isNaN(drange)) {
-            obj["birthyear"] = drange.trim();
-        }
-    }
-    var genderimage = $(row).find('.PK_Silhouette');
-    var genderval = "unknown";
-    if ($(genderimage).hasClass('PK_Silhouette_S_30_M_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_30_M_C_LTR')) {
-        genderval = "male";
-    } else if ($(genderimage).hasClass('PK_Silhouette_S_30_F_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_30_F_C_LTR')) {
-        genderval = "female";
-    }
-    if (genderval.trim() !== "unknown") {
-        obj["gender"] = genderval.trim();
-    }
-    return obj;
-}
 
 function updateGeo() {
     if (familystatus.length > 0) {
@@ -738,6 +56,7 @@ function updateGeo() {
             for (var member in members) if (members.hasOwnProperty(member)) {
                 for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
                     var title = listvalues[list];
+
                     var memberobj = members[member][title];
                     if (exists(memberobj)) {
                         for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
@@ -757,9 +76,44 @@ function updateFamily() {
     } else {
         console.log("Geo Processed...");
         document.getElementById("readstatus").innerHTML = "";
+        updateGenders();
         buildForm();
         document.getElementById("loading").style.display = "none";
     }
+}
+
+function updateGenders() {
+    var obj = alldata["family"];
+    var parentgender;
+    var spousegender;
+    for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
+        if (isParent(relationship)) {
+            parentgender = obj[relationship];
+        } else if(isPartner(relationship)) {
+            spousegender = obj[relationship];
+        }
+    }
+    if (exists(parentgender) && parentgender.length > 1) {
+        if (parentgender[0].gender === "unknown" && parentgender[1].gender !== "unknown") {
+            parentgender[0].gender = reverseGender(parentgender[1].gender);
+        } else if (parentgender[1].gender === "unknown" && parentgender[0].gender !== "unknown") {
+            parentgender[1].gender = reverseGender(parentgender[0].gender);
+        }
+    }
+    if (focusgender === "unknown" && exists(spousegender) && spousegender.length > 0) {
+        if (spousegender[0].gender !== "unknown") {
+            focusgender = reverseGender(spousegender[0].gender);
+        }
+    }
+}
+
+function reverseGender(gender) {
+    if (gender === "female") {
+        return "male";
+    } else if (gender === "male") {
+        return "female";
+    }
+    return "unknown";
 }
 
 function buildForm() {
@@ -779,24 +133,24 @@ function buildForm() {
     var namescore = scorefactors.contains("middle name");
     if (namescore) {
         membersstring +=
-        '<tr><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" disabled></td></tr>' +
-            '<tr><td class="profilediv"><input type="checkbox" class="checknext" checked>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '"></td></tr>' +
-            '<tr><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" disabled></td></tr>' +
-            '<tr><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" disabled></td></tr>' +
-            '<tr><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" disabled></td></tr>' +
-            '<tr><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" disabled></td></tr>' +
-            '<tr><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" name="display_name" value="' + displayname + '" disabled></td></tr>' +
-            '<tr><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
+            '<tr><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext" checked>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '"></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" name="display_name" value="' + displayname + '" disabled></td></tr>' +
+                '<tr><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
     } else {
         membersstring +=
-        '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" disabled></td></tr>' +
-            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '" disabled></td></tr>' +
-            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" disabled></td></tr>' +
-            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" disabled></td></tr>' +
-            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" disabled></td></tr>' +
-            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" disabled></td></tr>' +
-            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" name="display_name" value="' + displayname + '" disabled></td></tr>' +
-            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
+            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" name="display_name" value="' + displayname + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
     }
     div[0].innerHTML = membersstring;
     if (exists(alldata["profile"]["thumb"])) {
@@ -811,7 +165,7 @@ function buildForm() {
         var image = alldata["profile"]["image"];
         membersstring = membersstring +
             '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(thumbnail, scorephoto) + '>' +
-            capFL(title) + ':</td><td style="float:right;padding: 0;"><input type="hidden" class="photocheck" name="' + title + '" value="' + image + '" ' + isEnabled(thumbnail, scorephoto) + '><img src="' + thumbnail + '"></td></tr>';
+            capFL(title) + ':</td><td style="float:right;padding: 0;"><input type="hidden" class="photocheck" name="' + title + '" value="' + image + '" ' + isEnabled(thumbnail, scorephoto) + '><img style="max-width: 158px" src="' + thumbnail + '"></td></tr>';
         div[0].innerHTML = membersstring;
     }
     if (exists(alldata["profile"]["occupation"])) {
@@ -1025,7 +379,7 @@ function buildForm() {
         }
 
         var div = $("#" + relationship);
-        if (members.length > 0) {
+        if (members.length > 0 && exists(div[0])) {
             div[0].style.display = "block";
         }
         var parentscore = scored;
@@ -1095,7 +449,7 @@ function buildForm() {
                 var image = members[member]["image"];
                 membersstring = membersstring +
                     '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext photocheck" ' + isChecked(thumbnail, (scored && photoscore)) + '>' +
-                    "Photo" + ':</td><td style="float:right;padding: 0;"><input type="hidden" class="photocheck" name="photo" value="' + image + '" ' + isEnabled(thumbnail, scored) + '><img src="' + thumbnail + '"></td></tr>';
+                    "Photo" + ':</td><td style="float:right;padding: 0;"><input type="hidden" class="photocheck" name="photo" value="' + image + '" ' + isEnabled(thumbnail, scored) + '><img style="max-width: 158px"  src="' + thumbnail + '"></td></tr>';
             }
             membersstring +=
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored) + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored) + '></td></tr>' +
@@ -1340,7 +694,7 @@ function isParent(relationship) {
 
 function isPartner(relationship) {
     relationship = relationship.replace(" (implied)", "");
-    return (relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner");
+    return (relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner" || relationship === "spouse" || relationship === "spouses");
 }
 
 function isHidden(value, geo) {
@@ -1429,5 +783,98 @@ function buildParentSelect(id) {
 }
 
 
+function updateInfoData(person, arg) {
+    person["url"] = arg["url"];
+    person["itemId"] = arg["itemId"];
+    person["profile_id"] = arg["profile_id"];
 
+    if (exists(arg.name)) {
+        //This compares the data on the focus profile to the linked profile and uses most complete
+        //Sometimes more information is shown on the SM, but when you click the link it goes <Private>
+        var mname = $('#mnameonoffswitch').prop('checked');
+        var tempname = NameParse.parse(person.name, mname);
+        var argname = NameParse.parse(arg.name, mname);
+        if (person.name.startsWith("\<Private\>") && !arg.name.startsWith("\<Private\>")) {
+            if (!arg.name.contains("(born ") && person.name.contains("(born ")) {
+                if (arg.name.contains(tempname.birthName)) {
+                    if (arg.name.contains(tempname.lastName)) {
+                        arg.name = arg.name.replace(tempname.birthName, "(born " + tempname.birthName + ")");
+                    } else {
+                        arg.name = arg.name.replace(tempname.birthName, tempname.lastName + " (born " + tempname.birthName + ")");
+                    }
+                } else {
+                    arg.name = arg.name.trim() + " (born " + tempname.birthName + ")";
+                }
+            }
+            person.name = arg.name;
+            person["alive"] = true;
+        }
+        if (argname.suffix !== "" && tempname.suffix === "") {
+            person.name += ", " + argname.suffix;
+        }
+        if (tempname.lastName !== argname.lastName && tempname.lastName.toLowerCase() === argname.lastName.toLowerCase()) {
+            //Check if one is CamelCase
+            var tlast = tempname.lastName.substring(1, tempname.lastName.length);
+            var alast = argname.lastName.substring(1, argname.lastName.length);
+            if(!NameParse.is_camel_case(tlast) && NameParse.is_camel_case(alast)){
+                person.name = person.name.replace(tempname.lastName, argname.lastName);
+            }
+        }
+        if (tempname.birthName !== argname.birthName && tempname.birthName.toLowerCase() === argname.birthName.toLowerCase()) {
+            //Check if one is CamelCase
+            var tlast = tempname.birthName.substring(1, tempname.birthName.length);
+            var alast = argname.birthName.substring(1, argname.birthName.length);
+            if(!NameParse.is_camel_case(tlast) && NameParse.is_camel_case(alast)){
+                person.name = person.name.replace(tempname.birthName, argname.birthName);
+            }
+        }
+        if (exists(arg.gender) && person.gender === "unknown") {
+            person.gender = arg.gender;
+        }
 
+        if (person.gender === "unknown") {
+            //Try another approach based on relationship to focus
+            var title = arg.title;
+            if (isFemale(title)) {
+                person.gender = "female";
+            } else if (isMale(title)) {
+                person.gender = "male";
+            }
+        }
+        if (person.gender === "unknown" && (argname.suffix !== "" || tempname.suffix !== "")) {
+            person.gender = "male";
+        }
+        if (exists(arg.birthyear) && !exists(person.birth)) {
+            person["birth"] = [{"date": arg.birthyear}];
+        }
+        if (exists(arg.deathyear) && !exists(person.death)) {
+            person["death"] = [{"date": arg.deathyear}];
+        }
+        if (!tablink.contains("/collection-1/") && !exists(person["death"]) && exists(person["birth"])) {
+            var fulldate = null;
+            for (var b = 0; b < person["birth"].length; b++) {
+                if (exists(person["birth"][b].date) && person["birth"][b].date.trim() !== "") {
+                    fulldate = person["birth"][b].date;
+                    break;
+                }
+            }
+            if (fulldate !== null) {
+                var birthval = parseDate(fulldate, false);
+                var agelimit = moment.utc().format("YYYY") - 95;
+                if (exists(birthval.year) && birthval.year >= agelimit) {
+                    person["alive"] = true;
+                }
+            }
+        }
+        if (exists(arg.marriage)) {
+            delete arg["marriage"][0].name;
+            person["marriage"] = arg["marriage"];
+        }
+    }
+    return person;
+}
+
+function parseWikiURL(wikistring) {
+    wikistring = wikistring.replace(/<a href="(.*?)"*>/mg, '[$1 ').replace("</a>", "]");
+    return wikistring;
+}

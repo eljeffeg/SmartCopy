@@ -349,7 +349,6 @@ function loadPage(request) {
         } else if (startsWithMH(tablink, "")) {
             itemId = getParameterByName('itemId', tablink);
         }
-        console.log(itemId);
         if (itemId !== "") {
             for (var i=0;i< buildhistory.length;i++) {
 
@@ -806,7 +805,7 @@ function buildTree(data, action, sendid) {
                             }, function (response) {
                                 var source2 = JSON.parse(response.source);
                                 var rid = response.variable.id;
-                                if (exists(source2[0].union)) {
+                                if (exists(source2[0]) && exists(source2[0].union)) {
                                     spouselist[rid] = {union: source2[0].union, status: databyid[rid].mstatus};
                                 }
                                 if (action !== "add-photo" && action !== "delete") {

@@ -97,9 +97,9 @@ document.addEventListener('DOMContentLoaded', function () {
     checkAccount();
     chrome.tabs.getSelected(null, function (tab) {
         tablink = tab.url;
-        if (startsWithMH(tablink,"research/collection") || tablink.startsWith("http://www.findagrave.com")) {
+        if (startsWithMH(tablink,"research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr"))) {
             getPageCode();
-        } else if (startsWithMH(tablink,"matchingresult")) {
+        } else if (startsWithMH(tablink,"matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr"))) {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Matches on this results page.');
         } else if (tablink.startsWith("http://www.geni.com/people") || tablink.startsWith("http://www.geni.com/family-tree") || tablink.startsWith("http://www.geni.com/profile")) {
@@ -304,6 +304,7 @@ function loadPage(request) {
                     focusrange = focusrange.replace(")","").trim();
                 }
             }
+
             if (exists(focusid)) {
                 var focusprofileurl = "";
                 if (focusid.startsWith("profile-g")) {
@@ -341,15 +342,26 @@ function loadPage(request) {
             setMessage("#f8ff86", 'This MyHeritage collection is not fully supported by SmartCopy. You could try enabling experimental collection parsing under options.');
         }
     } else {
-        var itemId = getParameterByName('itemId', tablink);
-        for (var i=0;i< buildhistory.length;i++) {
-            if(buildhistory[i].itemId === itemId) {
-                focusid = buildhistory[i].id;
-                profilechanged = true;
-                loadPage(request);
-                return;
+
+        var itemId = "";
+        if (tablink.startsWith("http://www.findagrave.com")) {
+            itemId = getParameterByName('GRid', tablink);
+        } else if (startsWithMH(tablink, "")) {
+            itemId = getParameterByName('itemId', tablink);
+        }
+        console.log(itemId);
+        if (itemId !== "") {
+            for (var i=0;i< buildhistory.length;i++) {
+
+                if(buildhistory[i].itemId === itemId) {
+                    focusid = buildhistory[i].id;
+                    profilechanged = true;
+                    loadPage(request);
+                    return;
+                }
             }
         }
+
         loadSelectPage(request);
     }
 }
@@ -1215,6 +1227,7 @@ function supportedCollection() {
 }
 
 function getParameterByName(name, url) {
+    url = url.replace("&amp;", "&");
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
         results = regex.exec(url);

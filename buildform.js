@@ -449,7 +449,7 @@ function buildForm() {
                 var image = members[member]["image"];
                 membersstring = membersstring +
                     '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext photocheck" ' + isChecked(thumbnail, (scored && photoscore)) + '>' +
-                    "Photo" + ':</td><td style="float:right;padding: 0;"><input type="hidden" class="photocheck" name="photo" value="' + image + '" ' + isEnabled(thumbnail, scored) + '><img style="max-width: 158px"  src="' + thumbnail + '"></td></tr>';
+                    "Photo" + ':</td><td style="float:right;padding: 0;"><input type="hidden" class="photocheck" name="photo" value="' + image + '" ' + isEnabled(thumbnail, (scored && photoscore)) + '><img style="max-width: 158px"  src="' + thumbnail + '"></td></tr>';
             }
             membersstring +=
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored) + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored) + '></td></tr>' +

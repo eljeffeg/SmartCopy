@@ -608,10 +608,14 @@ function exists(object) {
 $(function () {
     $('.checkall').on('click', function () {
         var fs = $(this).closest('div').find('fieldset');
-        fs.find(':checkbox').prop('checked', this.checked);
+        var ffs = fs.find(':checkbox');
+        var photoon = $('#photoonoffswitch').prop('checked');
+        ffs.filter(function(item) {
+            return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
+        }).prop('checked', this.checked);
         var ffs = fs.find('input:text,select,input:hidden,textarea');
         ffs.filter(function(item) {
-            return (ffs[item].type !== "checkbox");
+            return !((ffs[item].type === "checkbox") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked));
         }).attr('disabled', !this.checked);
     });
 });
@@ -780,7 +784,11 @@ function buildTree(data, action, sendid) {
                 var result = JSON.parse(response.source);
             }catch(e){
                 noerror = false;
-                setMessage("#f9acac", 'There was a problem adding a ' + response.variable.relation + ' to Geni. Error Response: "' + e.message + '"');
+                var extrainfo = "";
+                if (response.variable.relation === "photo") {
+                    extrainfo = "The photo may be too large. "
+                }
+                setMessage("#f9acac", 'There was a problem adding a ' + response.variable.relation + ' to Geni. ' + extrainfo + 'Error Response: "' + e.message + '"');
                 console.log(e); //error in the above string(in this case,yes)!
             }
             var id = response.variable.id;

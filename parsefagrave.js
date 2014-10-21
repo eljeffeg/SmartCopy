@@ -10,6 +10,33 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
         focusdaterange = focusdaterange.replace(")","").trim();
     }
     var fperson = parsed.find(".plus2").find("b");
+    if (!exists(fperson[0])) {
+        //In case the Memorial has been merged
+        fperson = parsed.find(".plus2");
+        if (exists(fperson[0]) && fperson[0].innerHTML === "Memorial has been merged.") {
+            var click = $(fperson[0]).next('table').find('a');
+            var urlset = click[0].outerHTML.match('href="(.*)"');
+            var url = "";
+            if (exists(urlset) && exists(urlset[1])) {
+                url = "http://www.findagrave.com" + urlset[1];
+                familystatus.push(familystatus.length);
+                chrome.extension.sendMessage({
+                    method: "GET",
+                    action: "xhttp",
+                    url: url,
+                    variable: relation
+                }, function (response) {
+                    var arg = response.variable;
+                    var person = parseFindAGrave(response.source, familymembers, response.variable);
+                    person = updateInfoData(person, arg);
+                    databyid[arg.profile_id] = person;
+                    alldata["family"][arg.title].push(person);
+                    familystatus.pop();
+                });
+            }
+            return "";
+        }
+    }
     var focusperson = getPersonName(fperson[0].innerHTML);
 
     document.getElementById("readstatus").innerText = focusperson;
@@ -141,7 +168,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 var familylinks = "";
                 if (familysplit.length > 1) {
                     var aboutinfo = familysplit[0].replace(/&nbsp;/g, " ").replace(/<br>/g, "\n").trim();
-                    if (aboutinfo !== "") {
+                    if (aboutinfo !== "" && !aboutinfo.startsWith("<font")) {
                         aboutdata += parseWikiURL(aboutinfo) + "\n";
                     }
                     familylinks = familysplit[1];
@@ -151,7 +178,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 familysplit = familylinks.split(/Calculated relationship<\/span><\/font>/i);
                 if (familysplit.length > 1) {
                     var aboutinfo = familysplit[1].replace(/&nbsp;/g, " ").replace(/<br>/g, "\n").trim();
-                    if (aboutinfo !== "") {
+                    if (aboutinfo !== "" && !aboutinfo.startsWith("<font")) {
                         aboutdata += parseWikiURL(aboutinfo) + "\n";
                     }
                 }
@@ -222,6 +249,10 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                                 }, function (response) {
                                     var arg = response.variable;
                                     var person = parseFindAGrave(response.source, false, {"title": arg.title, "proid": arg.profile_id});
+                                    if (person === "") {
+                                        familystatus.pop();
+                                        return;
+                                    }
                                     person = updateInfoData(person, arg);
                                     databyid[arg.profile_id] = person;
                                     alldata["family"][arg.title].push(person);

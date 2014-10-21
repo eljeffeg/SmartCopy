@@ -75,7 +75,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             var row = rows[r];
             var data = [];
             var data = [];
-            if ($(row).text().toLowerCase().contains("birth:")) {
+            if ($(row).text().toLowerCase().trim().startsWith("birth:")) {
                 var cells = $(row).find('td');
                 var eventinfo = $(cells[1]).html();
                 if (eventinfo.contains("<br>")) {
@@ -95,7 +95,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 if (!$.isEmptyObject(data)) {
                     profiledata["birth"] = data;
                 }
-            } else if ($(row).text().toLowerCase().contains("death:")) {
+            } else if ($(row).text().toLowerCase().trim().startsWith("death:")) {
                 var cells = $(row).find('td');
                 var eventinfo = $(cells[1]).html();
                 if (eventinfo.contains("<br>")) {
@@ -117,10 +117,19 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 if (!$.isEmptyObject(data)) {
                     profiledata["death"] = data;
                 }
-            } else if ($(row).text().toLowerCase().contains("burial:")) {
+            } else if ($(row).text().toLowerCase().trim().startsWith("burial:")) {
                 var cells = $(row).find('td');
-                var eventlocation = $(cells[0]).html().replace(/burial:/i, "").replace(/&nbsp;/g, "").replace(/<a[^>]*>/ig, "").replace(/<\/a>/,"");
-                eventlocation = eventlocation.replace(/<br>/g, ", ").replace(/[\n\r]/g, "").trim().replace(/^,/, "").trim();
+                var eventlocation = $(cells[0]).html().replace(/burial:/i, "").replace(/&nbsp;/g, "").replace(/<a[^>]*>/ig, "").replace(/<\/a>/,"").trim();
+                var eventsplit = eventlocation.replace(/[\n\r]/g, "").split("<br>");
+                if (eventsplit.length > 0) {
+                    if (eventsplit[0] === "") {
+                        eventsplit.shift();
+                    }
+                    if (eventsplit[eventsplit.length-1].toLowerCase().startsWith("plot")) {
+                        eventsplit[0] += " (" + eventsplit.pop() + ")";
+                    }
+                    eventlocation = eventsplit.join(", ").trim();
+                }
                 data.push({id: geoid, location: eventlocation});
                 geoid++;
                 buriallcflag = true;
@@ -133,12 +142,20 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 if (familysplit.length > 1) {
                     var aboutinfo = familysplit[0].replace(/&nbsp;/g, " ").replace(/<br>/g, "\n").trim();
                     if (aboutinfo !== "") {
-                        aboutdata = parseWikiURL(aboutinfo);
+                        aboutdata += parseWikiURL(aboutinfo) + "\n";
                     }
                     familylinks = familysplit[1];
                 } else {
                     familylinks = familysplit[0];
                 }
+                familysplit = familylinks.split(/Calculated relationship<\/span><\/font>/i);
+                if (familysplit.length > 1) {
+                    var aboutinfo = familysplit[1].replace(/&nbsp;/g, " ").replace(/<br>/g, "\n").trim();
+                    if (aboutinfo !== "") {
+                        aboutdata += parseWikiURL(aboutinfo) + "\n";
+                    }
+                }
+
                 if (familymembers) {
                     familylinks = familylinks.replace(/&nbsp;/g, "").trim().replace(/<br><br><br>/g, '<br>').replace(/<br><br>/g, '<br>');
                     familymem = familylinks.split("<br>");
@@ -146,8 +163,10 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                     var title = "";
                     for (var i=0;i<familymem.length;i++) {
                         var titlename = familymem[i].replace(":","").toLowerCase().trim();
-                        if (familymem[i].trim() === "" || familymem[i].startsWith("<script")) {
+                        if (familymem[i].trim() === "") {
                             continue;
+                        } else if (familymem[i].startsWith("<script")) {
+                            break;
                         } else if (isParent(titlename) || isSibling(titlename) || isChild(titlename) || isPartner(titlename)) {
                             if (titlename === "spouses") {
                                 titlename = "spouse";
@@ -244,7 +263,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 if (aboutinfo !== "" && !aboutinfo.contains("Edit Virtual Cemetery") &&
                     !aboutinfo.contains("Created by:")) {
                     aboutinfo = aboutinfo.replace(/<br>/g, "\n").trim();
-                    aboutdata = parseWikiURL(aboutinfo);
+                    aboutdata = parseWikiURL(aboutinfo) + "\n";
                 }
             }
         }
@@ -297,7 +316,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             }
         }
         if (aboutdata !== "") {
-            profiledata["about"] = aboutdata + "\n";
+            profiledata["about"] = aboutdata;
             // "\n--------------------\n"  Merge separator
         }
     }

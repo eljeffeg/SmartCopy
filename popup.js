@@ -690,7 +690,11 @@ var submitform = function() {
                 profileout["about_me"] = focusabout + "\n" + about;
             }
             if (exists(profileout.photo)) {
-                var shorturl = tablink.substring(0, tablink.indexOf('showRecord') + 10);
+                if (tablink.indexOf('showRecord') !== -1) {
+                    var shorturl = tablink.substring(0, tablink.indexOf('showRecord') + 10);
+                } else {
+                    var shorturl = tablink;
+                }
                 focusphotoinfo = {photo: profileout.photo, title: focusname, description: "Source: " + shorturl};
                 delete profileout.photo;
             }
@@ -724,7 +728,11 @@ var submitform = function() {
                         }
                     }
                     if (exists(familyout.photo)) {
-                        var shorturl = fdata.url.substring(0, fdata.url.indexOf('showRecord') + 10);
+                        if (fdata.url.indexOf('showRecord') !== -1) {
+                            var shorturl = fdata.url.substring(0, fdata.url.indexOf('showRecord') + 10);
+                        } else {
+                            var shorturl = fdata.url;
+                        }
                         photosubmit[familyout.profile_id] = {photo: familyout.photo, title: fdata.name, description: "Source: " + shorturl};
                         delete familyout.photo;
                     }

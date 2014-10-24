@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (startsWithMH(tablink,"matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr"))) {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Matches on this results page.');
-        } else if (tablink.startsWith("http://www.geni.com/people") || tablink.startsWith("http://www.geni.com/family-tree") || tablink.startsWith("http://www.geni.com/profile")) {
+        } else if (isGeni()) {
             var focusprofile = getProfile(tablink);
             focusid = focusprofile.replace("?profile=", "");
             document.getElementById("addhistoryblock").style.display = "block";
@@ -114,6 +114,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+function isGeni() {
+    return (tablink.startsWith("http://www.geni.com/people") || tablink.startsWith("http://www.geni.com/family-tree") || tablink.startsWith("http://www.geni.com/profile") ||
+        tablink.startsWith("https://www.geni.com/people") || tablink.startsWith("https://www.geni.com/family-tree") || tablink.startsWith("https://www.geni.com/profile"));
+}
 
 function userAccess() {
     if (loggedin && exists(accountinfo)) {
@@ -342,26 +347,32 @@ function loadPage(request) {
             setMessage("#f8ff86", 'This MyHeritage collection is not fully supported by SmartCopy. You could try enabling experimental collection parsing under options.');
         }
     } else {
+        if (supportedCollection()) {
+            var itemId = "";
+            if (tablink.startsWith("http://www.findagrave.com")) {
+                itemId = getParameterByName('GRid', tablink);
+            } else if (startsWithMH(tablink, "")) {
+                itemId = getParameterByName('itemId', tablink);
+            }
+            if (itemId !== "") {
+                for (var i=0;i< buildhistory.length;i++) {
 
-        var itemId = "";
-        if (tablink.startsWith("http://www.findagrave.com")) {
-            itemId = getParameterByName('GRid', tablink);
-        } else if (startsWithMH(tablink, "")) {
-            itemId = getParameterByName('itemId', tablink);
-        }
-        if (itemId !== "") {
-            for (var i=0;i< buildhistory.length;i++) {
-
-                if(buildhistory[i].itemId === itemId) {
-                    focusid = buildhistory[i].id;
-                    profilechanged = true;
-                    loadPage(request);
-                    return;
+                    if(buildhistory[i].itemId === itemId) {
+                        focusid = buildhistory[i].id;
+                        profilechanged = true;
+                        loadPage(request);
+                        return;
+                    }
                 }
             }
-        }
 
-        loadSelectPage(request);
+            loadSelectPage(request);
+        }else {
+            document.getElementById("top-container").style.display = "block";
+            document.getElementById("submitbutton").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            setMessage("#f8ff86", 'This website is not fully supported by SmartCopy. You could try enabling experimental collection parsing under options.');
+        }
     }
 }
 
@@ -536,7 +547,11 @@ function getProfile(profile_id) {
         }
         if (profile_id.indexOf("/") != -1) {
             //Grab the GUID from a URL
-            profile_id = "profile-g" + profile_id.substring(profile_id.lastIndexOf('/') + 1);
+            if(!profile_id.contains("html5")) {
+                profile_id = "profile-g" + profile_id.substring(profile_id.lastIndexOf('/') + 1);
+            } else if (profile_id.indexOf("#") != -1) {
+                profile_id = "profile-" + profile_id.substring(profile_id.lastIndexOf('#') + 1, profile_id.length);
+            }
         }
         if (profile_id.indexOf("?") != -1) {
             //In case the copy the profile url by navigating through another 6000000002107278790?through=6000000010985379345
@@ -1234,10 +1249,13 @@ function addHistory(id, itemId, name) {
 }
 
 function supportedCollection() {
-    if ($('#exponoffswitch').prop('checked')) {
-        return (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com"));
-    } else {
-        return (tablink.contains("/collection-1/"));
+    var expenabled = $('#exponoffswitch').prop('checked');
+    if (!expenabled && tablink.startsWith("http://www.findagrave.com")) {
+        return false;
+    } else if (!expenabled && tablink.contains("/collection-10109/")) {
+        return false;
+    } else if (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com")) {
+        return true;
     }
 }
 

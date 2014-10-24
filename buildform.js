@@ -875,6 +875,12 @@ function updateInfoData(person, arg) {
 }
 
 function parseWikiURL(wikistring) {
-    wikistring = wikistring.replace(/<a href="(.*?)"*>/mg, '[$1 ').replace("</a>", "]");
+    wikistring = wikistring.replace(/<a href="(.*?)"*>/mg, '[$1 ').replace(/<\/a>/g, "]");
     return wikistring;
+}
+
+function cleanHTML(html) {
+    var div = document.createElement("div");
+    div.innerHTML = html;
+    return div.textContent || div.innerText || "";
 }

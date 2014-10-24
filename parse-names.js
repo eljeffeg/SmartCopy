@@ -18,6 +18,7 @@ var NameParse = (function(){
     NameParse.parse = function (fullastName, detectMiddleName) {
 
         var displayname = fullastName;
+        fullastName = fullastName.replace(/\s*\/\s*/g,'/');
         var nameParts = [];
         var nickParts = [];
         var lastName = "";
@@ -198,13 +199,13 @@ var NameParse = (function(){
         return {
             "prefix": prefix || "",
             "salutation": salutation || "",
-            "firstName": firstName.trim(),
-            "middleName": middleName.trim(),
-            "lastName": lastName.trim(),
-            "birthName": birthName.trim(),
-            "nickName": nickName.trim(),
+            "firstName": firstName.replace(/\//g,' / ').trim(),
+            "middleName": middleName.replace(/\//g,' / ').trim(),
+            "lastName": lastName.replace(/\//g,' / ').trim(),
+            "birthName": birthName.replace(/\//g,' / ').trim(),
+            "nickName": nickName.replace(/\//g,' / ').trim(),
             "suffix": suffix || "",
-            "displayname": displayname.trim()
+            "displayname": displayname.replace(/\//g,' / ').trim()
         };
 
         //  detect and format common suffixes

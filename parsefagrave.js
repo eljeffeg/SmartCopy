@@ -146,13 +146,18 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 }
             } else if ($(row).text().toLowerCase().trim().startsWith("burial:")) {
                 var cells = $(row).find('td');
-                var eventlocation = $(cells[0]).html().replace(/burial:/i, "").replace(/&nbsp;/g, "").replace(/<a[^>]*>/ig, "").replace(/<\/a>/,"").trim();
-                var eventsplit = eventlocation.replace(/[\n\r]/g, "").split("<br>");
+                var eventlocation = $(cells[0]).html().replace(/burial:/i, "").replace(/&nbsp;/g, "").replace(/<a[^>]*>/ig, "").replace(/<\/a>/ig,"").trim();
+                var eventsplit = eventlocation.replace(/[\n\r]/g, "").replace(/,/g, "").split("<br>");
                 if (eventsplit.length > 0) {
                     if (eventsplit[0] === "") {
                         eventsplit.shift();
                     }
-                    if (eventsplit[eventsplit.length-1].toLowerCase().startsWith("plot")) {
+                    if (eventsplit[eventsplit.length-1].toLowerCase().startsWith("plot") || eventsplit[eventsplit.length-1].toLowerCase().startsWith("gps")) {
+                        if (eventsplit[eventsplit.length-1].toLowerCase().startsWith("gps")) {
+                            if (eventsplit[eventsplit.length-2].toLowerCase().startsWith("plot")) {
+                                eventsplit[eventsplit.length-2] += " " + eventsplit.pop();
+                            }
+                        }
                         eventsplit[0] += " (" + eventsplit.pop() + ")";
                     }
                     eventlocation = eventsplit.join(", ").trim();
@@ -167,8 +172,8 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 var familysplit = $(cells[0]).html().split(/family links:/i);
                 var familylinks = "";
                 if (familysplit.length > 1) {
-                    var aboutinfo = familysplit[0].replace(/&nbsp;/g, " ").replace(/<br>/g, "\n").trim();
-                    if (aboutinfo !== "" && !aboutinfo.startsWith("<font")) {
+                    var aboutinfo = familysplit[0].replace(/&nbsp;/g, " ").replace(/<br>/ig, "\n").trim();
+                    if (aboutinfo.trim() !== "") {
                         aboutdata += parseWikiURL(aboutinfo) + "\n";
                     }
                     familylinks = familysplit[1];
@@ -177,14 +182,14 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 }
                 familysplit = familylinks.split(/Calculated relationship<\/span><\/font>/i);
                 if (familysplit.length > 1) {
-                    var aboutinfo = familysplit[1].replace(/&nbsp;/g, " ").replace(/<br>/g, "\n").trim();
-                    if (aboutinfo !== "" && !aboutinfo.startsWith("<font")) {
+                    var aboutinfo = familysplit[1].replace(/&nbsp;/g, " ").replace(/<br>/ig, "\n").trim();
+                    if (aboutinfo.trim() !== "" && !aboutinfo.startsWith("<font")) {
                         aboutdata += parseWikiURL(aboutinfo) + "\n";
                     }
                 }
 
                 if (familymembers) {
-                    familylinks = familylinks.replace(/&nbsp;/g, "").trim().replace(/<br><br><br>/g, '<br>').replace(/<br><br>/g, '<br>');
+                    familylinks = familylinks.replace(/&nbsp;/g, "").trim().replace(/<br><br><br>/ig, '<br>').replace(/<br><br>/ig, '<br>');
                     familymem = familylinks.split("<br>");
                     //familylist = [];
                     var title = "";
@@ -204,7 +209,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                             if (!exists(alldata["family"][title])) {
                                 alldata["family"][title] = [];
                             }
-                            var nametrim = datarow.replace(/<a[^>]*>/ig,"").replace("</a>", "").trim();
+                            var nametrim = datarow.replace(/<a[^>]*>/ig,"").replace(/<\/a>/ig, "").trim();
                             if (nametrim.startsWith("<font color=")) {
                                 //indicates it is the focus - color #666666
                                 continue;
@@ -290,11 +295,13 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 }
             } else {
                 var cells = $(row).find('td');
-                var aboutinfo = $(cells[0]).html().replace(/&nbsp;/g, " ").trim();
-                if (aboutinfo !== "" && !aboutinfo.contains("Edit Virtual Cemetery") &&
-                    !aboutinfo.contains("Created by:")) {
-                    aboutinfo = aboutinfo.replace(/<br>/g, "\n").trim();
-                    aboutdata = parseWikiURL(aboutinfo) + "\n";
+                if (exists(cells[0])) {
+                    var aboutinfo = $(cells[0]).html().replace(/&nbsp;/g, " ").trim();
+                    if (aboutinfo.trim() !== "" && !aboutinfo.contains("Edit Virtual Cemetery") &&
+                        !aboutinfo.contains("Created by:")) {
+                        aboutinfo = aboutinfo.replace(/<br>/ig, "\n").trim();
+                        aboutdata = parseWikiURL(aboutinfo) + "\n";
+                    }
                 }
             }
         }
@@ -347,7 +354,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             }
         }
         if (aboutdata !== "") {
-            profiledata["about"] = aboutdata;
+            profiledata["about"] = cleanHTML(aboutdata);
             // "\n--------------------\n"  Merge separator
         }
     }

@@ -218,7 +218,7 @@ var NameParse = (function(){
             // these are some common suffixes - what am I missing?
             var prefixArray = [
                 'dr', 'rev', 'fr', 'bro', 'chap', 'jud', 'prof', "rabbi", "sr", 'sen', 'the hon',
-                'hon', 'amd', 'bg', 'bgen', 'brig gen', 'cpt', 'capt', 'cwo',
+                'hon', 'amd', 'bg', 'bgen', 'brig gen', 'cpt', 'capt', 'cwo', 'lady',
                 'col', 'cdr', 'cpl', 'ens', '1lt', '1st lt', 'ltjg', '2lt', '2nd lt',
                 'lt', 'gen', 'ltc', 'lt col', 'lcdr', 'ltg', 'lt gen', 'maj gen', 'mg',
                 'pvt', 'maj', 'msg', 'msgt', 'sgt', 'radm', 'vadm', 'brother', 'chaplain',

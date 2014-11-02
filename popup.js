@@ -386,7 +386,7 @@ function loadSelectPage(request) {
         '<tr class="optionrow" style="display: none;"><td colspan="2">Or enter URL:</td></tr>' +
         '<tr><td style="padding-right: 5px;">' +
         '<input type="text" style="width: 100%;" id="changeprofile"></td>' +
-        '</tr><tr><td style="padding-top: 5px;"><button id="changefocus">Update Destination</button></td></tr></table>');
+        '</tr><tr><td style="padding-top: 5px;"><button id="changefocus">Set Destination</button></td></tr></table>');
 
     var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig,""));
     var focusperson = parsed.find(".individualInformationName").text().trim();

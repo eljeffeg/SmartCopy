@@ -34,13 +34,13 @@ function buildGoogle(responsedata) {
 }
 
 function buildFamilySearch(responsedata) {
-    var query = 'results?count=75&query=%2Bgivenname%3A' + responsedata.first_name.replace("'","");
-    var lastname = responsedata.last_name;
+    var query = 'results?count=75&query=%2Bgivenname%3A' + wrapQuotes(responsedata.first_name.replace("'",""));
+    var lastname = wrapQuotes(responsedata.last_name);
     if (exists(responsedata.maiden_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
-        lastname = responsedata.maiden_name.replace("'","");
-        query += '~%20%2Bspouse_surname%3A' + responsedata.last_name.replace("'","");
+        lastname = wrapQuotes(responsedata.maiden_name.replace("'",""));
+        query += '~%20%2Bspouse_surname%3A' + wrapQuotes(responsedata.last_name.replace("'",""));
     }
-    query += '~%20%2Bsurname%3A' + lastname;
+    query += '~%20%2Bsurname%3A' + wrapQuotes(lastname);
     if (exists(responsedata.birth)) {
         if (exists(responsedata.birth.date) && exists(responsedata.birth.date.year)) {
             query += '~%20%2Bbirth_year%3A' + (responsedata.birth.date.year - 1) + '-' + (responsedata.birth.date.year + 1);
@@ -172,6 +172,13 @@ function locationString(location) {
         locationset.push(location.country.replace(" ", "%20"));
     }
     return locationset.join("%2C%20");
+}
+
+function wrapQuotes(name) {
+    if (name.contains(" ")) {
+        name = '%22' + name.replace(" ", "%20") + '%22';
+    }
+    return name;
 }
 
 //http://www.obitsforlife.co.uk/records/list.php?filterChange=true&firstRequest=false&showTodays=false&firstname=John&lastname=Smith&speciesName=human&curPage=1&total=100000&rrp=10

@@ -391,12 +391,13 @@ function loadPage(request) {
             var itemId = "";
             if (tablink.startsWith("http://www.findagrave.com")) {
                 itemId = getParameterByName('GRid', tablink);
+            } else if (tablink.startsWith("http://www.wikitree.com")) {
+                itemId = tablink.substring(tablink.lastIndexOf('/') + 1).replace("-Family-Tree", "");
             } else if (startsWithMH(tablink, "")) {
                 itemId = getParameterByName('itemId', tablink);
             }
             if (itemId !== "") {
                 for (var i=0;i< buildhistory.length;i++) {
-
                     if(buildhistory[i].itemId === itemId) {
                         focusid = buildhistory[i].id;
                         profilechanged = true;

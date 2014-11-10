@@ -73,12 +73,12 @@ function parseWikiTree(htmlstring, familymembers, relation) {
         var data = [];
         var rowtitle = $(row).text().toLowerCase().trim();
         if (rowtitle.startsWith("born")) {
-            data = parseWikiEvent($(row).text());
+            data = parseWikiEvent($(row).text().replace("Born", ""));
             if (!$.isEmptyObject(data)) {
                 profiledata["birth"] = data;
             }
         } else if (rowtitle.startsWith("died")) {
-            data = parseWikiEvent($(row).text());
+            data = parseWikiEvent($(row).text().replace("Died", ""));
             if (!$.isEmptyObject(data)) {
                 if (exists(data.date)) {
                     deathdtflag = true;
@@ -223,8 +223,13 @@ function parseWikiTree(htmlstring, familymembers, relation) {
     if (familymembers) {
         if (exists(bio) && bio.length > 1) {
             var atdata = bio[1];
+            atdata = atdata.replace(/\<sup (.*?)\<\/sup\>/ig, "");
             atdata = atdata.replace(/\<p\>/gi, "");
             atdata = atdata.replace(/\<\/p\>/gi, "\n");
+            if (atdata.contains("No more info is currently available for")) {
+                var splitatdata = atdata.split("No more info is currently available for");
+                atdata = splitatdata[0];
+            }
             aboutdata = atdata.trim();
         }
     }

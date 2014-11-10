@@ -52,29 +52,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
 
     if (familymembers) {
-        familystatus.push("family");
-        var familyurl = "http://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + focusid;
-        chrome.extension.sendMessage({
-            method: "GET",
-            action: "xhttp",
-            url: familyurl
-        }, function (response) {
-            genispouse = JSON.parse(response.source);
-            familystatus.pop();
-        });
-        familystatus.push("about");
-        var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me&profile=" + focusid;
-        chrome.extension.sendMessage({
-            method: "GET",
-            action: "xhttp",
-            url: abouturl
-        }, function (response) {
-            var about_return = JSON.parse(response.source);
-            if (!$.isEmptyObject(about_return) && exists(about_return.about_me)) {
-                focusabout = about_return.about_me;
-            }
-            familystatus.pop();
-        });
+        loadGeniData();
     }
 
     var records = parsed.find(".gr");
@@ -100,7 +78,6 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
         var deathdtflag = false;
         for (var r = 0; r < rows.length; r++) {
             var row = rows[r];
-            var data = [];
             var data = [];
             if ($(row).text().toLowerCase().trim().startsWith("birth:")) {
                 var cells = $(row).find('td');
@@ -138,7 +115,6 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 } else {
                     if (eventinfo !== "unknown") {
                         data.push({date: eventinfo});
-                        deathdtflag = true;
                     }
                 }
                 if (!$.isEmptyObject(data)) {
@@ -198,6 +174,8 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                         if (familymem[i].trim() === "") {
                             continue;
                         } else if (familymem[i].startsWith("<script")) {
+                            break;
+                        } else if (familymem[i].startsWith("Inscription")) {
                             break;
                         } else if (isParent(titlename) || isSibling(titlename) || isChild(titlename) || isPartner(titlename)) {
                             if (titlename === "spouses") {

@@ -153,17 +153,21 @@ var NameParse = (function(){
                 }
             }
             if (!suffix && this.is_suffix(middleName)) {
-                suffix = middleName;
-                checkmiddlesuffix = true;
-                for (i=start + 1; i<(end - 1); i++) {
-                    if (nameParts[i] === middleName) {
-                        nameParts.splice(i,1);
-                        break;
+                var testsuffix = NameParse.removeIgnoredChars(middleName).trim();
+                //If it's just one letter, it might be an initial, such as "I." or "V."
+                if (testsuffix.length > 1) {
+                    suffix = middleName;
+                    checkmiddlesuffix = true;
+                    for (i=start + 1; i<(end - 1); i++) {
+                        if (nameParts[i] === middleName) {
+                            nameParts.splice(i,1);
+                            break;
+                        }
                     }
+                    firstName = "";
+                    middleName = "";
+                    lastName = "";
                 }
-                firstName = "";
-                middleName = "";
-                lastName = "";
             }
         }
 
@@ -222,7 +226,7 @@ var NameParse = (function(){
                 'col', 'cdr', 'cpl', 'ens', '1lt', '1st lt', 'ltjg', '2lt', '2nd lt',
                 'lt', 'gen', 'ltc', 'lt col', 'lcdr', 'ltg', 'lt gen', 'maj gen', 'mg',
                 'pvt', 'maj', 'msg', 'msgt', 'sgt', 'radm', 'vadm', 'brother', 'chaplain',
-                'doctor', 'father', 'judge', 'missus', 'madam', 'professor', 'reverend',
+                'doctor', 'father', 'judge', 'missus', 'madam', 'professor', 'reverend', 'baron',
                 'senator', 'congressman', 'governor', 'sister', 'the honorable', 'honerable',
                 'admiral', 'brigadier general', 'captain', 'chief warrant officer', 'colonel',
                 'commander', 'corporal', 'ensign', 'first lieutenant', 'lieutenant colonel',

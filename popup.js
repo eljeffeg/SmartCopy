@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
     checkAccount();
     chrome.tabs.getSelected(null, function (tab) {
         tablink = tab.url;
-        if (startsWithMH(tablink,"research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr"))) {
+        if (startsWithMH(tablink,"research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) || tablink.startsWith("http://www.wikitree.com")) {
             getPageCode();
         } else if (startsWithMH(tablink,"matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr"))) {
             document.querySelector('#loginspinner').style.display = "none";
@@ -283,9 +283,23 @@ function loadPage(request) {
                     updateLinks("?profile=" + focusid);
                 }
                 if (recordtype === "Find a Grave") {
-                    var findagraveurl = request.source.match('http://www.findagrave.com/cgi-bin(.*?)"');
-                    if (exists(findagraveurl) && exists(findagraveurl[1])) {
-                        tablink = "http://www.findagrave.com/cgi-bin" + findagraveurl[1];
+                    var recordurl = request.source.match('http://www.findagrave.com/cgi-bin(.*?)"');
+                    if (exists(recordurl) && exists(recordurl[1])) {
+                        tablink = "http://www.findagrave.com/cgi-bin" + recordurl[1];
+                        profilechanged = true;
+                        chrome.extension.sendMessage({
+                            method: "GET",
+                            action: "xhttp",
+                            url: tablink
+                        }, function (response) {
+                            loadPage(response);
+                        });
+                        return;
+                    }
+                } else if (recordtype === "WikiTree") {
+                    var recordurl = request.source.match('http://www.wikitree.com/wiki/(.*?)"');
+                    if (exists(recordurl) && exists(recordurl[1])) {
+                        tablink = "http://www.wikitree.com/wiki/" + recordurl[1];
                         profilechanged = true;
                         chrome.extension.sendMessage({
                             method: "GET",
@@ -308,6 +322,29 @@ function loadPage(request) {
                     focusrange = splitrange[1];
                     focusrange = focusrange.replace(")","").trim();
                 }
+            } else if (tablink.startsWith("http://www.wikitree.com")) {
+                var parsed = $(request.source.replace(/<img[^>]*>/ig,""));
+                var personinfo = parsed.find(".VITALS");
+                var focusperson = "";
+                if (exists(personinfo[0])) {
+                    focusperson = personinfo[0].innerText.replace(/[\n\r]/g, "").replace(/\s+/g, " ").trim();
+                    if (focusperson.contains("formerly")) {
+                        focusperson = focusperson.replace("formerly", "(born") + ")";
+                    }
+                    focusname = focusperson;
+                }
+                recordtype = "WikiTree Genealogy";
+                var title = parsed.filter('title').text();
+                var focusrangearray = title.match(/\d* - \d*/);
+                if (exists(focusrangearray) && focusrangearray.length > 0) {
+                    focusrange = focusrangearray[0].trim();
+                    if (focusrange.endsWith("-")) {
+                        focusrange += " ?";
+                    }
+                    if (focusrange.startsWith("-")) {
+                        focusrange = "? " + focusrange;
+                    }
+                }
             }
 
             if (exists(focusid)) {
@@ -317,6 +354,7 @@ function loadPage(request) {
                 } else {
                     focusprofileurl = "http://www.geni.com/" + focusid;
                 }
+
                 document.getElementById("focusname").innerHTML = '<a href="' + focusprofileurl + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a>";
                 if (focusrange !== "") {
                     document.getElementById("focusrange").innerText = focusrange;
@@ -326,6 +364,8 @@ function loadPage(request) {
                     parseSmartMatch(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (tablink.startsWith("http://www.findagrave.com")) {
                     parseFindAGrave(request.source, (accountinfo.pro && accountinfo.user));
+                } else if (tablink.startsWith("http://www.wikitree.com")) {
+                    parseWikiTree(request.source, (accountinfo.pro && accountinfo.user));
                 }
 
                 if (!accountinfo.pro) {
@@ -470,7 +510,7 @@ function getPageCode() {
         document.querySelector('#loginspinner').style.display = "none";
         document.getElementById("smartcopy-container").style.display = "block";
         document.getElementById("loading").style.display = "block";
-        if (tablink.startsWith("http://www.myheritage.com/") || tablink.startsWith("http://www.findagrave.com")) {
+        if (tablink.startsWith("http://www.myheritage.com/") || tablink.startsWith("http://www.findagrave.com") || tablink.startsWith("http://www.wikitree.com/wiki/")) {
             chrome.tabs.executeScript(null, {
                 file: "getPagesSource.js"
             }, function () {
@@ -478,6 +518,15 @@ function getPageCode() {
                 if (chrome.extension.lastError) {
                     message.innerText = 'There was an error injecting script : \n' + chrome.extension.lastError.message;
                 }
+            });
+        } else if (tablink.startsWith("http://www.wikitree.com/genealogy/")) {
+            tablink = tablink.replace("genealogy/", "wiki/").replace("-Family-Tree", "");
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: tablink
+            }, function (response) {
+                loadPage(response);
             });
         } else {
             var url = tablink.replace(/https?:\/\/www\.myheritage\..*?\//i,"http://www.myheritage.com/") + "&lang=EN";
@@ -1252,9 +1301,11 @@ function supportedCollection() {
     var expenabled = $('#exponoffswitch').prop('checked');
     if (!expenabled && tablink.startsWith("http://www.findagrave.com")) {
         return false;
+    }else if (!expenabled && tablink.startsWith("http://www.wikitree.com/")) {
+        return false;
     } else if (!expenabled && tablink.contains("/collection-10109/")) {
         return false;
-    } else if (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com")) {
+    } else if (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") || tablink.startsWith("http://www.wikitree.com/")) {
         return true;
     }
 }

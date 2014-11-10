@@ -34,13 +34,13 @@ function buildGoogle(responsedata) {
 }
 
 function buildFamilySearch(responsedata) {
-    var query = 'results?count=75&query=%2Bgivenname%3A' + wrapQuotes(responsedata.first_name.replace("'",""));
-    var lastname = wrapQuotes(responsedata.last_name);
+    var query = 'results?count=75&query=%2Bgivenname%3A' + wrapEncode(responsedata.first_name.replace("'",""));
+    var lastname = wrapEncode(responsedata.last_name);
     if (exists(responsedata.maiden_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
-        lastname = wrapQuotes(responsedata.maiden_name.replace("'",""));
-        query += '~%20%2Bspouse_surname%3A' + wrapQuotes(responsedata.last_name.replace("'",""));
+        lastname = wrapEncode(responsedata.maiden_name.replace("'",""));
+        query += '~%20%2Bspouse_surname%3A' + wrapEncode(responsedata.last_name.replace("'",""));
     }
-    query += '~%20%2Bsurname%3A' + wrapQuotes(lastname);
+    query += '~%20%2Bsurname%3A' + wrapEncode(lastname);
     if (exists(responsedata.birth)) {
         if (exists(responsedata.birth.date) && exists(responsedata.birth.date.year)) {
             query += '~%20%2Bbirth_year%3A' + (responsedata.birth.date.year - 1) + '-' + (responsedata.birth.date.year + 1);
@@ -174,10 +174,11 @@ function locationString(location) {
     return locationset.join("%2C%20");
 }
 
-function wrapQuotes(name) {
+function wrapEncode(name) {
     if (name.contains(" ")) {
-        name = '%22' + name.replace(" ", "%20") + '%22';
+        name = '"' + name + '"';
     }
+    name = encodeURI(name);
     return name;
 }
 

@@ -16,6 +16,7 @@ var genispouse = [];
 var myhspouse = [];
 var focusgender = "unknown";
 var focusabout = "";
+var wikiparentmarriage = "";
 alldata["family"] = {};
 
 function updateGeo() {
@@ -883,4 +884,30 @@ function cleanHTML(html) {
     var div = document.createElement("div");
     div.innerHTML = html;
     return div.textContent || div.innerText || "";
+}
+
+function loadGeniData() {
+    familystatus.push("family");
+    var familyurl = "http://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + focusid;
+    chrome.extension.sendMessage({
+        method: "GET",
+        action: "xhttp",
+        url: familyurl
+    }, function (response) {
+        genispouse = JSON.parse(response.source);
+        familystatus.pop();
+    });
+    familystatus.push("about");
+    var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me&profile=" + focusid;
+    chrome.extension.sendMessage({
+        method: "GET",
+        action: "xhttp",
+        url: abouturl
+    }, function (response) {
+        var about_return = JSON.parse(response.source);
+        if (!$.isEmptyObject(about_return) && exists(about_return.about_me)) {
+            focusabout = about_return.about_me;
+        }
+        familystatus.pop();
+    });
 }

@@ -18,6 +18,10 @@ var NameParse = (function(){
     NameParse.parse = function (fullastName, detectMiddleName) {
 
         var displayname = fullastName;
+        if (fullastName.match(/\s\/\w+\//g,'')) {
+            //Strip "/" from names like Daniel /Bubier/
+            fullastName = fullastName.replace(/\//g, "");
+        }
         fullastName = fullastName.replace(/\s*\/\s*/g,'/');
         var nameParts = [];
         var nickParts = [];

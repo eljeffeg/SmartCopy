@@ -226,8 +226,8 @@ function parseWikiTree(htmlstring, familymembers, relation) {
             atdata = atdata.replace(/\<sup (.*?)\<\/sup\>/ig, "");
             atdata = atdata.replace(/\<p\>/gi, "");
             atdata = atdata.replace(/\<\/p\>/gi, "\n");
-            if (atdata.contains("No more info is currently available for")) {
-                var splitatdata = atdata.split("No more info is currently available for");
+            if (atdata.contains("<i>")) {
+                var splitatdata = atdata.split("<i>");
                 atdata = splitatdata[0];
             }
             aboutdata = atdata.trim();

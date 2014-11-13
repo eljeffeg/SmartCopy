@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
             updateLinks(focusprofile);
             userAccess();
         } else {
-            setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.');
+            setMessage("#f9acac", 'SmartCopy does not currently support this site / collection.');
             document.querySelector('#loginspinner').style.display = "none";
         }
     });
@@ -137,7 +137,7 @@ function userAccess() {
                     accessdialog.style.marginBottom = "-2px";
                     accessdialog.style.backgroundColor = "#AFC8FF";
                     accessdialog.innerHTML = "This profile is not in the big tree.";
-                    setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.');
+                    setMessage("#f9acac", 'SmartCopy does not currently support this site / collection.');
                 }
                 else if (responsedata.claimed && !responsedata.curator) {
                     if (responsedata.pro) {
@@ -167,12 +167,12 @@ function userAccess() {
                     accessdialog.style.display = "block";
                     accessdialog.style.marginBottom = "-2px";
                     accessdialog.innerHTML = "<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...";
-                    setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.');
+                    setMessage("#f9acac", 'SmartCopy does not currently support this site / collection.');
                     buildResearch();
                 }
             });
         } else {
-            setMessage("#f9acac", 'SmartCopy Disabled: The MyHeritage Smart/Record Match page is not detected.');
+            setMessage("#f9acac", 'SmartCopy does not currently support this site / collection.');
         }
     } else {
         setTimeout(userAccess, 200);
@@ -744,7 +744,6 @@ var submitform = function() {
                 }
             }
             if (sourcecheck) {
-
                 if (!focusabout.contains("Updated from [" +  tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
                     if (focusabout !== "") {
                         about = focusabout + "\n" + about;
@@ -757,6 +756,9 @@ var submitform = function() {
                 }
             } else if (about !== "" && focusabout !== "") {
                 profileout["about_me"] = focusabout + "\n" + about;
+            }
+            if (exists(profileout["nicknames"]) && focusnicknames !== "") {
+                profileout["nicknames"] = focusnicknames + "," + profileout["nicknames"];
             }
             if (exists(profileout.photo)) {
                 if (tablink.indexOf('showRecord') !== -1) {

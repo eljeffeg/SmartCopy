@@ -16,6 +16,7 @@ var genispouse = [];
 var myhspouse = [];
 var focusgender = "unknown";
 var focusabout = "";
+var focusnicknames = "";
 var wikiparentmarriage = "";
 alldata["family"] = {};
 
@@ -898,15 +899,20 @@ function loadGeniData() {
         familystatus.pop();
     });
     familystatus.push("about");
-    var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me&profile=" + focusid;
+    var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me,nicknames&profile=" + focusid;
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
         url: abouturl
     }, function (response) {
-        var about_return = JSON.parse(response.source);
-        if (!$.isEmptyObject(about_return) && exists(about_return.about_me)) {
-            focusabout = about_return.about_me;
+        var geni_return = JSON.parse(response.source);
+        if (!$.isEmptyObject(geni_return)){
+            if (exists(geni_return.about_me)) {
+                focusabout = geni_return.about_me;
+            }
+            if (exists(geni_return.nicknames)){
+                focusnicknames = geni_return.nicknames;
+            }
         }
         familystatus.pop();
     });

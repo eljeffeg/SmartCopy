@@ -1,0 +1,392 @@
+// Parse RootsWeb
+function parseRootsWeb(htmlstring, familymembers, relation) {
+    relation = relation || "";
+    var parseid = "";
+    if (relation === "") {
+        parseid = focusURLid;
+    } else {
+        parseid = relation.itemId;
+    }
+    var htmlarray = htmlstring.split('id="' + parseid + '"');
+    var parsed = $(htmlarray[0].replace(/<img/ig, "<gmi"));
+    var focusdaterange = "";
+    var title = parsed.filter('title').text();
+
+    var fperson = parsed.find("li");
+    focusperson = parseRootsName(fperson);
+    document.getElementById("readstatus").innerText = focusperson;
+    var genderval = "unknown";
+    var profiledata = {name: focusperson, gender: genderval, status: relation.title};
+    var burialdtflag = false;
+    var buriallcflag = false;
+    var deathdtflag = false;
+    var aboutdata = "";
+    // ---------------------- Profile Data --------------------
+    for (var i = 0; i < fperson.length; i++) {
+        var row = parseRootsRow(fperson[i]);
+        if (exists(row) && row.length > 1) {
+            var fieldname = row[0].toLowerCase().trim();
+            if (fieldname == "sex") {
+                var sexval = row[1].toLowerCase().trim();
+                if (sexval === "f") {
+                    genderval = "female";
+                } else if (sexval === "m") {
+                    genderval = "male";
+                }
+                profiledata["gender"] = genderval;
+            } else if (fieldname === "birth") {
+                var data = parseRootsDate(row[1]);
+                if (!$.isEmptyObject(data)) {
+                    profiledata["birth"] = data;
+                }
+            } else if (fieldname === "death") {
+                var data = parseRootsDate(row[1]);
+                if (!$.isEmptyObject(data)) {
+                    if (exists(data.date)) {
+                        deathdtflag = true;
+                    }
+                    profiledata["death"] = data;
+                }
+            } else if (fieldname === "christening") {
+                var data = parseRootsDate(row[1]);
+                if (!$.isEmptyObject(data)) {
+                    profiledata["baptism"] = data;
+                }
+            } else if (fieldname === "burial") {
+                var data = parseRootsDate(row[1]);
+                if (!$.isEmptyObject(data)) {
+                    if (exists(data.date)) {
+                        burialdtflag = true;
+                    }
+                    if (exists(data.location)) {
+                        buriallcflag = true;
+                    }
+                    profiledata["burial"] = data;
+                }
+            } else if (fieldname === "note") {
+                if (exists(row[1]) && row[1].trim() !== "") {
+                    if (aboutdata !== "") {
+                        aboutdata += '\n';
+                    }
+                    aboutdata += row[1];
+                }
+            } else if (fieldname === "change date") {
+                break;
+            }
+        }
+    }
+
+    if (relation === "") {
+        focusgender = genderval;
+    }
+
+    if (familymembers) {
+        loadGeniData();
+        var famid = 0;
+    }
+
+    if (htmlarray.length > 1) {
+        parsed = $("<div " + htmlarray[1].replace(/<img/ig, "<gmi"));
+    }
+
+    // ---------------------- Family Data --------------------
+    if (familymembers) {
+        for (var i = 0; i < parsed.length; i++) {
+            var ptext = $(parsed[i]).text().trim();
+            if (ptext !== "") {
+                if (ptext.startsWith("Father") || ptext.startsWith("Mother")) {
+                    var title = "";
+                    if (ptext.startsWith("Father")) {
+                        title = "father";
+                    } else {
+                        title = "mother";
+                    }
+                    if (!exists(alldata["family"][title])) {
+                        alldata["family"][title] = [];
+                    }
+                    var entry = $(parsed[i]).next("a");
+                    var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                    var name = parseNameString(entry.text().trim());
+                    var itemid = getParameterByName("id", url);
+                    var subdata = {name: name, title: title};
+                    subdata["url"] = url;
+                    subdata["itemId"] = itemid;
+                    subdata["profile_id"] = famid;
+                    unionurls[famid] = itemid;
+                    getRootFamily(famid, url, subdata);
+                    famid++;
+                } else if (ptext.startsWith("Marriage")) {
+                    var title = "spouse";
+                    if (!exists(alldata["family"][title])) {
+                        alldata["family"][title] = [];
+                    }
+                    var entry = $(parsed[i]).next("a");
+                    var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                    var name = parseNameString(entry.text().trim());
+                    var itemid = getParameterByName("id", url);
+                    var subdata = {name: name, title: title};
+                    var daterow = parseRootsRow(entry.next("ul"));
+                    if (daterow.length > 1) {
+                        var data = parseRootsDate(daterow[1]);
+                        if (!$.isEmptyObject(data)) {
+                            subdata["marriage"] = data;
+                        }
+                    }
+                    subdata["url"] = url;
+                    subdata["itemId"] = itemid;
+                    subdata["profile_id"] = famid;
+                    unionurls[famid] = itemid;
+                    myhspouse.push(famid);
+                    getRootFamily(famid, url, subdata);
+                    famid++;
+                } else if (ptext.startsWith("Children")) {
+                    var title = "child";
+                    if (!exists(alldata["family"][title])) {
+                        alldata["family"][title] = [];
+                    }
+                    var children = $(parsed[i]).next("ol").find("a");
+                    for (var c = 0; c < children.length; c++) {
+                        var entry = $(children[c]);
+                        var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                        var name = parseNameString(entry.text().trim());
+                        var itemid = getParameterByName("id", url);
+                        var subdata = {name: name, title: title};
+                        subdata["url"] = url;
+                        subdata["itemId"] = itemid;
+                        subdata["profile_id"] = famid;
+                        unionurls[famid] = itemid;
+                        getRootFamily(famid, url, subdata);
+                        famid++;
+                    }
+                }
+            }
+        }
+    } else if (isParent(relation.title)) {
+        if (parentmarriageid === "") {
+            parentmarriageid = relation.itemId;
+        } else if (relation.itemId !== parentmarriageid) {
+            for (var i = 0; i < parsed.length; i++) {
+                var ptext = $(parsed[i]).text().trim();
+                if (ptext !== "" && ptext.startsWith("Marriage")) {
+                    var entry = $(parsed[i]).next("a");
+                    var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                    var itemid = getParameterByName("id", url);
+                    if (itemid === parentmarriageid) {
+                        var daterow = parseRootsRow(entry.next("ul"));
+                        if (daterow.length > 1) {
+                            var data = parseRootsDate(daterow[1]);
+                            if (!$.isEmptyObject(data)) {
+                                profiledata["marriage"] = data;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else if (isChild(relation.title)) {
+        for (var i = 0; i < parsed.length; i++) {
+            var ptext = $(parsed[i]).text().trim();
+            if (ptext !== "") {
+                if (ptext.startsWith("Father") || ptext.startsWith("Mother")) {
+                    var entry = $(parsed[i]).next("a");
+                    var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                    var itemid = getParameterByName("id", url);
+                    if (focusURLid !== itemid) {
+                        childlist[relation.proid] = $.inArray(itemid, unionurls);
+                        profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+
+    // ---------------------- Profile Data --------------------
+    if (focusdaterange !== "") {
+        profiledata["daterange"] = focusdaterange;
+    }
+
+    if (!burialdtflag && buriallcflag && deathdtflag && $('#burialonoffswitch').prop('checked')) {
+        var data = [];
+        var dd = profiledata["death"][0]["date"];
+        if (dd.startsWith("Between")) {
+            var btsplit = dd.split(" and ");
+            if (btsplit.length > 1) {
+                dd = btsplit[1];
+            }
+        }
+        if (dd.startsWith("After Circa") || dd.startsWith("Circa After")) {
+            dd = dd.trim();
+        } else if (dd.startsWith("After")) {
+            dd = dd.replace("After", "After Circa").trim();
+        } else if (dd.startsWith("Before Circa") || dd.startsWith("Circa Before")) {
+            dd = dd.trim();
+        } else if (dd.startsWith("Before")) {
+            dd = dd.replace("Before", "Before Circa").trim();
+        } else if (dd.startsWith("Circa")) {
+            dd = "After " + dd.trim();
+        } else if (!dd.startsWith("Between")) {
+            dd = "After Circa " + dd.trim();
+        }
+        if (!dd.startsWith("Between")) {
+            data.push({date: dd});
+            data.push(profiledata["burial"][0]);
+            profiledata["burial"] = data;
+        }
+    }
+
+    if (aboutdata !== "") {
+        profiledata["about"] = cleanHTML(aboutdata);
+        // "\n--------------------\n"  Merge separator
+    }
+
+    if (familymembers) {
+        alldata["profile"] = profiledata;
+        alldata["scorefactors"] = "";
+        updateGeo();
+    }
+    return profiledata;
+}
+
+function getRootFamily(famid, url, subdata) {
+    familystatus.push(famid);
+    chrome.extension.sendMessage({
+        method: "GET",
+        action: "xhttp",
+        url: url,
+        variable: subdata
+    }, function (response) {
+        var arg = response.variable;
+        var person = parseRootsWeb(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+        if (person === "") {
+            familystatus.pop();
+            return;
+        }
+        person = updateInfoData(person, arg);
+        databyid[arg.profile_id] = person;
+        alldata["family"][arg.title].push(person);
+        familystatus.pop();
+    });
+}
+
+function parseRootsName(fperson) {
+    var focusperson = "";
+    var surname = "";
+    var givenname = "";
+    var mname = "";
+    for (var i = 0; i < fperson.length; i++) {
+        var row = parseRootsRow(fperson[i]);
+        if (exists(row) && row.length > 1) {
+            var fieldname = row[0].toLowerCase().trim();
+            if (fieldname == "name") {
+                focusperson = parseNameString(row[1].trim());
+            } else if (fieldname == "surname") {
+                surname = row[1].trim();
+            } else if (fieldname == "given name") {
+                givenname = row[1].trim();
+            } else if (fieldname == "_marnm") {
+                mname = row[1].trim();
+            } else if (fieldname === "change date") {
+                break;
+            }
+        }
+    }
+    if (givenname !== "" && surname !== "") {
+        if (mname !== "") {
+            focusperson = givenname + " " + mname + " (born " + surname + ")";
+        } else {
+            focusperson = givenname + " " + surname;
+        }
+    }
+    return focusperson;
+}
+
+function parseNameString(focusperson) {
+    var surname = focusperson.match(/^[A-Z]*/);
+    if (exists(surname) && surname.length > 0 && surname[0].length > 1) {
+        focusperson = focusperson.replace(surname[0], "").trim() + " " + NameParse.fix_case(surname[0]);
+    } else {
+        var focussplit = focusperson.split(" ");
+        for (var i = 0; i < focussplit.length; i++) {
+            focussplit[i] = NameParse.fix_case(focussplit[i]);
+        }
+        focusperson = focussplit.join(" ");
+    }
+    return focusperson;
+}
+
+function parseRootsDate(vitalstring) {
+    var data = [];
+    var datesplit = [];
+    if (vitalstring.contains("\n")) {
+        var splitvital = vitalstring.split("\n");
+        vitalstring = splitvital[0];
+    }
+    var vitalinfo = vitalstring.replace(/Quality:.*/i, "").trim();
+    if (vitalinfo.toLowerCase() === "y") {
+        return data;
+    }
+    if (vitalinfo.startsWith("in ")) {
+        datesplit[0] = "";
+        datesplit[1] = vitalinfo.replace(/^in /, "");
+    } else if (vitalinfo.contains(" in ")) {
+        datesplit = vitalinfo.split(" in ");
+    } else if (vitalinfo.toLowerCase().startsWith("bet") || vitalinfo.toLowerCase().startsWith("btw")) {
+        datesplit[0] = vitalinfo;
+    } else {
+        var i = vitalinfo.substr(i).search(/\d{4}/);
+        if (i == -1 || vitalstring.length < i + 5) {
+            datesplit = [ vitalinfo ];
+        } else {
+            datesplit = [ vitalinfo.substr(0, i + 4).trim(), vitalinfo.substr(i + 4).trim() ];
+        }
+    }
+
+    if (datesplit.length > 0) {
+        var dateval = datesplit[0].trim();
+        dateval = dateval.replace(/ABT/i, "Circa");
+        dateval = dateval.replace(/BEF/i, "Before");
+        dateval = dateval.replace(/AFT/i, "After");
+        dateval = dateval.replace(/BET/i, "Between");
+        dateval = dateval.replace(/BTW/i, "Between");
+
+        if (dateval.contains(" to ")) {
+            dateval = dateval.replace(" to ", " and ");
+            if (!dateval.startsWith("Between")) {
+                dateval = "Between " + dateval;
+            }
+        } else if (dateval.contains("-")) {
+            dateval = dateval.replace("-", " and ");
+            if (!dateval.startsWith("Between")) {
+                dateval = "Between " + dateval;
+            }
+        }
+        if (dateval !== "") {
+            data.push({date: dateval});
+        }
+        if (datesplit.length > 1) {
+            var eventlocation = datesplit[1].trim();
+            if (eventlocation !== "") {
+                data.push({id: geoid, location: eventlocation});
+                geoid++;
+            }
+        }
+    }
+    return data;
+}
+
+function parseRootsRow(fperson) {
+    var rowdata = $(fperson).html();
+    rowdata = rowdata.replace(/<sup>.*<\/sup>/ig, "").replace(/<br>/ig, "\n").replace(/Quality:.*/i, "").trim();
+
+    rowdata = cleanHTML(rowdata);
+    var i = rowdata.indexOf(":");
+    var strArr;
+    if (i == -1) {
+        strArr = [ rowdata ];
+    } else {
+        strArr = [ rowdata.substr(0, i).trim(), rowdata.substr(i + 1).trim() ];
+    }
+    return strArr;
+}

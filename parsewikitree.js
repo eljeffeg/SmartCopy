@@ -1,7 +1,7 @@
 // Parse WikiTree
 function parseWikiTree(htmlstring, familymembers, relation) {
     relation = relation || "";
-    var parsed = $(htmlstring.replace(/<img/ig,"<gmi"));
+    var parsed = $(htmlstring.replace(/<img/ig, "<gmi"));
     var focusdaterange = "";
     var title = parsed.filter('title').text();
     var focusrangearray = title.match(/\d* - \d*/);
@@ -11,16 +11,19 @@ function parseWikiTree(htmlstring, familymembers, relation) {
             focusdaterange += " ?";
         }
         if (focusdaterange.startsWith("-")) {
-            focusdaterange = "? " + focusrange;
+            focusdaterange = "? " + focusdaterange;
         }
     }
 
     var personinfo = parsed.find(".VITALS");
     var focusperson = "";
     if (exists(personinfo[0])) {
-        focusperson = personinfo[0].innerText.replace(/[\n\r]/g, "").replace(/\s+/g, " ").trim();
-        if (focusperson.contains("formerly")) {
+        personinfo[0].innerHTML = personinfo[0].innerHTML.replace(/<strong>/gi, " ");
+        focusperson = personinfo[0].innerText.replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
+        if (focusperson.contains("formerly") && !focusperson.contains("[surname unknown]")) {
             focusperson = focusperson.replace("formerly", "(born") + ")";
+        } else if (focusperson.contains("formerly") && focusperson.contains("[surname unknown]")) {
+            focusperson = focusperson.replace("formerly", "").replace("[surname unknown]", "").trim();
         }
     }
     document.getElementById("readstatus").innerText = focusperson;
@@ -42,7 +45,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
     var aboutdata = "";
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     if (imageflag) {
-        var imagedata = parsed.find( ".alpha" );
+        var imagedata = parsed.find(".alpha");
         if (exists(imagedata[0])) {
             var imglink = $(imagedata[0]).find('a');
             var imgthumb = $(imagedata[0]).find('gmi');
@@ -160,9 +163,9 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                     }
                 }
             } else if (isParent(relation.title)) {
-                if (wikiparentmarriage === "") {
-                    wikiparentmarriage = relation.itemId;
-                } else if (relation.itemId !== wikiparentmarriage) {
+                if (parentmarriageid === "") {
+                    parentmarriageid = relation.itemId;
+                } else if (relation.itemId !== parentmarriageid) {
                     var cells = $(row).find("span");
                     for (var i = 0; i < cells.length; i++) {
                         if (exists(cells[i])) {
@@ -172,7 +175,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                                 if (exists(title) && isPartner(title)) {
                                     var url = $(urlset[0]).attr('href');
                                     var itemid = url.substring(url.lastIndexOf('/') + 1);
-                                    if (itemid === wikiparentmarriage) {
+                                    if (itemid === parentmarriageid) {
                                         if (exists(cells[2])) {
                                             data = parseWikiEvent($(cells[2]).text());
                                             if (!$.isEmptyObject(data)) {
@@ -184,6 +187,25 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                             }
                         }
 
+                    }
+                }
+            } else if (isChild(relation.title)) {
+                var cells = $(row).find("span");
+                for (var i = 0; i < cells.length; i++) {
+                    if (exists(cells[i])) {
+                        var urlset = $(cells[i]).find('a');
+                        if (exists(urlset)) {
+                            var title = $(urlset[0]).attr('title');
+                            if (exists(title) && isParent(title)) {
+                                var url = $(urlset[0]).attr('href');
+                                var itemid = url.substring(url.lastIndexOf('/') + 1);
+                                if (focusURLid !== itemid) {
+                                    childlist[relation.proid] = $.inArray(itemid, unionurls);
+                                    profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -202,7 +224,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
             dd = dd.trim();
         } else if (dd.startsWith("After")) {
             dd = dd.replace("After", "After Circa").trim();
-        } else if (dd.startsWith("Before Circa") || dd.startsWith("Circa Before") ) {
+        } else if (dd.startsWith("Before Circa") || dd.startsWith("Circa Before")) {
             dd = dd.trim();
         } else if (dd.startsWith("Before")) {
             dd = dd.replace("Before", "Before Circa").trim();
@@ -218,14 +240,14 @@ function parseWikiTree(htmlstring, familymembers, relation) {
         }
     }
 
-    var bio = htmlstring.replace(/(\r\n|\n|\r)/gm,"").match('Biography \<\/span\>\<\/h2\>(.*?)\<a name');
+    var bio = htmlstring.replace(/(\r\n|\n|\r)/gm, "").match('Biography \<\/span\>\<\/h2\>(.*?)\<a name');
 
     if (familymembers) {
         if (exists(bio) && bio.length > 1) {
             var atdata = bio[1];
-            atdata = atdata.replace(/\<sup (.*?)\<\/sup\>/ig, "");
-            atdata = atdata.replace(/\<p\>/gi, "");
-            atdata = atdata.replace(/\<\/p\>/gi, "\n");
+            atdata = atdata.replace(/<sup (.*?)<\/sup>/ig, "");
+            atdata = atdata.replace(/<p>/gi, "");
+            atdata = atdata.replace(/<\/p>/gi, "\n");
             if (atdata.contains("<i>")) {
                 var splitatdata = atdata.split("<i>");
                 atdata = splitatdata[0];

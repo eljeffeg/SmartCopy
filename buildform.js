@@ -17,7 +17,7 @@ var myhspouse = [];
 var focusgender = "unknown";
 var focusabout = "";
 var focusnicknames = "";
-var wikiparentmarriage = "";
+var parentmarriageid = "";
 alldata["family"] = {};
 
 function updateGeo() {
@@ -163,6 +163,7 @@ function buildForm() {
             scorephoto = true;
             ck++;
         }
+        x += 1;
         var thumbnail = alldata["profile"]["thumb"];
         var image = alldata["profile"]["image"];
         membersstring = membersstring +
@@ -401,14 +402,14 @@ function buildForm() {
                     $('#addparentck').prop('checked', true);
                 }
             }
-            if (skipprivate && fullname.startsWith("\<Private\>")) {
+            if (skipprivate && checkLiving(fullname)) {
                 scored = false;
             } else {
                 scoreused = true;
             }
             if (exists(members[member].alive)){
                 living = members[member].alive;
-            } else if (fullname.startsWith("\<Private\>")) {
+            } else if (checkLiving(fullname)) {
                 living = true;
             }
             var nameval = NameParse.parse(fullname, $('#mnameonoffswitch').prop('checked'));
@@ -796,7 +797,7 @@ function updateInfoData(person, arg) {
         var mname = $('#mnameonoffswitch').prop('checked');
         var tempname = NameParse.parse(person.name, mname);
         var argname = NameParse.parse(arg.name, mname);
-        if (person.name.startsWith("\<Private\>") && !arg.name.startsWith("\<Private\>")) {
+        if (checkLiving(person.name) && !checkLiving(arg.name)) {
             if (!arg.name.contains("(born ") && person.name.contains("(born ")) {
                 if (arg.name.contains(tempname.birthName)) {
                     if (arg.name.contains(tempname.lastName)) {
@@ -916,4 +917,8 @@ function loadGeniData() {
         }
         familystatus.pop();
     });
+}
+
+function checkLiving(name) {
+    return (name.startsWith("\<Private\>") || name.startsWith("Living"));
 }

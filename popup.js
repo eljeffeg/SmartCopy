@@ -3,6 +3,7 @@ var locationtest = false;
 var accountinfo;
 var profilechanged = false;
 var focusid;
+var focusURLid = "";
 var focusname;
 var tablink;
 var submitcheck = true;
@@ -13,7 +14,7 @@ var updatecount = 1;
 var updatetotal = 0;
 var recordtype = "MyHeritage Match";
 chrome.storage.local.get('buildhistory', function (result) {
-    if(exists(result.buildhistory)) {
+    if (exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
         buildHistoryBox();
     }
@@ -21,7 +22,7 @@ chrome.storage.local.get('buildhistory', function (result) {
 
 function buildHistoryBox() {
     var historytext = "";
-    for (var i=0; i < buildhistory.length; i++) {
+    for (var i = 0; i < buildhistory.length; i++) {
         var name = buildhistory[i].id;
         if (exists(buildhistory[i].name)) {
             name = buildhistory[i].name;
@@ -29,7 +30,7 @@ function buildHistoryBox() {
         var datetxt = "";
         if (exists(buildhistory[i].date)) {
             var day = new Date(buildhistory[i].date);
-            datetxt = (("00" + (day.getMonth()+1))).slice(-2) + "-" + ("00" + day.getDate()).slice(-2) + "@" + ("00" + day.getHours()).slice(-2) + ":" + ("00" + day.getMinutes()).slice(-2) + ": ";
+            datetxt = (("00" + (day.getMonth() + 1))).slice(-2) + "-" + ("00" + day.getDate()).slice(-2) + "@" + ("00" + day.getHours()).slice(-2) + ":" + ("00" + day.getMinutes()).slice(-2) + ": ";
             //moment(buildhistory[i].date).format("MM-DD@HH:mm") + ': ';
         }
         var focusprofileurl = "";
@@ -48,12 +49,12 @@ function buildHistoryBox() {
 
 function buildHistorySelect() {
     var historytext = "";
-    for (var i=0; i < buildhistory.length; i++) {
+    for (var i = 0; i < buildhistory.length; i++) {
         var name = buildhistory[i].id;
         if (exists(buildhistory[i].name)) {
             name = buildhistory[i].name;
         }
-        historytext += '<option value="' + buildhistory[i].id + '">History: ' + name +  '</option>';
+        historytext += '<option value="' + buildhistory[i].id + '">History: ' + name + '</option>';
     }
     return historytext;
 }
@@ -77,12 +78,12 @@ if (typeof String.prototype.startsWith != 'function') {
         return this.slice(0, str.length) == str;
     }
 }
-if (typeof String.prototype.endsWith != 'function' ) {
-    String.prototype.endsWith = function( str ) {
+if (typeof String.prototype.endsWith != 'function') {
+    String.prototype.endsWith = function (str) {
         if (typeof str === "undefined") {
             return false;
         }
-        return this.substring( this.length - str.length, this.length ) === str;
+        return this.substring(this.length - str.length, this.length) === str;
     }
 }
 if (!String.prototype.contains) {
@@ -97,11 +98,16 @@ document.addEventListener('DOMContentLoaded', function () {
     checkAccount();
     chrome.tabs.getSelected(null, function (tab) {
         tablink = tab.url;
-        if (startsWithMH(tablink,"research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) || tablink.startsWith("http://www.wikitree.com")) {
+        if (startsWithMH(tablink, "research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
+            tablink.startsWith("http://www.wikitree.com") || (tablink.startsWith("http://wc.rootsweb.ancestry.com") && tablink.contains("id="))) {
             getPageCode();
-        } else if (startsWithMH(tablink,"matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr"))) {
+        } else if (startsWithMH(tablink, "matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr")) ||
+            (tablink.startsWith("http://wc.rootsweb.ancestry.com") && tablink.endsWith("igm.cgi"))) {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Matches on this results page.');
+        } else if (tablink.startsWith("http://wc.rootsweb.ancestry.com") && tablink.toLowerCase().contains("op=show")) {
+            document.querySelector('#loginspinner').style.display = "none";
+            setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Profiles on this list page.');
         } else if (isGeni()) {
             var focusprofile = getProfile(tablink);
             focusid = focusprofile.replace("?profile=", "");
@@ -122,22 +128,23 @@ function isGeni() {
 
 function userAccess() {
     if (loggedin && exists(accountinfo)) {
-        if(accountinfo.curator) {
+        if (accountinfo.curator) {
             chrome.extension.sendMessage({
                 method: "GET",
                 action: "xhttp",
                 url: "http://historylink.herokuapp.com/account?profile=" + focusid,
                 variable: ""
             }, function (response) {
+                console.log(response);
                 document.querySelector('#loginspinner').style.display = "none";
                 var responsedata = JSON.parse(response.source);
                 var accessdialog = document.querySelector('#useraccess');
                 if (!responsedata.big_tree) {
+                    setMessage("#AFC8FF", '<strong>This profile is not in the World Family Tree.</strong>');
                     accessdialog.style.display = "block";
                     accessdialog.style.marginBottom = "-2px";
-                    accessdialog.style.backgroundColor = "#AFC8FF";
-                    accessdialog.innerHTML = "This profile is not in the big tree.";
-                    setMessage("#f9acac", 'SmartCopy does not currently support this site / collection.');
+                    accessdialog.innerHTML += "<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...";
+                    buildResearch();
                 }
                 else if (responsedata.claimed && !responsedata.curator) {
                     if (responsedata.pro) {
@@ -165,9 +172,7 @@ function userAccess() {
                     }
                 } else {
                     accessdialog.style.display = "block";
-                    accessdialog.style.marginBottom = "-2px";
                     accessdialog.innerHTML = "<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...";
-                    setMessage("#f9acac", 'SmartCopy does not currently support this site / collection.');
                     buildResearch();
                 }
             });
@@ -204,8 +209,8 @@ function useradd() {
         variable: ""
     }, function (response) {
     });
-    chrome.tabs.getSelected(null, function(tab){
-        chrome.tabs.update(tab.id, {url: "http://www.geni.com/threads/new/" + focusid.replace("profile-g", "") + "?return_here=true"}, function() {
+    chrome.tabs.getSelected(null, function (tab) {
+        chrome.tabs.update(tab.id, {url: "http://www.geni.com/threads/new/" + focusid.replace("profile-g", "") + "?return_here=true"}, function () {
             chrome.tabs.executeScript(null, {
                 code: "document.getElementById('thread_subject').value='SmartCopy Invite';" +
                     "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, " +
@@ -216,7 +221,7 @@ function useradd() {
                     "SmartCopy can be a powerful tool to help us build the world tree, but it could also quickly create duplication and introduce bad data. " +
                     "Users granted rights to SmartCopy are expected to be responsible with using this tool, attempt to merge any duplicates that arise, and work through relationship conflicts (get curator assistance if necessary)." +
                     "';"
-            }, function() {
+            }, function () {
                 window.close();
             })
         });
@@ -270,7 +275,7 @@ function loadPage(request) {
             document.getElementById("top-container").style.display = "block";
             var focusrange = "";
             if (tablink.contains("myheritage")) {
-                var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig,""));
+                var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
                 focusname = parsed.find(".recordTitle").text().trim();
                 recordtype = parsed.find(".infoGroupTitle");
                 if (exists(recordtype[0])) {
@@ -282,6 +287,7 @@ function loadPage(request) {
                     focusid = focusprofile.replace("http://www.geni.com/", "");
                     updateLinks("?profile=" + focusid);
                 }
+                //MyHeritage SmartMatch Page - Redirect to primary website
                 if (recordtype === "Find a Grave") {
                     var recordurl = request.source.match('http://www.findagrave.com/cgi-bin(.*?)"');
                     if (exists(recordurl) && exists(recordurl[1])) {
@@ -312,7 +318,7 @@ function loadPage(request) {
                     }
                 }
             } else if (tablink.startsWith("http://www.findagrave.com")) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig,""));
+                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 var fperson = parsed.find(".plus2").find("b");
                 focusname = getPersonName(fperson[0].innerHTML);
                 recordtype = "Find A Grave Memorial";
@@ -320,16 +326,24 @@ function loadPage(request) {
                 if (title.contains("(")) {
                     splitrange = title.split("(");
                     focusrange = splitrange[1];
-                    focusrange = focusrange.replace(")","").trim();
+                    focusrange = focusrange.replace(")", "").trim();
                 }
+            } else if (tablink.startsWith("http://wc.rootsweb.ancestry.com")) {
+                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+                recordtype = "RootsWeb's WorldConnect";
+                var fperson = parsed.find("li");
+                focusname = parseRootsName(fperson);
+                focusrange = "";
             } else if (tablink.startsWith("http://www.wikitree.com")) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig,""));
+                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 var personinfo = parsed.find(".VITALS");
                 var focusperson = "";
                 if (exists(personinfo[0])) {
-                    focusperson = personinfo[0].innerText.replace(/[\n\r]/g, "").replace(/\s+/g, " ").trim();
+                    focusperson = personinfo[0].innerText.replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
                     if (focusperson.contains("formerly")) {
                         focusperson = focusperson.replace("formerly", "(born") + ")";
+                    } else if (focusperson.contains("formerly") && focusperson.contains("[surname unknown]")) {
+                        focusperson = focusperson.replace("formerly", "").replace("[surname unknown]", "").trim();
                     }
                     focusname = focusperson;
                 }
@@ -366,6 +380,8 @@ function loadPage(request) {
                     parseFindAGrave(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (tablink.startsWith("http://www.wikitree.com")) {
                     parseWikiTree(request.source, (accountinfo.pro && accountinfo.user));
+                } else if (tablink.startsWith("http://wc.rootsweb.ancestry.com")) {
+                    parseRootsWeb(request.source, (accountinfo.pro && accountinfo.user));
                 }
 
                 if (!accountinfo.pro) {
@@ -388,17 +404,18 @@ function loadPage(request) {
         }
     } else {
         if (supportedCollection()) {
-            var itemId = "";
             if (tablink.startsWith("http://www.findagrave.com")) {
-                itemId = getParameterByName('GRid', tablink);
+                focusURLid = getParameterByName('GRid', tablink);
             } else if (tablink.startsWith("http://www.wikitree.com")) {
-                itemId = tablink.substring(tablink.lastIndexOf('/') + 1).replace("-Family-Tree", "");
+                focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace("-Family-Tree", "");
+            } else if (tablink.startsWith("http://wc.rootsweb.ancestry.com")) {
+                focusURLid = getParameterByName('id', tablink);
             } else if (startsWithMH(tablink, "")) {
-                itemId = getParameterByName('itemId', tablink);
+                focusURLid = getParameterByName('itemId', tablink);
             }
-            if (itemId !== "") {
-                for (var i=0;i< buildhistory.length;i++) {
-                    if(buildhistory[i].itemId === itemId) {
+            if (focusURLid !== "") {
+                for (var i = 0; i < buildhistory.length; i++) {
+                    if (buildhistory[i].itemId === focusURLid) {
                         focusid = buildhistory[i].id;
                         profilechanged = true;
                         loadPage(request);
@@ -408,7 +425,7 @@ function loadPage(request) {
             }
 
             loadSelectPage(request);
-        }else {
+        } else {
             document.getElementById("top-container").style.display = "block";
             document.getElementById("submitbutton").style.display = "none";
             document.getElementById("loading").style.display = "none";
@@ -429,7 +446,7 @@ function loadSelectPage(request) {
         '<input type="text" style="width: 100%;" id="changeprofile"></td>' +
         '</tr><tr><td style="padding-top: 5px;"><button id="changefocus">Set Destination</button></td></tr></table>');
 
-    var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig,""));
+    var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
     var focusperson = parsed.find(".individualInformationName").text().trim();
     var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
     if (exists(focusprofile)) {
@@ -454,7 +471,7 @@ function loadSelectPage(request) {
                 for (var key in result) if (result.hasOwnProperty(key)) {
                     var person = result[key];
                     if (exists(person.name)) {
-                        selectsrt += '<option value="' + person.id + '">' + capFL(person.relation) + ": " + person.name +  '</option>';
+                        selectsrt += '<option value="' + person.id + '">' + capFL(person.relation) + ": " + person.name + '</option>';
                     }
                 }
                 if (buildhistory.length > 0) {
@@ -493,7 +510,7 @@ function loadSelectPage(request) {
             } else {
                 var invalidtext = $("#changetext")[0];
                 invalidtext.innerText = "Invalid Profile Id - Try Again";
-                invalidtext.style.color ='red';
+                invalidtext.style.color = 'red';
             }
         });
     });
@@ -511,7 +528,10 @@ function getPageCode() {
         document.querySelector('#loginspinner').style.display = "none";
         document.getElementById("smartcopy-container").style.display = "block";
         document.getElementById("loading").style.display = "block";
-        if (tablink.startsWith("http://www.myheritage.com/") || tablink.startsWith("http://www.findagrave.com") || tablink.startsWith("http://www.wikitree.com/wiki/")) {
+        if (tablink.startsWith("http://www.myheritage.com/") ||
+            tablink.startsWith("http://www.findagrave.com") ||
+            tablink.startsWith("http://www.wikitree.com/wiki/") ||
+            (tablink.startsWith("http://wc.rootsweb.ancestry.com") && getParameterByName("op", tablink).toLowerCase() === "get")) {
             chrome.tabs.executeScript(null, {
                 file: "getPagesSource.js"
             }, function () {
@@ -529,8 +549,17 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
+        } else if (tablink.startsWith("http://wc.rootsweb.ancestry.com") && getParameterByName("op", tablink).toLowerCase() === "ped") {
+            tablink = tablink.replace(/op=PED/i, "op=get");
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: tablink
+            }, function (response) {
+                loadPage(response);
+            });
         } else {
-            var url = tablink.replace(/https?:\/\/www\.myheritage\..*?\//i,"http://www.myheritage.com/") + "&lang=EN";
+            var url = tablink.replace(/https?:\/\/www\.myheritage\..*?\//i, "http://www.myheritage.com/") + "&lang=EN";
             chrome.extension.sendMessage({
                 method: "GET",
                 action: "xhttp",
@@ -597,15 +626,14 @@ function getProfile(profile_id) {
         }
         if (profile_id.indexOf("/") != -1) {
             //Grab the GUID from a URL
-            if(!profile_id.contains("html5")) {
-                profile_id = "profile-g" + profile_id.substring(profile_id.lastIndexOf('/') + 1);
-            } else if (profile_id.indexOf("#") != -1) {
-                profile_id = "profile-" + profile_id.substring(profile_id.lastIndexOf('#') + 1, profile_id.length);
+            if (!profile_id.contains("html5")) {
+                profile_id = profile_id.substring(profile_id.lastIndexOf('/') + 1);
             }
         }
-        if (profile_id.indexOf("?") != -1) {
+        if (profile_id.indexOf("?through") != -1) {
             //In case the copy the profile url by navigating through another 6000000002107278790?through=6000000010985379345
-            profile_id = profile_id.substring(0, profile_id.lastIndexOf('?'));
+            //But skip 6000000029660962822?highlight_id=6000000029660962822#6000000028974729472
+            profile_id = "profile-g" + profile_id.substring(0, profile_id.lastIndexOf('?'));
         }
         if (profile_id.indexOf("#") != -1) {
             //In case the copy the profile url by navigating in tree view 6000000001495436722#6000000010985379345
@@ -613,7 +641,11 @@ function getProfile(profile_id) {
         }
         var isnum = /^\d+$/.test(profile_id);
         if (isnum) {
-            profile_id = "profile-g" + profile_id;
+            if (profile_id.length === 19) {
+                profile_id = "profile-g" + profile_id;
+            } else if (profile_id.length < 19) {
+                profile_id = "profile-" + profile_id;
+            }
         }
         if (profile_id.indexOf("profile-") != -1) {
             return "?profile=" + profile_id;
@@ -624,9 +656,9 @@ function getProfile(profile_id) {
 
 var exlinks = document.getElementsByClassName("expandlinks");
 
-var expandAll = function() {
+var expandAll = function () {
     var expandmembers = $(this).closest('div').find('.memberexpand');
-    for(var i=0;i<expandmembers.length;i++){
+    for (var i = 0; i < expandmembers.length; i++) {
         if (window[this.name]) {
             $(expandmembers[i]).slideDown();
             this.innerText = "collapse all";
@@ -638,12 +670,12 @@ var expandAll = function() {
     window[this.name] = !window[this.name];
 };
 
-for(var i=0;i<exlinks.length;i++){
+for (var i = 0; i < exlinks.length; i++) {
     exlinks[i].addEventListener('click', expandAll, false);
 }
 
 function expandFamily(member) {
-    $('#slide'+member).slideToggle();
+    $('#slide' + member).slideToggle();
 }
 
 var entityMap = {
@@ -661,8 +693,7 @@ function escapeHtml(string) {
     });
 }
 
-function capFL(string)
-{   //Capitalize the first letter of the string
+function capFL(string) {   //Capitalize the first letter of the string
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
@@ -675,18 +706,18 @@ $(function () {
         var fs = $(this).closest('div').find('fieldset');
         var ffs = fs.find(':checkbox');
         var photoon = $('#photoonoffswitch').prop('checked');
-        ffs.filter(function(item) {
+        ffs.filter(function (item) {
             return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
         }).prop('checked', this.checked);
         var ffs = fs.find('input:text,select,input:hidden,textarea');
-        ffs.filter(function(item) {
+        ffs.filter(function (item) {
             return !((ffs[item].type === "checkbox") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked));
         }).attr('disabled', !this.checked);
     });
 });
 
 $(function () {
-    $('#updateslide').on('click', function() {
+    $('#updateslide').on('click', function () {
         $('#profilefield').slideToggle();
     });
 });
@@ -719,7 +750,7 @@ var parentlist = [];
 var addchildren = [];
 var photosubmit = [];
 var focusphotoinfo = null;
-var submitform = function() {
+var submitform = function () {
     if (parsecomplete && submitcheck) {
         document.getElementById("bottomsubmit").style.display = "none";
         document.getElementById("submitbutton").style.display = "none";
@@ -744,11 +775,11 @@ var submitform = function() {
                 }
             }
             if (sourcecheck) {
-                if (!focusabout.contains("Updated from [" +  tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
+                if (!focusabout.contains("Updated from [" + tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
                     if (focusabout !== "") {
                         about = focusabout + "\n" + about;
                     }
-                    profileout["about_me"] = about + "* Updated from [" +  tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                    profileout["about_me"] = about + "* Updated from [" + tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                 } else {
                     if (about !== "") {
                         profileout["about_me"] = focusabout + "\n" + about;
@@ -784,7 +815,7 @@ var submitform = function() {
                 var familyout = parseForm(fs);
                 var tempfamilyout = jQuery.extend(true, {}, familyout);
                 delete tempfamilyout.profile_id;  //check to see if it's only the hidden profile_id
-                if(!$.isEmptyObject(tempfamilyout)) {
+                if (!$.isEmptyObject(tempfamilyout)) {
                     var fdata = databyid[familyout.profile_id];
                     if (exists(fdata)) {
                         about = "";
@@ -792,7 +823,7 @@ var submitform = function() {
                             about = familyout["about_me"];
                         }
                         if (sourcecheck) {
-                            about = about + "* Updated from [" +  fdata.url + " " + recordtype + "] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                            about = about + "* Updated from [" + fdata.url + " " + recordtype + "] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                         }
                         if (about !== "") {
                             familyout["about_me"] = about;
@@ -827,7 +858,7 @@ var submitform = function() {
 
 var noerror = true;
 function buildTree(data, action, sendid) {
-    if(!$.isEmptyObject(data) && !devblocksend) {
+    if (!$.isEmptyObject(data) && !devblocksend) {
         if (action !== "add-photo" && action !== "delete") {
             updatetotal += 1;
             document.getElementById("updatetotal").innerText = updatetotal;
@@ -845,11 +876,11 @@ function buildTree(data, action, sendid) {
             action: "xhttp",
             url: "http://historylink.herokuapp.com/smartsubmit?profile=" + sendid + "&action=" + action,
             data: $.param(data),
-            variable: {id: id, relation: action.replace("add-","")}
+            variable: {id: id, relation: action.replace("add-", "")}
         }, function (response) {
-            try{
+            try {
                 var result = JSON.parse(response.source);
-            }catch(e){
+            } catch (e) {
                 noerror = false;
                 var extrainfo = "";
                 if (response.variable.relation === "photo") {
@@ -916,13 +947,13 @@ function buildTree(data, action, sendid) {
             if (exists(databyid[id])) {
                 databyid[id]["geni_id"] = "profile-123456" + id.toString();
                 console.log(action + " on " + databyid[id]["geni_id"]);
-                spouselist[id] = {union: "union"+id, status: databyid[id].status};
+                spouselist[id] = {union: "union" + id, status: databyid[id].status};
                 if (parentlist.length > 0) {
                     if (exists(marriagedates[id])) {
-                        spouselist[id] = {union: "union"+id, status: databyid[id].mstatus};
+                        spouselist[id] = {union: "union" + id, status: databyid[id].mstatus};
                     } else if (exists(marriagedates[parentlist[0].id])) {
                         var pid = parentlist[0];
-                        spouselist[pid.id] = {union: "union"+pid.id, status: pid.mstatus};
+                        spouselist[pid.id] = {union: "union" + pid.id, status: pid.mstatus};
                     } else {
                         console.log("No Parent");
                     }
@@ -954,7 +985,7 @@ function submitChildren() {
             document.getElementById("updatestatus").innerText = "Adding Spouse(s)";
         }
         var tempadded = [];
-        for(var i = 0; i < addchildren.length; i++) {
+        for (var i = 0; i < addchildren.length; i++) {
             if (exists(addchildren[i])) {
                 var childid = childlist[i];
                 if (!exists(childid) || childid === -1) {
@@ -969,7 +1000,7 @@ function submitChildren() {
                 }
             }
         }
-        for (var i=0; i < spouselist.length; i++) {
+        for (var i = 0; i < spouselist.length; i++) {
             if (exists(spouselist[i])) {
                 var spouseinfo = spouselist[i];
                 var marriageupdate = {};
@@ -998,7 +1029,7 @@ function submitChildren() {
                     }, function (response) {
                     });
                     //Process the Union Update
-                } else if (!$.isEmptyObject(marriageupdate) &&  devblocksend) {
+                } else if (!$.isEmptyObject(marriageupdate) && devblocksend) {
                     console.log("Marriage Update: " + JSON.stringify(marriageupdate));
                 }
             }
@@ -1031,7 +1062,7 @@ function submitChildren() {
             if (exists(focusphotoinfo)) {
                 photototal += 1;
             }
-            for (var p=0;p < photosubmit.length; p++) {
+            for (var p = 0; p < photosubmit.length; p++) {
                 if (exists(photosubmit[p]) && exists(databyid[p])) {
                     photototal += 1;
                 }
@@ -1053,7 +1084,7 @@ function submitChildren() {
             focusphotoinfo = null;
             photoprogress -= 1;
         } else {
-            for (var p=0;p < photosubmit.length; p++) {
+            for (var p = 0; p < photosubmit.length; p++) {
                 if (exists(photosubmit[p]) && exists(databyid[p])) {
                     buildTree(photosubmit[p], "add-photo", databyid[p].geni_id);
                     photosubmit[p] = null;
@@ -1094,7 +1125,7 @@ function submitWait() {
     if (submitstatus.length > 0) {
         setTimeout(submitWait, 200);
     } else {
-        for (var i=0; i < tempspouse.length; i++) {
+        for (var i = 0; i < tempspouse.length; i++) {
             if (exists(tempspouse[i])) {
                 buildTree("", "delete", tempspouse[i]);
             }
@@ -1107,7 +1138,7 @@ function submitWait() {
         }
         document.getElementById("updating").innerHTML = '<div style="text-align: center; font-size: 110%;"><strong>Geni Tree Updated</strong></div>' +
             '<div style="text-align: center; padding:5px;"><b>View Profile:</b> ' +
-            '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g","") + '" target="_blank">tree view</a>, ' +
+            '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g", "") + '" target="_blank">tree view</a>, ' +
             '<a href="' + focusprofileurl + '" target="_blank">profile view</a></div>';
         if (noerror) {
             document.getElementById("message").style.display = "none";
@@ -1121,7 +1152,7 @@ function submitWait() {
     }
 }
 
-var slideoptions = function() {
+var slideoptions = function () {
     $('#optionslide').slideToggle();
 };
 
@@ -1134,7 +1165,7 @@ function parseForm(fs) {
     var objentry = {};
     var marentry = {};
     var rawinput = fs.find('input:text,select,input:hidden,textarea');
-    var fsinput = rawinput.filter(function(item) {
+    var fsinput = rawinput.filter(function (item) {
         return ($(rawinput[item]).closest('tr').css('display') !== 'none');
     });
     for (var item in fsinput) if (fsinput.hasOwnProperty(item)) {
@@ -1263,9 +1294,9 @@ function parseDate(fulldate, update) {
                 var splitd = btsplit[1].split(" ");
                 if (splitd.length > 2) {
                     vardate["end_day"] = dt.get('date');
-                    vardate["end_month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                    vardate["end_month"] = dt.get('month') + 1; //+1 because, for some dumb reason, months are indexed to 0
                 } else {
-                    vardate["end_month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+                    vardate["end_month"] = dt.get('month') + 1; //+1 because, for some dumb reason, months are indexed to 0
                 }
             }
             if (dt.get('year') !== 0) {
@@ -1279,9 +1310,9 @@ function parseDate(fulldate, update) {
         var splitd = fulldate.split(" ");
         if (splitd.length > 2) {
             vardate["day"] = dt.get('date');
-            vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+            vardate["month"] = dt.get('month') + 1; //+1 because, for some dumb reason, months are indexed to 0
         } else {
-            vardate["month"] = dt.get('month')+1; //+1 because, for some dumb reason, months are indexed to 0
+            vardate["month"] = dt.get('month') + 1; //+1 because, for some dumb reason, months are indexed to 0
         }
     }
     if (dt.get('year') !== 0) {
@@ -1304,11 +1335,14 @@ function supportedCollection() {
     var expenabled = $('#exponoffswitch').prop('checked');
     if (!expenabled && tablink.startsWith("http://www.findagrave.com")) {
         return false;
-    }else if (!expenabled && tablink.startsWith("http://www.wikitree.com/")) {
+    } else if (!expenabled && tablink.startsWith("http://www.wikitree.com/")) {
+        return false;
+    } else if (!expenabled && tablink.startsWith("http://wc.rootsweb.ancestry.com")) {
         return false;
     } else if (!expenabled && tablink.contains("/collection-10109/")) {
         return false;
-    } else if (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") || tablink.startsWith("http://www.wikitree.com/")) {
+    } else if (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") ||
+        tablink.startsWith("http://www.wikitree.com/") || tablink.startsWith("http://wc.rootsweb.ancestry.com")) {
         return true;
     }
 }
@@ -1365,11 +1399,11 @@ function reverseRelationship(relationship) {
 
 // ----- Persistent Options -----
 $(function () {
-    $('#privateonoffswitch').on('click', function() {
+    $('#privateonoffswitch').on('click', function () {
         chrome.storage.local.set({'autoprivate': this.checked});
         var profilegroup = $('.checkall');
         for (var group in profilegroup) if (profilegroup.hasOwnProperty(group)) {
-            if(profilegroup[group].checked) { //only check it if the section is checked
+            if (profilegroup[group].checked) { //only check it if the section is checked
                 var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
                 for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
                     if (exists(privateprofiles[profile]) && exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
@@ -1392,43 +1426,44 @@ $(function () {
     function geoonoff(value) {
         if (value) {
             var locobj = document.getElementsByClassName("geoloc");
-            for (var i=0;i < locobj.length; i++) {
+            for (var i = 0; i < locobj.length; i++) {
                 locobj[i].style.display = "table-row";
                 var pinput = $(locobj[i]).find(":input:text");
-                pinput.filter(function(item) {
+                pinput.filter(function (item) {
                     var checkbox = $(pinput[item]).closest("tr").find(":input:checkbox");
                     return (pinput[item].value !== "" && checkbox.checked);
                 }).prop("disabled", false);
             }
             var placeobj = document.getElementsByClassName("geoplace");
-            for (var i=0;i < placeobj.length; i++) {
+            for (var i = 0; i < placeobj.length; i++) {
                 placeobj[i].style.display = "none";
                 //$(placeobj[i]).find(":input:text").prop("disabled", true);
             }
             $(".geoicon").attr("src", "images/geoon.png");
         } else {
             var locobj = document.getElementsByClassName("geoloc");
-            for (var i=0;i < locobj.length; i++) {
+            for (var i = 0; i < locobj.length; i++) {
                 locobj[i].style.display = "none";
                 //$(locobj[i]).find(":input:text").prop("disabled", true);
             }
             var placeobj = document.getElementsByClassName("geoplace");
-            for (var i=0;i < placeobj.length; i++) {
+            for (var i = 0; i < placeobj.length; i++) {
                 placeobj[i].style.display = "table-row";
                 var pinput = $(placeobj[i]).find(":input:text");
-                pinput.filter(function(item) {
+                pinput.filter(function (item) {
                     var checkbox = $(pinput[item]).closest("tr").find(":input:checkbox");
-                    return (pinput[item].value !== ""  && checkbox.checked);
+                    return (pinput[item].value !== "" && checkbox.checked);
                 }).prop("disabled", false);
             }
             $(".geoicon").attr("src", "images/geooff.png");
         }
     }
-    $('#birthonoffswitch').on('click', function() {
+
+    $('#birthonoffswitch').on('click', function () {
         chrome.storage.local.set({'autobirth': this.checked});
         var profilegroup = $('.checkall');
         for (var group in profilegroup) if (profilegroup.hasOwnProperty(group)) {
-            if(profilegroup[group].id === "addchildck" || profilegroup[group].id === "addsiblingck") {
+            if (profilegroup[group].id === "addchildck" || profilegroup[group].id === "addsiblingck") {
                 var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
                 for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
                     if (exists(privateprofiles[profile]) && exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
@@ -1477,7 +1512,7 @@ $(function () {
         for (var group in profilegroup) if (profilegroup.hasOwnProperty(group)) {
             var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
             for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
-                if (exists(privateprofiles[profile]) && exists(privateprofiles[profile].name) &&  privateprofiles[profile].name.startsWith("checkbox")) {
+                if (exists(privateprofiles[profile]) && exists(privateprofiles[profile].name) && privateprofiles[profile].name.startsWith("checkbox")) {
                     if (exists($(privateprofiles[profile]).next()[0])) {
                         var name = NameParse.parse($(privateprofiles[profile]).next()[0].text, this.checked);
                         var fs = $("#" + privateprofiles[profile].name.replace("checkbox", "slide"));
@@ -1532,70 +1567,70 @@ $(function () {
 
 chrome.storage.local.get('autogeo', function (result) {
     var geochecked = result.autogeo;
-    if(exists(geochecked)) {
+    if (exists(geochecked)) {
         $('#geoonoffswitch').prop('checked', geochecked);
     }
 });
 
 chrome.storage.local.get('autoprivate', function (result) {
     var privatechecked = result.autoprivate;
-    if(exists(privatechecked)) {
+    if (exists(privatechecked)) {
         $('#privateonoffswitch').prop('checked', privatechecked);
     }
 });
 
 chrome.storage.local.get('autobirth', function (result) {
     var birthchecked = result.autobirth;
-    if(exists(birthchecked)) {
+    if (exists(birthchecked)) {
         $('#birthonoffswitch').prop('checked', birthchecked);
     }
 });
 
 chrome.storage.local.get('automname', function (result) {
     var mnamechecked = result.automname;
-    if(exists(mnamechecked)) {
+    if (exists(mnamechecked)) {
         $('#mnameonoffswitch').prop('checked', mnamechecked);
     }
 });
 
 chrome.storage.local.get('hideempty', function (result) {
     var hidechecked = result.hideempty;
-    if(exists(hidechecked)) {
+    if (exists(hidechecked)) {
         $('#hideemptyonoffswitch').prop('checked', hidechecked);
     }
 });
 
 chrome.storage.local.get('excollection', function (result) {
     var experimental = result.excollection;
-    if(exists(experimental)) {
+    if (exists(experimental)) {
         $('#exponoffswitch').prop('checked', experimental);
     }
 });
 
 chrome.storage.local.get('burialdate', function (result) {
     var burialchecked = result.burialdate;
-    if(exists(burialchecked)) {
+    if (exists(burialchecked)) {
         $('#burialonoffswitch').prop('checked', burialchecked);
     }
 });
 
 chrome.storage.local.get('geniparent', function (result) {
     var gparentchecked = result.geniparent;
-    if(exists(gparentchecked)) {
+    if (exists(gparentchecked)) {
         $('#geniparentonoffswitch').prop('checked', gparentchecked);
     }
 });
 
 chrome.storage.local.get('addsource', function (result) {
     var sourcechecked = result.addsource;
-    if(exists(sourcechecked)) {
+    if (exists(sourcechecked)) {
         $('#sourceonoffswitch').prop('checked', sourcechecked);
     }
 });
 
 chrome.storage.local.get('addphoto', function (result) {
     var addphotochecked = result.addphoto;
-    if(exists(addphotochecked)) {
+    if (exists(addphotochecked)) {
         $('#photoonoffswitch').prop('checked', addphotochecked);
     }
 });

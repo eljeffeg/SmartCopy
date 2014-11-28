@@ -99,13 +99,17 @@ document.addEventListener('DOMContentLoaded', function () {
     chrome.tabs.getSelected(null, function (tab) {
         tablink = tab.url;
         if (startsWithMH(tablink, "research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
-            tablink.startsWith("http://www.wikitree.com") || (validRootsWeb(tablink) && tablink.contains("id="))) {
+            tablink.startsWith("http://www.wikitree.com") || (validRootsWeb(tablink) && tablink.contains("id=")) ||
+            (tablink.startsWith("http://records.ancestry.com/") && tablink.contains("pid="))) {
             getPageCode();
         } else if (startsWithMH(tablink, "matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr")) ||
             (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Matches on this results page.');
         } else if (validRootsWeb(tablink) && tablink.toLowerCase().contains("igm.cgi")) {
+            document.querySelector('#loginspinner').style.display = "none";
+            setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Profile pages on this site.');
+        } else if (tablink === "http://records.ancestry.com/Home/Results") {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Profile pages on this site.');
         } else if (isGeni()) {
@@ -334,6 +338,20 @@ function loadPage(request) {
                 var fperson = parsed.find("li");
                 focusname = parseRootsName(fperson);
                 focusrange = "";
+            } else if (tablink.startsWith("http://records.ancestry.com/")) {
+                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+                recordtype = "Ancestry Records";
+                focusname = parsed.filter('title').text();
+                var frange = parsed.find(".pageCrumb");
+                for (var i = 0; i < frange.length; i++) {
+                    if ($(frange[i]).text().startsWith(focusname)) {
+                        var fsplit = $(frange[i]).text().split("(");
+                        if (fsplit.length > 1) {
+                            focusrange = fsplit[1].replace(")", "").trim();
+                        }
+                        break;
+                    }
+                }
             } else if (tablink.startsWith("http://www.wikitree.com")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 var personinfo = parsed.find(".VITALS");
@@ -382,6 +400,8 @@ function loadPage(request) {
                     parseWikiTree(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (validRootsWeb(tablink)) {
                     parseRootsWeb(request.source, (accountinfo.pro && accountinfo.user));
+                } else if (tablink.startsWith("http://records.ancestry.com/")) {
+                    parseAncestryFree(request.source, (accountinfo.pro && accountinfo.user));
                 }
 
                 if (!accountinfo.pro) {
@@ -412,6 +432,8 @@ function loadPage(request) {
                 focusURLid = getParameterByName('id', tablink);
             } else if (startsWithMH(tablink, "")) {
                 focusURLid = getParameterByName('itemId', tablink);
+            } else if (tablink.startsWith("http://records.ancestry.com/")) {
+                focusURLid = getParameterByName('pid', tablink);
             }
             if (focusURLid !== "") {
                 for (var i = 0; i < buildhistory.length; i++) {
@@ -531,7 +553,8 @@ function getPageCode() {
         if (tablink.startsWith("http://www.myheritage.com/") ||
             tablink.startsWith("http://www.findagrave.com") ||
             tablink.startsWith("http://www.wikitree.com/wiki/") ||
-            (validRootsWeb(tablink) && getParameterByName("op", tablink).toLowerCase() === "get")) {
+            (validRootsWeb(tablink) && getParameterByName("op", tablink).toLowerCase() === "get") ||
+            tablink.startsWith("http://records.ancestry.com/")) {
             chrome.tabs.executeScript(null, {
                 file: "getPagesSource.js"
             }, function () {
@@ -1339,10 +1362,12 @@ function supportedCollection() {
         return false;
     } else if (!expenabled && tablink.startsWith("http://wc.rootsweb.ancestry.com")) {
         return false;
-    } else if (!expenabled && tablink.contains("/collection-10109/")) {
+    } else if (!expenabled && tablink.startsWith("http://records.ancestry.com/")) {
+        return false;
+    } if (!expenabled && tablink.contains("/collection-10109/")) {
         return false;
     } else if (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") ||
-        tablink.startsWith("http://www.wikitree.com/") || validRootsWeb(tablink)) {
+        tablink.startsWith("http://www.wikitree.com/") || validRootsWeb(tablink) || tablink.startsWith("http://records.ancestry.com/")) {
         return true;
     }
 }

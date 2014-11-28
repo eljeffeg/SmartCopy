@@ -13,7 +13,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
     var title = parsed.filter('title').text();
 
     var fperson = parsed.find("li");
-    focusperson = parseRootsName(fperson);
+    var focusperson = parseRootsName(fperson);
     document.getElementById("readstatus").innerText = focusperson;
     var genderval = "unknown";
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};

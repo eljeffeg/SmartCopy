@@ -99,15 +99,15 @@ document.addEventListener('DOMContentLoaded', function () {
     chrome.tabs.getSelected(null, function (tab) {
         tablink = tab.url;
         if (startsWithMH(tablink, "research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
-            tablink.startsWith("http://www.wikitree.com") || (tablink.startsWith("http://wc.rootsweb.ancestry.com") && tablink.contains("id="))) {
+            tablink.startsWith("http://www.wikitree.com") || (validRootsWeb(tablink) && tablink.contains("id="))) {
             getPageCode();
         } else if (startsWithMH(tablink, "matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr")) ||
-            (tablink.startsWith("http://wc.rootsweb.ancestry.com") && tablink.endsWith("igm.cgi"))) {
+            (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Matches on this results page.');
-        } else if (tablink.startsWith("http://wc.rootsweb.ancestry.com") && tablink.toLowerCase().contains("op=show")) {
+        } else if (validRootsWeb(tablink) && tablink.toLowerCase().contains("igm.cgi")) {
             document.querySelector('#loginspinner').style.display = "none";
-            setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Profiles on this list page.');
+            setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Profile pages on this site.');
         } else if (isGeni()) {
             var focusprofile = getProfile(tablink);
             focusid = focusprofile.replace("?profile=", "");
@@ -328,7 +328,7 @@ function loadPage(request) {
                     focusrange = splitrange[1];
                     focusrange = focusrange.replace(")", "").trim();
                 }
-            } else if (tablink.startsWith("http://wc.rootsweb.ancestry.com")) {
+            } else if (validRootsWeb(tablink)) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 recordtype = "RootsWeb's WorldConnect";
                 var fperson = parsed.find("li");
@@ -380,7 +380,7 @@ function loadPage(request) {
                     parseFindAGrave(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (tablink.startsWith("http://www.wikitree.com")) {
                     parseWikiTree(request.source, (accountinfo.pro && accountinfo.user));
-                } else if (tablink.startsWith("http://wc.rootsweb.ancestry.com")) {
+                } else if (validRootsWeb(tablink)) {
                     parseRootsWeb(request.source, (accountinfo.pro && accountinfo.user));
                 }
 
@@ -408,7 +408,7 @@ function loadPage(request) {
                 focusURLid = getParameterByName('GRid', tablink);
             } else if (tablink.startsWith("http://www.wikitree.com")) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace("-Family-Tree", "");
-            } else if (tablink.startsWith("http://wc.rootsweb.ancestry.com")) {
+            } else if (validRootsWeb(tablink)) {
                 focusURLid = getParameterByName('id', tablink);
             } else if (startsWithMH(tablink, "")) {
                 focusURLid = getParameterByName('itemId', tablink);
@@ -531,7 +531,7 @@ function getPageCode() {
         if (tablink.startsWith("http://www.myheritage.com/") ||
             tablink.startsWith("http://www.findagrave.com") ||
             tablink.startsWith("http://www.wikitree.com/wiki/") ||
-            (tablink.startsWith("http://wc.rootsweb.ancestry.com") && getParameterByName("op", tablink).toLowerCase() === "get")) {
+            (validRootsWeb(tablink) && getParameterByName("op", tablink).toLowerCase() === "get")) {
             chrome.tabs.executeScript(null, {
                 file: "getPagesSource.js"
             }, function () {
@@ -549,7 +549,7 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
-        } else if (tablink.startsWith("http://wc.rootsweb.ancestry.com") && getParameterByName("op", tablink).toLowerCase() === "ped") {
+        } else if (validRootsWeb(tablink) && getParameterByName("op", tablink).toLowerCase() === "ped") {
             tablink = tablink.replace(/op=PED/i, "op=get");
             chrome.extension.sendMessage({
                 method: "GET",
@@ -1342,7 +1342,7 @@ function supportedCollection() {
     } else if (!expenabled && tablink.contains("/collection-10109/")) {
         return false;
     } else if (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") ||
-        tablink.startsWith("http://www.wikitree.com/") || tablink.startsWith("http://wc.rootsweb.ancestry.com")) {
+        tablink.startsWith("http://www.wikitree.com/") || validRootsWeb(tablink)) {
         return true;
     }
 }
@@ -1564,6 +1564,10 @@ $(function () {
         }
     }
 });
+
+function validRootsWeb(url) {
+    return (url.startsWith("http://worldconnect.rootsweb.ancestry.com/") || url.startsWith("http://wc.rootsweb.ancestry.com/"));
+}
 
 chrome.storage.local.get('autogeo', function (result) {
     var geochecked = result.autogeo;

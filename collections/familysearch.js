@@ -214,7 +214,7 @@ function parseFamilyDate(vitalstring) {
     var data = [];
     var dmatch = vitalstring.replace(/<a .*?<\/a>/g, "").split("<br>");
     if (exists(dmatch) && dmatch.length > 0) {
-        var dateval = dmatch[0].trim();
+        var dateval = cleanHTML(dmatch[0]).trim();
         dateval = dateval.replace(/ABT/i, "Circa");
         dateval = dateval.replace(/BEF/i, "Before");
         dateval = dateval.replace(/AFT/i, "After");
@@ -237,7 +237,7 @@ function parseFamilyDate(vitalstring) {
         }
     }
     if (exists(dmatch) && dmatch.length > 1) {
-        var eventlocation = dmatch[1].trim();
+        var eventlocation = cleanHTML(dmatch[1]).trim();
         if (eventlocation !== "") {
             data.push({id: geoid, location: eventlocation});
             geoid++;

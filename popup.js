@@ -107,10 +107,9 @@ document.addEventListener('DOMContentLoaded', function () {
             (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Matches on this results page.');
-        } else if (validRootsWeb(tablink) && tablink.toLowerCase().contains("igm.cgi")) {
-            document.querySelector('#loginspinner').style.display = "none";
-            setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Profile pages on this site.');
-        } else if (tablink === "http://records.ancestry.com/Home/Results") {
+        } else if ((validRootsWeb(tablink) && tablink.toLowerCase().contains("igm.cgi")) ||
+            tablink === "http://records.ancestry.com/Home/Results" ||
+            tablink.startsWith("https://familysearch.org/search/tree/")) {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Profile pages on this site.');
         } else if (isGeni()) {

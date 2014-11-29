@@ -10,14 +10,18 @@ function buildResearch() {
         var responsedata = JSON.parse(response.source);
         focusname = responsedata.name;
         var accessdialog = document.querySelector('#useraccess');
-        var researchstring = "<div style='font-size: 115%;'><strong>Research this Person</strong></div><div style='padding-top: 2px; padding-bottom: 5px;'>";
-        //researchstring += buildAncestry(responsedata);
-        researchstring += buildBillionGraves(responsedata);
-        researchstring += buildFamilySearch(responsedata);
-        researchstring += buildFindAGrave(responsedata);
-        researchstring += buildGoogle(responsedata);
-        //researchstring += buildObitsforLive(responsedata);
-        researchstring += buildRootsWeb(responsedata);
+        var researchstring = "<div style='font-size: 115%;'><strong>Research this Person</strong><div style='font-size: 85%; font-style: italic;'>" + focusname + "</div></div><div style='padding-top: 2px; padding-bottom: 5px;'>";
+        if (exists(responsedata.first_name)) {
+            //researchstring += buildAncestry(responsedata);
+            researchstring += buildBillionGraves(responsedata);
+            researchstring += buildFamilySearch(responsedata);
+            researchstring += buildFindAGrave(responsedata);
+            researchstring += buildGoogle(responsedata);
+            //researchstring += buildObitsforLive(responsedata);
+            researchstring += buildRootsWeb(responsedata);
+        } else {
+            researchstring = "<div><strong>Unable to create research links on this profile.</strong>"
+        }
         researchstring += '</div>';
         accessdialog.innerHTML = researchstring;
     });

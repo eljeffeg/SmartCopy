@@ -690,9 +690,9 @@ function getProfile(profile_id) {
         }
         var isnum = /^\d+$/.test(profile_id);
         if (isnum) {
-            if (profile_id.length === 19) {
+            if (profile_id.length > 16) {
                 profile_id = "profile-g" + profile_id;
-            } else if (profile_id.length < 19) {
+            } else {
                 profile_id = "profile-" + profile_id;
             }
         }

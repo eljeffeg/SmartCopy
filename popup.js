@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (startsWithMH(tablink, "research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
             tablink.startsWith("http://www.wikitree.com") || (validRootsWeb(tablink) && tablink.contains("id=")) ||
             (tablink.startsWith("http://records.ancestry.com/") && tablink.contains("pid=")) ||
-            tablink.startsWith("https://familysearch.org/pal:")) {
+            tablink.startsWith("https://familysearch.org/")) {
             getPageCode();
         } else if (startsWithMH(tablink, "matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr")) ||
             (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
@@ -607,6 +607,33 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
+        } else if (tablink.startsWith("https://familysearch.org/ark:")) {
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: tablink
+            }, function (response) {
+                var match = response.source.match(/<dc:identifier>(.*?)<\/dc:identifier>/i);
+                if (exists(match) && match.length > 0) {
+                    tablink = match[1] + "?view=basic";
+                    if (tablink.startsWith("http:")) {
+                        tablink = tablink.replace("http:", "https:");
+                    }
+                    chrome.extension.sendMessage({
+                        method: "GET",
+                        action: "xhttp",
+                        url: tablink
+                    }, function (response) {
+                        loadPage(response);
+                    });
+                } else {
+                    document.getElementById("submitbutton").style.display = "none";
+                    document.getElementById("loading").style.display = "none";
+                    setMessage("#f9acac", 'SmartCopy does not currently support this site / collection.');
+                    return;
+                }
+            });
+
         } else {
             var url = tablink.replace(/https?:\/\/www\.myheritage\..*?\//i, "http://www.myheritage.com/") + "&lang=EN";
             chrome.extension.sendMessage({
@@ -1391,7 +1418,7 @@ function supportedCollection() {
     } else if (!expenabled && tablink.startsWith("http://records.ancestry.com/")) {
         return false;
     } else if (!expenabled && tablink.startsWith("https://familysearch.org/pal:")) {
-       return false;
+        return false;
     } else if (!expenabled && tablink.contains("/collection-10109/")) {
         return false;
     } else if (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") ||

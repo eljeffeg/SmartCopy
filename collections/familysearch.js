@@ -202,7 +202,7 @@ function parseFamilySearch(htmlstring, familymembers, relation) {
 
     if (familymembers) {
         alldata["profile"] = profiledata;
-        alldata["scorefactors"] = "";
+        alldata["scorefactors"] = smscorefactors;
         updateGeo();
     }
     return profiledata;

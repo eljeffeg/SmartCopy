@@ -13,6 +13,7 @@ var loggedin = false;
 var updatecount = 1;
 var updatetotal = 0;
 var recordtype = "MyHeritage Match";
+var smscorefactors = "";
 chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
@@ -281,6 +282,7 @@ function loadPage(request) {
                 var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
                 focusname = parsed.find(".recordTitle").text().trim();
                 recordtype = parsed.find(".infoGroupTitle");
+                smscorefactors = parsed.find(".value_add_score_factors_container").text().trim();
                 if (exists(recordtype[0])) {
                     recordtype = recordtype[0].innerText;
                 }

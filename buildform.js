@@ -168,7 +168,7 @@ function buildForm() {
         var image = alldata["profile"]["image"];
         membersstring = membersstring +
             '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(thumbnail, scorephoto) + '>' +
-            capFL(title) + ':</td><td style="float:right;padding: 0;"><input type="hidden" class="photocheck" name="' + title + '" value="' + image + '" ' + isEnabled(thumbnail, scorephoto) + '><img style="max-width: 158px" src="' + thumbnail + '"></td></tr>';
+            capFL(title) + ':</td><td style="float:right;padding: 0;"><input type="hidden" class="photocheck" name="' + title + '" value="' + image + '" ' + isEnabled(thumbnail, scorephoto) + '><img style="max-width: 152px" src="' + thumbnail + '"></td></tr>';
         div[0].innerHTML = membersstring;
     }
     if (exists(alldata["profile"]["occupation"])) {

@@ -383,7 +383,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         if (familymembers && children.length > 2) {
             //This section is only run on the focus profile
             alldata["profile"] = profiledata;
-            alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();
+            alldata["scorefactors"] = smscorefactors;
 
             child = children[2];
 

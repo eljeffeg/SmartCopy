@@ -58,6 +58,27 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                 profiledata["image"] = image;
             }
         }
+    } else {
+        var imagep = parsed.find("p");
+        for (var r = 0; r < imagep.length; r++) {
+            if ($(imagep[r]).text().startsWith("Images:")) {
+                var imagedata = $(imagep[r]).next('div').find('gmi');
+                if (exists(imagedata[0])) {
+                    var imgurl = $(imagedata[0]).attr("src");
+                    if (exists(imgurl) && imgurl.startsWith("/photo")) {
+                        thumb = "http://www.wikitree.com" + imgurl;
+                        if (imgurl.contains("/300px-")) {
+                            imgurl = imgurl.substring(0, imgurl.lastIndexOf("/"));
+                        }
+                        image = "http://www.wikitree.com" + imgurl.replace("thumb/", "");
+                        profiledata["thumb"] = thumb;
+                        profiledata["image"] = image;
+                        break;
+                    }
+                }
+
+            }
+        }
     }
     if (familymembers) {
         loadGeniData();
@@ -110,7 +131,6 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                             if (!exists(alldata["family"][title])) {
                                 alldata["family"][title] = [];
                             }
-
                             var gendersv = "unknown";
                             if (isFemale(title)) {
                                 gendersv = "female";
@@ -264,7 +284,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 
     if (familymembers) {
         alldata["profile"] = profiledata;
-        alldata["scorefactors"] = "";
+        alldata["scorefactors"] = smscorefactors;
         updateGeo();
     }
     return profiledata;

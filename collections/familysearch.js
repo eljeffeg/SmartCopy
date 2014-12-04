@@ -159,6 +159,26 @@ function parseFamilySearch(htmlstring, familymembers, relation) {
                 }
             }
         }
+    } else if (isSibling(relation.title)) {
+        var siblingparents = [];
+        for (var x = 1; x < ftable.length; x++) {
+            var fperson = $(ftable[x]).find(".factLabel");
+            for (var i = 0; i < fperson.length; i++) {
+                var row = $(fperson[i]).text();
+                if (exists(row) && row.length > 1) {
+                    var fieldname = row.toLowerCase().trim();
+                    if (fieldname.startsWith("father:") || fieldname.startsWith("mother:")) {
+                        var url = $($(fperson[i]).next("td")).find("a").attr("href");
+                        if (exists(url)) {
+                            url = url.replace("?view=details", "").replace("?view=basic", "");
+                            var itemid = url.substring(url.lastIndexOf('/') + 1);
+                            siblingparents.push(itemid);
+                        }
+                    }
+                }
+            }
+        }
+        profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
     }
 
     // ---------------------- Profile Data --------------------
@@ -293,6 +313,9 @@ function processFamilySearch(person, title, famid, data) {
         }
         var name = parseFamilyName($(person).find("a").text());
         var itemid = url.substring(url.lastIndexOf('/') + 1).replace("?view=basic", "");
+        if (isParent(title)) {
+            parentlist.push(itemid);
+        }
         var subdata = {name: name, title: title, gender: gendersv, url: url, itemId: itemid, profile_id: famid};
         if (!$.isEmptyObject(data)) {
             subdata["marriage"] = data;

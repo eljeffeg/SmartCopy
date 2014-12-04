@@ -159,6 +159,9 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                                     }
                                 }
                             }
+                            if (isParent(title)) {
+                                parentlist.push(itemid);
+                            }
                             familystatus.push(famid);
                             chrome.extension.sendMessage({
                                 method: "GET",
@@ -228,6 +231,23 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                         }
                     }
                 }
+            } else if (isSibling(relation.title)) {
+                var siblingparents = [];
+                var cells = $(row).find("span");
+                for (var i = 0; i < cells.length; i++) {
+                    if (exists(cells[i])) {
+                        var urlset = $(cells[i]).find('a');
+                        if (exists(urlset)) {
+                            var title = $(urlset[0]).attr('title');
+                            if (exists(title) && isParent(title)) {
+                                var url = $(urlset[0]).attr('href');
+                                var itemid = url.substring(url.lastIndexOf('/') + 1);
+                                siblingparents.push(itemid);
+                            }
+                        }
+                    }
+                }
+                profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
             }
         }
     }

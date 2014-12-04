@@ -10,6 +10,7 @@ var childlist = [];
 var marriagedata = [];
 var parentmarset = [];
 var parentmarriage;
+var parentlist = [];
 var parentflag = false;
 var hideprofile = false;
 var genispouse = [];
@@ -392,6 +393,7 @@ function buildForm() {
             var entry = $("#" + relationship + "val")[0];
             var fullname = members[member].name;
             var living = false;
+            var halfsibling = false;
             if (!scored && relationship === "parent") {
                 //used !== to also select unknown gender
                 if (scorefactors.contains("father") && members[member].gender !== "female") {
@@ -401,6 +403,10 @@ function buildForm() {
                     scored = true;
                     $('#addparentck').prop('checked', true);
                 }
+            }
+            if (scored && isSibling(relationship) && exists(members[member].halfsibling) && members[member].halfsibling) {
+                scored = false;
+                halfsibling = true;
             }
             if (skipprivate && checkLiving(fullname)) {
                 scored = false;
@@ -435,7 +441,13 @@ function buildForm() {
             if (!living) {
                 membersstring += '<span style="float: right; position: relative; margin-right: -10px; margin-bottom: -5px; right: 8px; top: -3px; margin-left: -8px;"><img src="/images/deceased.png"></span>';
             }
-            membersstring += '<span style="font-size: 130%; float: right; padding: 0px 8px;">&#9662;</span></td></tr></table></div>' +
+
+            membersstring += '<span style="font-size: 130%; float: right; padding: 0px 8px;">&#9662;</span>';
+
+            if (halfsibling) {
+                membersstring += '<span style="float: right; margin-right: -2px; right: 8px; margin-top: 3px; margin-bottom: -3px;"><img src="/images/halfcircle.png" alt="half-sibling" title="half-sibling"></span>';
+            }
+            membersstring += '</td></tr></table></div>' +
                 '<div id="slide' + i + '-' + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
                 '<tr><td colspan="2"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '" ' + isEnabled(members[member].profile_id, scored) + '></td></tr>';
             if (isChild(relationship)) {
@@ -921,4 +933,32 @@ function loadGeniData() {
 
 function checkLiving(name) {
     return (name.startsWith("\<Private\>") || name.startsWith("Living"));
+}
+
+function recursiveCompare(obj, reference){
+    if(obj === reference) return true;
+    if(obj.constructor !== reference.constructor) return false;
+    if(obj instanceof Array){
+         if(obj.length !== reference.length) return false;
+         for(var i=0, len=obj.length; i<len; i++){
+             if(typeof obj[i] == "object" && typeof reference[j] == "object"){
+                 if(!recursiveCompare(obj[i], reference[i])) return false;
+             }
+             else if(obj[i] !== reference[i]) return false;
+         }
+    }
+    else {
+        var objListCounter = 0;
+        var refListCounter = 0;
+        for(var i in obj){
+            objListCounter++;
+            if(typeof obj[i] == "object" && typeof reference[i] == "object"){
+                if(!recursiveCompare(obj[i], reference[i])) return false;
+            }
+            else if(obj[i] !== reference[i]) return false;
+        }
+        for(var i in reference) refListCounter++;
+        if(objListCounter !== refListCounter) return false;
+    }
+    return true; //Every object and array is equal
 }

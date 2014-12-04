@@ -125,6 +125,24 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
                 profiledata["parent_id"] = $.inArray(itemid, unionurls);
             }
         }
+    } else if (isSibling(relation.title)) {
+        var siblingparents = [];
+        var person;
+        var url;
+        var itemid;
+        person = parsed.find(".personFather");
+        if (exists(person[0])) {
+            url = $(person[0]).find("a").attr("href");
+            itemid = getParameterByName("pid", url);
+            siblingparents.push(itemid);
+        }
+        person = parsed.find(".personMother");
+        if (exists(person[0])) {
+            url = $(person[0]).find("a").attr("href");
+            itemid = getParameterByName("pid", url);
+            siblingparents.push(itemid);
+        }
+        profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
     }
 
 
@@ -161,6 +179,9 @@ function processAncestryFamily(person, title, famid) {
         }
         var name = $(person).find(".name").text();
         var itemid = getParameterByName("pid", url);
+        if (isParent(title)) {
+            parentlist.push(itemid);
+        }
         var subdata = {name: name, title: title, gender: gendersv, url: url, itemId: itemid, profile_id: famid};
         unionurls[famid] = itemid;
         getAncestryFreeFamily(famid, url, subdata);

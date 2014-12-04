@@ -112,6 +112,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
                     subdata["url"] = url;
                     subdata["itemId"] = itemid;
                     subdata["profile_id"] = famid;
+                    parentlist.push(itemid);
                     unionurls[famid] = itemid;
                     getRootFamily(famid, url, subdata);
                     famid++;
@@ -199,6 +200,20 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
                 }
             }
         }
+    } else if (isSibling(relation.title)) {
+        var siblingparents = [];
+        for (var i = 0; i < parsed.length; i++) {
+            var ptext = $(parsed[i]).text().trim();
+            if (ptext !== "") {
+                if (ptext.startsWith("Father") || ptext.startsWith("Mother")) {
+                    var entry = $(parsed[i]).next("a");
+                    var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                    var itemid = getParameterByName("id", url);
+                    siblingparents.push(itemid);
+                }
+            }
+        }
+        profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
     }
 
 

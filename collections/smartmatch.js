@@ -431,6 +431,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     var urlval = $(row).find(".individualListBodyContainer a").attr("href");
                     var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
                     var itemid = getParameterByName('itemId', shorturl);
+                    if (isParent(title)) {
+                        parentlist.push(itemid);
+                    }
                     subdata["url"] = urlval;
                     subdata["itemId"] = itemid;
                     subdata["profile_id"] = famid;
@@ -500,6 +503,24 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         break;
                     }
                 }
+            } else if (isSibling(relation.title)) {
+                var siblingparents = [];
+                child = children[2];
+                var rows = $(child).find('tr');
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var relationship = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
+                    if (isParent(relationship)) {
+                        var valfamily = $(row).find(".recordFieldValue");
+                        var famlist = $(valfamily).find(".individualsListContainer");
+                        for (var r = 0; r < famlist.length; r++) {
+                            var row = famlist[r];
+                            var urlval = getParameterByName('itemId', $(row).find(".individualListBodyContainer a").attr("href"));
+                            siblingparents.push(urlval);
+                        }
+                    }
+                }
+                profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
             }
             if (genderval === "unknown") {
                 child = children[2];

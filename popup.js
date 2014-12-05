@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
             updateLinks(focusprofile);
             userAccess();
         } else {
-            setMessage("#f9acac", 'SmartCopy does not currently support this site / collection.');
+            setMessage("#f9acac", 'SmartCopy does not currently support parsing this site / collection.');
             document.querySelector('#loginspinner').style.display = "none";
         }
     });
@@ -181,7 +181,7 @@ function userAccess() {
                 }
             });
         } else {
-            setMessage("#f9acac", 'SmartCopy does not currently support this site / collection.');
+            setMessage("#f9acac", 'SmartCopy does not currently support parsing this site / collection.');
         }
     } else {
         setTimeout(userAccess, 200);
@@ -629,7 +629,7 @@ function getPageCode() {
                 } else {
                     document.getElementById("submitbutton").style.display = "none";
                     document.getElementById("loading").style.display = "none";
-                    setMessage("#f9acac", 'SmartCopy does not currently support this site / collection.');
+                    setMessage("#f9acac", 'SmartCopy does not currently support parsing this site / collection.');
                     return;
                 }
             });

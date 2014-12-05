@@ -38,9 +38,9 @@ function updateGeo() {
             }
         }
         if (locationtest) {
-            $.get('location-test.txt', function(data) {
+            $.get('location-test.txt', function (data) {
                 var lines = data.split("\n");
-                $.each(lines, function(n, location) {
+                $.each(lines, function (n, location) {
                     if (location !== "" && !location.startsWith("#")) {
                         var splitloc = location.split("|");
                         var locationset = {id: geoid, location: splitloc[0]};
@@ -92,7 +92,7 @@ function updateGenders() {
     for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
         if (isParent(relationship)) {
             parentgender = obj[relationship];
-        } else if(isPartner(relationship)) {
+        } else if (isPartner(relationship)) {
             spousegender = obj[relationship];
         }
     }
@@ -146,14 +146,14 @@ function buildForm() {
                 '<tr><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
     } else {
         membersstring +=
-            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" name="display_name" value="' + displayname + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
+            '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" name="middle_name" value="' + nameval.middleName + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" name="last_name" value="' + nameval.lastName + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" name="display_name" value="' + displayname + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
     }
     div[0].innerHTML = membersstring;
     if (exists(alldata["profile"]["thumb"])) {
@@ -192,8 +192,8 @@ function buildForm() {
     } else {
         membersstring = div[0].innerHTML;
         membersstring = membersstring +
-            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow" id="occupation"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right;"><input type="text" name="occupation" disabled></td></tr>' +
-            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
+            '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right;"><input type="text" name="occupation" disabled></td></tr>' +
+            '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
         div[0].innerHTML = membersstring;
     }
     if (exists(alldata["profile"].about)) {
@@ -211,7 +211,7 @@ function buildForm() {
         div[0].innerHTML = membersstring;
     } else {
         membersstring = div[0].innerHTML;
-        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow" id="about"><td colspan="2"><div class="profilediv"><input type="checkbox" class="checknext">About:</div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
+        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="2"><div class="profilediv"><input type="checkbox" class="checknext">About:</div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
         div[0].innerHTML = membersstring;
     }
     var geoplace = "table-row";
@@ -286,42 +286,42 @@ function buildForm() {
             }
             if (!dateadded) {
                 membersstring = membersstring +
-                    '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" name="' + title + ':date" disabled></td></tr>';
+                    '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" name="' + title + ':date" disabled></td></tr>';
             }
-            if(title === "death") {
-                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" name="cause_of_death" disabled></td></tr>';
+            if (title === "death") {
+                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" name="cause_of_death" disabled></td></tr>';
             }
             if (!locationadded) {
                 locationval = locationval +
-                    '<tr class="hiddenrow" style="display: ' + isHidden(hidden) +';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
+                    '<tr class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
                     '<img class="geoicon" style="cursor: pointer; float:left; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
-                    '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" disabled></td></tr>' +
-                    '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name_geo" disabled></td></tr>' +
-                    '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" name="'+title+':location:city" disabled></td></tr>' +
-                    '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" name="'+title+':location:county" disabled></td></tr>' +
-                    '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">State: </td><td style="float:right;"><input type="text" name="'+title+':location:state" disabled></td></tr>' +
-                    '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Country: </td><td style="float:right;"><input type="text" name="'+title+':location:country" disabled></td></tr>';
+                    '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="' + title + ':location:place_name" disabled></td></tr>' +
+                    '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" name="' + title + ':location:place_name_geo" disabled></td></tr>' +
+                    '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" name="' + title + ':location:city" disabled></td></tr>' +
+                    '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" name="' + title + ':location:county" disabled></td></tr>' +
+                    '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">State: </td><td style="float:right;"><input type="text" name="' + title + ':location:state" disabled></td></tr>' +
+                    '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Country: </td><td style="float:right;"><input type="text" name="' + title + ':location:country" disabled></td></tr>';
             }
             membersstring = membersstring + locationval;
         } else {
             if (x > 0) {
-                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td colspan="2"><div class="separator"></div></td></tr>';
+                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td colspan="2"><div class="separator"></div></td></tr>';
             }
 
             membersstring = membersstring +
-                '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" name="' + title + ':date" disabled></td></tr>';
-            if(title === "death") {
-                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" name="cause_of_death" disabled></td></tr>';
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" name="' + title + ':date" disabled></td></tr>';
+            if (title === "death") {
+                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" name="cause_of_death" disabled></td></tr>';
             }
             membersstring = membersstring +
-                '<tr class="hiddenrow" style="display: ' + isHidden(hidden) +';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
+                '<tr class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
                 '<img class="geoicon" style="cursor: pointer; float:left; padding-top: 2px; padding-right: 4px;"  alt="Toggle Geolocation" title="Toggle Geolocation"  src="images/' + geoicon + '" height="14px">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
-                '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" disabled></td></tr>' +
-                '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name_geo" disabled></td></tr>' +
-                '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" name="'+title+':location:city" disabled></td></tr>' +
-                '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" name="'+title+':location:county" disabled></td></tr>' +
-                '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">State: </td><td style="float:right;"><input type="text" name="'+title+':location:state" disabled></td></tr>' +
-                '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Country: </td><td style="float:right;"><input type="text" name="'+title+':location:country" disabled></td></tr>';
+                '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="' + title + ':location:place_name" disabled></td></tr>' +
+                '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" name="' + title + ':location:place_name_geo" disabled></td></tr>' +
+                '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" name="' + title + ':location:city" disabled></td></tr>' +
+                '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" name="' + title + ':location:county" disabled></td></tr>' +
+                '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">State: </td><td style="float:right;"><input type="text" name="' + title + ':location:state" disabled></td></tr>' +
+                '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Country: </td><td style="float:right;"><input type="text" name="' + title + ':location:country" disabled></td></tr>';
 
         }
         div[0].innerHTML = membersstring;
@@ -413,13 +413,13 @@ function buildForm() {
             } else {
                 scoreused = true;
             }
-            if (exists(members[member].alive)){
+            if (exists(members[member].alive)) {
                 living = members[member].alive;
             } else if (checkLiving(fullname)) {
                 living = true;
             }
             var nameval = NameParse.parse(fullname, $('#mnameonoffswitch').prop('checked'));
-            if($('#birthonoffswitch').prop('checked')) {
+            if ($('#birthonoffswitch').prop('checked')) {
                 if ((relationship === "child" || relationship === "sibling") && nameval.birthName === "") {
                     nameval.birthName = nameval.lastName;
                 } else if (relationship === "parent" && members[member].gender === "male") {
@@ -478,17 +478,17 @@ function buildForm() {
                 var occupation = members[member]["occupation"];
                 membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored) + '>Occupation: </td><td style="float:right; padding: 0px;"><input type="text" name="occupation" value="' + occupation + '" ' + isEnabled(occupation, scored) + '></td></tr>';
             } else {
-                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow" id="occupation"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right;"><input type="text" name="occupation" disabled></td></tr>';
+                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right;"><input type="text" name="occupation" disabled></td></tr>';
             }
             membersstring = membersstring + '<tr><td class="profilediv" style="padding: 2px; 0px;"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-top: 2px;"><select class="genderselect" style="width: 151px; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
-                '<option value="male" '+ setGender("male", gender) + '>Male</option><option value="female" '+ setGender("female", gender) + '>Female</option><option value="unknown" '+ setGender("unknown", gender) + '>Unknown</option></select></td></tr>' +
+                '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td></tr>' +
                 '<tr><td class="profilediv" style="padding: 2px; 0px;"><input type="checkbox" class="checknext" ' + isChecked(living, scored) + '>Vital: </td><td style="float:right; padding-top: 2px;"><select style="width: 151px; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, scored) + '>' +
-                '<option value=false '+ setLiving("deceased", living) + '>Deceased</option><option value=true '+ setLiving("living", living) + '>Living</option></select></td></tr>';
+                '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td></tr>';
             if (exists(members[member].about)) {
                 var about = members[member].about;
                 membersstring = membersstring + '<tr><td colspan="2"><div class="profilediv" style="font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scored) + '>About:</div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scored) + '>' + about + '</textarea></div></td></tr>';
             } else {
-                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow" id="about"><td colspan="2"><div class="profilediv"><input type="checkbox" class="checknext">About:</div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
+                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="2"><div class="profilediv"><input type="checkbox" class="checknext">About:</div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
             }
             for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
                 var title = listvalues[list];
@@ -520,52 +520,52 @@ function buildForm() {
                             locationval = locationval +
                                 '<tr><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
                                 '<img class="geoicon" style="cursor: pointer; float:left; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + geoicon + '" height="14px">' + capFL(title) + ' Location: &nbsp;' + place + '</div></td></tr>' +
-                                '<tr class="geoplace" style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" value="' + place + '" ' + isEnabled(place, scored) + '></td></tr>' +
-                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, scored) + '>Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, scored) + '></td></tr>' +
-                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, scored) + '>City: </td><td style="float:right;"><input type="text" name="'+title+':location:city" value="' + city + '" ' + isEnabled(city, scored) + '></td></tr>' +
-                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, scored) + '>County: </td><td style="float:right;"><input type="text" name="'+title+':location:county" value="' + county + '" ' + isEnabled(county, scored) + '></td></tr>' +
-                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(state, scored) + '>State: </td><td style="float:right;"><input type="text" name="'+title+':location:state" value="' + state + '" ' + isEnabled(state, scored) + '></td></tr>' +
-                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(country, scored) + '>Country: </td><td style="float:right;"><input type="text" name="'+title+':location:country" value="' + country + '" ' + isEnabled(country, scored) + '></td></tr>';
+                                '<tr class="geoplace" style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, scored) + '></td></tr>' +
+                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, scored) + '>Place: </td><td style="float:right;"><input type="text" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, scored) + '></td></tr>' +
+                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, scored) + '>City: </td><td style="float:right;"><input type="text" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, scored) + '></td></tr>' +
+                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, scored) + '>County: </td><td style="float:right;"><input type="text" name="' + title + ':location:county" value="' + county + '" ' + isEnabled(county, scored) + '></td></tr>' +
+                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(state, scored) + '>State: </td><td style="float:right;"><input type="text" name="' + title + ':location:state" value="' + state + '" ' + isEnabled(state, scored) + '></td></tr>' +
+                                '<tr class="geoloc" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(country, scored) + '>Country: </td><td style="float:right;"><input type="text" name="' + title + ':location:country" value="' + country + '" ' + isEnabled(country, scored) + '></td></tr>';
                             locationadded = true;
                         }
                     }
                     if (!dateadded) {
                         membersstring = membersstring +
-                            '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" name="' + title + ':date" disabled></td></tr>';
+                            '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" name="' + title + ':date" disabled></td></tr>';
 
                     }
                     if (title === "death") {
-                        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" name="cause_of_death"></td></tr>';
+                        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" name="cause_of_death"></td></tr>';
                     }
                     if (!locationadded) {
                         locationval = locationval +
-                            '<tr class="hiddenrow" style="display: ' + isHidden(hidden) +';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
+                            '<tr class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
                             '<img class="geoicon" style="cursor: pointer; float:left; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
-                            '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" disabled></td></tr>' +
-                            '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name_geo" disabled></td></tr>' +
-                            '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" name="'+title+':location:city" disabled></td></tr>' +
-                            '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" name="'+title+':location:county" disabled></td></tr>' +
-                            '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">State: </td><td style="float:right;"><input type="text" name="'+title+':location:state" disabled></td></tr>' +
-                            '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Country: </td><td style="float:right;"><input type="text" name="'+title+':location:country" disabled></td></tr>';
+                            '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="' + title + ':location:place_name" disabled></td></tr>' +
+                            '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" name="' + title + ':location:place_name_geo" disabled></td></tr>' +
+                            '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" name="' + title + ':location:city" disabled></td></tr>' +
+                            '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" name="' + title + ':location:county" disabled></td></tr>' +
+                            '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">State: </td><td style="float:right;"><input type="text" name="' + title + ':location:state" disabled></td></tr>' +
+                            '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Country: </td><td style="float:right;"><input type="text" name="' + title + ':location:country" disabled></td></tr>';
 
                     }
                     membersstring = membersstring + locationval;
                 } else {
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td colspan="2"><div class="separator"></div></td></tr>';
+                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td colspan="2"><div class="separator"></div></td></tr>';
 
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" name="' + title + ':date" disabled></td></tr>';
+                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" name="' + title + ':date" disabled></td></tr>';
                     if (title === "death") {
-                        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) +';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" name="cause_of_death" disabled></td></tr>';
+                        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td style="font-weight: bold; font-size: 90%; vertical-align: middle;"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" name="cause_of_death" disabled></td></tr>';
                     }
                     membersstring = membersstring +
-                        '<tr class="hiddenrow" style="display: ' + isHidden(hidden) +';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
+                        '<tr class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="2" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
                         '<img class="geoicon" style="cursor: pointer; float:left; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
-                        '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name" disabled></td></tr>' +
-                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" name="'+title+':location:place_name_geo" disabled></td></tr>' +
-                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" name="'+title+':location:city" disabled></td></tr>' +
-                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" name="'+title+':location:county" disabled></td></tr>' +
-                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">State: </td><td style="float:right;"><input type="text" name="'+title+':location:state" disabled></td></tr>' +
-                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") +';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Country: </td><td style="float:right;"><input type="text" name="'+title+':location:country" disabled></td></tr>';
+                        '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" name="' + title + ':location:place_name" disabled></td></tr>' +
+                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" name="' + title + ':location:place_name_geo" disabled></td></tr>' +
+                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" name="' + title + ':location:city" disabled></td></tr>' +
+                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" name="' + title + ':location:county" disabled></td></tr>' +
+                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">State: </td><td style="float:right;"><input type="text" name="' + title + ':location:state" disabled></td></tr>' +
+                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Country: </td><td style="float:right;"><input type="text" name="' + title + ':location:country" disabled></td></tr>';
 
                 }
             }
@@ -590,7 +590,7 @@ function buildForm() {
     }
 
     $(function () {
-        $('.genderselect').on('change', function() {
+        $('.genderselect').on('change', function () {
             var genselect = $(this);
             var gendercolor = genderColor(genselect[0].options[genselect[0].selectedIndex].value);
             genselect.closest('.memberexpand').prev('.membertitle').css('background-color', gendercolor);
@@ -598,7 +598,7 @@ function buildForm() {
     });
 
     $(function () {
-        $('.expandcontrol').on('click', function() {
+        $('.expandcontrol').on('click', function () {
             expandFamily($(this).attr("name"));
         });
     });
@@ -618,11 +618,11 @@ function buildForm() {
             var fs = $("#" + this.name.replace("checkbox", "slide"));
             var ffs = fs.find(':checkbox');
             var photoon = $('#photoonoffswitch').prop('checked');
-            ffs.filter(function(item) {
+            ffs.filter(function (item) {
                 return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
             }).prop('checked', this.checked);
             ffs = fs.find('input:text,select,input:hidden,textarea');
-            ffs.filter(function(item) {
+            ffs.filter(function (item) {
                 return !((ffs[item].type === "checkbox") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked));
             }).attr('disabled', !this.checked);
         });
@@ -661,6 +661,50 @@ function buildForm() {
             }
         });
     });
+
+
+    if ($("#parent")[0].style.display = "block") {
+        var father = null;
+        var mother = null;
+        for (var p = 0; p < databyid.length; p++) {
+            if (isParent(databyid[p].status)) {
+                if (databyid[p].gender === "male") {
+                    father = NameParse.parse(databyid[p].name);
+                } else if (databyid[p].gender === "female") {
+                    mother = NameParse.parse(databyid[p].name);
+                } else if (!exists(father)) {
+                    father = NameParse.parse(databyid[p].name);
+                } else {
+                    mother = NameParse.parse(databyid[p].name);
+                }
+            }
+        }
+        var genisearchurl = "http://www.geni.com/search";
+        if (exists(father) && exists(mother)) {
+            var mname = "&partner_names=";
+            if (mother.birthName !== "" && mother.birthName !== father.lastName) {
+                mname += mother.birthName;
+            } else if (mother.lastName !== father.lastName) {
+                mname += mother.lastName;
+            } else {
+                mname += mother.firstName;
+            }
+            genisearchurl += "?names=" + father.firstName + "+" + father.lastName + mname;
+        } else if (exists(father)) {
+            genisearchurl += "?names=" + father.firstName + "+" + father.lastName;
+        } else if (exists(mother)) {
+            var mname = "";
+            if (mother.birthName !== "") {
+                mname = mother.birthName;
+            } else {
+                mname = mother.lastName;
+            }
+            genisearchurl += "?names=" + mother.firstName + "+" + mname;
+        } else {
+            genisearchurl += "/advanced";
+        }
+        $("#genisearch").attr("href", genisearchurl);
+    }
 
     if (i > 0) {
         document.getElementById("familydata").style.display = "block";
@@ -716,7 +760,7 @@ function isHidden(value, geo) {
     var hidden = $('#geoonoffswitch').prop('checked');
     if (geo === "place" && hidden) {
         return "none";
-    } else if(geo === "loc" && !hidden) {
+    } else if (geo === "loc" && !hidden) {
         return "none";
     }
     if (value) {
@@ -736,14 +780,14 @@ function genderColor(gender) {
     return bgcolor;
 }
 
-function setGender(gender,value) {
+function setGender(gender, value) {
     if (gender === value) {
         return "selected";
     }
     return "";
 }
 
-function setLiving(living,value) {
+function setLiving(living, value) {
     if (living === "deceased" && !value) {
         return "selected";
     } else if (living === "living" && value) {
@@ -831,7 +875,7 @@ function updateInfoData(person, arg) {
             //Check if one is CamelCase
             var tlast = tempname.lastName.substring(1, tempname.lastName.length);
             var alast = argname.lastName.substring(1, argname.lastName.length);
-            if(!NameParse.is_camel_case(tlast) && NameParse.is_camel_case(alast)){
+            if (!NameParse.is_camel_case(tlast) && NameParse.is_camel_case(alast)) {
                 person.name = person.name.replace(tempname.lastName, argname.lastName);
             }
         }
@@ -839,7 +883,7 @@ function updateInfoData(person, arg) {
             //Check if one is CamelCase
             var tlast = tempname.birthName.substring(1, tempname.birthName.length);
             var alast = argname.birthName.substring(1, argname.birthName.length);
-            if(!NameParse.is_camel_case(tlast) && NameParse.is_camel_case(alast)){
+            if (!NameParse.is_camel_case(tlast) && NameParse.is_camel_case(alast)) {
                 person.name = person.name.replace(tempname.birthName, argname.birthName);
             }
         }
@@ -860,10 +904,14 @@ function updateInfoData(person, arg) {
             person.gender = "male";
         }
         if (exists(arg.birthyear) && !exists(person.birth)) {
-            person["birth"] = [{"date": arg.birthyear}];
+            person["birth"] = [
+                {"date": arg.birthyear}
+            ];
         }
         if (exists(arg.deathyear) && !exists(person.death)) {
-            person["death"] = [{"date": arg.deathyear}];
+            person["death"] = [
+                {"date": arg.deathyear}
+            ];
         }
         if (!tablink.contains("/collection-1/") && !exists(person["death"]) && exists(person["birth"])) {
             var fulldate = null;
@@ -919,11 +967,11 @@ function loadGeniData() {
         url: abouturl
     }, function (response) {
         var geni_return = JSON.parse(response.source);
-        if (!$.isEmptyObject(geni_return)){
+        if (!$.isEmptyObject(geni_return)) {
             if (exists(geni_return.about_me)) {
                 focusabout = geni_return.about_me;
             }
-            if (exists(geni_return.nicknames)){
+            if (exists(geni_return.nicknames)) {
                 focusnicknames = geni_return.nicknames;
             }
         }
@@ -935,30 +983,30 @@ function checkLiving(name) {
     return (name.startsWith("\<Private\>") || name.startsWith("Living"));
 }
 
-function recursiveCompare(obj, reference){
-    if(obj === reference) return true;
-    if(obj.constructor !== reference.constructor) return false;
-    if(obj instanceof Array){
-         if(obj.length !== reference.length) return false;
-         for(var i=0, len=obj.length; i<len; i++){
-             if(typeof obj[i] == "object" && typeof reference[j] == "object"){
-                 if(!recursiveCompare(obj[i], reference[i])) return false;
-             }
-             else if(obj[i] !== reference[i]) return false;
-         }
+function recursiveCompare(obj, reference) {
+    if (obj === reference) return true;
+    if (obj.constructor !== reference.constructor) return false;
+    if (obj instanceof Array) {
+        if (obj.length !== reference.length) return false;
+        for (var i = 0, len = obj.length; i < len; i++) {
+            if (typeof obj[i] == "object" && typeof reference[j] == "object") {
+                if (!recursiveCompare(obj[i], reference[i])) return false;
+            }
+            else if (obj[i] !== reference[i]) return false;
+        }
     }
     else {
         var objListCounter = 0;
         var refListCounter = 0;
-        for(var i in obj){
+        for (var i in obj) {
             objListCounter++;
-            if(typeof obj[i] == "object" && typeof reference[i] == "object"){
-                if(!recursiveCompare(obj[i], reference[i])) return false;
+            if (typeof obj[i] == "object" && typeof reference[i] == "object") {
+                if (!recursiveCompare(obj[i], reference[i])) return false;
             }
-            else if(obj[i] !== reference[i]) return false;
+            else if (obj[i] !== reference[i]) return false;
         }
-        for(var i in reference) refListCounter++;
-        if(objListCounter !== refListCounter) return false;
+        for (var i in reference) refListCounter++;
+        if (objListCounter !== refListCounter) return false;
     }
     return true; //Every object and array is equal
 }

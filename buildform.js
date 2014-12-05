@@ -663,7 +663,7 @@ function buildForm() {
     });
 
 
-    if ($("#parent")[0].style.display = "block") {
+    if ($("#parent")[0].style.display === "block") {
         var father = null;
         var mother = null;
         for (var p = 0; p < databyid.length; p++) {

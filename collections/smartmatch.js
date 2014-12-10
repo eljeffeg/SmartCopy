@@ -169,7 +169,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                         }
                                     }
                                 } else {
-                                    var profile = {name: splitval.trim(), gender: gendersv,  profile_id: famid, title: title};
+                                    var profile = {name: splitval.trim(), gender: gendersv,  profile_id: famid, title: title, status: title};
                                     alldata["family"][title].push(profile);
                                     databyid[famid] = profile;
                                     if (isPartner(title)) {

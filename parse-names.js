@@ -156,11 +156,12 @@ var NameParse = (function(){
                     firstName = checkmiddle.join(" ");
                 }
             }
+
             if (!suffix && this.is_suffix(middleName)) {
                 var testsuffix = NameParse.removeIgnoredChars(middleName).trim();
                 //If it's just one letter, it might be an initial, such as "I." or "V."
                 if (testsuffix.length > 1) {
-                    suffix = middleName;
+                    suffix = this.is_suffix(middleName);
                     checkmiddlesuffix = true;
                     for (i=start + 1; i<(end - 1); i++) {
                         if (nameParts[i] === middleName) {

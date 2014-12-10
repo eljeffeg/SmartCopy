@@ -667,7 +667,13 @@ function buildForm() {
         var father = null;
         var mother = null;
         for (var p = 0; p < databyid.length; p++) {
-            if (isParent(databyid[p].status)) {
+            var relation;
+            if (exists(databyid[p].status)) {
+                relation = databyid[p].status;
+            } else if (exists(databyid[p].title)) {
+                relation = databyid[p].title;
+            }
+            if (exists(relation) && isParent(relation)) {
                 if (databyid[p].gender === "male") {
                     father = NameParse.parse(databyid[p].name);
                 } else if (databyid[p].gender === "female") {

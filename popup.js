@@ -99,6 +99,9 @@ document.addEventListener('DOMContentLoaded', function () {
     checkAccount();
     chrome.tabs.getSelected(null, function (tab) {
         tablink = tab.url;
+        if (tablink.startsWith("http://findagrave.com")) {
+            tablink = tablink.replace("http://findagrave.com", "http://www.findagrave.com");
+        }
         if (startsWithMH(tablink, "research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
             tablink.startsWith("http://www.wikitree.com") || (validRootsWeb(tablink) && tablink.contains("id=")) ||
             (tablink.startsWith("http://records.ancestry.com/") && tablink.contains("pid=")) ||

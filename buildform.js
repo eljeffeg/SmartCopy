@@ -949,6 +949,7 @@ function parseWikiURL(wikistring) {
 }
 
 function cleanHTML(html) {
+    html = html.replace(/<sup.*<\/sup>/ig, "");
     var div = document.createElement("div");
     div.innerHTML = html;
     return div.textContent || div.innerText || "";

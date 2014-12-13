@@ -103,8 +103,8 @@ document.addEventListener('DOMContentLoaded', function () {
             tablink = tablink.replace("http://findagrave.com", "http://www.findagrave.com");
         }
         if (startsWithMH(tablink, "research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
-            tablink.startsWith("http://www.wikitree.com") || (validRootsWeb(tablink) && tablink.contains("id=")) ||
-            (tablink.startsWith("http://records.ancestry.com/") && tablink.contains("pid=")) ||
+            tablink.startsWith("http://www.wikitree.com") || tablink.startsWith("http://www.werelate.org/wiki/Person") ||
+            (validRootsWeb(tablink) && tablink.contains("id=")) || (tablink.startsWith("http://records.ancestry.com/") && tablink.contains("pid=")) ||
             tablink.startsWith("https://familysearch.org/")) {
             getPageCode();
         } else if (startsWithMH(tablink, "matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr")) ||
@@ -391,6 +391,19 @@ function loadPage(request) {
                         focusrange = "? " + focusrange;
                     }
                 }
+            } else if (tablink.startsWith("http://www.werelate.org/wiki/Person")) {
+                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+                var infotable = parsed.find(".wr-infotable").find("tr");
+                for (var i=0;i<infotable.length; i++) {
+                    var cell = $(infotable[i]).find("td");
+                    var title = cleanHTML($(cell[0]).html().replace(/<sup.*<\/sup>/ig, ""));
+                    if (title.toLowerCase() === "name") {
+                        focusname = $(cell[1]).text();
+                        break;
+                    }
+                }
+                recordtype = "WeRelate Genealogy";
+                focusrange = "";
             }
 
             if (exists(focusid)) {
@@ -412,6 +425,8 @@ function loadPage(request) {
                     parseFindAGrave(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (tablink.startsWith("http://www.wikitree.com")) {
                     parseWikiTree(request.source, (accountinfo.pro && accountinfo.user));
+                } else if (tablink.startsWith("http://www.werelate.org")) {
+                    parseWeRelate(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (validRootsWeb(tablink)) {
                     parseRootsWeb(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (tablink.startsWith("http://records.ancestry.com/")) {
@@ -444,6 +459,8 @@ function loadPage(request) {
                 focusURLid = getParameterByName('GRid', tablink);
             } else if (tablink.startsWith("http://www.wikitree.com")) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace("-Family-Tree", "");
+            } else if (tablink.startsWith("http://www.werelate.org/wiki/Person")) {
+                focusURLid = decodeURIComponent(tablink.substring(tablink.lastIndexOf(':') + 1));
             } else if (validRootsWeb(tablink)) {
                 focusURLid = getParameterByName('id', tablink);
             } else if (startsWithMH(tablink, "")) {
@@ -571,6 +588,7 @@ function getPageCode() {
         if (tablink.startsWith("http://www.myheritage.com/") ||
             tablink.startsWith("http://www.findagrave.com") ||
             tablink.startsWith("http://www.wikitree.com/wiki/") ||
+            tablink.startsWith("http://www.werelate.org/wiki/Person") ||
             (validRootsWeb(tablink) && getParameterByName("op", tablink).toLowerCase() === "get") ||
             tablink.startsWith("http://records.ancestry.com/") ||
             (tablink.startsWith("https://familysearch.org/pal:") && tablink.contains("?view=basic"))) {
@@ -857,6 +875,12 @@ var submitform = function () {
                 if (!focusabout.contains("Updated from [" + tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
                     if (focusabout !== "") {
                         about = focusabout + "\n" + about;
+                    }
+                    if (about !== "") {
+                        var splitabout = about.split("\n");
+                        if (splitabout.length > 1 && splitabout[splitabout.length - 2].startsWith("* ")) {
+                            about += "*";
+                        }
                     }
                     profileout["about_me"] = about + "* Updated from [" + tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                 } else {
@@ -1416,6 +1440,8 @@ function supportedCollection() {
         return false;
     } else if (!expenabled && tablink.startsWith("http://www.wikitree.com/")) {
         return false;
+    } else if (!expenabled && tablink.startsWith("http://www.werelate.org/wiki/Person")) {
+        return false;
     } else if (!expenabled && tablink.startsWith("http://wc.rootsweb.ancestry.com")) {
         return false;
     } else if (!expenabled && tablink.startsWith("http://records.ancestry.com/")) {
@@ -1426,7 +1452,8 @@ function supportedCollection() {
         return false;
     } else if (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") ||
         tablink.startsWith("http://www.wikitree.com/") || validRootsWeb(tablink) ||
-        tablink.startsWith("http://records.ancestry.com/") || tablink.startsWith("https://familysearch.org/pal:")) {
+        tablink.startsWith("http://records.ancestry.com/") || tablink.startsWith("https://familysearch.org/pal:") ||
+        tablink.startsWith("http://www.werelate.org/")) {
         return true;
     }
 }

@@ -377,6 +377,7 @@ function parseRootsDate(vitalstring) {
                 dateval = "Between " + dateval;
             }
         }
+        dateval = dateval.replace(/\d{2}\//,"");
         if (dateval !== "") {
             data.push({date: dateval});
         }

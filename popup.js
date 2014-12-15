@@ -361,7 +361,7 @@ function loadPage(request) {
                 recordtype = "FamilySearch Genealogy";
                 var fname = parsed.find('.name');
                 var focusperson = $(fname[0]).text();
-                if (focusperson.match(/\s\/\w+\//g,'')) {
+                if (focusperson.match(/\s\/\w+\//g, '')) {
                     focusperson = focusperson.replace(/\//g, "");
                 }
                 focusname = focusperson;
@@ -394,7 +394,7 @@ function loadPage(request) {
             } else if (tablink.startsWith("http://www.werelate.org/wiki/Person")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 var infotable = parsed.find(".wr-infotable").find("tr");
-                for (var i=0;i<infotable.length; i++) {
+                for (var i = 0; i < infotable.length; i++) {
                     var cell = $(infotable[i]).find("td");
                     var title = cleanHTML($(cell[0]).html().replace(/<sup.*<\/sup>/ig, ""));
                     if (title.toLowerCase() === "name") {
@@ -1436,19 +1436,7 @@ function addHistory(id, itemId, name) {
 
 function supportedCollection() {
     var expenabled = $('#exponoffswitch').prop('checked');
-    if (!expenabled && tablink.startsWith("http://www.findagrave.com")) {
-        return false;
-    } else if (!expenabled && tablink.startsWith("http://www.wikitree.com/")) {
-        return false;
-    } else if (!expenabled && tablink.startsWith("http://www.werelate.org/wiki/Person")) {
-        return false;
-    } else if (!expenabled && tablink.startsWith("http://wc.rootsweb.ancestry.com")) {
-        return false;
-    } else if (!expenabled && tablink.startsWith("http://records.ancestry.com/")) {
-        return false;
-    } else if (!expenabled && tablink.startsWith("https://familysearch.org/pal:")) {
-        return false;
-    } else if (!expenabled && tablink.contains("/collection-10109/")) {
+    if (!expenabled && tablink.startsWith("example")) {
         return false;
     } else if (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") ||
         tablink.startsWith("http://www.wikitree.com/") || validRootsWeb(tablink) ||

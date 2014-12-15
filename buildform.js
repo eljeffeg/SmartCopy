@@ -142,8 +142,8 @@ function buildForm() {
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" name="maiden_name" value="' + nameval.birthName + '" disabled></td></tr>' +
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" name="suffix" value="' + nameval.suffix + '" disabled></td></tr>' +
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" name="nicknames" value="' + nameval.nickName + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" name="display_name" value="' + displayname + '" disabled></td></tr>' +
-                '<tr><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" name="display_name" value="' + displayname + '" disabled></td></tr>';
+        x += 1;
     } else {
         membersstring +=
             '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" disabled></td></tr>' +
@@ -158,6 +158,9 @@ function buildForm() {
     div[0].innerHTML = membersstring;
     if (exists(alldata["profile"]["thumb"])) {
         membersstring = div[0].innerHTML;
+        if (x > 0) {
+            membersstring = membersstring + '<tr><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
+        }
         var title = "photo";
         var scorephoto = false;
         if (scorefactors.contains(title) && $('#photoonoffswitch').prop('checked')) {

@@ -744,7 +744,7 @@ function getProfile(profile_id) {
                 profile_id = "profile-" + profile_id;
             }
         }
-        if (profile_id.indexOf("profile-") != -1) {
+        if (profile_id.indexOf("profile-") != -1 && profile_id !== "profile-g") {
             return "?profile=" + profile_id;
         }
     }

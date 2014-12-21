@@ -677,16 +677,16 @@ function buildForm() {
                 } else if (exists(databyid[p].title)) {
                     relation = databyid[p].title;
                 }
-            }
-            if (exists(relation) && isParent(relation)) {
-                if (databyid[p].gender === "male") {
-                    father = NameParse.parse(databyid[p].name);
-                } else if (databyid[p].gender === "female") {
-                    mother = NameParse.parse(databyid[p].name);
-                } else if (!exists(father)) {
-                    father = NameParse.parse(databyid[p].name);
-                } else {
-                    mother = NameParse.parse(databyid[p].name);
+                if (exists(relation) && isParent(relation)) {
+                    if (databyid[p].gender === "male") {
+                        father = NameParse.parse(databyid[p].name);
+                    } else if (databyid[p].gender === "female") {
+                        mother = NameParse.parse(databyid[p].name);
+                    } else if (!exists(father)) {
+                        father = NameParse.parse(databyid[p].name);
+                    } else {
+                        mother = NameParse.parse(databyid[p].name);
+                    }
                 }
             }
         }

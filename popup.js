@@ -1453,11 +1453,15 @@ function supportedCollection() {
 }
 
 function getParameterByName(name, url) {
-    url = url.replace("&amp;", "&");
-    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-        results = regex.exec(url);
-    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    if (exists(url)) {
+        url = url.replace("&amp;", "&");
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(url);
+        return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }
+    return null;
+
 }
 
 function reverseRelationship(relationship) {

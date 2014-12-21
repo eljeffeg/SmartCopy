@@ -20,6 +20,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
     if (exists(personinfo[0])) {
         personinfo[0].innerHTML = personinfo[0].innerHTML.replace(/<strong>/gi, " ");
         focusperson = personinfo[0].innerText.replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
+        focusperson = focusperson.replace("[family name unknown]", "");
         if (focusperson.contains("formerly") && !focusperson.contains("[surname unknown]")) {
             focusperson = focusperson.replace("formerly", "(born") + ")";
         } else if (focusperson.contains("formerly") && focusperson.contains("[surname unknown]")) {

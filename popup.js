@@ -925,6 +925,12 @@ var submitform = function () {
                         if (exists(familyout["about_me"])) {
                             about = familyout["about_me"];
                         }
+                        if (about !== "") {
+                            var splitabout = about.split("\n");
+                            if (splitabout.length > 1 && splitabout[splitabout.length - 2].startsWith("* ")) {
+                                about += "*";
+                            }
+                        }
                         if (sourcecheck) {
                             about = about + "* Updated from [" + fdata.url + " " + recordtype + "] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                         }

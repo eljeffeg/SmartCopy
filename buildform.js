@@ -671,10 +671,12 @@ function buildForm() {
         var mother = null;
         for (var p = 0; p < databyid.length; p++) {
             var relation;
-            if (exists(databyid[p].status)) {
-                relation = databyid[p].status;
-            } else if (exists(databyid[p].title)) {
-                relation = databyid[p].title;
+            if (exists(databyid[p])) {
+                if (exists(databyid[p].status)) {
+                    relation = databyid[p].status;
+                } else if (exists(databyid[p].title)) {
+                    relation = databyid[p].title;
+                }
             }
             if (exists(relation) && isParent(relation)) {
                 if (databyid[p].gender === "male") {

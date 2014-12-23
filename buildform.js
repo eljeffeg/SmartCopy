@@ -395,6 +395,9 @@ function buildForm() {
             scored = parentscore;
             var entry = $("#" + relationship + "val")[0];
             var fullname = members[member].name;
+            if (!exists(fullname)) {
+                continue;
+            }
             var living = false;
             var halfsibling = false;
             if (!scored && relationship === "parent") {

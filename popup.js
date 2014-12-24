@@ -801,12 +801,12 @@ function exists(object) {
 $(function () {
     $('.checkall').on('click', function () {
         var fs = $(this).closest('div').find('fieldset');
-        var ffs = fs.find(':checkbox');
+        var ffs = fs.find('[type="checkbox"]');
         var photoon = $('#photoonoffswitch').prop('checked');
         ffs.filter(function (item) {
             return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
         }).prop('checked', this.checked);
-        var ffs = fs.find('input:text,select,input:hidden,textarea');
+        var ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea');
         ffs.filter(function (item) {
             return !((ffs[item].type === "checkbox") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked));
         }).attr('disabled', !this.checked);
@@ -1273,7 +1273,7 @@ document.getElementById('optionbutton').addEventListener('click', slideoptions, 
 function parseForm(fs) {
     var objentry = {};
     var marentry = {};
-    var rawinput = fs.find('input:text,select,input:hidden,textarea');
+    var rawinput = fs.find('input[type="text"],select,input[type="hidden"],textarea');
     var fsinput = rawinput.filter(function (item) {
         return ($(rawinput[item]).closest('tr').css('display') !== 'none');
     });
@@ -1519,8 +1519,8 @@ $(function () {
                         if ($(privateprofiles[profile]).next().text().startsWith("\<Private\>")) {
                             $(privateprofiles[profile]).prop('checked', !this.checked);
                             var fs = $("#" + privateprofiles[profile].name.replace("checkbox", "slide"));
-                            fs.find(':checkbox').prop('checked', !this.checked);
-                            fs.find('input:text').attr('disabled', this.checked);
+                            fs.find('[type="checkbox"]').prop('checked', !this.checked);
+                            fs.find('input[type="text"]').attr('disabled', this.checked);
                         }
                     }
                 }
@@ -1537,9 +1537,9 @@ $(function () {
             var locobj = document.getElementsByClassName("geoloc");
             for (var i = 0; i < locobj.length; i++) {
                 locobj[i].style.display = "table-row";
-                var pinput = $(locobj[i]).find(":input:text");
+                var pinput = $(locobj[i]).find('input[type="text"]');
                 pinput.filter(function (item) {
-                    var checkbox = $(pinput[item]).closest("tr").find(":input:checkbox");
+                    var checkbox = $(pinput[item]).closest("tr").find('input[type="checkbox"]');
                     return (pinput[item].value !== "" && checkbox.checked);
                 }).prop("disabled", false);
             }
@@ -1558,9 +1558,9 @@ $(function () {
             var placeobj = document.getElementsByClassName("geoplace");
             for (var i = 0; i < placeobj.length; i++) {
                 placeobj[i].style.display = "table-row";
-                var pinput = $(placeobj[i]).find(":input:text");
+                var pinput = $(placeobj[i]).find('input[type="text"]');
                 pinput.filter(function (item) {
-                    var checkbox = $(pinput[item]).closest("tr").find(":input:checkbox");
+                    var checkbox = $(pinput[item]).closest("tr").find('input[type="checkbox"]');
                     return (pinput[item].value !== "" && checkbox.checked);
                 }).prop("disabled", false);
             }

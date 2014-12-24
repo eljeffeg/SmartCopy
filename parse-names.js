@@ -155,6 +155,9 @@ var NameParse = (function(){
                     }
                     firstName = checkmiddle.join(" ");
                 }
+                if (NameParse.removeIgnoredChars(middleName) === "") {
+                    middleName = "";
+                }
             }
 
             if (!suffix && this.is_suffix(middleName)) {

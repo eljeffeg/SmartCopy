@@ -611,23 +611,23 @@ function buildForm() {
 
     $(function () {
         $('.checknext').on('click', function () {
-            $(this).closest('tr').find("input:text,select,input:hidden,textarea").attr("disabled", !this.checked);
+            $(this).closest('tr').find('input[type="text"],select,input[type="hidden"],textarea').attr("disabled", !this.checked);
             if (this.checked) {
                 var personslide = $(this).closest('.memberexpand').prev('.membertitle');
                 personslide.find('.checkslide').prop('checked', true);
-                personslide.find('input:hidden').attr('disabled', false);
+                personslide.find('input[type="hidden"]').attr('disabled', false);
             }
         });
     });
     $(function () {
         $('.checkslide').on('click', function () {
             var fs = $("#" + this.name.replace("checkbox", "slide"));
-            var ffs = fs.find(':checkbox');
+            var ffs = fs.find('[type="checkbox"]');
             var photoon = $('#photoonoffswitch').prop('checked');
             ffs.filter(function (item) {
                 return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
             }).prop('checked', this.checked);
-            ffs = fs.find('input:text,select,input:hidden,textarea');
+            ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea');
             ffs.filter(function (item) {
                 return !((ffs[item].type === "checkbox") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked));
             }).attr('disabled', !this.checked);

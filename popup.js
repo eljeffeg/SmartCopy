@@ -932,7 +932,13 @@ var submitform = function () {
                             }
                         }
                         if (sourcecheck) {
-                            about = about + "* Updated from [" + fdata.url + " " + recordtype + "] via " + reverseRelationship(fdata.status) + " [http://www.geni.com/" + focusid + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                            var focusprofileurl = "";
+                            if (focusid.startsWith("profile-g")) {
+                                focusprofileurl = "http://www.geni.com/profile/index/" + focusid.replace("profile-g", "");
+                            } else {
+                                focusprofileurl = "http://www.geni.com/" + focusid;
+                            }
+                            about = about + "* Updated from [" + fdata.url + " " + recordtype + "] via " + reverseRelationship(fdata.status) + " [" + focusprofileurl + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                         }
                         if (about !== "") {
                             familyout["about_me"] = about;

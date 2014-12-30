@@ -732,6 +732,9 @@ function getProfile(profile_id) {
             //But skip 6000000029660962822?highlight_id=6000000029660962822#6000000028974729472
             profile_id = "profile-g" + profile_id.substring(0, profile_id.lastIndexOf('?'));
         }
+        if (profile_id.indexOf("?highlight_id") != -1) {
+            profile_id = "profile-g" + profile_id.substring(profile_id.lastIndexOf('=') + 1, profile_id.length);
+        }
         if (profile_id.indexOf("#") != -1) {
             //In case the copy the profile url by navigating in tree view 6000000001495436722#6000000010985379345
             profile_id = "profile-g" + profile_id.substring(profile_id.lastIndexOf('#') + 1, profile_id.length);

@@ -213,7 +213,9 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
                 }
             }
         }
-        profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+        if (siblingparents.length > 0) {
+            profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+        }
     }
 
 

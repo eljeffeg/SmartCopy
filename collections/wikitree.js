@@ -51,10 +51,8 @@ function parseWikiTree(htmlstring, familymembers, relation) {
             var imglink = $(imagedata[0]).find('a');
             var imgthumb = $(imagedata[0]).find('gmi');
             if (exists(imglink[0]) && exists(imgthumb)) {
-                var image = $(imglink[0]).attr("href");
-                var thumb = $(imgthumb[0]).attr("src");
-                image = "http://www.wikitree.com/photo.php/0/00/" + image.replace("/photo/", "");
-                thumb = "http://www.wikitree.com/" + thumb;
+                var thumb = "http://www.wikitree.com" + $(imgthumb[0]).attr("src");
+                var image = thumb.substring(0, thumb.lastIndexOf("/")).replace("thumb/", "");
                 profiledata["thumb"] = thumb;
                 profiledata["image"] = image;
             }
@@ -248,7 +246,9 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                         }
                     }
                 }
-                profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+                if (siblingparents.length > 0) {
+                    profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+                }
             }
         }
     }

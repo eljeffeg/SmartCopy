@@ -520,7 +520,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         }
                     }
                 }
-                profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+                if (siblingparents.length > 0) {
+                    profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+                }
             }
             if (genderval === "unknown") {
                 child = children[2];

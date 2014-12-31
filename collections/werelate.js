@@ -130,7 +130,9 @@ function parseWeRelate(htmlstring, familymembers, relation) {
                 }
             }
         }
-        profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+        if (siblingparents.length > 0) {
+            profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+        }
     } else if (isPartner(relation.title)) {
         for (var i=0;i<infotable.length; i++) {
             var cell = $(infotable[i]).find("td");
@@ -174,7 +176,6 @@ function parseWeRelate(htmlstring, familymembers, relation) {
                             }
                         }
                     }
-
                 }
             }
         }

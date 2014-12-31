@@ -142,7 +142,9 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
             itemid = getParameterByName("pid", url);
             siblingparents.push(itemid);
         }
-        profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+        if (siblingparents.length > 0) {
+            profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+        }
     }
 
 

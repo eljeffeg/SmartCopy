@@ -472,8 +472,12 @@ function loadPage(request) {
             } else if (validRootsWeb(tablink)) {
                 focusURLid = getParameterByName('id', tablink);
             } else if (validMyHeritage(tablink)) {
-                focusURLid = tablink.substring(tablink.indexOf('-') + 1);
-                focusURLid = focusURLid.substring(0, focusURLid.indexOf('_'));
+                if (tablink.contains("rootIndivudalID=")) {
+                    focusURLid = getParameterByName('rootIndivudalID', tablink);
+                } else {
+                    focusURLid = tablink.substring(tablink.indexOf('-') + 1);
+                    focusURLid = focusURLid.substring(0, focusURLid.indexOf('_'));
+                }
             } else if (startsWithMH(tablink, "")) {
                 focusURLid = getParameterByName('itemId', tablink);
             } else if (tablink.startsWith("http://records.ancestry.com/")) {
@@ -596,7 +600,19 @@ function getPageCode() {
         document.querySelector('#loginspinner').style.display = "none";
         document.getElementById("smartcopy-container").style.display = "block";
         document.getElementById("loading").style.display = "block";
-        if (tablink.startsWith("http://www.myheritage.com/") ||
+
+        if (tablink.startsWith("http://www.myheritage.com/site-family-tree-") && !tablink.endsWith("-info")) {
+            var linkid = getParameterByName("rootIndivudalID", tablink);
+            var siteid = tablink.substring(tablink.lastIndexOf("-") + 1, tablink.lastIndexOf("/"));
+            tablink = tablink.replace("site-family-tree-", "person-" + linkid + "_" + siteid + "_");
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: tablink
+            }, function (response) {
+                loadPage(response);
+            });
+        } else if (tablink.startsWith("http://www.myheritage.com/") ||
             tablink.startsWith("http://www.findagrave.com") ||
             tablink.startsWith("http://www.wikitree.com/wiki/") ||
             tablink.startsWith("http://www.werelate.org/wiki/Person") ||
@@ -662,7 +678,6 @@ function getPageCode() {
                     document.getElementById("submitbutton").style.display = "none";
                     document.getElementById("loading").style.display = "none";
                     setMessage("#f9acac", 'SmartCopy does not currently support parsing this site / collection.');
-                    return;
                 }
             });
 
@@ -1267,6 +1282,7 @@ function submitWait() {
             focusprofileurl = "http://www.geni.com/" + focusid;
         }
         document.getElementById("updating").innerHTML = '<div style="text-align: center; font-size: 110%;"><strong>Geni Tree Updated</strong></div>' +
+            '<div style="text-align: center; padding:5px; color: #CD5C5C">Reminder: Please review for duplicates<br>and merge when able.</div>' +
             '<div style="text-align: center; padding:5px;"><b>View Profile:</b> ' +
             '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g", "") + '" target="_blank">tree view</a>, ' +
             '<a href="' + focusprofileurl + '" target="_blank">profile view</a></div>';
@@ -1470,6 +1486,8 @@ function supportedCollection() {
         tablink.startsWith("http://records.ancestry.com/") || tablink.startsWith("https://familysearch.org/pal:") ||
         tablink.startsWith("http://www.werelate.org/") || validMyHeritage(tablink)) {
         return true;
+    } else {
+        return false;
     }
 }
 
@@ -1700,7 +1718,7 @@ function validRootsWeb(url) {
 }
 
 function validMyHeritage(url) {
-    return (url.startsWith("http://www.myheritage.com/person-") || url.startsWith("http://www.myheritage.com/member-"));
+    return (url.startsWith("http://www.myheritage.com/person-") || url.startsWith("http://www.myheritage.com/member-") || url.startsWith("http://www.myheritage.com/site-family-tree-"));
 }
 
 chrome.storage.local.get('autogeo', function (result) {

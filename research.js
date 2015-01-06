@@ -50,12 +50,12 @@ function buildFamilySearch(responsedata) {
             query += '~%20%2Bbirth_year%3A' + (responsedata.birth.date.year - 1) + '-' + (responsedata.birth.date.year + 1);
         }
         if (exists(responsedata.birth.location)) {
-            query += '~%20%2Bbirth_place%3A%22' + locationString(responsedata.birth.location) + '%22';
+            query += '~%20%2Bbirth_place%3A%22' + wrapEncode(locationString(responsedata.birth.location)) + '%22';
         }
     }
     if (exists(responsedata.death)) {
         if (exists(responsedata.death.location)) {
-            query += '~%20%2Bdeath_place%3A%22' + locationString(responsedata.death.location) + '%22';
+            query += '~%20%2Bdeath_place%3A%22' + wrapEncode(locationString(responsedata.death.location)) + '%22';
         }
         if (exists(responsedata.death.date) && exists(responsedata.death.date.year)) {
             query += '~%20%2Bdeath_year%3A' + (responsedata.death.date.year - 1) + '-' + (responsedata.death.date.year + 1);

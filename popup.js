@@ -1282,7 +1282,7 @@ function submitWait() {
             focusprofileurl = "http://www.geni.com/" + focusid;
         }
         document.getElementById("updating").innerHTML = '<div style="text-align: center; font-size: 110%;"><strong>Geni Tree Updated</strong></div>' +
-            '<div style="text-align: center; padding:5px; color: #CD5C5C">Reminder: Please review for duplicates<br>and merge when able.</div>' +
+            '<div style="text-align: center; padding:5px; color: #a75ccd">Reminder: Please review for duplicates<br>and merge when able.</div>' +
             '<div style="text-align: center; padding:5px;"><b>View Profile:</b> ' +
             '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g", "") + '" target="_blank">tree view</a>, ' +
             '<a href="' + focusprofileurl + '" target="_blank">profile view</a></div>';

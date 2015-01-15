@@ -122,24 +122,26 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
                         alldata["family"][title] = [];
                     }
                     var entry = $(parsed[i]).next("a");
-                    var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
-                    var name = parseNameString(entry.text().trim());
-                    var itemid = getParameterByName("id", url);
-                    var subdata = {name: name, title: title};
-                    var daterow = parseRootsRow(entry.next("ul"));
-                    if (daterow.length > 1) {
-                        var data = parseRootsDate(daterow[1]);
-                        if (!$.isEmptyObject(data)) {
-                            subdata["marriage"] = data;
+                    if (exists(entry) && entry.length > 0) {
+                        var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                        var name = parseNameString(entry.text().trim());
+                        var itemid = getParameterByName("id", url);
+                        var subdata = {name: name, title: title};
+                        var daterow = parseRootsRow(entry.next("ul"));
+                        if (daterow.length > 1) {
+                            var data = parseRootsDate(daterow[1]);
+                            if (!$.isEmptyObject(data)) {
+                                subdata["marriage"] = data;
+                            }
                         }
+                        subdata["url"] = url;
+                        subdata["itemId"] = itemid;
+                        subdata["profile_id"] = famid;
+                        unionurls[famid] = itemid;
+                        myhspouse.push(famid);
+                        getRootFamily(famid, url, subdata);
+                        famid++;
                     }
-                    subdata["url"] = url;
-                    subdata["itemId"] = itemid;
-                    subdata["profile_id"] = famid;
-                    unionurls[famid] = itemid;
-                    myhspouse.push(famid);
-                    getRootFamily(famid, url, subdata);
-                    famid++;
                 } else if (ptext.startsWith("Children")) {
                     var title = "child";
                     if (!exists(alldata["family"][title])) {
@@ -362,24 +364,7 @@ function parseRootsDate(vitalstring) {
 
     if (datesplit.length > 0) {
         var dateval = datesplit[0].trim();
-        dateval = dateval.replace(/ABT/i, "Circa");
-        dateval = dateval.replace(/BEF/i, "Before");
-        dateval = dateval.replace(/AFT/i, "After");
-        dateval = dateval.replace(/BET/i, "Between");
-        dateval = dateval.replace(/BTW/i, "Between");
-
-        if (dateval.contains(" to ")) {
-            dateval = dateval.replace(" to ", " and ");
-            if (!dateval.startsWith("Between")) {
-                dateval = "Between " + dateval;
-            }
-        } else if (dateval.contains("-")) {
-            dateval = dateval.replace("-", " and ");
-            if (!dateval.startsWith("Between")) {
-                dateval = "Between " + dateval;
-            }
-        }
-        dateval = dateval.replace(/\d{2}\//,"");
+        dateval = cleanDate(dateval);
         if (dateval !== "") {
             data.push({date: dateval});
         }
@@ -396,15 +381,18 @@ function parseRootsDate(vitalstring) {
 
 function parseRootsRow(fperson) {
     var rowdata = $(fperson).html();
-    rowdata = rowdata.replace(/<sup>.*<\/sup>/ig, "").replace(/<br>/ig, "\n").replace(/Quality:.*/i, "").trim();
+    var strArr = [];
+    if (exists(rowdata)) {
+        rowdata = rowdata.replace(/<br>/ig, "\n").replace(/Quality:.*/i, "").trim();
 
-    rowdata = cleanHTML(rowdata);
-    var i = rowdata.indexOf(":");
-    var strArr;
-    if (i == -1) {
-        strArr = [ rowdata ];
-    } else {
-        strArr = [ rowdata.substr(0, i).trim(), rowdata.substr(i + 1).trim() ];
+        rowdata = cleanHTML(rowdata);
+        var i = rowdata.indexOf(":");
+
+        if (i == -1) {
+            strArr = [ rowdata ];
+        } else {
+            strArr = [ rowdata.substr(0, i).trim(), rowdata.substr(i + 1).trim() ];
+        }
     }
     return strArr;
 }

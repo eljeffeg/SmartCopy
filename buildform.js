@@ -957,10 +957,39 @@ function parseWikiURL(wikistring) {
 }
 
 function cleanHTML(html) {
-    html = html.replace(/<sup.*<\/sup>/ig, "");
+    html = html.replace(/<sup.*?<\/sup>/ig, "");
     var div = document.createElement("div");
     div.innerHTML = html;
     return div.textContent || div.innerText || "";
+}
+
+function cleanDate(dateval) {
+    dateval = dateval.replace("about", "Circa");
+    dateval = dateval.replace("before", "Before");
+    dateval = dateval.replace("after", "After");
+    dateval = dateval.replace(/ABT/i, "Circa");
+    dateval = dateval.replace(/BEF/i, "Before");
+    dateval = dateval.replace(/AFT/i, "After");
+    dateval = dateval.replace(/BET/i, "Between");
+    dateval = dateval.replace(/BTW/i, "Between");
+
+    if (dateval.contains(" to ")) {
+        dateval = dateval.replace(" to ", " and ");
+        if (!dateval.startsWith("Between")) {
+            dateval = "Between " + dateval;
+        }
+    } else if (dateval.contains("-")) {
+        dateval = dateval.replace("-", " and ");
+        if (!dateval.startsWith("Between")) {
+            dateval = "Between " + dateval;
+        }
+    }
+    if (dateval.search(/\d{4}\/\d{4}/) !== -1) {
+        dateval = "Between " + dateval.replace("/", " and ");
+    } else if (dateval.search(/\d{4}\/\d{2}/) !== -1) {
+        dateval = dateval.replace(/\d{2}\//,"");
+    }
+    return dateval;
 }
 
 function loadGeniData() {

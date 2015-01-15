@@ -17,7 +17,7 @@ function parseWeRelate(htmlstring, familymembers, relation) {
 
     for (var i=0;i<infotable.length; i++) {
         var cell = $(infotable[i]).find("td");
-        var title = cleanHTML($(cell[0]).html().replace(/<sup.*<\/sup>/ig, ""));
+        var title = cleanHTML($(cell[0]).html());
         if (title.toLowerCase() === "name") {
             focusperson = $(cell[1]).text();
             document.getElementById("readstatus").innerText = focusperson;
@@ -136,7 +136,7 @@ function parseWeRelate(htmlstring, familymembers, relation) {
     } else if (isPartner(relation.title)) {
         for (var i=0;i<infotable.length; i++) {
             var cell = $(infotable[i]).find("td");
-            var title = cleanHTML($(cell[0]).html().replace(/<sup.*<\/sup>/ig, ""));
+            var title = cleanHTML($(cell[0]).html());
             if (title.toLowerCase() === "marriage") {
                 if (cell.length > 2) {
                     var cellsplit = $(cell[2]).html().split("to ");
@@ -160,7 +160,7 @@ function parseWeRelate(htmlstring, familymembers, relation) {
         } else if (relation.itemId !== parentmarriageid) {
             for (var i=0;i<infotable.length; i++) {
                 var cell = $(infotable[i]).find("td");
-                var title = cleanHTML($(cell[0]).html().replace(/<sup.*<\/sup>/ig, ""));
+                var title = cleanHTML($(cell[0]).html());
                 if (title.toLowerCase() === "marriage") {
                     if (cell.length > 2) {
                         var cellsplit = $(cell[2]).html().split("to ");
@@ -235,24 +235,7 @@ function parseRelateDate(dmatch) {
     var data = [];
     if (exists(dmatch[1])) {
         var dateval = cleanHTML($(dmatch[1]).html()).trim();
-        dateval = dateval.replace(/ABT/i, "Circa");
-        dateval = dateval.replace(/BEF/i, "Before");
-        dateval = dateval.replace(/AFT/i, "After");
-        dateval = dateval.replace(/BET/i, "Between");
-        dateval = dateval.replace(/BTW/i, "Between");
-
-        if (dateval.contains(" to ")) {
-            dateval = dateval.replace(" to ", " and ");
-            if (!dateval.startsWith("Between")) {
-                dateval = "Between " + dateval;
-            }
-        } else if (dateval.contains("-")) {
-            dateval = dateval.replace("-", " and ");
-            if (!dateval.startsWith("Between")) {
-                dateval = "Between " + dateval;
-            }
-        }
-        dateval = dateval.replace(/\d{2}\//,"");
+        dateval = cleanDate(dateval);
         if (dateval !== "") {
             data.push({date: dateval});
         }

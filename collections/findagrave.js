@@ -85,8 +85,8 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 if (eventinfo.contains("<br>")) {
                     var eventsplit = eventinfo.split("<br>");
                     var dateval = eventsplit.shift().replace(".,", "").replace(/&nbsp;/g, " ").replace("  ", " ").trim();
-                    dateval = dateval.replace(/\d{2}\//,"");
-                    if (dateval !== "unknown") {
+                    dateval = cleanDate(dateval);
+                    if (dateval !== "unknown" && dateval !== "") {
                         data.push({date: dateval});
                     }
                     var eventlocation = eventsplit.join(", ");
@@ -106,8 +106,8 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 if (eventinfo.contains("<br>")) {
                     var eventsplit = eventinfo.split("<br>");
                     var dateval = eventsplit.shift().replace(".,", "").replace(/&nbsp;/g, " ").replace("  ", " ").trim();
-                    dateval = dateval.replace(/\d{2}\//,"");
-                    if (dateval !== "unknown") {
+                    dateval = cleanDate(dateval);
+                    if (dateval !== "unknown" && dateval !== "") {
                         data.push({date: dateval});
                         deathdtflag = true;
                     }

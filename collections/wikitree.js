@@ -286,7 +286,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
     if (familymembers) {
         if (exists(bio) && bio.length > 1) {
             var atdata = bio[1];
-            atdata = atdata.replace(/<sup (.*?)<\/sup>/ig, "");
+            atdata = atdata.replace(/<sup.*?<\/sup>/ig, "");
             atdata = atdata.replace(/<p>/gi, "");
             atdata = atdata.replace(/<\/p>/gi, "\n");
             if (atdata.contains("<i>")) {
@@ -317,14 +317,7 @@ function parseWikiEvent(vitalstring) {
     var datesplit = vitalinfo.split(" in ");
     if (datesplit.length > 0) {
         var dateval = datesplit[0].trim();
-        dateval = dateval.replace("about", "Circa");
-        dateval = dateval.replace("before", "Before");
-        dateval = dateval.replace("after", "After");
-        if (dateval.contains(" to ")) {
-            dateval = dateval.replace(" to ", " and ");
-            dateval = "Between " + dateval;
-        }
-        dateval = dateval.replace(/\d{2}\//,"");
+        dateval = cleanDate(dateval);
         if (dateval !== "") {
             data.push({date: dateval});
         }

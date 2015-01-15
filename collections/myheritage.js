@@ -28,7 +28,7 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
             if (!thumb.endsWith("spacer.gif")) {
                 if (htmlstring.contains("profilePhotoFullUrl")) {
                     var imgtemp = htmlstring.match(/profilePhotoFullUrl = '(.*?)';/i);
-                    if (imgtemp.length > 1) {
+                    if (exists(imgtemp) && imgtemp.length > 1) {
                         image = imgtemp[1];
                     }
                 }
@@ -65,14 +65,7 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
                 if (dateval.indexOf("(") !== -1) {
                     dateval = dateval.substring(0, dateval.indexOf("("));
                 }
-                dateval = dateval.replace("about", "Circa");
-                dateval = dateval.replace("before", "Before");
-                dateval = dateval.replace("after", "After");
-                if (dateval.contains(" to ")) {
-                    dateval = dateval.replace(" to ", " and ");
-                    dateval = "Between " + dateval;
-                }
-                dateval = dateval.replace(/\d{2}\//, "");
+                dateval = cleanDate(dateval);
                 if (dateval !== "") {
                     data.push({date: dateval});
                 }

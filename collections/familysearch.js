@@ -237,24 +237,7 @@ function parseFamilyDate(vitalstring) {
     var dmatch = vitalstring.replace(/<a .*?<\/a>/g, "").split("<br>");
     if (exists(dmatch) && dmatch.length > 0) {
         var dateval = cleanHTML(dmatch[0]).trim();
-        dateval = dateval.replace(/ABT/i, "Circa");
-        dateval = dateval.replace(/BEF/i, "Before");
-        dateval = dateval.replace(/AFT/i, "After");
-        dateval = dateval.replace(/BET/i, "Between");
-        dateval = dateval.replace(/BTW/i, "Between");
-
-        if (dateval.contains(" to ")) {
-            dateval = dateval.replace(" to ", " and ");
-            if (!dateval.startsWith("Between")) {
-                dateval = "Between " + dateval;
-            }
-        } else if (dateval.contains("-")) {
-            dateval = dateval.replace("-", " and ");
-            if (!dateval.startsWith("Between")) {
-                dateval = "Between " + dateval;
-            }
-        }
-        dateval = dateval.replace(/\d{2}\//,"");
+        dateval = cleanDate(dateval);
         if (dateval !== "") {
             data.push({date: dateval});
         }

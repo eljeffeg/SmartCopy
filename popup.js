@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (startsWithMH(tablink, "research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
             tablink.startsWith("http://www.wikitree.com") || tablink.startsWith("http://www.werelate.org/wiki/Person") ||
             (validRootsWeb(tablink) && tablink.contains("id=")) || (tablink.startsWith("http://records.ancestry.com/") && tablink.contains("pid=")) ||
-            tablink.startsWith("https://familysearch.org/") || validMyHeritage(tablink)) {
+            tablink.startsWith("https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
             getPageCode();
         } else if (startsWithMH(tablink, "matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr")) ||
             (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
@@ -348,6 +348,19 @@ function loadPage(request) {
                 var fperson = parsed.find("li");
                 focusname = parseRootsName(fperson);
                 focusrange = "";
+            } else if (validFamilyTree(tablink)) {
+                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+                recordtype = "FamilyTreeMaker Genealogy";
+                var fperson = parsed.find("h3");
+                var title = $(fperson[0]).text();
+                if (title.contains("(")) {
+                    var splitrange = title.split("(");
+                    focusname = splitrange[0].trim();
+                    focusrange = splitrange[1];
+                    focusrange = focusrange.replace(")", "").replace(", ", " - ").trim();
+                } else {
+                    focusname = title;
+                }
             } else if (tablink.startsWith("http://records.ancestry.com/")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 recordtype = "Ancestry Records";
@@ -402,7 +415,7 @@ function loadPage(request) {
                 var infotable = parsed.find(".wr-infotable").find("tr");
                 for (var i = 0; i < infotable.length; i++) {
                     var cell = $(infotable[i]).find("td");
-                    var title = cleanHTML($(cell[0]).html().replace(/<sup.*<\/sup>/ig, ""));
+                    var title = cleanHTML($(cell[0]).html());
                     if (title.toLowerCase() === "name") {
                         focusname = $(cell[1]).text();
                         break;
@@ -435,6 +448,8 @@ function loadPage(request) {
                     parseWeRelate(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (validRootsWeb(tablink)) {
                     parseRootsWeb(request.source, (accountinfo.pro && accountinfo.user));
+                } else if(validFamilyTree(tablink)) {
+                    parseFamilyTreeMaker(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (validMyHeritage(tablink)) {
                     parseMyHeritage(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (tablink.startsWith("http://records.ancestry.com/")) {
@@ -471,6 +486,15 @@ function loadPage(request) {
                 focusURLid = decodeURIComponent(tablink.substring(tablink.lastIndexOf(':') + 1));
             } else if (validRootsWeb(tablink)) {
                 focusURLid = getParameterByName('id', tablink);
+            } else if (validFamilyTree(tablink)) {
+                focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace(".html", "");
+                if (focusURLid.startsWith("GENE")) {
+                    document.getElementById("top-container").style.display = "block";
+                    document.getElementById("submitbutton").style.display = "none";
+                    document.getElementById("loading").style.display = "none";
+                    setMessage("#f8ff86", 'FamilyTreeMaker "Descendants of" generation pages are not supported by SmartCopy.');
+                    return;
+                }
             } else if (validMyHeritage(tablink)) {
                 if (tablink.contains("rootIndivudalID=")) {
                     focusURLid = getParameterByName('rootIndivudalID', tablink);
@@ -616,6 +640,7 @@ function getPageCode() {
             tablink.startsWith("http://www.findagrave.com") ||
             tablink.startsWith("http://www.wikitree.com/wiki/") ||
             tablink.startsWith("http://www.werelate.org/wiki/Person") ||
+            validFamilyTree(tablink) ||
             (validRootsWeb(tablink) && getParameterByName("op", tablink).toLowerCase() === "get") ||
             tablink.startsWith("http://records.ancestry.com/") ||
             (tablink.startsWith("https://familysearch.org/pal:") && tablink.contains("?view=basic"))) {
@@ -1481,14 +1506,10 @@ function supportedCollection() {
     var expenabled = $('#exponoffswitch').prop('checked');
     if (!expenabled && tablink.startsWith("example")) {
         return false;
-    } else if (tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") ||
+    } else return tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") ||
         tablink.startsWith("http://www.wikitree.com/") || validRootsWeb(tablink) ||
         tablink.startsWith("http://records.ancestry.com/") || tablink.startsWith("https://familysearch.org/pal:") ||
-        tablink.startsWith("http://www.werelate.org/") || validMyHeritage(tablink)) {
-        return true;
-    } else {
-        return false;
-    }
+        tablink.startsWith("http://www.werelate.org/") || validMyHeritage(tablink) || validFamilyTree(tablink);
 }
 
 function getParameterByName(name, url) {
@@ -1719,6 +1740,10 @@ function validRootsWeb(url) {
 
 function validMyHeritage(url) {
     return (url.startsWith("http://www.myheritage.com/person-") || url.startsWith("http://www.myheritage.com/member-") || url.startsWith("http://www.myheritage.com/site-family-tree-"));
+}
+
+function validFamilyTree(url) {
+    return (url.startsWith("http://familytreemaker.genealogy.com/") || url.startsWith("http://www.genealogy.com/"));
 }
 
 chrome.storage.local.get('autogeo', function (result) {

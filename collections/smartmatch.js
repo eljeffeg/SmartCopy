@@ -307,8 +307,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             var pmp = true;
                             var pmatch = parentmarset[pm];
                             for (var pid = 0; pid < pmatch.length; pid++) {
+
                                 if(exists(pmatch[pid].date)) {
-                                    pmd = exists(data[pid].date) && pmatch[pid].date === data[pid].date;
+                                    pmd = exists(data[pid]) && exists(data[pid].date) && pmatch[pid].date === data[pid].date;
                                 } else if (exists(pmatch[pid].location)) {
                                     pml = exists(data[pid]) && exists(data[pid].location) && pmatch[pid].location === data[pid].location;
                                 } else if (exists(pmatch[pid].place)) {

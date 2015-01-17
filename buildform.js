@@ -410,7 +410,7 @@ function buildForm() {
                     $('#addparentck').prop('checked', true);
                 }
             }
-            if (scored && isSibling(relationship) && exists(members[member].halfsibling) && members[member].halfsibling) {
+            if (isSibling(relationship) && exists(members[member].halfsibling) && members[member].halfsibling) {
                 scored = false;
                 halfsibling = true;
             }
@@ -1053,4 +1053,53 @@ function recursiveCompare(obj, reference) {
         if (objListCounter !== refListCounter) return false;
     }
     return true; //Every object and array is equal
+}
+
+function checkBurial(profiledata){
+    var data = [];
+    var dd = profiledata["death"][0]["date"];
+    if (dd.startsWith("Between")) {
+        var btsplit = dd.split(" and ");
+        if (btsplit.length > 1) {
+            dd = btsplit[1];
+        }
+    }
+    if (dd.startsWith("After Circa") || dd.startsWith("Circa After")) {
+        dd = dd.trim();
+    } else if (dd.startsWith("After")) {
+        dd = dd.replace("After", "After Circa").trim();
+    } else if (dd.startsWith("Before Circa") || dd.startsWith("Circa Before")) {
+        dd = dd.trim();
+    } else if (dd.startsWith("Before")) {
+        dd = dd.replace("Before", "Before Circa").trim();
+    } else if (dd.startsWith("Circa")) {
+        dd = "After " + dd.trim();
+    } else if (!dd.startsWith("Between")) {
+        dd = "After Circa " + dd.trim();
+    }
+    if (!dd.startsWith("Between")) {
+        data.push({date: dd});
+        data.push(profiledata["burial"][0]);
+        profiledata["burial"] = data;
+    }
+
+    return profiledata;
+}
+
+function getDate(data) {
+    if (exists(data[0]) && exists(data[0].date)) {
+        return data[0].date;
+    } else {
+        return null;
+    }
+}
+
+function getLocation(data) {
+    if (exists(data[1]) && exists(data[1].location)) {
+        return data[1].location;
+    } else if (exists(data[0]) && exists(data[0].location)) {
+        return data[0].location;
+    } else {
+        return null;
+    }
 }

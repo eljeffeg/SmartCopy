@@ -1,4 +1,4 @@
-// Parse Ancestry Free Records
+// Parse Ancestry Free Records (records.ancestry.com)
 function parseAncestryFree(htmlstring, familymembers, relation) {
     relation = relation || "";
 
@@ -52,7 +52,7 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
                 }
                 var data = parseAncestryFreeDate(fsplit[i]);
                 if (!$.isEmptyObject(data)) {
-                    if (exists(data.date)) {
+                    if (exists(getDate(data))) {
                         deathdtflag = true;
                     }
                     profiledata["death"] = data;

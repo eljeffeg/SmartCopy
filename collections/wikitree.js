@@ -103,7 +103,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
         } else if (rowtitle.startsWith("died")) {
             data = parseWikiEvent($(row).text().replace("Died", ""));
             if (!$.isEmptyObject(data)) {
-                if (exists(data.date)) {
+                if (exists(getDate(data))) {
                     deathdtflag = true;
                 }
                 profiledata["death"] = data;
@@ -127,6 +127,9 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                             name = name.replace("(", "(born ");
                         }
                         if (exists(title) && title !== "") {
+                            if (title.contains(" ")) {
+                                title = title.substring(0, title.indexOf(" "));
+                            }
                             if (!exists(alldata["family"][title])) {
                                 alldata["family"][title] = [];
                             }

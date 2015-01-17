@@ -83,14 +83,14 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
                 }
             } else if (rowtitle.startsWith("died")) {
                 if (!$.isEmptyObject(data)) {
-                    if (exists(data.date)) {
+                    if (exists(getDate(data))) {
                         deathdtflag = true;
                     }
                     profiledata["death"] = data;
                 }
             } else if (rowtitle.startsWith("burial")) {
                 if (!$.isEmptyObject(data)) {
-                    if (exists(data.location)) {
+                    if (exists(getLocation(data))) {
                         buriallcflag = true;
                     }
                     profiledata["burial"] = data;

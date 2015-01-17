@@ -176,7 +176,7 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
         if (exists(dcheck) && dcheck.length > 1) {
             var data = parseFamilyTreeDate(dcheck[1]);
             if (!$.isEmptyObject(data)) {
-                if (exists(data.date)) {
+                if (exists(getDate(data))) {
                     deathdtflag = true;
                 }
                 profiledata["death"] = data;
@@ -253,7 +253,7 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
 
 function parseFamilyTreeDate(vitalstring) {
     var data = [];
-    var dmatch = vitalstring.replace(/date unknown/ig, "").split("in");
+    var dmatch = vitalstring.replace(/date unknown/ig, "").split(" in ");
 
     if (exists(dmatch)) {
         var dateval = dmatch[0].trim();

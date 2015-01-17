@@ -37,7 +37,7 @@ function parseFamilySearch(htmlstring, familymembers, relation) {
             } else if (fieldname.startsWith("death:")) {
                 var data = parseFamilyDate($($(fperson[i]).next("td")).html());
                 if (!$.isEmptyObject(data)) {
-                    if (exists(data.date)) {
+                    if (exists(getDate(data))) {
                         deathdtflag = true;
                     }
                     profiledata["death"] = data;
@@ -50,10 +50,10 @@ function parseFamilySearch(htmlstring, familymembers, relation) {
             } else if (fieldname.startsWith("burial:")) {
                 var data = parseFamilyDate($($(fperson[i]).next("td")).html());
                 if (!$.isEmptyObject(data)) {
-                    if (exists(data.date)) {
+                    if (exists(getDate(data))) {
                         burialdtflag = true;
                     }
-                    if (exists(data.location)) {
+                    if (exists(getLocation(data))) {
                         buriallcflag = true;
                     }
                     profiledata["burial"] = data;

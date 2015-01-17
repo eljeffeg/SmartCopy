@@ -189,32 +189,7 @@ function parseFamilySearch(htmlstring, familymembers, relation) {
     }
 
     if (!burialdtflag && buriallcflag && deathdtflag && $('#burialonoffswitch').prop('checked')) {
-        var data = [];
-        var dd = profiledata["death"][0]["date"];
-        if (dd.startsWith("Between")) {
-            var btsplit = dd.split(" and ");
-            if (btsplit.length > 1) {
-                dd = btsplit[1];
-            }
-        }
-        if (dd.startsWith("After Circa") || dd.startsWith("Circa After")) {
-            dd = dd.trim();
-        } else if (dd.startsWith("After")) {
-            dd = dd.replace("After", "After Circa").trim();
-        } else if (dd.startsWith("Before Circa") || dd.startsWith("Circa Before")) {
-            dd = dd.trim();
-        } else if (dd.startsWith("Before")) {
-            dd = dd.replace("Before", "Before Circa").trim();
-        } else if (dd.startsWith("Circa")) {
-            dd = "After " + dd.trim();
-        } else if (!dd.startsWith("Between")) {
-            dd = "After Circa " + dd.trim();
-        }
-        if (!dd.startsWith("Between")) {
-            data.push({date: dd});
-            data.push(profiledata["burial"][0]);
-            profiledata["burial"] = data;
-        }
+        profiledata = checkBurial(profiledata);
     }
 
     if (aboutdata !== "") {

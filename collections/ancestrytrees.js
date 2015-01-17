@@ -77,20 +77,24 @@ function parseAncestryTrees(htmlstring, familymembers, relation) {
         var pobject = parsed.find("#" + parentset[i] + "Name");
         if (exists(pobject)) {
             var title = parentset[i];
-            var itemid = parseAncestryId($(pobject).attr("href"));
+            var url = $(pobject).attr("href");
+            if (exists(url)) {
+                var itemid = parseAncestryId(url);
 
-            if (familymembers) {
-                var name = $(pobject).text();
-                getAncestryTreeFamily(famid, itemid, name, title);
-                famid++;
-            } else if (isChild(relation.title)) {
-                if (focusURLid !== itemid) {
-                    childlist[relation.proid] = $.inArray(itemid, unionurls);
-                    profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                if (familymembers) {
+                    var name = $(pobject).text();
+                    getAncestryTreeFamily(famid, itemid, name, title);
+                    famid++;
+                } else if (isChild(relation.title)) {
+                    if (focusURLid !== itemid) {
+                        childlist[relation.proid] = $.inArray(itemid, unionurls);
+                        profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                    }
+                } else if (isSibling(relation.title)) {
+                    siblingparents.push(itemid);
                 }
-            } else if (isSibling(relation.title)) {
-                siblingparents.push(itemid);
             }
+
         }
     }
 
@@ -114,11 +118,14 @@ function parseAncestryTrees(htmlstring, familymembers, relation) {
                 }
                 if (exists(title)) {
                     var plink = $(pobject[i]).find("a");
-                    var itemid = parseAncestryId(plink.attr("href"));
-                    if (familymembers) {
-                        var name = $(plink).text();
-                        getAncestryTreeFamily(famid, itemid, name, title);
-                        famid++;
+                    var url = plink.attr("href");
+                    if (exists(url)) {
+                        var itemid = parseAncestryId(url);
+                        if (familymembers) {
+                            var name = $(plink).text();
+                            getAncestryTreeFamily(famid, itemid, name, title);
+                            famid++;
+                        }
                     }
                 }
             }

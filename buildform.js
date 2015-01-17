@@ -205,10 +205,10 @@ function buildForm() {
             membersstring = membersstring + '<tr><td colspan="2" style="padding: 0;"><div class="separator"></div></td></tr>';
         }
         x += 1;
-        var scoreabout = true;
-        if (focusabout.contains(alldata["profile"].about)) {
-            scoreabout = false;
-        }
+        var scoreabout = false;
+//        if (focusabout.contains(alldata["profile"].about)) {
+//            scoreabout = false;
+//        }
         var about = alldata["profile"].about;
         membersstring = membersstring + '<tr><td colspan="2"><div class="profilediv" style="font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scoreabout) + '>About:</div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scoreabout) + '>' + about + '</textarea></div></td></tr>';
         div[0].innerHTML = membersstring;

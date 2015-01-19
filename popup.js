@@ -60,7 +60,7 @@ function buildHistorySelect() {
     return historytext;
 }
 
-var dateformatter = ["MMM YYYY", "MMM D YYYY", "YYYY", "MM/ /YYYY"];
+var dateformatter = ["MMM YYYY", "MMM D YYYY", "YYYY", "MM/ /YYYY", "D MMM YYYY"];
 //noinspection JSUnusedGlobalSymbols
 var expandparent = true; //used in expandAll function window[...] var call
 //noinspection JSUnusedGlobalSymbols
@@ -800,9 +800,7 @@ function getProfile(profile_id) {
         }
         if (profile_id.indexOf("/") != -1) {
             //Grab the GUID from a URL
-            if (!profile_id.contains("html5")) {
-                profile_id = profile_id.substring(profile_id.lastIndexOf('/') + 1);
-            }
+            profile_id = profile_id.substring(profile_id.lastIndexOf('/') + 1);
         }
         if (profile_id.indexOf("?through") != -1) {
             //In case the copy the profile url by navigating through another 6000000002107278790?through=6000000010985379345
@@ -814,7 +812,11 @@ function getProfile(profile_id) {
         }
         if (profile_id.indexOf("#") != -1) {
             //In case the copy the profile url by navigating in tree view 6000000001495436722#6000000010985379345
-            profile_id = "profile-g" + profile_id.substring(profile_id.lastIndexOf('#') + 1, profile_id.length);
+            if (profile_id.contains("html5")) {
+                profile_id = "profile-" + profile_id.substring(profile_id.lastIndexOf('#') + 1, profile_id.length);
+            } else {
+                profile_id = "profile-g" + profile_id.substring(profile_id.lastIndexOf('#') + 1, profile_id.length);
+            }
         }
         var isnum = /^\d+$/.test(profile_id);
         if (isnum) {

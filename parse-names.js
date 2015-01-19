@@ -112,10 +112,12 @@ var NameParse = (function(){
                 // if so, do a look-ahead to see if they go by their middle name
                 // for ex: "R. Jason Smith" => "Jason Smith" & "R." is stored as an initial
                 // but "R. J. Smith" => "R. Smith" and "J." is stored as an initial
-                if (this.is_initial(nameParts[start + 1])) {
-                    firstName += " " + word.toLocaleUpperCase();
-                } else {
-                    middleName += " " + word.toLocaleUpperCase();
+                if (nameParts.length > 1) {
+                   if (start > 0 && this.is_initial(nameParts[start + 1])) {
+                        firstName += " " + word.toLocaleUpperCase();
+                    } else {
+                        middleName += " " + word.toLocaleUpperCase();
+                    }
                 }
             } else {
                 firstName += " " + this.fix_case(word);

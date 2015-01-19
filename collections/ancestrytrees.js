@@ -26,7 +26,7 @@ function parseAncestryTrees(htmlstring, familymembers, relation) {
             profiledata["image"] = image;
         }
     } else {
-        photoclass = photoclass.find("span");
+        photoclass = photoclass.find(".photoSize6");
         if (photoclass.hasClass("iconFemale")) {
             genderval = "female";
         } else if (photoclass.hasClass("iconMale")) {

@@ -273,7 +273,7 @@ function parseRootsName(fperson) {
         var row = parseRootsRow(fperson[i]);
         if (exists(row) && row.length > 1) {
             var fieldname = row[0].toLowerCase().trim();
-            if (fieldname == "name") {
+            if (fieldname == "name" && focusperson === "") {
                 focusperson = parseNameString(row[1].trim());
             } else if (fieldname == "surname") {
                 surname = row[1].trim();

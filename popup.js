@@ -1207,7 +1207,7 @@ function submitChildren() {
                     status = "partner";
                 } else if (spouseinfo.status === ("ex-partner")) {
                     status = "ex_partner";
-                } else if (spouseinfo.status.startsWith("ex-")) {
+                } else if (exists(spouseinfo.status) && spouseinfo.status.startsWith("ex-")) {
                     status = "ex_spouse";
                 }
                 if (status !== "") {

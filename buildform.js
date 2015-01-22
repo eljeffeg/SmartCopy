@@ -455,7 +455,8 @@ function buildForm() {
             }
             membersstring += '</td></tr></table></div>' +
                 '<div id="slide' + i + '-' + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
-                '<tr><td colspan="2"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '" ' + isEnabled(members[member].profile_id, scored) + '></td></tr>';
+                '<tr><td colspan="2" style="padding: 0px;"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '"></td></tr>';
+            membersstring += '<tr><td class="profilediv" colspan="2" style="padding-bottom: 3px;"><span style="margin-top: 3px; float: left;">&nbsp;Action:</span>' + buildAction(relationship, gender) + '</td></tr>';
             if (isChild(relationship)) {
                 var parentrel = "Parent";
                 if (focusgender === "male") {
@@ -463,14 +464,14 @@ function buildForm() {
                 } else if (focusgender === "female") {
                     parentrel = "Father";
                 }
-                membersstring += '<tr><td class="profilediv" colspan="2" style="padding-bottom: 2px;"><span style="margin-top: 3px; float: left;">&nbsp;' + parentrel + ':</span>' + buildParentSelect(members[member].parent_id) + '</td></tr>';
+                membersstring += '<tr><td class="profilediv" colspan="2" style="padding-bottom: 3px; padding-top: 0px;"><span style="margin-top: 3px; float: left;">&nbsp;' + parentrel + ':</span>' + buildParentSelect(members[member].parent_id) + '</td></tr>';
             }
             if (exists(members[member]["thumb"])) {
                 var thumbnail = members[member]["thumb"];
                 var image = members[member]["image"];
                 membersstring = membersstring +
                     '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext photocheck" ' + isChecked(thumbnail, (scored && photoscore)) + '>' +
-                    "Photo" + ':</td><td style="float:right;padding: 0;"><input type="hidden" class="photocheck" name="photo" value="' + image + '" ' + isEnabled(thumbnail, (scored && photoscore)) + '><img style="max-width: 158px"  src="' + thumbnail + '"></td></tr>';
+                    "Photo" + ':</td><td style="float:right;padding: 0; padding-top: 2px; "><input type="hidden" class="photocheck" name="photo" value="' + image + '" ' + isEnabled(thumbnail, (scored && photoscore)) + '><img style="max-width: 158px"  src="' + thumbnail + '"></td></tr>';
             }
             membersstring +=
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored) + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored) + '></td></tr>' +
@@ -629,7 +630,7 @@ function buildForm() {
             }).prop('checked', this.checked);
             ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea');
             ffs.filter(function (item) {
-                return !((ffs[item].type === "checkbox") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked));
+                return !((ffs[item].type === "checkbox") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
             }).attr('disabled', !this.checked);
         });
     });
@@ -825,6 +826,41 @@ function isChecked(value, score) {
     } else {
         return "";
     }
+}
+
+function buildAction(relationship, gender) {
+    var pselect = "";
+    var selected = true;
+    if (exists(genifamily)) {
+        if (isParent(relationship)) {
+            if (gender === "male") {
+                relationship = "father";
+            } else if (gender === "female") {
+                relationship = "mother";
+            }
+        }
+        for (var i = 0; i < genifamily.length; i++) {
+            var familymem = genifamily[i];
+            if (relationship === "father" && familymem.relation === "father") {
+                pselect += '<option value="' + familymem.id + '" selected>Update: ' + familymem.name + '</option>';
+                selected = false;
+            } else if (relationship === "mother" && familymem.relation === "mother") {
+                pselect += '<option value="' + familymem.id + '" selected>Update: ' + familymem.name + '</option>';
+                selected = false;
+            } else if ((isSibling(familymem.relation) && isSibling(relationship)) ||
+                (isChild(familymem.relation) && isChild(relationship)) ||
+                (isPartner(familymem.relation) && isPartner(relationship)) ||
+                (isParent(familymem.relation) && relationship === "parent")) {
+                pselect += '<option value="' + familymem.id + '">Update: ' + familymem.name + '</option>';
+            }
+        }
+    }
+    if (selected) {
+        pselect = '<option value="add" selected>Add Profile</option>' + pselect;
+    }
+    pselect = '<select name="action" style="width: 215px; float: right; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" >' + pselect;
+    pselect += '</select>';
+    return pselect;
 }
 
 function buildParentSelect(id) {

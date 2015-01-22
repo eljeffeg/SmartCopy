@@ -14,6 +14,7 @@ var updatecount = 1;
 var updatetotal = 0;
 var recordtype = "MyHeritage Match";
 var smscorefactors = "";
+var genifamily;
 chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
@@ -298,7 +299,7 @@ function loadPage(request) {
                 focusrange = parsed.find(".recordSubtitle").text().trim();
                 if (!profilechanged) {
                     var focusprofile = parsed.find(".individualInformationProfileLink").attr("href").trim();
-                    focusid = focusprofile.replace("http://www.geni.com/", "");
+                    focusid = focusprofile.replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");
                     updateLinks("?profile=" + focusid);
                 }
                 //MyHeritage SmartMatch Page - Redirect to primary website
@@ -431,6 +432,17 @@ function loadPage(request) {
             }
 
             if (exists(focusid)) {
+                if (!exists(genifamily)) {
+                    var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusid;
+                    chrome.extension.sendMessage({
+                        method: "GET",
+                        action: "xhttp",
+                        url: url
+                    }, function (response) {
+                        genifamily = JSON.parse(response.source);
+                    });
+                }
+
                 var focusprofileurl = "";
                 if (focusid.startsWith("profile-g")) {
                     focusprofileurl = "http://www.geni.com/profile/index/" + focusid.replace("profile-g", "");
@@ -558,14 +570,15 @@ function loadSelectPage(request) {
     var focusperson = parsed.find(".individualInformationName").text().trim();
     var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
     if (exists(focusprofile)) {
-        focusprofile = focusprofile.replace("http://www.geni.com/", "").trim();
+        focusprofile = focusprofile.replace("http://www.geni.com/", "").replace("https://www.geni.com/", "").trim();
         var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusprofile;
         chrome.extension.sendMessage({
             method: "GET",
             action: "xhttp",
             url: url
         }, function (response) {
-            var result = JSON.parse(response.source);
+            genifamily = JSON.parse(response.source);
+            var result = genifamily;
             result.sort(function (a, b) {
                 var relA = a.relation.toLowerCase(), relB = b.relation.toLowerCase();
                 if (relA < relB) //sort string ascending
@@ -683,7 +696,7 @@ function getPageCode() {
                 loadPage(response);
             });
         } else if (validRootsWeb(tablink) && getParameterByName("op", tablink).toLowerCase() === "ped") {
-            tablink = tablink.replace(/op=PED/i, "op=get");
+            tablink = tablink.replace(/op=PED/i, "op=GET");
             chrome.extension.sendMessage({
                 method: "GET",
                 action: "xhttp",
@@ -828,6 +841,8 @@ function getProfile(profile_id) {
         }
         if (profile_id.indexOf("profile-") != -1 && profile_id !== "profile-g") {
             return "?profile=" + profile_id;
+        } else {
+            console.log("Profile ID not detected: " + profile_id);
         }
     }
     return "";
@@ -890,7 +905,7 @@ $(function () {
         }).prop('checked', this.checked);
         var ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea');
         ffs.filter(function (item) {
-            return !((ffs[item].type === "checkbox") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked));
+            return !((ffs[item].type === "checkbox") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
         }).attr('disabled', !this.checked);
     });
 });
@@ -921,7 +936,7 @@ $(function () {
     });
 });
 
-// Form submission
+// ------------------ Form submission ---------------
 var submitstatus = [];
 var tempspouse = [];
 var spouselist = [];
@@ -954,7 +969,8 @@ var submitform = function () {
                 }
             }
             if (sourcecheck) {
-                if (!focusabout.contains("Updated from [" + tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
+                if (!focusabout.contains("Updated from [" + tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
+                    !focusabout.contains("Updated from [" + tablink + " " + recordtype + "] by [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
                     if (focusabout !== "") {
                         about = focusabout + "\n" + about;
                     }
@@ -1035,15 +1051,54 @@ var submitform = function () {
                         photosubmit[familyout.profile_id] = {photo: familyout.photo, title: fdata.name, description: "Source: " + shorturl};
                         delete familyout.photo;
                     }
-                    if (actionname[1] !== "child") {
-                        var statusaction = actionname[1];
-                        if (statusaction === "sibling" || statusaction === "parent" || statusaction === "partner") {
-                            statusaction += "s";
+                    if (familyout.action === "add") {
+                        delete familyout.action;
+                        if (actionname[1] !== "child") {
+                            var statusaction = actionname[1];
+                            if (statusaction === "sibling" || statusaction === "parent" || statusaction === "partner") {
+                                statusaction += "s";
+                            }
+                            document.getElementById("updatestatus").innerText = profileupdatestatus + "Submitting Family (Siblings/Parents)";
+                            buildTree(familyout, "add-" + actionname[1], focusid);
+                        } else {
+                            addchildren[familyout.profile_id] = familyout;
                         }
-                        document.getElementById("updatestatus").innerText = profileupdatestatus + "Adding Family (Siblings/Parents)";
-                        buildTree(familyout, "add-" + actionname[1], focusid);
                     } else {
-                        addchildren[familyout.profile_id] = familyout;
+                        document.getElementById("updatestatus").innerText = profileupdatestatus + "Submitting Family (Siblings/Parents)";
+                        var pid = familyout.action;
+                        delete familyout.action;
+                        if (exists(fdata)) {
+                            databyid[familyout.profile_id]["geni_id"] = pid;
+                        }
+                        if (isPartner(actionname[1]) || isParent(actionname[1])) {
+                            var unionid = getUnion(pid);
+                            if (unionid !== "") {
+                                spouselist[familyout.profile_id] = {union: unionid, status: ""};
+                            }
+                        }
+                        if (exists(familyout["about_me"]) || exists(familyout["nicknames"])) {
+                            var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me,nicknames&profile=" + pid;
+                            chrome.extension.sendMessage({
+                                method: "GET",
+                                action: "xhttp",
+                                url: abouturl,
+                                variable: {pid: pid, familyout: familyout}
+                            }, function (response) {
+                                var geni_return = JSON.parse(response.source);
+                                var familyout = response.variable.familyout;
+                                if (!$.isEmptyObject(geni_return)) {
+                                    if (exists(familyout["about_me"]) && exists(geni_return.about_me)) {
+                                        familyout["about_me"] = geni_return.about_me + "\n" + familyout["about_me"];
+                                    }
+                                    if (exists(familyout["nicknames"]) && exists(geni_return.nicknames)) {
+                                        familyout["nicknames"] = geni_return.nicknames + "," + familyout["nicknames"];
+                                    }
+                                }
+                                buildTree(familyout, "update", response.variable.pid);
+                            });
+                        } else {
+                            buildTree(familyout, "update", pid);
+                        }
                     }
                 }
             }
@@ -1052,6 +1107,15 @@ var submitform = function () {
 
     submitChildren();
 };
+
+function getUnion(profileid) {
+    for (var i=0; i < genifamily.length; i++) {
+        if (genifamily[i].id === profileid) {
+            return genifamily[i].union;
+        }
+    }
+    return "";
+}
 
 var noerror = true;
 function buildTree(data, action, sendid) {
@@ -1067,7 +1131,6 @@ function buildTree(data, action, sendid) {
             id = data.profile_id;
             delete data.profile_id;
         }
-
         chrome.extension.sendMessage({
             method: "POST",
             action: "xhttp",
@@ -1363,6 +1426,7 @@ function parseForm(fs) {
     var objentry = {};
     var marentry = {};
     var rawinput = fs.find('input[type="text"],select,input[type="hidden"],textarea');
+    var updatefd = (fs.selector === "#profiletable");
     var fsinput = rawinput.filter(function (item) {
         return ($(rawinput[item]).closest('tr').css('display') !== 'none');
     });
@@ -1372,7 +1436,6 @@ function parseForm(fs) {
             var splitentry = fsinput[item].name.split(":");
             if (splitentry.length > 1) {
                 if (splitentry[1] === "date") {
-                    var updatefd = (fs.selector === "#profiletable");
                     var vardate = parseDate(fsinput[item].value, updatefd);
 
                     if (!$.isEmptyObject(vardate)) {
@@ -1391,7 +1454,7 @@ function parseForm(fs) {
                         }
                     }
                 } else if (splitentry[1] === "location" && splitentry.length > 2) {
-                    if (fsinput[item].value !== "" || fs.selector === "#profiletable") {
+                    if (fsinput[item].value !== "" || updatefd) {
                         var varlocation = {};
                         var fieldname = splitentry[2];
                         if (fieldname === "place_name_geo") {
@@ -1419,7 +1482,10 @@ function parseForm(fs) {
                     }
                 }
             } else {
-                if (fsinput[item].name === "gender") {
+                if (fsinput[item].name === "action") {
+                    updatefd = (fsinput[item].value !== "add");
+                    objentry[fsinput[item].name] = fsinput[item].options[fsinput[item].selectedIndex].value;
+                } else if (fsinput[item].name === "gender") {
                     if (exists(fsinput[item].options[fsinput[item].selectedIndex])) {
                         objentry[fsinput[item].name] = fsinput[item].options[fsinput[item].selectedIndex].value;
                     }
@@ -1427,7 +1493,7 @@ function parseForm(fs) {
                     if (exists(fsinput[item].options[fsinput[item].selectedIndex])) {
                         childlist[objentry.profile_id] = fsinput[item].options[fsinput[item].selectedIndex].value;
                     }
-                } else if (fsinput[item].value !== "") {
+                } else if (fsinput[item].value !== "" || updatefd) {
                     objentry[fsinput[item].name] = fsinput[item].value;
                 }
             }

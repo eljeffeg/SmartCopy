@@ -150,6 +150,7 @@ function queryGeo(locationset, test) {
         }
         var place = "";
         var location = locationset.location.trim();
+        location = location.replace(/Unknown/ig, "");
         if (location.contains("\?")) {
             var questionmark = parseGoogle("");
             if (location !== "?") {

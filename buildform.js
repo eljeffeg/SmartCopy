@@ -838,6 +838,18 @@ function buildAction(relationship, gender) {
             } else if (gender === "female") {
                 relationship = "mother";
             }
+        } else if (isSibling(relationship)) {
+            if (gender === "male") {
+                relationship = "brother";
+            } else if (gender === "female") {
+                relationship = "sister";
+            }
+        } else if (isChild(relationship)) {
+            if (gender === "male") {
+                relationship = "son";
+            } else if (gender === "female") {
+                relationship = "daughter";
+            }
         }
         for (var i = 0; i < genifamily.length; i++) {
             var familymem = genifamily[i];
@@ -847,10 +859,21 @@ function buildAction(relationship, gender) {
             } else if (relationship === "mother" && familymem.relation === "mother") {
                 pselect += '<option value="' + familymem.id + '" selected>Update: ' + familymem.name + '</option>';
                 selected = false;
-            } else if ((isSibling(familymem.relation) && isSibling(relationship)) ||
-                (isChild(familymem.relation) && isChild(relationship)) ||
-                (isPartner(familymem.relation) && isPartner(relationship)) ||
-                (isParent(familymem.relation) && relationship === "parent")) {
+            } else if (relationship === "brother" && familymem.relation === "brother") {
+                pselect += '<option value="' + familymem.id + '">Update: ' + familymem.name + '</option>';
+            } else if (relationship === "sister" && familymem.relation === "sister") {
+                pselect += '<option value="' + familymem.id + '">Update: ' + familymem.name + '</option>';
+            } else if (relationship === "son" && familymem.relation === "son") {
+                pselect += '<option value="' + familymem.id + '">Update: ' + familymem.name + '</option>';
+            } else if (relationship === "daughter" && familymem.relation === "daughter") {
+                pselect += '<option value="' + familymem.id + '">Update: ' + familymem.name + '</option>';
+            } else if ((isPartner(familymem.relation) && isPartner(relationship)) ||
+                (isChild(familymem.relation) && relationship === "child") ||
+                (isSibling(familymem.relation) && relationship === "sibling") ||
+                (isParent(familymem.relation) && relationship === "parent") ||
+                (familymem.relation === "child" && isChild(relationship)) ||
+                (familymem.relation === "sibling" && isSibling(relationship)) ||
+                (familymem.relation  === "parent" && isParent(relationship))) {
                 pselect += '<option value="' + familymem.id + '">Update: ' + familymem.name + '</option>';
             }
         }

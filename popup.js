@@ -1076,7 +1076,7 @@ var submitform = function () {
                                 spouselist[familyout.profile_id] = {union: unionid, status: ""};
                             }
                         }
-                        if (exists(familyout["about_me"]) || exists(familyout["nicknames"])) {
+                        if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "")) {
                             var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me,nicknames&profile=" + pid;
                             chrome.extension.sendMessage({
                                 method: "GET",

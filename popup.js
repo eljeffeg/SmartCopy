@@ -1078,6 +1078,7 @@ var submitform = function () {
                         }
                         if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "")) {
                             var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me,nicknames&profile=" + pid;
+                            submitstatus.push(updatetotal);
                             chrome.extension.sendMessage({
                                 method: "GET",
                                 action: "xhttp",
@@ -1095,6 +1096,7 @@ var submitform = function () {
                                     }
                                 }
                                 buildTree(familyout, "update", response.variable.pid);
+                                submitstatus.pop();
                             });
                         } else {
                             buildTree(familyout, "update", pid);

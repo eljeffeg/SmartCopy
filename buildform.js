@@ -1023,14 +1023,14 @@ function cleanHTML(html) {
 }
 
 function cleanDate(dateval) {
+    dateval = dateval.replace(/ABT /i, "Circa ");
+    dateval = dateval.replace(/BEF /i, "Before ");
+    dateval = dateval.replace(/AFT /i, "After ");
+    dateval = dateval.replace(/BET /i, "Between ");
+    dateval = dateval.replace(/BTW /i, "Between ");
     dateval = dateval.replace("about", "Circa");
     dateval = dateval.replace("before", "Before");
     dateval = dateval.replace("after", "After");
-    dateval = dateval.replace(/ABT/i, "Circa");
-    dateval = dateval.replace(/BEF/i, "Before");
-    dateval = dateval.replace(/AFT/i, "After");
-    dateval = dateval.replace(/BET/i, "Between");
-    dateval = dateval.replace(/BTW/i, "Between");
 
     if (dateval.contains(" to ")) {
         dateval = dateval.replace(" to ", " and ");

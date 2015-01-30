@@ -197,6 +197,10 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         aboutinfo = splitinfo[0];
                         aboutinfo = aboutinfo.trim();
                     }
+                    var aboutdash = aboutinfo.split(' - \n');
+                    if (aboutdash.length > 1) {
+                        aboutinfo = aboutdash[0] + " - " + aboutdash[1].trim();
+                    }
                     aboutdata += "* '''" + capFL(title) + "''': " + aboutinfo + "\n";
                 }
                 continue;

@@ -120,10 +120,38 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     if (listrow.length > 1) {
                         for (var lr =0;lr < listrow.length; lr++) {
                             var listrowval = listrow[lr];
-                            if (listrowval.className != "eventSeparator") {
-                                var profile = {name: listrowval.nodeValue, gender: gendersv, profile_id: famid, title: title};
-                                alldata["family"][title].push(profile);
-                                databyid[famid] = profile;
+                            if (listrowval.className !== "eventSeparator" && listrowval.nodeValue !== null) {
+                                var name = listrowval.nodeValue.trim();
+                                if (name.replace(",","").length > 1) {
+                                    var profile = {name: name, gender: gendersv, profile_id: famid, title: title};
+                                    alldata["family"][title].push(profile);
+                                    databyid[famid] = profile;
+                                }
+                            } else if (listrowval.className !== "eventSeparator") {
+                                var urlval = $(listrowval).attr("href");
+                                if (exists(urlval) && urlval !== "") {
+                                    familystatus.push(familystatus.length);
+                                    var subdata = {name: $(listrowval).text().trim(), gender: gendersv, title: title};
+                                    var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                    var itemid = getParameterByName('itemId', shorturl);
+                                    subdata["url"] = urlval;
+                                    subdata["itemId"] = itemid;
+                                    subdata["profile_id"] = famid;
+                                    unionurls[famid] = itemid;
+                                    chrome.extension.sendMessage({
+                                        method: "GET",
+                                        action: "xhttp",
+                                        url: shorturl,
+                                        variable: subdata
+                                    }, function (response) {
+                                        var arg = response.variable;
+                                        var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
+                                        person = updateInfoData(person, arg);
+                                        databyid[arg.profile_id] = person;
+                                        alldata["family"][arg.title].push(person);
+                                        familystatus.pop();
+                                    });
+                                }
                             }
                             famid++;
                         }

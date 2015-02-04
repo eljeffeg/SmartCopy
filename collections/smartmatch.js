@@ -117,7 +117,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         gendersv = "male";
                     }
                     var listrow = $(row).find(".recordFieldValue").contents();
-                    if (listrow.length > 1) {
+                    if (listrow.length > 0) {
                         for (var lr =0;lr < listrow.length; lr++) {
                             var listrowval = listrow[lr];
                             if (listrowval.className !== "eventSeparator" && listrowval.nodeValue !== null) {

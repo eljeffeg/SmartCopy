@@ -19,6 +19,7 @@ function buildResearch() {
             researchstring += buildGoogle(responsedata);
             //researchstring += buildObitsforLive(responsedata);
             researchstring += buildRootsWeb(responsedata);
+            researchstring += "<div style='text-align: center; padding-top: 10px;'><strong>Other Resources</strong></div><div style='text-align: left;'><li><a href='http://www.geni.com/projects/Genealogie-Zoekmachines-voor-de-Lage-Landen/24259' target='_blank'>Genealogy Search Engines for the Low Countries</a></li></div>";
         } else {
             researchstring = "<div><strong>Unable to create research links on this profile.</strong>"
         }

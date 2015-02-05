@@ -128,7 +128,7 @@ function checkPlace(location) {
     var place = "";
     if (checkplace.contains(" cemetery") || checkplace.contains(" cemetary") || checkplace.contains(" grave") ||
         checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.") ||
-        checkplace.toLowerCase().endsWith(" territory")) {
+        checkplace.toLowerCase().endsWith(" territory") || checkplace.toLowerCase().endsWith(" church")) {
         if (checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.")) {
             place = splitplace[0].replace(/ cem\.?/i, " Cemetery").trim();
         } else if (checkplace.contains(" cemetary")) {
@@ -166,7 +166,14 @@ function queryGeo(locationset, test) {
             place = locationset.place.trim();
         } else {
             place = checkPlace(location);
+            if (place !== "" && place === location) {
+                var georesult = parseGoogle("", location);
+                georesult.place = place;
+                geolocation[locationset.id] = georesult;
+                return;
+            }
         }
+
         geostatus.push(geostatus.length);
         var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(location);
         chrome.extension.sendMessage({
@@ -217,6 +224,9 @@ function queryGeo(locationset, test) {
                         if (response.variable.place !== "") {
                             georesult.place = response.variable.place.trim();
                         } else if (georesult.place === georesult.state) {
+                            georesult.place = "";
+                        }
+                        if (georesult.place === georesult.city) {
                             georesult.place = "";
                         }
                     }

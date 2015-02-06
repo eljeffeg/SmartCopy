@@ -132,6 +132,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                     var profile = {name: name, gender: gendersv, profile_id: famid, title: title};
                                     alldata["family"][title].push(profile);
                                     databyid[famid] = profile;
+                                    if (isPartner(title)) {
+                                        myhspouse.push(famid);
+                                    }
                                 }
                             } else if (listrowval.className !== "eventSeparator") {
                                 var urlval = $(listrowval).attr("href");
@@ -143,6 +146,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                     subdata["url"] = urlval;
                                     subdata["itemId"] = itemid;
                                     subdata["profile_id"] = famid;
+                                    if (isParent(title)) {
+                                        parentlist.push(itemid);
+                                    } else if (isPartner(title)) {
+                                        myhspouse.push(famid);
+                                    }
                                     unionurls[famid] = itemid;
                                     chrome.extension.sendMessage({
                                         method: "GET",
@@ -184,6 +192,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                             subdata["url"] = urlval;
                                             subdata["itemId"] = itemid;
                                             subdata["profile_id"] = famid;
+                                            if (isParent(title)) {
+                                                parentlist.push(itemid);
+                                            } else if (isPartner(title)) {
+                                                myhspouse.push(famid);
+                                            }
                                             unionurls[famid] = itemid;
                                             chrome.extension.sendMessage({
                                                 method: "GET",

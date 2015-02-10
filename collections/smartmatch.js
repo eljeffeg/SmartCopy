@@ -230,6 +230,101 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     }
                 }
                 continue;
+            } else if (!familymembers && isParent(title)) {
+                if (exists($(row).find(".recordFieldValue").contents().get(0))) {
+                    var listrow = $(row).find(".recordFieldValue").contents();
+                    var checklist = false;
+                    if (listrow.length > 1) {
+                        checklist = true;
+                    } else if (listrow.length == 1 && exists($(listrow[0]).attr("href"))) {
+                        checklist = true;
+                    }
+                    if (checklist) {
+                        if (isChild(relation.title)) {
+                            for (var lr =0;lr < listrow.length; lr++) {
+                                var listrowval = listrow[lr];
+                                if (listrowval.className !== "eventSeparator" && listrowval.nodeValue === null) {
+                                    var urlval = $(listrowval).attr("href");
+                                    if (exists(urlval) && urlval !== "") {
+                                        var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                        var itemid = getParameterByName('itemId', shorturl);
+                                        if (focusURLid !== itemid) {
+                                            childlist[relation.proid] = $.inArray(itemid, unionurls);
+                                            profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (isSibling(relation.title)) {
+                            var siblingparents = [];
+                            for (var lr =0;lr < listrow.length; lr++) {
+                                var listrowval = listrow[lr];
+                                if (listrowval.className !== "eventSeparator" && listrowval.nodeValue === null) {
+                                    var urlval = $(listrowval).attr("href");
+                                    if (exists(urlval) && urlval !== "") {
+                                        var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                        var itemid = getParameterByName('itemId', shorturl);
+                                        siblingparents.push(itemid);
+                                    }
+                                }
+                            }
+                            if (siblingparents.length > 0) {
+                                profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+                            }
+                        }
+                    }
+                } else {
+                    var splitlrnv = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
+                    if (exists(splitlrnv)) {
+                        var splitlr = splitlrnv.split(",");
+                        for (var lr =0;lr < splitlr.length; lr++) {
+                            if (NameParse.is_suffix(splitlr[lr]) && lr !== 0) {
+                                splitlr[lr-1] += "," + splitlr[lr];
+                                splitlr.splice(lr, 1);
+                            }
+                        }
+                        if (isChild(relation.title)) {
+                            for (var lr =0;lr < splitlr.length; lr++) {
+                                var splitval = splitlr[lr];
+                                if (exists(housearray)) {
+                                    for (var i = 0; i < housearray.length; i++) {
+                                        if (housearray[i].name === splitval.trim()) {
+                                            var urlval = housearray[i].url;
+                                            var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                            var itemid = getParameterByName('itemId', shorturl);
+                                            if (focusURLid !== itemid) {
+                                                childlist[relation.proid] = $.inArray(itemid, unionurls);
+                                                profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                                                continue;
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (isSibling(relation.title)) {
+                            var siblingparents = [];
+                            for (var lr =0;lr < splitlr.length; lr++) {
+                                var splitval = splitlr[lr];
+                                if (exists(housearray)) {
+                                    for (var i = 0; i < housearray.length; i++) {
+                                        if (housearray[i].name === splitval.trim()) {
+                                            var urlval = housearray[i].url;
+                                            var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                            var itemid = getParameterByName('itemId', shorturl);
+                                            siblingparents.push(itemid);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (siblingparents.length > 0) {
+                                profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+                            }
+                        }
+                    }
+                }
             }
             if (title.startsWith("info") || title.startsWith("notes") || title.startsWith("military") || title.startsWith("immigration") ||
                 title.startsWith("visa") || title === "emigration" || title === "ethnicity" || title === "race" || title === "residence" ||
@@ -288,7 +383,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         valdate = fielddata.get(i).nodeValue;
                         var verifydate = moment(valdate, dateformatter, true).isValid();
                         if (!verifydate) {
-                            if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
+                            if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("From") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                 break;
                             }
                             else if (valdate !== null && checkPlace(valdate) !== "") {
@@ -302,7 +397,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                         valdate = checkchild[x].nodeValue;
                                         verifydate = moment(valdate, dateformatter, true).isValid();
                                         if (!verifydate) {
-                                            if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
+                                            if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("From") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                                 break dance;
                                             }
                                             valdate = "";
@@ -321,9 +416,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
 
             if (valdate !== "") {
-                data.push({date: valdate});
+                data.push({date: cleanDate(valdate)});
             }
 
+            vallocal = vallocal.replace(/Unknown/ig, "");
+            vallocal = vallocal.replace(/\[Blank\]/ig, "");
             if (vallocal !== "") {
                 data.push({id: geoid, location: vallocal, place: valplace});
                 geoid++;

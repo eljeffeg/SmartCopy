@@ -1031,6 +1031,7 @@ function cleanDate(dateval) {
     dateval = dateval.replace("about", "Circa");
     dateval = dateval.replace("before", "Before");
     dateval = dateval.replace("after", "After");
+    dateval = dateval.replace(/from/i, "After");
 
     if (dateval.contains(" to ")) {
         dateval = dateval.replace(" to ", " and ");

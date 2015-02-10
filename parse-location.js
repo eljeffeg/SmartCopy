@@ -151,6 +151,7 @@ function queryGeo(locationset, test) {
         var place = "";
         var location = locationset.location.trim();
         location = location.replace(/Unknown/ig, "");
+        location = location.replace(/\[Blank\]/ig, "");
         if (location.contains("\?")) {
             var questionmark = parseGoogle("");
             if (location !== "?") {
@@ -414,7 +415,12 @@ function compareGeo(shortGeo, longGeo) {
         location.county = location.place;
         location.place = "";
     }
-
+    if (location.country === location.state && location.county === "" && location.city === "") {
+        location.state = "";
+    }
+    if (location.country === "United States" && location.state === "USA") {
+        location.state = "";
+    }
     location.ambiguous = ambig;
     return location;
 }

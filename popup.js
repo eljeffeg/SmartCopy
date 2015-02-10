@@ -292,6 +292,8 @@ function loadPage(request) {
                 var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
                 focusname = parsed.find(".recordTitle").text().trim();
                 recordtype = parsed.find(".infoGroupTitle");
+                var shorturl = tablink.substring(0, tablink.indexOf('showRecord') + 10);
+                focusURLid = getParameterByName('itemId', shorturl);
                 smscorefactors = parsed.find(".value_add_score_factors_container").text().trim();
                 if (exists(recordtype[0])) {
                     recordtype = recordtype[0].innerText;

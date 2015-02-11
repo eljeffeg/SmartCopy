@@ -46,7 +46,7 @@ function buildHistoryBox() {
         }
     }
     historytext += "";
-    document.getElementById("historybox").innerHTML = historytext;
+    document.getElementById("historytext").innerHTML = historytext;
 }
 
 function buildHistorySelect() {
@@ -934,6 +934,14 @@ $(function () {
 $(function () {
     $('#addhistory').on('click', function () {
         addHistory(focusid, tablink, focusname);
+        buildHistoryBox();
+    });
+});
+
+$(function () {
+    $('#clearhistory').on('click', function () {
+        buildhistory = [];
+        chrome.storage.local.set({'buildhistory': buildhistory});
         buildHistoryBox();
     });
 });

@@ -92,6 +92,18 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                     var eventlocation = eventsplit.join(", ");
                     data.push({id: geoid, location: eventlocation});
                     geoid++;
+                } else if(eventinfo.search(/\d{4}, /) !== -1) {
+                    var eventsplit = eventinfo.split(/\d{4}, /);
+                    dateval = eventinfo.replace(", " + eventsplit[1], "").replace(".,", "").replace(/&nbsp;/g, " ").replace("  ", " ").trim();
+                    var eventlocation = eventsplit[1];
+                    dateval = cleanDate(dateval);
+                    if (dateval !== "unknown" && dateval !== "") {
+                        data.push({date: dateval});
+                    }
+                    if (exists(eventlocation) && eventlocation !== "") {
+                        data.push({id: geoid, location: eventlocation});
+                        geoid++;
+                    }
                 } else {
                     if (eventinfo !== "unknown") {
                         data.push({date: eventinfo});

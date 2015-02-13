@@ -452,40 +452,7 @@ function loadPage(request) {
                     focusprofileurl = "http://www.geni.com/" + focusid;
                 }
 
-                document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + focusprofileurl + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
-                var descurl = "http://historylink.herokuapp.com/smartsubmit?fields=name,birth,death&profile=" + focusid;
-                submitstatus.push(updatetotal);
-                chrome.extension.sendMessage({
-                    method: "GET",
-                    action: "xhttp",
-                    url: descurl
-                }, function (response) {
-                    var geni_return = JSON.parse(response.source);
-
-                    var byear;
-                    var dyear;
-                    var dateinfo = "";
-                    if (exists(geni_return["birth"]) && exists(geni_return["birth"]["date"]) && exists(geni_return["birth"]["date"]["year"])) {
-                        byear = geni_return["birth"]["date"]["year"];
-                    }
-                    if (exists(geni_return["death"]) && exists(geni_return["death"]["date"]) && exists(geni_return["death"]["date"]["year"])) {
-                        dyear = geni_return["death"]["date"]["year"];
-                    }
-                    if (exists(byear) || exists(dyear)) {
-                        dateinfo = " (";
-                        if (exists(byear)) {
-                            dateinfo += "b." + byear;
-                            if (exists(dyear)) {
-                                dateinfo += "-";
-                            }
-                        }
-                        if (exists(dyear)) {
-                            dateinfo += "d." + dyear;
-                        }
-                        dateinfo += ")";
-                    }
-                    $("#genilinkdesc").attr('title', "Geni: " + geni_return.name + dateinfo);
-                });
+                document.getElementById("focusname").innerHTML = '<a href="' + focusprofileurl + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a>";
                 if (focusrange !== "") {
                     document.getElementById("focusrange").innerText = focusrange;
                 }

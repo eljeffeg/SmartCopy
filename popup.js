@@ -454,7 +454,6 @@ function loadPage(request) {
 
                 document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + focusprofileurl + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
                 var descurl = "http://historylink.herokuapp.com/smartsubmit?fields=name,birth,death&profile=" + focusid;
-                submitstatus.push(updatetotal);
                 chrome.extension.sendMessage({
                     method: "GET",
                     action: "xhttp",

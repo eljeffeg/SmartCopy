@@ -434,16 +434,15 @@ function loadPage(request) {
             }
 
             if (exists(focusid)) {
-                if (!exists(genifamily)) {
-                    var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusid;
-                    chrome.extension.sendMessage({
-                        method: "GET",
-                        action: "xhttp",
-                        url: url
-                    }, function (response) {
-                        genifamily = JSON.parse(response.source);
-                    });
-                }
+                var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusid;
+                chrome.extension.sendMessage({
+                    method: "GET",
+                    action: "xhttp",
+                    url: url
+                }, function (response) {
+                    genifamily = JSON.parse(response.source);
+                });
+
 
                 var focusprofileurl = "";
                 if (focusid.startsWith("profile-g")) {

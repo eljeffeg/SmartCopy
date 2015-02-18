@@ -1092,6 +1092,8 @@ function recursiveCompare(obj, reference) {
     if (obj.constructor !== reference.constructor) return false;
     if (obj instanceof Array) {
         if (obj.length !== reference.length) return false;
+        obj = obj.sort();
+        reference = reference.sort();
         for (var i = 0, len = obj.length; i < len; i++) {
             if (typeof obj[i] == "object" && typeof reference[j] == "object") {
                 if (!recursiveCompare(obj[i], reference[i])) return false;

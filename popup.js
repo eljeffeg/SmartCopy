@@ -434,6 +434,7 @@ function loadPage(request) {
             }
 
             if (exists(focusid)) {
+                familystatus.push(1);
                 var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusid;
                 chrome.extension.sendMessage({
                     method: "GET",
@@ -441,6 +442,7 @@ function loadPage(request) {
                     url: url
                 }, function (response) {
                     genifamily = JSON.parse(response.source);
+                    familystatus.pop();
                 });
 
 

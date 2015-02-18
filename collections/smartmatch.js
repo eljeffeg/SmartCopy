@@ -73,7 +73,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 for (var x = 0; x < hv.length; x++) {
                     var urlval = $(hv[x]).find('a');
                     if (urlval.length > 0) {
-                        housearray.push({name: $(hv[x]).text(), url: urlval[0].href});
+                        var hurl = urlval[0].href;
+                        var itemid = getParameterByName('itemId', hurl);
+                        if (itemid !== focusURLid) {
+                            housearray.push({name: $(hv[x]).text(), url: hurl});
+                        }
                     }
                 }
             }

@@ -218,20 +218,27 @@ function useradd() {
     }, function (response) {
     });
     chrome.tabs.getSelected(null, function (tab) {
-        chrome.tabs.update(tab.id, {url: "http://www.geni.com/threads/new/" + focusid.replace("profile-g", "") + "?return_here=true"}, function () {
-            chrome.tabs.executeScript(null, {
-                code: "document.getElementById('thread_subject').value='SmartCopy Invite';" +
-                    "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, " +
-                    "which is a Google Chrome extension that allows you to copy data from MyHeritage Record and Smart Matches into the Geni tree.\\n\\n" +
-                    "The extension can be downloaded here: http://historylink.herokuapp.com/smartcopy\\n" +
-                    "More information and discussion can be found in the Geni project: http://www.geni.com/projects/SmartCopy/18783\\n\\n" +
-                    "Before using SmartCopy, please read the cautionary notes and feedback request in the Project Description.\\n\\n" +
-                    "SmartCopy can be a powerful tool to help us build the world tree, but it could also quickly create duplication and introduce bad data. " +
-                    "Users granted rights to SmartCopy are expected to be responsible with using this tool, attempt to merge any duplicates that arise, and work through relationship conflicts (get curator assistance if necessary)." +
-                    "';"
-            }, function () {
-                window.close();
-            })
+        chrome.tabs.update(tab.id, {url: "http://www.geni.com/threads/new/" + focusid.replace("profile-g", "") + "?return_here=true"}, function (tab1) {
+            var listener = function(tabId, changeInfo, tab) {
+                if (tabId == tab1.id && changeInfo.status === 'complete') {
+                    // remove listener, so only run once
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    chrome.tabs.executeScript(tab1.id, {
+                        code: "document.getElementById('thread_subject').value='SmartCopy Invite';" +
+                            "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, " +
+                            "which is a Google Chrome extension that allows you to copy data from MyHeritage Record and Smart Matches into the Geni tree.\\n\\n" +
+                            "The extension can be downloaded here: http://historylink.herokuapp.com/smartcopy\\n" +
+                            "More information and discussion can be found in the Geni project: http://www.geni.com/projects/SmartCopy/18783\\n\\n" +
+                            "Before using SmartCopy, please read the cautionary notes and feedback request in the Project Description.\\n\\n" +
+                            "SmartCopy can be a powerful tool to help us build the world tree, but it could also quickly create duplication and introduce bad data. " +
+                            "Users granted rights to SmartCopy are expected to be responsible with using this tool, attempt to merge any duplicates that arise, and work through relationship conflicts (get curator assistance if necessary)." +
+                            "';"
+                    }, function () {
+                        window.close();
+                    })
+                }
+            }
+            chrome.tabs.onUpdated.addListener(listener);
         });
     });
 }

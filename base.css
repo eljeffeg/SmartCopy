@@ -123,6 +123,7 @@ a:hover {
     text-decoration: none;
     text-align: center;
     margin-bottom: 5px;
+    cursor: pointer;
 
     white-space: nowrap;
     -webkit-border-radius: 5px;

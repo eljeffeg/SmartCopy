@@ -137,56 +137,47 @@ function isGeni() {
 
 function userAccess() {
     if (loggedin && exists(accountinfo)) {
-        if (accountinfo.curator) {
-            chrome.extension.sendMessage({
-                method: "GET",
-                action: "xhttp",
-                url: "http://historylink.herokuapp.com/account?profile=" + focusid,
-                variable: ""
-            }, function (response) {
-                document.querySelector('#loginspinner').style.display = "none";
-                var responsedata = JSON.parse(response.source);
-                var accessdialog = document.querySelector('#useraccess');
-                if (!responsedata.big_tree) {
-                    setMessage("#AFC8FF", '<strong>This profile is not in the World Family Tree.</strong>');
-                    accessdialog.style.display = "block";
-                    accessdialog.style.marginBottom = "-2px";
-                    accessdialog.innerHTML += "<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...";
-                    buildResearch();
-                }
-                else if (responsedata.claimed && !responsedata.curator) {
-                    if (responsedata.pro) {
-                        if (!responsedata.user) {
-                            accessdialog.style.display = "block";
-                            accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
-                                '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>';
-                            document.getElementById('grantbutton').addEventListener('click', useradd, false);
-                        } else {
-                            accessdialog.style.display = "block";
-                            if (responsedata.user.revoked == null) {
-                                accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
-                                    '<div>Tree-building rights were granted by <a href="http://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>';
-                                document.getElementById('revokebutton').addEventListener('click', userrevoke, false);
-                            } else {
-                                accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
-                                    '<div>Tree-building rights were revoked by <a href="http://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>';
-                                document.getElementById('grantbutton').addEventListener('click', userrestore, false);
-                            }
-                        }
+        chrome.extension.sendMessage({
+            method: "GET",
+            action: "xhttp",
+            url: "http://historylink.herokuapp.com/account?profile=" + focusid,
+            variable: ""
+        }, function (response) {
+            document.querySelector('#loginspinner').style.display = "none";
+            var responsedata = JSON.parse(response.source);
+            var accessdialog = document.querySelector('#useraccess');
+            accessdialog.style.display = "block";
+            if (!responsedata.big_tree) {
+                setMessage("#AFC8FF", '<strong>This profile is not in the World Family Tree.</strong>');
+                accessdialog.style.marginBottom = "-2px";
+            }
+            if (accountinfo.curator && responsedata.claimed && !responsedata.curator) {
+                if (responsedata.pro) {
+                    if (!responsedata.user) {
+                        accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
+                            '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>';
+                        document.getElementById('grantbutton').addEventListener('click', useradd, false);
                     } else {
-                        accessdialog.style.display = "block";
-                        accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This basic user has limited access to SmartCopy.</strong></div>' +
-                            '<div>Non-Pro Geni users have the ability to update the focus profile but can not add family members.</div>';
+                        if (responsedata.user.revoked == null) {
+                            accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
+                                '<div>Tree-building rights were granted by <a href="http://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>';
+                            document.getElementById('revokebutton').addEventListener('click', userrevoke, false);
+                        } else {
+                            accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
+                                '<div>Tree-building rights were revoked by <a href="http://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>';
+                            document.getElementById('grantbutton').addEventListener('click', userrestore, false);
+                        }
                     }
                 } else {
-                    accessdialog.style.display = "block";
-                    accessdialog.innerHTML = "<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...";
-                    buildResearch();
+                    accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This basic user has limited access to SmartCopy.</strong></div>' +
+                        '<div>Non-Pro Geni users have the ability to update the focus profile but can not add family members.</div>';
                 }
-            });
-        } else {
-            setMessage("#f9acac", 'SmartCopy does not currently support parsing this site / collection.');
-        }
+            } else {
+                accessdialog.innerHTML = "<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...";
+                buildResearch();
+            }
+        });
+
     } else {
         setTimeout(userAccess, 200);
     }
@@ -226,7 +217,7 @@ function useradd() {
                     chrome.tabs.executeScript(tab1.id, {
                         code: "document.getElementById('thread_subject').value='SmartCopy Invite';" +
                             "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, " +
-                            "which is a Google Chrome extension that allows you to copy data from MyHeritage Record and Smart Matches into the Geni tree.\\n\\n" +
+                            "which is a Google Chrome extension that allows advanced Geni users to copy information and profiles from various sources into Geni.\\n\\n" +
                             "The extension can be downloaded here: http://historylink.herokuapp.com/smartcopy\\n" +
                             "More information and discussion can be found in the Geni project: http://www.geni.com/projects/SmartCopy/18783\\n\\n" +
                             "Before using SmartCopy, please read the cautionary notes and feedback request in the Project Description.\\n\\n" +

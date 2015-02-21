@@ -79,6 +79,14 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
         for (var r = 0; r < rows.length; r++) {
             var row = rows[r];
             var data = [];
+            if ($(row).text().startsWith("Birth:") && $(row).text().contains("Death:")) {
+                var temprow = $(row).find("tr");
+                if (exists(temprow[0])) {
+                    rows = temprow;
+                    r = -1;
+                    continue;
+                }
+            }
             if ($(row).text().toLowerCase().trim().startsWith("birth:")) {
                 var cells = $(row).find('td');
                 var eventinfo = $(cells[1]).html();

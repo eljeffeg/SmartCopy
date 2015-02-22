@@ -43,7 +43,9 @@ function buildFamilySearch(responsedata) {
     var lastname = wrapEncode(responsedata.last_name);
     if (exists(responsedata.maiden_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
         lastname = wrapEncode(responsedata.maiden_name.replace("'",""));
-        query += '~%20%2Bspouse_surname%3A' + wrapEncode(responsedata.last_name.replace("'",""));
+        if (exists(responsedata.last_name)) {
+            query += '~%20%2Bspouse_surname%3A' + wrapEncode(responsedata.last_name.replace("'",""));
+        }
     }
     query += '~%20%2Bsurname%3A' + wrapEncode(lastname);
     if (exists(responsedata.birth)) {
@@ -72,7 +74,17 @@ function buildFamilySearch(responsedata) {
 }
 
 function buildFindAGrave(responsedata) {
-    var query = 'http://www.findagrave.com/cgi-bin/fg.cgi?page=gsr&GSfn=' + responsedata.first_name + '&GSmn=&GSln=' + responsedata.last_name + '&GSiman=1&GScntry=0&GSst=0&GSgrid=&df=all&GSob=n';
+    var lastname = "";
+    var firstname = "";
+    if (responsedata.first_name) {
+        firstname = responsedata.first_name;
+    }
+    if (exists(responsedata.last_name)) {
+        lastname = responsedata.last_name;
+    } else if (exists(responsedata.maiden_name)) {
+        lastname = responsedata.maiden_name;
+    }
+    var query = 'http://www.findagrave.com/cgi-bin/fg.cgi?page=gsr&GSfn=' + firstname + '&GSmn=&GSln=' + lastname + '&GSiman=1&GScntry=0&GSst=0&GSgrid=&df=all&GSob=n';
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>FindAGrave</strong>';
     researchstring += '<li><a href="' + query + '" target="_blank">FindAGrave (Gravestones)</a></li>';
     researchstring += '</div>';
@@ -80,8 +92,18 @@ function buildFindAGrave(responsedata) {
 }
 
 function buildBillionGraves(responsedata) {
+    var lastname = "";
+    var firstname = "";
+    if (responsedata.first_name) {
+        firstname = responsedata.first_name;
+    }
+    if (exists(responsedata.last_name)) {
+        lastname = responsedata.last_name;
+    } else if (exists(responsedata.maiden_name)) {
+        lastname = responsedata.maiden_name;
+    }
     //http://billiongraves.com/pages/search/#given_names=John&family_names=Smith&birth_year=1830&death_year=1880&year_range=5&lim=0&num=10&action=search&exact=false&phonetic=true&record_type=0&country=United+States&state=Arizona&county=0
-    var query = 'http://billiongraves.com/pages/search/#given_names=' + responsedata.first_name + '&family_names=' + responsedata.last_name;
+    var query = 'http://billiongraves.com/pages/search/#given_names=' + firstname + '&family_names=' + lastname;
     if (exists(responsedata.birth)) {
         if (exists(responsedata.birth.date) && exists(responsedata.birth.date.year)) {
             query += '&birth_year=' + responsedata.birth.date.year;
@@ -111,7 +133,17 @@ function buildBillionGraves(responsedata) {
 }
 
 function buildObitsforLive(responsedata) {
-    var query = 'http://www.obitsforlife.co.uk/records/list.php?filterChange=true&firstRequest=false&showTodays=false&firstname=' + responsedata.first_name + '&lastname=' + responsedata.last_name + '&speciesName=human&curPage=1&total=100000&rrp=10';
+    var lastname = "";
+    var firstname = "";
+    if (responsedata.first_name) {
+        firstname = responsedata.first_name;
+    }
+    if (exists(responsedata.last_name)) {
+        lastname = responsedata.last_name;
+    } else if (exists(responsedata.maiden_name)) {
+        lastname = responsedata.maiden_name;
+    }
+    var query = 'http://www.obitsforlife.co.uk/records/list.php?filterChange=true&firstRequest=false&showTodays=false&firstname=' + firstname + '&lastname=' + lastname + '&speciesName=human&curPage=1&total=100000&rrp=10';
 
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>ObitsforLife</strong>';
     researchstring += '<li><a href="' + query + '" target="_blank">ObitsforLife (Obituaries)</a></li>';
@@ -120,11 +152,17 @@ function buildObitsforLive(responsedata) {
 }
 
 function buildAncestry(responsedata) {
-    var lastname = responsedata.last_name;
-    if (exists(responsedata.maiden_name)) {
+    var lastname = "";
+    var firstname = "";
+    if (responsedata.first_name) {
+        firstname = responsedata.first_name;
+    }
+    if (exists(responsedata.last_name)) {
+        lastname = responsedata.last_name;
+    } else if (exists(responsedata.maiden_name)) {
         lastname = responsedata.maiden_name;
     }
-    var query = 'http://search.ancestry.com/cgi-bin/sse.dll?gsfn=' + responsedata.first_name + '&gsln=' + lastname + '&cp=0&gl=allgs';
+    var query = 'http://search.ancestry.com/cgi-bin/sse.dll?gsfn=' + firstname + '&gsln=' + lastname + '&cp=0&gl=allgs';
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>Ancestry</strong>';
     researchstring += '<li><a href="' + query + '" target="_blank">Ancestry</a></li>';
     researchstring += '</div>';
@@ -133,9 +171,14 @@ function buildAncestry(responsedata) {
 
 function buildRootsWeb(responsedata) {
     var query = 'http://wc.rootsweb.ancestry.com/cgi-bin/igm.cgi?op=Search&includedb=&lang=en&ti=&skipdb=&period=All&fuzzy=Y&submit.x=Search&given=' + responsedata.first_name;
-    var lastname = responsedata.last_name;
-    if (exists(responsedata.maiden_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
+    var lastname = "";
+    if (exists(responsedata.last_name)) {
+        lastname = responsedata.last_name;
+    } else if (exists(responsedata.maiden_name)) {
         lastname = responsedata.maiden_name;
+    }
+
+    if (exists(responsedata.maiden_name) && exists(responsedata.last_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
         query += '&spouse=' + responsedata.last_name;
     }
     query += '&surname=' + lastname;
@@ -180,7 +223,9 @@ function locationString(location) {
 }
 
 function wrapEncode(name) {
-    if (name.contains(" ")) {
+    if (!exists(name)) {
+        name = "";
+    } else if (name.contains(" ")) {
         name = '"' + name + '"';
     }
     name = encodeURI(name);

@@ -387,7 +387,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         valdate = fielddata.get(i).nodeValue;
                         var verifydate = moment(valdate, dateformatter, true).isValid();
                         if (!verifydate) {
-                            if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("From") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
+                            if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("From") || valdate.startsWith("To") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                 break;
                             }
                             else if (valdate !== null && checkPlace(valdate) !== "") {
@@ -401,7 +401,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                         valdate = checkchild[x].nodeValue;
                                         verifydate = moment(valdate, dateformatter, true).isValid();
                                         if (!verifydate) {
-                                            if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("From") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
+                                            if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("From") || valdate.startsWith("To") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                                 break dance;
                                             }
                                             valdate = "";
@@ -501,7 +501,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 setmarriage = true;
             }
         }
-        if (aboutdata !== "") {
+        if (aboutdata.trim() !== "") {
             profiledata["about"] = aboutdata;
             // "\n--------------------\n"  Merge separator
         }

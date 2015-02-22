@@ -276,7 +276,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
     }
 
 
-    if (aboutdata !== "") {
+    if (aboutdata.trim() !== "") {
         profiledata["about"] = cleanHTML(aboutdata);
         // "\n--------------------\n"  Merge separator
     }

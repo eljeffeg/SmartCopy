@@ -153,7 +153,7 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
         profiledata["daterange"] = focusdaterange;
     }
 
-    if (aboutdata !== "") {
+    if (aboutdata.trim() !== "") {
         profiledata["about"] = cleanHTML(aboutdata);
         // "\n--------------------\n"  Merge separator
     }

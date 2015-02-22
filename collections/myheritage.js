@@ -178,7 +178,7 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
     profiledata["gender"] = genderval;
 
 
-    if (aboutdata !== "") {
+    if (aboutdata.trim() !== "") {
         profiledata["about"] = cleanHTML(aboutdata);
         // "\n--------------------\n"  Merge separator
     }

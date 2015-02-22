@@ -65,7 +65,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
                 }
             } else if (fieldname === "note") {
                 if (exists(row[1]) && row[1].trim() !== "") {
-                    if (aboutdata !== "") {
+                    if (aboutdata.trim() !== "") {
                         aboutdata += '\n';
                     }
                     aboutdata += row[1];
@@ -230,7 +230,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
         profiledata = checkBurial(profiledata);
     }
 
-    if (aboutdata !== "") {
+    if (aboutdata.trim() !== "") {
         profiledata["about"] = cleanHTML(aboutdata);
         // "\n--------------------\n"  Merge separator
     }

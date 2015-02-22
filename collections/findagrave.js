@@ -328,7 +328,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 setmarriage = true;
             }
         }
-        if (aboutdata !== "") {
+        if (aboutdata.trim() !== "") {
             profiledata["about"] = cleanHTML(aboutdata);
             // "\n--------------------\n"  Merge separator
         }

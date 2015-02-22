@@ -60,7 +60,7 @@ function parseFamilySearch(htmlstring, familymembers, relation) {
                 }
             } else if (fieldname === "note") {
                 if ($($(fperson[i]).next("td")).text() !== "") {
-                    if (aboutdata !== "") {
+                    if (aboutdata.trim() !== "") {
                         aboutdata += '\n';
                     }
                     aboutdata += $($(fperson[i]).next("td")).text();
@@ -192,7 +192,7 @@ function parseFamilySearch(htmlstring, familymembers, relation) {
         profiledata = checkBurial(profiledata);
     }
 
-    if (aboutdata !== "") {
+    if (aboutdata.trim() !== "") {
         profiledata["about"] = cleanHTML(aboutdata);
         // "\n--------------------\n"  Merge separator
     }

@@ -1032,7 +1032,9 @@ function cleanDate(dateval) {
     dateval = dateval.replace("before", "Before");
     dateval = dateval.replace("after", "After");
     dateval = dateval.replace(/from/i, "After");
-
+    if (dateval.startsWith("To")) {
+        dateval = dateval.replace(/^to/i, "Before");
+    }
     if (dateval.contains(" to ")) {
         dateval = dateval.replace(" to ", " and ");
         if (!dateval.startsWith("Between")) {

@@ -224,7 +224,7 @@ function parseAncestryTrees(htmlstring, familymembers, relation) {
         profiledata = checkBurial(profiledata);
     }
 
-    if (aboutdata !== "") {
+    if (aboutdata.trim() !== "") {
         profiledata["about"] = cleanHTML(aboutdata);
         // "\n--------------------\n"  Merge separator
     }

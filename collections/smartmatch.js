@@ -385,7 +385,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 for (var i=0; i < fielddata.length; i++) {
                     if (exists(fielddata.get(i))) {
                         valdate = fielddata.get(i).nodeValue;
-                        var verifydate = moment(valdate, dateformatter, true).isValid();
+                        var verifydate = moment(valdate, getDateFormat(valdate), true).isValid();
                         if (!verifydate) {
                             if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("From") || valdate.startsWith("To") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                 break;
@@ -399,7 +399,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                     var checkchild = fielddata.get(i).childNodes;
                                     for (var x=0; x < checkchild.length; x++) {
                                         valdate = checkchild[x].nodeValue;
-                                        verifydate = moment(valdate, dateformatter, true).isValid();
+                                        verifydate = moment(valdate, getDateFormat(valdate), true).isValid();
                                         if (!verifydate) {
                                             if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("From") || valdate.startsWith("To") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                                 break dance;

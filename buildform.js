@@ -1040,6 +1040,10 @@ function cleanDate(dateval) {
         if (!dateval.startsWith("Between")) {
             dateval = "Between " + dateval;
         }
+    } else if (dateval.search(/\d{4}-\d{4}/) === -1 && dateval.search(/\d{2}-\d{4}/) !== -1) {
+        // Read as DD-MM-YYYY format
+    } else if (dateval.search(/\d{4}-\d{4}/) === -1 && dateval.search(/\d{4}-\d{2}/) !== -1) {
+        // Read as YYYY-MM-DD format
     } else if (dateval.contains("-")) {
         dateval = dateval.replace("-", " and ");
         if (!dateval.startsWith("Between")) {

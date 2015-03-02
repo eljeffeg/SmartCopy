@@ -26,7 +26,12 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
     var aboutdata = "";
 
     var fsplit = htmlstring.replace(/<img/ig, "<gmi").split(/<\/h3>/i);
-    var fsplit2 = fsplit[1].split(/<APPLET/i);
+    var fsplit2 = [];
+    if (fsplit.length > 1) {
+        fsplit2 = fsplit[1].split(/<APPLET/i);
+    } else {
+        fsplit2 = fsplit;
+    }
     var fhtml = fsplit2[0].replace(/<sup.*?<\/sup>/ig, "");
     fsplit = fhtml.split("Notes for"); //What if Notes don't exist
     var header = fsplit[0];

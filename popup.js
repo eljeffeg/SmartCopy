@@ -1596,7 +1596,7 @@ function parseDate(fulldate, update) {
                 vardate["end_circa"] = true;
                 btsplit[1] = btsplit[1].replace("Circa ", "").trim();
             }
-            var dt = moment(btsplit[1].trim(), dateformatter);
+            var dt = moment(btsplit[1].trim(), getDateFormat(btsplit[1].trim()));
             if (isNaN(btsplit[1])) {
                 var splitd = btsplit[1].split(" ");
                 if (splitd.length > 2) {
@@ -1611,7 +1611,7 @@ function parseDate(fulldate, update) {
             }
         }
     }
-    var dt = moment(fulldate.trim(), dateformatter);
+    var dt = moment(fulldate.trim(), getDateFormat(fulldate.trim()));
     //TODO Probably need to do some more checking below to make sure it doesn't improperly default dates
     if (isNaN(fulldate)) {
         var splitd = fulldate.split(" ");
@@ -1626,6 +1626,22 @@ function parseDate(fulldate, update) {
         vardate["year"] = dt.get('year');
     }
     return vardate;
+}
+
+function getDateFormat(valdate) {
+    var dateformat = dateformatter;
+    if (valdate.trim().search(/\d{4}-\d{2}/) !== -1) {
+        dateformat = "YYYY-MM-DD";
+    } else if (valdate.trim().search(/\d{2}-\d{4}/) !== -1) {
+        var datesplit = valdate.split("-");
+        //assume a MM-DD-YYYY format
+        if (parseInt(datesplit[0]) > 12) {
+            dateformat = "DD-MM-YYYY";
+        } else {
+            dateformat = "MM-DD-YYYY";
+        }
+    }
+    return dateformat;
 }
 
 function addHistory(id, itemId, name) {

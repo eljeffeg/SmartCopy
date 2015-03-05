@@ -431,7 +431,22 @@ function loadPage(request) {
                 focusrange = "";
             }
 
+            if (focusid === "" || focusid === "Select from History") {
+                var accessdialog = document.querySelector('#useraccess');
+                accessdialog.style.marginBottom = "-2px";
+                accessdialog.innerText = "The URL or ID entered failed to resolve."
+                accessdialog.style.backgroundColor = "#f9acac";
+                accessdialog.style.display = "block";
+
+                focusid = null;
+            }
             if (exists(focusid)) {
+                var accessdialog = document.querySelector('#useraccess');
+                accessdialog.style.display = "none";
+                accessdialog.style.marginBottom = "12px";
+                accessdialog.innerText = "";
+                accessdialog.style.backgroundColor = "#dfe6ed";
+
                 familystatus.push(1);
                 var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusid;
                 chrome.extension.sendMessage({
@@ -834,7 +849,7 @@ function loadLogin() {
 function getProfile(profile_id) {
     //Gets the profile id from the Geni URL
     if (profile_id.length > 0) {
-        profile_id = decodeURIComponent(profile_id);
+        profile_id = decodeURIComponent(profile_id).trim();
         if (profile_id.indexOf("&resolve=") != -1) {
             profile_id = profile_id.substring(profile_id.lastIndexOf('#') + 1);
         }
@@ -876,6 +891,7 @@ function getProfile(profile_id) {
             return "?profile=" + profile_id;
         } else {
             console.log("Profile ID not detected: " + profile_id);
+            return "";
         }
     }
     return "";
@@ -1630,15 +1646,17 @@ function parseDate(fulldate, update) {
 
 function getDateFormat(valdate) {
     var dateformat = dateformatter;
-    if (valdate.trim().search(/\d{4}-\d{2}/) !== -1) {
-        dateformat = "YYYY-MM-DD";
-    } else if (valdate.trim().search(/\d{2}-\d{4}/) !== -1) {
-        var datesplit = valdate.split("-");
-        //assume a MM-DD-YYYY format
-        if (parseInt(datesplit[0]) > 12) {
-            dateformat = "DD-MM-YYYY";
-        } else {
-            dateformat = "MM-DD-YYYY";
+    if (exists(valdate)) {
+        if (valdate.trim().search(/\d{4}-\d{2}/) !== -1) {
+            dateformat = "YYYY-MM-DD";
+        } else if (valdate.trim().search(/\d{2}-\d{4}/) !== -1) {
+            var datesplit = valdate.split("-");
+            //assume a MM-DD-YYYY format
+            if (parseInt(datesplit[0]) > 12) {
+                dateformat = "DD-MM-YYYY";
+            } else {
+                dateformat = "MM-DD-YYYY";
+            }
         }
     }
     return dateformat;

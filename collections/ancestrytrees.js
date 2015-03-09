@@ -85,12 +85,12 @@ function parseAncestryTrees(htmlstring, familymembers, relation) {
                     var name = $(pobject).text();
                     getAncestryTreeFamily(famid, itemid, name, title);
                     famid++;
-                } else if (isChild(relation.title)) {
+                } else if (exists(relation.title) && isChild(relation.title)) {
                     if (focusURLid !== itemid) {
                         childlist[relation.proid] = $.inArray(itemid, unionurls);
                         profiledata["parent_id"] = $.inArray(itemid, unionurls);
                     }
-                } else if (isSibling(relation.title)) {
+                } else if (exists(relation.title) && isSibling(relation.title)) {
                     siblingparents.push(itemid);
                 }
             }
@@ -172,7 +172,7 @@ function parseAncestryTrees(htmlstring, familymembers, relation) {
                 }
                 profiledata["burial"] = data;
             }
-        } else if (!familymembers && eventstr.startsWith("marriage") && isPartner(relation.title)) {
+        } else if (!familymembers && eventstr.startsWith("marriage") && exists(relation.title) && isPartner(relation.title)) {
             var name = $(events[i]).find("a").text();
             if (exists(name)) {
                 name = name.replace(/Marriage to /i, "").trim();

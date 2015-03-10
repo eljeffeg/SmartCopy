@@ -16,7 +16,8 @@ var recordtype = "MyHeritage Match";
 var smscorefactors = "";
 var genifamily;
 var parentblock = false;
-var parentspouse = {};
+var parentspouseunion;
+var parentspouselist = [];
 chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
@@ -691,16 +692,31 @@ function loadSelectPage(request) {
 
 function buildParentSpouse() {
     if (exists(genifamily)) {
+        var siblings = false;
+        var parents = false;
         for (var i = 0; i < genifamily.length; i++) {
             var familymem = genifamily[i];
             if (isParent(familymem.relation)) {
+                parents = true;
                 if (!parentblock) {
-                    parentspouse.union = familymem.union;
+                    parentspouseunion = familymem.union;
                     parentblock = true;
                 } else {
                     //If there are two parents - reset
-                    parentspouse = {};
+                    parentspouselist = [];
                     parentblock = false;
+                }
+            } else if (isSibling(familymem.relation)) {
+                siblings = true;
+            }
+        }
+        if (!parents && siblings) {
+            for (var i = 0; i < genifamily.length; i++) {
+                var familymem = genifamily[i];
+                if (isSibling(familymem.relation)) {
+                    parentspouseunion = familymem.union;
+                    parentblock = true;
+                    break;
                 }
             }
         }
@@ -1138,11 +1154,11 @@ var submitform = function () {
                                 statusaction += "s";
                             }
                             document.getElementById("updatestatus").innerText = profileupdatestatus + "Submitting Family (Siblings/Parents)";
-                            if (parentblock && statusaction === "parent") {
-                                parentspouse.data = familyout;
+                            if (parentblock && statusaction === "parents") {
+                                parentspouselist.push(familyout);
                             } else {
                                 buildTree(familyout, "add-" + actionname[1], focusid);
-                                if (statusaction === "parent") {
+                                if (statusaction === "parents") {
                                     parentblock = true;
                                 }
                             }
@@ -1245,7 +1261,7 @@ function buildTree(data, action, sendid) {
                 if (response.variable.relation === "partner") {
                     spouselist[id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: databyid[id].status};
                 } else if (response.variable.relation === "parent") {
-                    parentspouse.union = result.unions[0].replace("https://www.geni.com/api/", "");
+                    parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
                     if (parentlist.length > 0) {
                         if (exists(parentlist[0].id) && (exists(marriagedates[id]) || exists(marriagedates[parentlist[0].id]))) {
                             if (exists(marriagedates[id])) {
@@ -1320,12 +1336,21 @@ function buildTree(data, action, sendid) {
 
 var checkchildren = false;
 var checkpictures = false;
+var checkspouseunion = false;
 var photocount = 0;
 var photototal = 0;
 var photoprogress = 0;
 function submitChildren() {
     if (submitstatus.length > 0) {
         setTimeout(submitChildren, 200);
+    } else if (!checkspouseunion) {
+        checkspouseunion = true;
+        if (parentspouselist.length > 0 && exists(parentspouseunion)) {
+            for (var i = 0; parentspouselist.length > i; i++) {
+                buildTree(parentspouselist[i], "add-partner", parentspouseunion);
+            }
+        }
+        submitChildren();
     } else if (!checkchildren) {
         checkchildren = true;
         updatecount = 1;
@@ -1382,9 +1407,6 @@ function submitChildren() {
                     console.log("Marriage Update: " + JSON.stringify(marriageupdate));
                 }
             }
-        }
-        if (!$.isEmptyObject(parentspouse) && exists(parentspouse.union)) {
-            buildTree(parentspouse.data, "add-partner", parentspouse.union);
         }
         submitChildren();
     } else if (!checkpictures) {

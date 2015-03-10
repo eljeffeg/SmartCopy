@@ -904,7 +904,7 @@ function buildParentSelect(id) {
     }
     for (var key in myhspouse) if (myhspouse.hasOwnProperty(key)) {
         if (exists(databyid[myhspouse[key]])) {
-            pselect += '<option value="' + myhspouse[key] + '" ' + isSelected(id, myhspouse[key]) + '>MyH: ' + databyid[myhspouse[key]].name.replace("born ", "") + '</option>';
+            pselect += '<option value="' + myhspouse[key] + '" ' + isSelected(id, myhspouse[key]) + '>' + databyid[myhspouse[key]].name.replace("born ", "") + '</option>';
         }
     }
     for (var key in genispouse) if (genispouse.hasOwnProperty(key)) {

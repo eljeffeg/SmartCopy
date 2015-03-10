@@ -1072,6 +1072,9 @@ var submitform = function () {
                     if (about !== "") {
                         var splitabout = about.split("\n");
                         if (splitabout.length > 1 && splitabout[splitabout.length - 2].startsWith("* ")) {
+                            if (!about.endsWith("\n")) {
+                                about += "\n";
+                            }
                             about += "*";
                         }
                     }
@@ -1121,6 +1124,9 @@ var submitform = function () {
                         if (about !== "") {
                             var splitabout = about.split("\n");
                             if (splitabout.length > 1 && splitabout[splitabout.length - 2].startsWith("* ")) {
+                                if (!about.endsWith("\n")) {
+                                    about += "\n";
+                                }
                                 about += "*";
                             }
                         }

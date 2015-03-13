@@ -129,6 +129,14 @@ function buildForm() {
     var div = $("#profiletable");
     var membersstring = div[0].innerHTML;
     var nameval = NameParse.parse(focusname, $('#mnameonoffswitch').prop('checked'));
+    if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
+        if (focusgender === "male") {
+            nameval.birthName = nameval.lastName;
+        } else if (focusgender === "female" && setBirthName("focus", nameval.lastName)) {
+            nameval.birthName = nameval.lastName;
+            nameval.lastName = "";
+        }
+    }
     var displayname = "";
     if (nameval.prefix !== "") {
         displayname = nameval.displayname;
@@ -425,13 +433,12 @@ function buildForm() {
                 living = true;
             }
             var nameval = NameParse.parse(fullname, $('#mnameonoffswitch').prop('checked'));
-            if ($('#birthonoffswitch').prop('checked')) {
-                if ((relationship === "child" || relationship === "sibling") && nameval.birthName === "") {
+            if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
+                if (members[member].gender === "male") {
                     nameval.birthName = nameval.lastName;
-                } else if (relationship === "parent" && members[member].gender === "male") {
+                } else if (members[member].gender === "female" && setBirthName(relationship, nameval.lastName)) {
                     nameval.birthName = nameval.lastName;
-                } else if (relationship === "partner" && members[member].gender === "male") {
-                    nameval.birthName = nameval.lastName;
+                    nameval.lastName = "";
                 }
             }
             var displayname = "";
@@ -826,6 +833,50 @@ function isChecked(value, score) {
     } else {
         return "";
     }
+}
+
+function setBirthName(relation, lastname) {
+    if (relation === "focus") {
+        var obj = alldata["family"];
+        for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
+            if (isParent(relationship)) {
+                var person = obj[relationship];
+                for (var i = 0; i < person.length; i++) {
+                    if (isMale(person[i].gender) && person[i].lastName === lastname) {
+                        return false;
+                    }
+                }
+                continue;
+            }
+        }
+    } else if (isParent(relation)) {
+        var obj = alldata["family"];
+        for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
+            if (isParent(relationship)) {
+                var person = obj[relationship];
+                for (var i = 0; i < person.length; i++) {
+                    if (isMale(person[i].gender) && person[i].lastName === lastname) {
+                        return false;
+                    }
+                }
+                continue;
+            }
+        }
+    } else if (isPartner(relation)) {
+        var obj = alldata["family"];
+        for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
+            if (isPartner(relationship)) {
+                var person = obj[relationship];
+                for (var i = 0; i < person.length; i++) {
+                    if (isMale(person[i].gender) && person[i].lastName === lastname) {
+                        return false;
+                    }
+                }
+                continue;
+            }
+        }
+    }
+    return true;
 }
 
 function buildAction(relationship, gender) {

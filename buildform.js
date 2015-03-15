@@ -128,11 +128,12 @@ function buildForm() {
     var ck = 0;
     var div = $("#profiletable");
     var membersstring = div[0].innerHTML;
-    var nameval = NameParse.parse(focusname, $('#mnameonoffswitch').prop('checked'));
+    var mnameonoff = $('#mnameonoffswitch').prop('checked');
+    var nameval = NameParse.parse(focusname, mnameonoff);
     if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
         if (focusgender === "male") {
             nameval.birthName = nameval.lastName;
-        } else if (focusgender === "female" && setBirthName("focus", nameval.lastName)) {
+        } else if (focusgender === "female" && setBirthName("focus", nameval.lastName, mnameonoff)) {
             nameval.birthName = nameval.lastName;
             nameval.lastName = "";
         }
@@ -432,11 +433,12 @@ function buildForm() {
             } else if (checkLiving(fullname)) {
                 living = true;
             }
-            var nameval = NameParse.parse(fullname, $('#mnameonoffswitch').prop('checked'));
+            var mnameonoff = $('#mnameonoffswitch').prop('checked');
+            var nameval = NameParse.parse(fullname, mnameonoff);
             if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
                 if (members[member].gender === "male") {
                     nameval.birthName = nameval.lastName;
-                } else if (members[member].gender === "female" && setBirthName(relationship, nameval.lastName)) {
+                } else if (members[member].gender === "female" && setBirthName(relationship, nameval.lastName, mnameonoff)) {
                     nameval.birthName = nameval.lastName;
                     nameval.lastName = "";
                 }
@@ -750,12 +752,12 @@ function isEnabled(value, score) {
 
 function isFemale(title) {
     title = title.replace(" (implied)", "");
-    return (title === "wife" || title === "ex-wife" || title === "mother" || title === "sister" || title === "daughter");
+    return (title === "wife" || title === "ex-wife" || title === "mother" || title === "sister" || title === "daughter" || title === "female");
 }
 
 function isMale(title) {
     title = title.replace(" (implied)", "");
-    return (title === "husband" || title === "ex-husband" || title === "father" || title === "brother" || title === "son");
+    return (title === "husband" || title === "ex-husband" || title === "father" || title === "brother" || title === "son" || title === "male");
 }
 
 function isSibling(relationship) {
@@ -835,14 +837,15 @@ function isChecked(value, score) {
     }
 }
 
-function setBirthName(relation, lastname) {
+function setBirthName(relation, lastname, mnameonoff) {
     if (relation === "focus") {
         var obj = alldata["family"];
         for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
             if (isParent(relationship)) {
                 var person = obj[relationship];
                 for (var i = 0; i < person.length; i++) {
-                    if (isMale(person[i].gender) && person[i].lastName === lastname) {
+                    var nameval = NameParse.parse(person[i].name, mnameonoff);
+                    if (person[i].gender === "male" && nameval.lastName === lastname) {
                         return false;
                     }
                 }
@@ -855,7 +858,8 @@ function setBirthName(relation, lastname) {
             if (isParent(relationship)) {
                 var person = obj[relationship];
                 for (var i = 0; i < person.length; i++) {
-                    if (isMale(person[i].gender) && person[i].lastName === lastname) {
+                    var nameval = NameParse.parse(person[i].name, mnameonoff);
+                    if (person[i].gender === "male" && nameval.lastName === lastname) {
                         return false;
                     }
                 }
@@ -868,7 +872,8 @@ function setBirthName(relation, lastname) {
             if (isPartner(relationship)) {
                 var person = obj[relationship];
                 for (var i = 0; i < person.length; i++) {
-                    if (isMale(person[i].gender) && person[i].lastName === lastname) {
+                    var nameval = NameParse.parse(person[i].name, mnameonoff);
+                    if (person[i].gender === "male" && nameval.lastName === lastname) {
                         return false;
                     }
                 }

@@ -18,6 +18,8 @@ var genifamily;
 var parentblock = false;
 var parentspouseunion;
 var parentspouselist = [];
+var genigender;
+var geniliving;
 chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
@@ -98,7 +100,8 @@ if (!String.prototype.contains) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log(chrome.app.getDetails().name + " v" + chrome.app.getDetails().version);
+    console.log(chrome.app.getDetails().name + " v" + chrome.runtime.getManifest().version);
+    document.getElementById("versionbox").innerHTML = "v" + chrome.runtime.getManifest().version;
     loadLogin();
     checkAccount();
     chrome.tabs.getSelected(null, function (tab) {
@@ -471,7 +474,7 @@ function loadPage(request) {
                 }
 
                 document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + focusprofileurl + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
-                var descurl = "http://historylink.herokuapp.com/smartsubmit?fields=name,birth,death&profile=" + focusid;
+                var descurl = "http://historylink.herokuapp.com/smartsubmit?fields=name,birth,death,gender,is_alive&profile=" + focusid;
                 chrome.extension.sendMessage({
                     method: "GET",
                     action: "xhttp",
@@ -501,6 +504,8 @@ function loadPage(request) {
                         }
                         dateinfo += ")";
                     }
+                    genigender = geni_return.gender;
+                    geniliving = geni_return.is_alive;
                     $("#genilinkdesc").attr('title', "Geni: " + geni_return.name + dateinfo);
                 });
                 if (focusrange !== "") {
@@ -847,7 +852,7 @@ function getPageCode() {
 
 function checkAccount() {
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://historylink.herokuapp.com/account?version=" + chrome.app.getDetails().version, true);
+    xhr.open("GET", "http://historylink.herokuapp.com/account?version=" + chrome.runtime.getManifest().version, true);
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
             var response = JSON.parse(xhr.responseText);

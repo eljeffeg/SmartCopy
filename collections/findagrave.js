@@ -335,8 +335,12 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     }
     parsed = $(htmlstring.replace(/<img/ig,"<gmi"));
     records = parsed.find(".gr");
-    if (records.length > 2) {
-        temprecord = $(records[2]).find("tr");
+    var ri = 2;
+    if (records.length > ri) {
+        if ($(records[1]).text().trim() === "You are taking a random walk through our online cemetery.") {
+            ri++;
+        }
+        temprecord = $(records[ri]).find("tr");
     }
     while(exists(temprecord[0]) && temprecord[0].hasChildNodes()) {
         temprecord = $(temprecord).find("tr");

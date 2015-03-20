@@ -66,6 +66,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         loadGeniData();
         //Parses pages like Census that have entries at the bottom in Household section
         var household = parsed.find('.groupTable').find('tr');
+        if (household.length === 0) {
+            household = parsed.find('.groupRow');
+        }
         if (household.length > 0) {
             var housearray = [];
             for (var i = 0; i < household.length; i++) {
@@ -76,7 +79,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         var hurl = urlval[0].href;
                         var itemid = getParameterByName('itemId', hurl);
                         if (itemid !== focusURLid) {
-                            housearray.push({name: $(hv[x]).text(), url: hurl});
+                            housearray.push({name: $(hv[x]).text(), url: hurl, title: $(hv[0]).text().toLowerCase()});
                         }
                     }
                 }
@@ -105,6 +108,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 if (exists($(row).find(".recordFieldValue").contents().get(0))) {
                     genderval = $(row).find(".recordFieldValue").contents().get(0).nodeValue.toLowerCase();
                     profiledata["gender"] = genderval;
+                    if (relation === "") {
+                        focusgender = genderval;
+                    }
                 }
                 continue;
             }
@@ -389,9 +395,12 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         if (!verifydate) {
                             if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("From") || valdate.startsWith("To") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                 break;
-                            }
-                            else if (valdate !== null && checkPlace(valdate) !== "") {
+                            } else if (valdate !== null && checkPlace(valdate) !== "") {
                                 valplace = checkPlace(valdate);
+                                if (vallocal === "") {
+                                    vallocal = valdate;
+                                    valdate = "";
+                                }
                             } else if (valdate !== null && valdate.toLowerCase().startsWith("marriage to")) {
                                 data.push({name: valdate.replace("Marriage to: ","")});
                             } else {
@@ -404,12 +413,18 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                             if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("From") || valdate.startsWith("To") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                                 break dance;
                                             }
+                                            if (vallocal === "" && valdate.contains(",")) {
+                                                vallocal = valdate;
+                                            }
                                             valdate = "";
                                         } else {
                                             break dance;
                                         }
                                     }
                                 } else {
+                                    if (vallocal === "" && valdate.contains(",")) {
+                                        vallocal = valdate;
+                                    }
                                     valdate = "";
                                 }
                             }
@@ -507,7 +522,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         }
 
         // ---------------------- Family Data --------------------
-
+        var closeout = false;
         if (familymembers && children.length > 2) {
             //This section is only run on the focus profile
             alldata["profile"] = profiledata;
@@ -597,6 +612,49 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
             }
             updateGeo(); //Poll until all family requests have returned and continue there
+        } else if (familymembers && exists(housearray)) {
+            for (var i = 0; i < housearray.length; i++) {
+                famid++;
+                familystatus.push(familystatus.length);
+                var title = housearray[i].title;
+                var gendersv = "unknown";
+                if (isFemale(title)) {
+                    gendersv = "female";
+                } else if (isMale(title)) {
+                    gendersv = "male";
+                }
+                var subdata = {name: housearray[i].name, gender: gendersv, title: title};
+                var urlval = housearray[i].url;
+                var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                var itemid = getParameterByName('itemId', shorturl);
+                subdata["url"] = urlval;
+                subdata["itemId"] = itemid;
+                subdata["profile_id"] = famid;
+                if (isParent(title)) {
+                    parentlist.push(itemid);
+                } else if (isPartner(title)) {
+                    myhspouse.push(famid);
+                }
+                unionurls[famid] = itemid;
+                chrome.extension.sendMessage({
+                    method: "GET",
+                    action: "xhttp",
+                    url: shorturl,
+                    variable: subdata
+                }, function (response) {
+                    var arg = response.variable;
+                    var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
+                    person = updateInfoData(person, arg);
+                    databyid[arg.profile_id] = person;
+                    if (!exists(alldata["family"][arg.title])) {
+                        alldata["family"][arg.title] = [];
+                    }
+                    alldata["family"][arg.title].push(person);
+
+                    familystatus.pop();
+                });
+            }
+            closeout = true;
         } else if (children.length > 2 && exists(relation.title)) {
             if (isChild(relation.title)) {
                 var itemid = getParameterByName('itemId', tablink);
@@ -682,6 +740,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
             }
         } else if (relation === "") {
+            closeout = true;
+        }
+        if (closeout) {
             alldata["profile"] = profiledata;
             alldata["scorefactors"] = parsed.find(".value_add_score_factors_container").text().trim();
             if (!familymembers) {

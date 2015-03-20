@@ -448,6 +448,9 @@ function buildForm() {
         for (var member in members) if (members.hasOwnProperty(member)) {
             scored = parentscore;
             var entry = $("#" + relationship + "val")[0];
+            if (!exists(entry)) {
+                continue;
+            }
             var fullname = members[member].name;
             if (!exists(fullname)) {
                 continue;

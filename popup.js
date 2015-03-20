@@ -101,7 +101,7 @@ if (!String.prototype.contains) {
 
 document.addEventListener('DOMContentLoaded', function () {
     console.log(chrome.app.getDetails().name + " v" + chrome.runtime.getManifest().version);
-    document.getElementById("versionbox").innerHTML = "v" + chrome.runtime.getManifest().version;
+    document.getElementById("versionbox").innerHTML = "<a style='text-decoration: none; color: #a9b5d4;' href='https://www.geni.com/projects/SmartCopy/18783' target='_blank'>SmartCopy v" + chrome.runtime.getManifest().version + "</a>";
     loadLogin();
     checkAccount();
     chrome.tabs.getSelected(null, function (tab) {

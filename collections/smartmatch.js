@@ -413,7 +413,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                             if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("From") || valdate.startsWith("To") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {
                                                 break dance;
                                             }
-                                            if (vallocal === "" && valdate.contains(",")) {
+                                            if (exists(valdate) && vallocal === "" && valdate.contains(",")) {
                                                 vallocal = valdate;
                                             }
                                             valdate = "";
@@ -422,7 +422,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                         }
                                     }
                                 } else {
-                                    if (vallocal === "" && valdate.contains(",")) {
+                                    if (exists(valdate) && vallocal === "" && valdate.contains(",")) {
                                         vallocal = valdate;
                                     }
                                     valdate = "";

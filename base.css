@@ -212,13 +212,13 @@ a:hover {
 
 .cta-blue {
     border: solid 1px #0870c0;
-    background: #007bda;
-    background: -webkit-gradient(linear, left top, left bottom, from(#00c6ff), to(#007bda));
-    background: -moz-linear-gradient(top, #00c6ff, #007bda);
-    background: -ms-linear-gradient(top, #00c6ff, #007bda);
-    background: -o-linear-gradient(top, #00c6ff, #007bda);
-    filter:  progid:DXImageTransform.Microsoft.gradient(startColorStr='#00c6ff', EndColorStr='#007bda');
-    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='#00c6ff', EndColorStr='#007bda')";
+    background: #4c9cff;
+    background: -webkit-gradient(linear, left top, left bottom, from(#82ccff), to(#4c9cff));
+    background: -moz-linear-gradient(top, #82ccff, #4c9cff);
+    background: -ms-linear-gradient(top, #82ccff, #4c9cff);
+    background: -o-linear-gradient(top, #82ccff, #4c9cff);
+    filter:  progid:DXImageTransform.Microsoft.gradient(startColorStr='#82ccff', EndColorStr='#4c9cff');
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='#82ccff', EndColorStr='#4c9cff')";
 }
 .cta-blue:before {
     border: solid 1px #3bb4ec;
@@ -227,22 +227,22 @@ a:hover {
 .cta-blue:hover {
     color: #fff;
     border: solid 1px #065491;
-    background: -webkit-gradient(linear, left top, left bottom, from(#21cdff), to(#0387ec));
-    background: -moz-linear-gradient(top, #21cdff, #0387ec);
-    background: -ms-linear-gradient(top, #21cdff, #0387ec);
-    background: -o-linear-gradient(top, #21cdff, #0387ec);
-    filter:  progid:DXImageTransform.Microsoft.gradient(startColorStr='#21cdff', EndColorStr='#0387ec');
-    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='#21cdff', EndColorStr='#0387ec')";
+    background: -webkit-gradient(linear, left top, left bottom, from(#6ddeff), to(#4fa5ff));
+    background: -moz-linear-gradient(top, #6ddeff, #4fa5ff);
+    background: -ms-linear-gradient(top, #6ddeff, #4fa5ff);
+    background: -o-linear-gradient(top, #6ddeff, #4fa5ff);
+    filter:  progid:DXImageTransform.Microsoft.gradient(startColorStr='#6ddeff', EndColorStr='#4fa5ff');
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='#6ddeff', EndColorStr='#4fa5ff')";
 }
 .cta-blue:active {
     color: #fff;
     border: solid 1px #065491;
-    background: -webkit-gradient(linear, left top, left bottom, from(#007bda), to(#00c6ff));
-    background: -moz-linear-gradient(top, #007bda, #00c6ff);
-    background: -ms-linear-gradient(top, #007bda, #00c6ff);
-    background: -o-linear-gradient(top, #007bda, #00c6ff);
-    filter:  progid:DXImageTransform.Microsoft.gradient(startColorStr='#007bda', EndColorStr='#00c6ff');
-    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='#007bda', EndColorStr='#00c6ff')";
+    background: -webkit-gradient(linear, left top, left bottom, from(#4c9cff), to(#82ccff));
+    background: -moz-linear-gradient(top, #4c9cff, #82ccff);
+    background: -ms-linear-gradient(top, #4c9cff, #82ccff);
+    background: -o-linear-gradient(top, #4c9cff, #82ccff);
+    filter:  progid:DXImageTransform.Microsoft.gradient(startColorStr='#4c9cff', EndColorStr='#82ccff');
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorStr='#4c9cff', EndColorStr='#82ccff')";
 }
 
 .cta-red {

@@ -892,6 +892,7 @@ function loadLogin() {
 function getProfile(profile_id) {
     //Gets the profile id from the Geni URL
     if (profile_id.length > 0) {
+        var startid = profile_id.toLowerCase();
         profile_id = decodeURIComponent(profile_id).trim();
         if (profile_id.indexOf("&resolve=") != -1) {
             profile_id = profile_id.substring(profile_id.lastIndexOf('#') + 1);
@@ -925,6 +926,8 @@ function getProfile(profile_id) {
         var isnum = /^\d+$/.test(profile_id);
         if (isnum) {
             if (profile_id.length > 16) {
+                profile_id = "profile-g" + profile_id;
+            } else if (startid.contains("www.geni.com/people") || startid.contains("www.geni.com/family-tree")) {
                 profile_id = "profile-g" + profile_id;
             } else {
                 profile_id = "profile-" + profile_id;

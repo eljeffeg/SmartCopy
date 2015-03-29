@@ -614,8 +614,12 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             updateGeo(); //Poll until all family requests have returned and continue there
         } else if (familymembers && exists(housearray)) {
             for (var i = 0; i < housearray.length; i++) {
-                famid++;
-                familystatus.push(familystatus.length);
+                var urlval = housearray[i].url;
+                var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                var itemid = getParameterByName('itemId', shorturl);
+                if (!urlval.startsWith("http") || itemid === "") {
+                    continue;
+                }
                 var title = housearray[i].title;
                 var gendersv = "unknown";
                 if (isFemale(title)) {
@@ -624,9 +628,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     gendersv = "male";
                 }
                 var subdata = {name: housearray[i].name, gender: gendersv, title: title};
-                var urlval = housearray[i].url;
-                var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
-                var itemid = getParameterByName('itemId', shorturl);
+                familystatus.push(familystatus.length);
+                famid++;
                 subdata["url"] = urlval;
                 subdata["itemId"] = itemid;
                 subdata["profile_id"] = famid;

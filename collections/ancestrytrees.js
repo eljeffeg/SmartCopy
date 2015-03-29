@@ -9,18 +9,29 @@ function parseAncestryTrees(htmlstring, familymembers, relation) {
     document.getElementById("readstatus").innerText = focusperson;
     var profiledata = {};
     var genderval = "unknown";
-    var photoclass = parsed.find("#ctl42_ctl00_pImg");
+    var ctprefix = "ctl43_ctl00_";
+    if (!htmlstring.contains(ctprefix)) {
+        //Ancestry changed from ctl42 to ctl43, so this checks for an increment
+        for (var i = 41; i < 100 ; i++) {
+            ctprefix = "ctl" + i + "_ctl00_";
+            if (htmlstring.contains(ctprefix)) {
+                break;
+            }
+        }
+    }
+
+    var photoclass = parsed.find("#" + ctprefix + "pImg");
 
     if (photoclass.hasClass("pImgMale")) {
         genderval = "male";
-        var image = parsed.find("#ctl42_ctl00_profile_picture160").attr("src");
+        var image = parsed.find("#" + ctprefix + "profile_picture160").attr("src");
         if (exists(image)) {
             profiledata["thumb"] = image;
             profiledata["image"] = image;
         }
     } else if (photoclass.hasClass("pImgFemale")) {
         genderval = "female";
-        var image = parsed.find("#ctl42_ctl00_profile_picture160").attr("src");
+        var image = parsed.find("#" + ctprefix + "profile_picture160").attr("src");
         if (exists(image)) {
             profiledata["thumb"] = image;
             profiledata["image"] = image;
@@ -43,8 +54,8 @@ function parseAncestryTrees(htmlstring, familymembers, relation) {
     var aboutdata = "";
     // ---------------------- Profile Data --------------------
 
-    var birthinfo = parsed.find("#ctl42_ctl00_birthDetails");
-    var deathinfo = parsed.find("#ctl42_ctl00_deathDetails");
+    var birthinfo = parsed.find("#" + ctprefix + "birthDetails");
+    var deathinfo = parsed.find("#" + ctprefix + "deathDetails");
     if (exists(birthinfo[0])) {
         var data = parseAncestryTreesDate(birthinfo);
         if (!$.isEmptyObject(data)) {

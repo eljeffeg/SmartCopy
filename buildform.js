@@ -487,6 +487,8 @@ function buildForm() {
                 } else if (members[member].gender === "female" && setBirthName(relationship, nameval.lastName, mnameonoff)) {
                     nameval.birthName = nameval.lastName;
                     nameval.lastName = "";
+                } else if (members[member].gender === "unknown" && relationship !== "parent") {
+                    nameval.birthName = nameval.lastName;
                 }
             }
             var displayname = "";

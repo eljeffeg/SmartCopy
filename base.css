@@ -9,6 +9,9 @@ body {
     padding-right: 8px;
     padding-left: 8px;
 }
+.ctrllink {
+    cursor: pointer;
+}
 .colorbox {
     float: left;
     padding: 5px 10px 5px 10px;

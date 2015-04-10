@@ -1,4 +1,4 @@
-
+var tabplacement = 0;
 function buildResearch() {
     var fields = "name,first_name,last_name,maiden_name,birth,death,gender";
     chrome.extension.sendMessage({
@@ -12,28 +12,72 @@ function buildResearch() {
         var accessdialog = document.querySelector('#useraccess');
         var researchstring = "<div style='font-size: 115%;'><strong>Research this Person</strong><div style='font-size: 85%; font-style: italic;'>" + focusname + "</div></div><div style='padding-top: 2px; padding-bottom: 5px;'>";
         if (exists(responsedata.first_name)) {
-            //researchstring += buildAncestry(responsedata);
+            researchstring += buildAncestry(responsedata);
             researchstring += buildBillionGraves(responsedata);
             researchstring += buildFamilySearch(responsedata);
             researchstring += buildFindAGrave(responsedata);
+            researchstring += buildGenealogy(responsedata);
+            researchstring += buildGeni(responsedata);
             researchstring += buildGoogle(responsedata);
+            researchstring += buildLegacy(responsedata);
             //researchstring += buildObitsforLive(responsedata);
             researchstring += buildRootsWeb(responsedata);
-            researchstring += "<div style='text-align: center; padding-top: 10px;'><strong>Other Resources</strong></div><div style='text-align: left;'><li><a href='http://www.geni.com/projects/Genealogie-Zoekmachines-voor-de-Lage-Landen/24259' target='_blank'>Genealogy Search Engines for the Low Countries</a></li></div>";
+            researchstring += buildTributes(responsedata);
+            researchstring += "<div style='text-align: center; padding-top: 10px;'><strong>Other Resources</strong></div><div style='text-align: left;'><li><a class='ctrllink' url='http://www.geni.com/projects/Genealogie-Zoekmachines-voor-de-Lage-Landen/24259'>Genealogy Search Engines for the Low Countries</a></li></div>";
         } else {
             researchstring = "<div><strong>Unable to create research links on this profile.</strong>"
         }
         researchstring += '</div>';
         accessdialog.innerHTML = researchstring;
+
+        $(function () {
+            $('.ctrllink').on('click', function (event) {
+                var ctrlpressed = (event.ctrlKey || event.metaKey);
+                var url = $(this).attr('url');
+                chrome.tabs.getSelected(null, function (tab) {
+                    tabplacement += 1;
+                    var index = tab.index + tabplacement;
+                    chrome.tabs.create({'url': url, active: !ctrlpressed, 'index': index});
+                });
+            });
+        });
     });
 }
 
 function buildGoogle(responsedata) {
     var query = responsedata.name.replace(/ /g, "+");
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>Google</strong>';
-    researchstring += '<li><a href="https://www.google.com/?gws_rd=ssl#q=' + query + '%20site:news.google.com/newspapers&source=newspapers" target="_blank">Google Search (Newspapers)</a></li>';
-    researchstring += '<li><a href="https://www.google.com/?gws_rd=ssl#q=' + query + '&tbm=bks" target="_blank">Google Search (Books)</a></li>';
-    researchstring += '<li><a href="https://www.google.com/?gws_rd=ssl#q=' + query + "+~genealogy" + '" target="_blank">Google Search (Genealogy)</a></li>';
+    researchstring += '<li><a class="ctrllink" url="https://www.google.com/?gws_rd=ssl#q=' + query + '%20site:news.google.com/newspapers&source=newspapers">Google Search (Newspapers)</a></li>';
+    researchstring += '<li><a class="ctrllink" url="https://www.google.com/?gws_rd=ssl#q=' + query + '&tbm=bks">Google Search (Books)</a></li>';
+    researchstring += '<li><a class="ctrllink" url="https://www.google.com/?gws_rd=ssl#q=' + query + "+~genealogy" + '">Google Search (Genealogy)</a></li>';
+    researchstring += '<li><a class="ctrllink" url="https://www.google.com/?gws_rd=ssl#q=' + query + "+intitle:obituary obituaries" + '">Google Search (Obituaries)</a></li>';
+    researchstring += '</div>';
+    return researchstring;
+}
+
+function buildGenealogy(responsedata) {
+    var lastname = "";
+    var firstname = "";
+    if (responsedata.first_name) {
+        firstname = responsedata.first_name;
+    }
+    if (exists(responsedata.last_name)) {
+        lastname = responsedata.last_name;
+    } else if (exists(responsedata.maiden_name)) {
+        lastname = responsedata.maiden_name;
+    }
+    var query = firstname + " " + lastname;
+    var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>Genealogy.com</strong>';
+    researchstring += '<li><a class="ctrllink" url="http://www.genealogy.com/search/result?type=ftmcontent&keyword=' + query + '">Genealogy.com (Genealogies)</a></li>';
+    researchstring += '<li><a class="ctrllink" url="http://www.genealogy.com/search/result?type=forumposts&keyword=' + query + '">Genealogy.com (MessageBoard)</a></li>';
+    researchstring += '</div>';
+    return researchstring;
+}
+
+function buildGeni(responsedata) {
+    var query = responsedata.name.replace(/ /g, "+");
+    var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>Geni</strong>';
+    researchstring += '<li><a class="ctrllink" url="http://www.geni.com/search?search_type=people&names=' + query + '">Geni Search (Genealogies)</a></li>';
     researchstring += '</div>';
     return researchstring;
 }
@@ -67,8 +111,8 @@ function buildFamilySearch(responsedata) {
     query += '~';
     query = query.replace(/[\u2018\u2019]/g, "'");
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>FamilySearch</strong>';
-    researchstring += '<li><a href="https://familysearch.org/search/tree/' + query + '" target="_blank">FamilySearch (Genealogies)</a></li>';
-    researchstring += '<li><a href="https://familysearch.org/search/record/' + query + '" target="_blank">FamilySearch (Records)</a></li>';
+    researchstring += '<li><a class="ctrllink" url="https://familysearch.org/search/tree/' + query + '">FamilySearch (Genealogies)</a></li>';
+    researchstring += '<li><a class="ctrllink" url="https://familysearch.org/search/record/' + query + '">FamilySearch (Records)</a></li>';
     researchstring += '</div>';
     return researchstring;
 }
@@ -86,7 +130,7 @@ function buildFindAGrave(responsedata) {
     }
     var query = 'http://www.findagrave.com/cgi-bin/fg.cgi?page=gsr&GSfn=' + firstname + '&GSmn=&GSln=' + lastname + '&GSiman=1&GScntry=0&GSst=0&GSgrid=&df=all&GSob=n';
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>FindAGrave</strong>';
-    researchstring += '<li><a href="' + query + '" target="_blank">FindAGrave (Gravestones)</a></li>';
+    researchstring += '<li><a class="ctrllink" url="' + query + '">FindAGrave (Gravestones)</a></li>';
     researchstring += '</div>';
     return researchstring;
 }
@@ -127,7 +171,7 @@ function buildBillionGraves(responsedata) {
     query += "&year_range=5&lim=0&num=10&action=search&exact=false&phonetic=true&record_type=0";
 
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>BillionGraves</strong>';
-    researchstring += '<li><a href="' + query + '" target="_blank">BillionGraves (Gravestones)</a></li>';
+    researchstring += '<li><a class="ctrllink" url="' + query + '">BillionGraves (Gravestones)</a></li>';
     researchstring += '</div>';
     return researchstring;
 }
@@ -146,7 +190,7 @@ function buildObitsforLive(responsedata) {
     var query = 'http://www.obitsforlife.co.uk/records/list.php?filterChange=true&firstRequest=false&showTodays=false&firstname=' + firstname + '&lastname=' + lastname + '&speciesName=human&curPage=1&total=100000&rrp=10';
 
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>ObitsforLife</strong>';
-    researchstring += '<li><a href="' + query + '" target="_blank">ObitsforLife (Obituaries)</a></li>';
+    researchstring += '<li><a class="ctrllink" url="' + query + '">ObitsforLife (Obituaries)</a></li>';
     researchstring += '</div>';
     return researchstring;
 }
@@ -162,9 +206,75 @@ function buildAncestry(responsedata) {
     } else if (exists(responsedata.maiden_name)) {
         lastname = responsedata.maiden_name;
     }
-    var query = 'http://search.ancestry.com/cgi-bin/sse.dll?gsfn=' + firstname + '&gsln=' + lastname + '&cp=0&gl=allgs';
+    var query = 'http://records.ancestry.com/?firstname=' + firstname + '&lastname=' + lastname;
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>Ancestry</strong>';
-    researchstring += '<li><a href="' + query + '" target="_blank">Ancestry</a></li>';
+    researchstring += '<li><a class="ctrllink" url="' + query + '">Ancestry (Genealogies)</a></li>';
+    researchstring += '</div>';
+    return researchstring;
+}
+
+function buildTributes(responsedata) {
+    var lastname = "";
+    var firstname = "";
+    if (responsedata.first_name) {
+        firstname = responsedata.first_name;
+    }
+    if (exists(responsedata.last_name)) {
+        lastname = responsedata.last_name;
+    } else if (exists(responsedata.maiden_name)) {
+        lastname = responsedata.maiden_name;
+    }
+    var daterange = "ALL";
+    if (exists(responsedata.death)) {
+        if (exists(responsedata.death.date) && exists(responsedata.death.date.year)) {
+            var year = responsedata.death.date.year;
+            if (year < 1950) {
+                daterange = "Range+pre-1950";
+            } else if (year > 2009) {
+                daterange = "Range+2010-Now";
+            } else if (year > 1999) {
+                daterange = "Range+2000-Now";
+            } else if (year > 1979) {
+                daterange = "Range+1980-2000";
+            } else if (year > 1949) {
+                daterange = "Range+1950-1980";
+            }
+        }
+    }
+    var query = 'http://www.tributes.com/search/obituaries/?solr=&first=' + firstname + '&last=' + lastname + '&search_type=' + daterange;
+    var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>Tributes</strong>';
+    researchstring += '<li><a class="ctrllink" url="' + query + '">Tributes (Obituaries)</a></li>';
+    researchstring += '</div>';
+    return researchstring;
+}
+
+function buildLegacy(responsedata) {
+    var lastname = "";
+    var firstname = "";
+    if (responsedata.first_name) {
+        firstname = responsedata.first_name;
+    }
+    if (exists(responsedata.last_name)) {
+        lastname = responsedata.last_name;
+    } else if (exists(responsedata.maiden_name)) {
+        lastname = responsedata.maiden_name;
+    }
+    var daterange = "All";
+    if (exists(responsedata.death)) {
+        if (exists(responsedata.death.date) && exists(responsedata.death.date.year)) {
+            var year = responsedata.death.date.year;
+            if (year > 2015) {
+                daterange = "Last1Yrs";
+            } else if (year > 2009) {
+                daterange = "2010-2015";
+            } else if (year > 1999) {
+                daterange = "2000-2009";
+            }
+        }
+    }
+    var query = 'http://www.legacy.com/ns/obitfinder/obituary-search.aspx?daterange=' + daterange + '&firstname=' + firstname + '&lastname=' + lastname + '&countryid=0&stateid=all&affiliateid=all';
+    var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>Legacy</strong>';
+    researchstring += '<li><a class="ctrllink" url="' + query + '">Legacy (Obituaries)</a></li>';
     researchstring += '</div>';
     return researchstring;
 }
@@ -200,10 +310,10 @@ function buildRootsWeb(responsedata) {
     }
 
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>RootsWeb</strong>';
-    researchstring += '<li><a href="' + query + '" target="_blank">RootsWeb (Genealogies)</a></li>';
+    researchstring += '<li><a class="ctrllink" url="' + query + '">RootsWeb (Genealogies)</a></li>';
 
     query = 'http://boards.rootsweb.com/SearchResults.aspx?db=mb&gskw=%22' + responsedata.name.replace(/ /g, "+") + '%22';
-    researchstring += '<li><a href="' + query + '" target="_blank">RootsWeb (MessageBoard)</a></li>';
+    researchstring += '<li><a class="ctrllink" url="' + query + '">RootsWeb (MessageBoard)</a></li>';
     researchstring += '</div>';
     return researchstring;
 }

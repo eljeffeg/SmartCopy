@@ -54,6 +54,7 @@ function parseGoogle(result, query) {
                 case 'postal_code_prefix,postal_code':
                     location.zip = long_name;
                     break;
+                case 'colloquial_area,political':
                 case 'point_of_interest,establishment':
                 case 'natural_feature,establishment':
                 case 'sublocality_level_1,sublocality,political':

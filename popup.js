@@ -855,7 +855,17 @@ function checkAccount() {
     xhr.open("GET", "http://historylink.herokuapp.com/account?version=" + chrome.runtime.getManifest().version, true);
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
-            var response = JSON.parse(xhr.responseText);
+            try {
+                var response = JSON.parse(xhr.responseText);
+            } catch(err) {
+                console.log('Problem getting account information - trying again.');
+            }
+            if (!exists(response)) {
+                setMessage("#f8ff86", 'Problem getting account information - trying again.');
+                checkAccount();
+                return;
+            }
+            document.querySelector('#message').style.display = "none";
             if (response.curator) {
                 //display leaderboard link if user is a curator - page itself still verifies
                 document.getElementById("curator").style.display = "inline-block";

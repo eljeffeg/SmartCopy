@@ -129,11 +129,16 @@ function checkPlace(location) {
     var place = "";
     if (checkplace.contains(" cemetery") || checkplace.contains(" cemetary") || checkplace.contains(" grave") ||
         checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.") ||
-        checkplace.toLowerCase().endsWith(" territory") || checkplace.toLowerCase().endsWith(" church")) {
+        checkplace.toLowerCase().endsWith(" territory") || checkplace.toLowerCase().endsWith(" church") || checkplace.toLowerCase().endsWith("temple")) {
         if (checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.")) {
             place = splitplace[0].replace(/ cem\.?/i, " Cemetery").trim();
         } else if (checkplace.contains(" cemetary")) {
             place = splitplace[0].replace(/ cemetary/i, " Cemetery").trim();
+        } else if (checkplace.toLowerCase().endsWith("temple")) {
+            if (splitplace.length === 1) {
+                place = splitplace[0];
+                place = place.trim();
+            }
         } else {
             place = splitplace[0];
             place = place.trim();
@@ -151,8 +156,11 @@ function queryGeo(locationset, test) {
         }
         var place = "";
         var location = locationset.location.trim();
+        location = location.replace(/:/ig, "");
         location = location.replace(/Unknown/ig, "");
         location = location.replace(/\[Blank\]/ig, "");
+        location = location.replace(/ Dist,/ig, ",");
+        location = location.replace(/ Co,/ig, ",");
         if (location.contains("\?")) {
             var questionmark = parseGoogle("");
             if (location !== "?") {
@@ -177,7 +185,7 @@ function queryGeo(locationset, test) {
         }
 
         geostatus.push(geostatus.length);
-        var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(location);
+        var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&address=" + encodeURIComponent(location);
         chrome.extension.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -204,7 +212,7 @@ function queryGeo(locationset, test) {
             // ----- Stage 2: Run again with one item removed from front, or modified, for comparison -----
             var short_location = location_split.join(",");
             if (location_split.length > 0) {
-                var url = "http://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(short_location);
+                var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&address=" + encodeURIComponent(short_location);
                 chrome.extension.sendMessage({
                     method: "GET",
                     action: "xhttp",

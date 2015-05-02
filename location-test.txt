@@ -29,3 +29,5 @@ Mayhew Yocum Cemetery, Don Lawson Farm, Menifee County, Kentucky|{"place":"Mayhe
 Measham|{"place":"","city":"Measham","county":"Leicestershire","state":"England","country":"United Kingdom"}
 All Saints, Leicester, Leicestershire, England|{"place":"All Saints","city":"Leicester","county":"Leicestershire","state":"England","country":"United Kingdom", "alt": {"place":"All Saints","city":"Leicester","county":"Leicester","state":"England","country":"United Kingdom"}}
 Bulloch Co, GA|{"place":"","city":"","county":"Bulloch County","state":"Georgia","country":"United States"}
+Wright-Patterson Air Force Base, OH, USA|{"place": "", "city": "Wright-Patterson Air Force Base","county":"Greene County","state":"Ohio","country":"United States"}
+Taj Majal, India|{"place": "Taj Majal", "city": "Agra", "county": "Agra", "state": "Uttar Pradesh", "country": "India"}

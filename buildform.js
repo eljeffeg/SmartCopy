@@ -455,6 +455,9 @@ function buildForm() {
             if (!exists(fullname)) {
                 continue;
             }
+            if (fullname.trim() === "") {
+                scored = false;
+            }
             var living = false;
             var halfsibling = false;
             if (!scored && relationship === "parent") {
@@ -1150,6 +1153,7 @@ function cleanHTML(html) {
 }
 
 function cleanDate(dateval) {
+    dateval = dateval.replace(/\?/, "");
     dateval = dateval.replace(/ABT /i, "Circa ");
     dateval = dateval.replace(/BEF /i, "Before ");
     dateval = dateval.replace(/AFT /i, "After ");

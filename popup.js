@@ -541,7 +541,7 @@ function loadPage(request) {
                 } else if (!accountinfo.user) {
                     document.getElementById("loading").style.display = "none";
                     $("#familymembers").attr('disabled', 'disabled');
-                    setMessage("#f8ff86", 'Copying Family Members has been restricted to trusted Geni users.  You may request this ability from a Curator.');
+                    setMessage("#f8ff86", 'Copying Family Members has been restricted to trusted Geni Pro users.  You may request this ability from a Curator.');
                 }
             } else {
                 loadSelectPage(request);

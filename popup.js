@@ -24,11 +24,6 @@ chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
         buildHistoryBox();
-        $(function () {
-            $('.expandhistory').on('click', function () {
-                expandFamily($(this).attr("name"));
-            });
-        });
     }
 });
 
@@ -61,6 +56,11 @@ function buildHistoryBox() {
         }
     }
     document.getElementById("historytext").innerHTML = historytext;
+    $(function () {
+        $('.expandhistory').on('click', function () {
+            expandFamily($(this).attr("name"));
+        });
+    });
 }
 
 function formatJSON(datastring, historytext, id) {

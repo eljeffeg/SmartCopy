@@ -24,6 +24,11 @@ chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
         buildHistoryBox();
+        $(function () {
+            $('.expandhistory').on('click', function () {
+                expandFamily($(this).attr("name"));
+            });
+        });
     }
 });
 
@@ -47,11 +52,46 @@ function buildHistoryBox() {
             } else {
                 focusprofileurl = "http://www.geni.com/" + buildhistory[i].id;
             }
-            historytext += '<li>' + datetxt + '<a href="' + focusprofileurl + '" target="_blank">' + name + '</a></li>';
+            if (exists(buildhistory[i].data)) {
+                historytext += '<span class="expandhistory" name="history' + buildhistory[i].id + '" style="font-size: large; cursor: pointer;">&#9662;</span> ' + datetxt + '<a href="' + focusprofileurl + '" target="_blank">' + name + '</a><br/>';
+                historytext += formatJSON(buildhistory[i].data, "", buildhistory[i].id);
+            } else {
+                historytext += '<span style="padding-left: 2px; padding-right: 2px;">&#x25cf;</span> ' + datetxt + '<a href="' + focusprofileurl + '" target="_blank">' + name + '</a><br/>';
+            }
         }
     }
-    historytext += "";
     document.getElementById("historytext").innerHTML = historytext;
+}
+
+function formatJSON(datastring, historytext, id) {
+    if (typeof datastring === 'string') {
+        var p = JSON.parse(datastring);
+        historytext = '<ul id="slidehistory' + id + '" style="display: none;">';
+    } else {
+        var p = datastring;
+    }
+    for (var key in p) {
+        if (p.hasOwnProperty(key)) {
+            if (key !== 'about_me') {
+                if (typeof datastring === 'string') {
+                    historytext += '<li>';
+                }
+                if (typeof p[key] === 'object') {
+                    historytext += '<b>' + key + "</b>: " + formatJSON(p[key], "", "");
+
+                } else {
+                    historytext += '<b>' + key + "</b> -> " + p[key] + " ";
+                }
+                if (typeof datastring === 'string') {
+                    historytext += '</li>';
+                }
+            }
+        }
+    }
+    if (typeof datastring === 'string') {
+        historytext += '</ul>';
+    }
+    return historytext;
 }
 
 function buildHistorySelect() {
@@ -1036,7 +1076,7 @@ $(function () {
 
 $(function () {
     $('#addhistory').on('click', function () {
-        addHistory(focusid, tablink, focusname);
+        addHistory(focusid, tablink, focusname, "");
         buildHistoryBox();
     });
 });
@@ -1264,7 +1304,7 @@ function buildTree(data, action, sendid) {
             action: "xhttp",
             url: "http://historylink.herokuapp.com/smartsubmit?profile=" + sendid + "&action=" + action,
             data: $.param(data),
-            variable: {id: id, relation: action.replace("add-", "")}
+            variable: {id: id, relation: action.replace("add-", ""), data: data}
         }, function (response) {
             try {
                 var result = JSON.parse(response.source);
@@ -1322,7 +1362,7 @@ function buildTree(data, action, sendid) {
                         parentlist.push({id: id, status: databyid[id].mstatus});
                     }
                 }
-                addHistory(result.id, databyid[id].itemId, databyid[id].name);
+                addHistory(result.id, databyid[id].itemId, databyid[id].name, JSON.stringify(response.variable.data));
             }
             if (action !== "add-photo" && action !== "delete") {
                 updatecount += 1;
@@ -1741,10 +1781,10 @@ function getDateFormat(valdate) {
     return dateformat;
 }
 
-function addHistory(id, itemId, name) {
+function addHistory(id, itemId, name, data) {
     if (exists(id)) {
-        buildhistory.unshift({id: id, itemId: itemId, name: name, date: Date.now()});
-        if (buildhistory.length > 50) {
+        buildhistory.unshift({id: id, itemId: itemId, name: name, date: Date.now(), data: data});
+        if (buildhistory.length > 100) {
             buildhistory.pop();
         }
         chrome.storage.local.set({'buildhistory': buildhistory});

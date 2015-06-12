@@ -228,6 +228,25 @@ function buildForm() {
     var living = false;
     if (exists(alldata["profile"].alive)) {
         living = alldata["profile"].alive;
+    } else if (geniliving || !exists(geniliving)) {
+        living = true;
+        //Focus Profile - If the older than 95, default to deceased
+        if (alldata["profile"]["birth"]) {
+            var fulldate = null;
+            for (var b = 0; b < alldata["profile"]["birth"].length; b++) {
+                if (exists(alldata["profile"]["birth"][b].date) && alldata["profile"]["birth"][b].date.trim() !== "") {
+                    fulldate = alldata["profile"]["birth"][b].date;
+                    break;
+                }
+            }
+            if (fulldate !== null) {
+                var birthval = parseDate(fulldate, false);
+                var agelimit = moment.utc().format("YYYY") - 95;
+                if (exists(birthval.year) && birthval.year < agelimit) {
+                    living = false;
+                }
+            }
+        }
     }
     if (geniliving && !living) {
         sepx++;
@@ -462,10 +481,10 @@ function buildForm() {
             var halfsibling = false;
             if (!scored && relationship === "parent") {
                 //used !== to also select unknown gender
-                if (scorefactors.contains("father") && members[member].gender !== "female") {
+                if (scorefactors.contains("father") && !geniHas("father") && members[member].gender !== "female") {
                     scored = true;
                     $('#addparentck').prop('checked', true);
-                } else if (scorefactors.contains("mother") && members[member].gender !== "male") {
+                } else if (scorefactors.contains("mother") && !geniHas("mother")  && members[member].gender !== "male") {
                     scored = true;
                     $('#addparentck').prop('checked', true);
                 }
@@ -1018,6 +1037,18 @@ function buildAction(relationship, gender) {
     return pselect;
 }
 
+function geniHas(relationship) {
+    if (exists(genifamily)) {
+        for (var i = 0; i < genifamily.length; i++) {
+            var familymem = genifamily[i];
+            if (familymem.relation === relationship) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 function buildParentSelect(id) {
     var geniselect = "";
     var scorefactors = alldata["scorefactors"];
@@ -1142,6 +1173,8 @@ function updateInfoData(person, arg) {
             delete arg["marriage"][0].name;
             person["marriage"] = arg["marriage"];
         }
+    } else if (exists(person.name) && checkLiving(person.name)) {
+        person["alive"] = true;
     }
     return person;
 }

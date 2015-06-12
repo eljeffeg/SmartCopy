@@ -448,11 +448,14 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 continue;
             }
             if (title === "burial" && valdate !== "") {
+                profiledata["alive"] = false;
                 burialdtflag = true;
             } else if (title === "death" && valdate !== "") {
+                profiledata["alive"] = false;
                 deathdtflag = true;
             }
             if (title === "burial" && valdate === "" && vallocal !== "") {
+                profiledata["alive"] = false;
                 buriallcflag = true;
             }
 

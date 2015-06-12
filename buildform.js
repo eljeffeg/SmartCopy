@@ -821,31 +821,37 @@ function isEnabled(value, score) {
 }
 
 function isFemale(title) {
+    if (!exists(title)) { return false; }
     title = title.replace(" (implied)", "");
     return (title === "wife" || title === "ex-wife" || title === "mother" || title === "sister" || title === "daughter" || title === "female");
 }
 
 function isMale(title) {
+    if (!exists(title)) { return false; }
     title = title.replace(" (implied)", "");
     return (title === "husband" || title === "ex-husband" || title === "father" || title === "brother" || title === "son" || title === "male");
 }
 
 function isSibling(relationship) {
+    if (!exists(relationship)) { return false; }
     relationship = relationship.replace(" (implied)", "");
     return (relationship === "siblings" || relationship === "sibling" || relationship === "brother" || relationship === "sister");
 }
 
 function isChild(relationship) {
+    if (!exists(relationship)) { return false; }
     relationship = relationship.replace(" (implied)", "");
     return (relationship === "children" || relationship === "child" || relationship === "son" || relationship === "daughter");
 }
 
 function isParent(relationship) {
+    if (!exists(relationship)) { return false; }
     relationship = relationship.replace(" (implied)", "");
     return (relationship === "parents" || relationship === "father" || relationship === "mother" || relationship === "parent");
 }
 
 function isPartner(relationship) {
+    if (!exists(relationship)) { return false; }
     relationship = relationship.replace(" (implied)", "");
     return (relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner" || relationship === "spouse" || relationship === "spouses");
 }

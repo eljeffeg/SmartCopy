@@ -1173,8 +1173,25 @@ function updateInfoData(person, arg) {
             delete arg["marriage"][0].name;
             person["marriage"] = arg["marriage"];
         }
-    } else if (exists(person.name) && checkLiving(person.name)) {
-        person["alive"] = true;
+    } else if (exists(person.name) && !exists(person["alive"])) {
+        if (checkLiving(person.name)) {
+            person["alive"] = true;
+        } else if (exists(person["birth"])) {
+            var fulldate = null;
+            for (var b = 0; b < person["birth"].length; b++) {
+                if (exists(person["birth"][b].date) && person["birth"][b].date.trim() !== "") {
+                    fulldate = person["birth"][b].date;
+                    break;
+                }
+            }
+            if (fulldate !== null) {
+                var birthval = parseDate(fulldate, false);
+                var agelimit = moment.utc().format("YYYY") - 95;
+                if (exists(birthval.year) && birthval.year >= agelimit) {
+                    person["alive"] = true;
+                }
+            }
+        }
     }
     return person;
 }

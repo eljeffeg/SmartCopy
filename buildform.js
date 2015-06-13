@@ -519,10 +519,21 @@ function buildForm() {
             }
             var gender = members[member].gender;
             var bgcolor = genderColor(gender);
+
+            var actionicon = "add";
+            if (isParent(relationship)) {
+                if (isMale(gender) && geniHas("father")) {
+                    actionicon = "update";
+                } else if (isFemale(gender) && geniHas("mother")) {
+                    actionicon = "update";
+                }
+            }
+
             var membersstring = entry.innerHTML;
             membersstring += '<div class="membertitle" style="background-color: ' + bgcolor + '"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
                 '<td><input type="checkbox" class="checkslide" name="checkbox' + i + '-' + relationship + '" ' + isChecked(fullname, scored) + '></td>' +
-                '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;"><span style="font-size: 90%;">' + escapeHtml(fullname) + '</span>';
+                '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;"><span style="font-size: 90%;">' +
+                '<img class="iconaction" style="width: 16px; margin-bottom: -4px; margin-left: -2px; padding-right: 3px;" src="/images/' + actionicon +  '.png" title=' + actionicon + ' description=' + actionicon + '>' + escapeHtml(fullname) + '</span>';
 
             membersstring += '<span id="ribbon' + i + '" style="display: ' + isHidden(living) + '; float: right; position: relative; margin-right: -10px; margin-bottom: -5px; right: 8px; top: -3px; margin-left: -8px;"><img src="/images/deceased.png"></span>';
 
@@ -730,6 +741,20 @@ function buildForm() {
             ffs.filter(function (item) {
                 return !((ffs[item].type === "checkbox") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
             }).attr('disabled', !this.checked);
+        });
+    });
+    $(function () {
+        $('.actionselect').on('change', function () {
+            var actionicon = $(this).closest("div").prev().find(".iconaction");
+            if (this.value === "add") {
+                actionicon.attr('src','images/add.png');
+                actionicon.attr('title','add');
+                actionicon.attr('description','add');
+            } else {
+                actionicon.attr('src','images/update.png');
+                actionicon.attr('title','update');
+                actionicon.attr('description','update');
+            }
         });
     });
     $(function () {
@@ -1031,8 +1056,10 @@ function buildAction(relationship, gender) {
     }
     if (selected) {
         pselect = '<option value="add" selected>Add Profile</option>' + pselect;
+    } else {
+        pselect = '<option value="add">Add Profile</option>' + pselect;
     }
-    pselect = '<select name="action" style="width: 215px; float: right; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" >' + pselect;
+    pselect = '<select name="action" class="actionselect" style="width: 215px; float: right; height: 24px; margin-right: 1px; -webkit-appearance: menulist-button;" >' + pselect;
     pselect += '</select>';
     return pselect;
 }

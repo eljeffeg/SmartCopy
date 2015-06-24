@@ -102,6 +102,9 @@ function buildHistorySelect() {
             name = buildhistory[i].name;
         }
         historytext += '<option value="' + buildhistory[i].id + '">History: ' + name + '</option>';
+        if (i > 30) {
+            break;
+        }
     }
     return historytext;
 }

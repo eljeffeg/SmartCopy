@@ -692,6 +692,7 @@ function buildForm() {
                 //Only run it on family members
                 var gender = genselect[0].options[genselect[0].selectedIndex].value;
                 $('#action'+genselect[0].attributes.update.value).html(buildAction(genselect[0].attributes.relationship.value, gender));
+                iconUpdate();
                 var gendercolor = genderColor(gender);
                 genselect.closest('.memberexpand').prev('.membertitle').css('background-color', gendercolor);
             }
@@ -744,20 +745,6 @@ function buildForm() {
         });
     });
     $(function () {
-        $('.actionselect').on('change', function () {
-            var actionicon = $(this).closest("div").prev().find(".iconaction");
-            if (this.value === "add") {
-                actionicon.attr('src','images/add.png');
-                actionicon.attr('title','add');
-                actionicon.attr('description','add');
-            } else {
-                actionicon.attr('src','images/update.png');
-                actionicon.attr('title','update');
-                actionicon.attr('description','update');
-            }
-        });
-    });
-    $(function () {
         $('.geoicon').on('click', function () {
             var fs = $(this);
             if (fs.attr("src") === "images/geoon.png") {
@@ -792,6 +779,7 @@ function buildForm() {
         });
     });
 
+    iconUpdate();
 
     if ($("#parent")[0].style.display === "block") {
         var father = null;
@@ -854,6 +842,21 @@ function buildForm() {
 
 function isValue(object) {
     return (object !== "");
+}
+
+function iconUpdate() {
+    $('.actionselect').on('change', function () {
+        var actionicon = $(this).closest("div").prev().find(".iconaction");
+        if (this.value === "add") {
+            actionicon.attr('src','images/add.png');
+            actionicon.attr('title','add');
+            actionicon.attr('description','add');
+        } else {
+            actionicon.attr('src','images/update.png');
+            actionicon.attr('title','update');
+            actionicon.attr('description','update');
+        }
+    });
 }
 
 function isEnabled(value, score) {

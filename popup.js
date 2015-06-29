@@ -801,7 +801,8 @@ function getPageCode() {
             tablink.startsWith("http://www.werelate.org/wiki/Person") ||
             validFamilyTree(tablink) ||
             (validRootsWeb(tablink) && getParameterByName("op", tablink).toLowerCase() === "get") ||
-            tablink.startsWith("http://records.ancestry.com/") || (tablink.startsWith("http://trees.ancestry.com/") && !tablink.contains("family?cfpid=")) ||
+            tablink.startsWith("http://records.ancestry.com/") ||
+            (tablink.startsWith("http://trees.ancestry.com/") && !tablink.contains("family?cfpid=") && !isNaN(tablink.slice(-1))) ||
             (tablink.startsWith("https://familysearch.org/pal:") && tablink.contains("?view=basic"))) {
             chrome.tabs.executeScript(null, {
                 file: "getPagesSource.js"
@@ -813,6 +814,10 @@ function getPageCode() {
             });
         } else if (tablink.startsWith("http://trees.ancestry.com/")) {
             tablink = tablink.replace("family?cfpid=", "person/");
+            tablink = tablink.replace("&selnode=1", "");
+            if (isNaN(tablink.slice(-1))) {
+                tablink =  tablink.substring(0, tablink.lastIndexOf('/'));
+            }
             chrome.extension.sendMessage({
                 method: "GET",
                 action: "xhttp",

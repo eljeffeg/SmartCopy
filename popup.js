@@ -814,17 +814,25 @@ function getPageCode() {
             });
         } else if (tablink.startsWith("http://trees.ancestry.com/")) {
             tablink = tablink.replace("family?cfpid=", "person/");
-            tablink = tablink.replace("&selnode=1", "");
-            if (isNaN(tablink.slice(-1))) {
-                tablink =  tablink.substring(0, tablink.lastIndexOf('/'));
+            if (tablink.endsWith("/family")) {
+                setMessage("#f8ff86", 'Unable to identify Ancestry focus profile.  Please select a focus profile in the tree.');
+                document.getElementById("smartcopy-container").style.display = "none";
+                document.getElementById("loading").style.display = "none";
+                return;
+            } else {
+                tablink = tablink.replace("&selnode=1", "");
+                if (isNaN(tablink.slice(-1))) {
+                    tablink =  tablink.substring(0, tablink.lastIndexOf('/'));
+                }
+                chrome.extension.sendMessage({
+                    method: "GET",
+                    action: "xhttp",
+                    url: tablink
+                }, function (response) {
+                    loadPage(response);
+                });
             }
-            chrome.extension.sendMessage({
-                method: "GET",
-                action: "xhttp",
-                url: tablink
-            }, function (response) {
-                loadPage(response);
-            });
+
         } else if (tablink.startsWith("http://www.wikitree.com/genealogy/")) {
             tablink = tablink.replace("genealogy/", "wiki/").replace("-Family-Tree", "");
             chrome.extension.sendMessage({

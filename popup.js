@@ -821,8 +821,9 @@ function getPageCode() {
                 return;
             } else {
                 tablink = tablink.replace("&selnode=1", "");
+                tablink = tablink.replace("/community/potential", "");
                 if (isNaN(tablink.slice(-1))) {
-                    tablink =  tablink.substring(0, tablink.lastIndexOf('/'));
+                    tablink = tablink.substring(0, tablink.lastIndexOf('/'));
                 }
                 chrome.extension.sendMessage({
                     method: "GET",

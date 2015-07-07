@@ -110,6 +110,7 @@ var NameParse = (function(){
             var start = (salutation) ? 1 : 0;
             var end = (suffix) ? numWords - 1 : numWords;
             word = nameParts[start];
+            /*
             // if we start off with an initial, we'll call it the first name
             if (this.is_initial(word)) {
                 // if so, do a look-ahead to see if they go by their middle name
@@ -125,6 +126,10 @@ var NameParse = (function(){
             } else {
                 firstName += " " + this.fix_case(word);
             }
+            */
+
+            // strict reading of the name - skip reorder based on initial
+            firstName += " " + this.fix_case(word);
 
             // concat the first name
             for (i=start + 1; i<(end - 1); i++) {

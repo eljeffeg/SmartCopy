@@ -346,11 +346,12 @@ function loadPage(request) {
                     recordtype = recordtype[0].innerText;
                 }
                 focusrange = parsed.find(".recordSubtitle").text().trim();
-                console.log(focusrange);
                 if (!profilechanged) {
-                    var focusprofile = parsed.find(".individualInformationProfileLink").attr("href").trim();
-                    focusid = focusprofile.replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");
-                    updateLinks("?profile=" + focusid);
+                    var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
+                    if (exists(focusprofile)) {
+                        focusid = focusprofile.trim().replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");
+                        updateLinks("?profile=" + focusid);
+                    }
                 }
                 //MyHeritage SmartMatch Page - Redirect to primary website
                 if (recordtype === "Find a Grave") {

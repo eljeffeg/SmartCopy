@@ -74,16 +74,31 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
     if (familymembers) {
         var person;
         person = parsed.find(".personFather");
+        if (!exists(person[0])) {
+            person = parsed.find("#personFather");
+        }
         if (exists(person[0])) {
             processAncestryFamily(person[0], "father", famid);
             famid++;
         }
         person = parsed.find(".personMother");
+        if (!exists(person[0])) {
+            person = parsed.find("#personMother");
+        }
         if (exists(person[0])) {
             processAncestryFamily(person[0], "mother", famid);
             famid++;
         }
         person = parsed.find(".personSpouses").find("li");
+        if (!exists(person[0])) {
+           var sections = parsed.find(".ancCol");
+            for (var i = 0; i < sections.length; i++) {
+                if ($(sections[i]).text().trim().startsWith("Spouse")) {
+                    person = $(sections[i]).find(".userCardContent");
+                    break;
+                }
+            }
+        }
         if (exists(person[0])) {
             for (var i = 0; i < person.length; i++) {
                 processAncestryFamily(person[i], "spouse", famid);
@@ -92,6 +107,15 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
             }
         }
         person = parsed.find(".personChildren").find("li");
+        if (!exists(person[0])) {
+            var sections = parsed.find(".ancCol");
+            for (var i = 0; i < sections.length; i++) {
+                if ($(sections[i]).text().trim().startsWith("Child")) {
+                    person = $(sections[i]).find(".userCardContent");
+                    break;
+                }
+            }
+        }
         if (exists(person[0])) {
             for (var i = 0; i < person.length; i++) {
                 processAncestryFamily(person[i], "child", famid);
@@ -109,18 +133,24 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
         var url;
         var itemid;
         person = parsed.find(".personFather");
+        if (!exists(person[0])) {
+            person = parsed.find("#personFather");
+        }
         if (exists(person[0])) {
             url = $(person[0]).find("a").attr("href");
-            itemid = getParameterByName("pid", url);
+            itemid = getAncestryItemId(url);
         }
         if (exists(itemid) && focusURLid !== itemid) {
             childlist[relation.proid] = $.inArray(itemid, unionurls);
             profiledata["parent_id"] = $.inArray(itemid, unionurls);
         } else {
             person = parsed.find(".personMother");
+            if (!exists(person[0])) {
+                person = parsed.find("#personMother");
+            }
             if (exists(person[0])) {
                 url = $(person[0]).find("a").attr("href");
-                itemid = getParameterByName("pid", url);
+                itemid = getAncestryItemId(url);
                 childlist[relation.proid] = $.inArray(itemid, unionurls);
                 profiledata["parent_id"] = $.inArray(itemid, unionurls);
             }
@@ -131,15 +161,21 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
         var url;
         var itemid;
         person = parsed.find(".personFather");
+        if (!exists(person[0])) {
+            person = parsed.find("#personFather");
+        }
         if (exists(person[0])) {
             url = $(person[0]).find("a").attr("href");
-            itemid = getParameterByName("pid", url);
+            itemid = getAncestryItemId(url);
             siblingparents.push(itemid);
         }
         person = parsed.find(".personMother");
+        if (!exists(person[0])) {
+            person = parsed.find("#personMother");
+        }
         if (exists(person[0])) {
             url = $(person[0]).find("a").attr("href");
-            itemid = getParameterByName("pid", url);
+            itemid = getAncestryItemId(url);
             siblingparents.push(itemid);
         }
         if (siblingparents.length > 0) {
@@ -166,6 +202,18 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
     return profiledata;
 }
 
+function getAncestryItemId(url) {
+    if (exists(url)) {
+        if (url.contains("pid=")) {
+            return getParameterByName("pid", url);
+        } else {
+            return url.substring(url.lastIndexOf("_")+1, url.length);
+        }
+    } else {
+        return "";
+    }
+}
+
 function processAncestryFamily(person, title, famid) {
     var url = $(person).find("a").attr("href");
     if (exists(url)) {
@@ -180,7 +228,7 @@ function processAncestryFamily(person, title, famid) {
             gendersv = "male";
         }
         var name = $(person).find(".name").text();
-        var itemid = getParameterByName("pid", url);
+        var itemid = getAncestryItemId(url);
         if (isParent(title)) {
             parentlist.push(itemid);
         }

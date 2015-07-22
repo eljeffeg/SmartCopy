@@ -1239,7 +1239,8 @@ function cleanHTML(html) {
 }
 
 function cleanDate(dateval) {
-    dateval = dateval.replace(/\?/, "");
+    dateval = dateval.replace(/\//g, "-");
+    dateval = dateval.replace(/\?/g, "");
     dateval = dateval.replace(/ABT /i, "Circa ");
     dateval = dateval.replace(/BEF /i, "Before ");
     dateval = dateval.replace(/AFT /i, "After ");
@@ -1266,6 +1267,9 @@ function cleanDate(dateval) {
         if (!dateval.startsWith("Between")) {
             dateval = "Between " + dateval;
         }
+    }
+    if (dateval.search(/\d,\d/) !== -1) {
+        dateval = dateval.replace(",", ", ");
     }
     if (dateval.search(/\d{4}\/\d{4}/) !== -1) {
         dateval = "Between " + dateval.replace("/", " and ");

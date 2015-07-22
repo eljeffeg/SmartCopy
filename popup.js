@@ -1809,7 +1809,12 @@ function parseDate(fulldate, update) {
     var dt = moment(fulldate.trim(), getDateFormat(fulldate.trim()));
     //TODO Probably need to do some more checking below to make sure it doesn't improperly default dates
     if (isNaN(fulldate)) {
-        var splitd = fulldate.split(" ");
+        var splitd = [];
+        if (fulldate.contains("-")) {
+            splitd = fulldate.split("-");
+        } else {
+            splitd= fulldate.split(" ");
+        }
         if (splitd.length > 2) {
             vardate["day"] = dt.get('date');
             vardate["month"] = dt.get('month') + 1; //+1 because, for some dumb reason, months are indexed to 0

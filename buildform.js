@@ -1270,6 +1270,10 @@ function cleanDate(dateval) {
     }
     if (dateval.search(/\d,\d/) !== -1) {
         dateval = dateval.replace(",", ", ");
+    } else if (dateval.search(/\d{1,2} \d{1,2} \d{4}/) !== -1) {
+        dateval = dateval.replace(/ /g, "-");
+    } else if (dateval.search(/\d{4} \d{1,2} \d{1,2}/) !== -1) {
+        dateval = dateval.replace(/ /g, "-");
     }
     if (dateval.search(/\d{4}\/\d{4}/) !== -1) {
         dateval = "Between " + dateval.replace("/", " and ");

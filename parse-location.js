@@ -198,6 +198,13 @@ function queryGeo(locationset, test) {
             var full_location = response.variable.location;
             var georesult = new GeoLocation(result, full_location);
             georesult.place = response.variable.place.trim();
+            var ffield = full_location.split(",");
+            if (ffield[0].toLowerCase().endsWith(" twp") || ffield[0].toLowerCase().endsWith(" twp.") || ffield[0].toLowerCase().endsWith(" township")) {
+                var township = ffield[0].replace(/ twp\.?/i, " Township");
+                if (!georesult.city.endsWith("Township") && township.startsWith(georesult.city)) {
+                    georesult.city = township;
+                }
+            }
 
             geolocation[id] = georesult;
 

@@ -356,6 +356,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     aboutdata += "* '''" + capFL(title) + "''': " + aboutinfo + "\n";
                 }
                 continue;
+            } else if (title === "source") {
+                var hlink = $(row).find(".recordFieldValue").find("a").attr("href");
+                if (exists(hlink)) {
+                    tablink = hlink;
+                }
             }
 
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'

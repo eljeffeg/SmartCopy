@@ -356,7 +356,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     aboutdata += "* '''" + capFL(title) + "''': " + aboutinfo + "\n";
                 }
                 continue;
-            } else if (title === "source") {
+            } else if (familymembers && title === "source") {
                 var hlink = $(row).find(".recordFieldValue").find("a").attr("href");
                 if (exists(hlink)) {
                     tablink = hlink;

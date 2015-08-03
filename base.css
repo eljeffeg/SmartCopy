@@ -376,3 +376,33 @@ a:hover {
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
     right: 0;
 }
+
+.malebox {
+    border-radius: 50%;
+    display: inline-block;
+    width:7px;
+    height:7px;
+    border:1px solid #b4b4b4;
+    background-color: #c2dcff;
+    margin-bottom: -1px;
+}
+
+.femalebox {
+    border-radius: 50%;
+    display: inline-block;
+    width:7px;
+    height:7px;
+    border:1px solid #b4b4b4;
+    background-color: #fad2e1;
+    margin-bottom: -1px;
+}
+
+.unknownbox {
+    border-radius: 50%;
+    display: inline-block;
+    width:7px;
+    height:7px;
+    border:1px solid #b4b4b4;
+    background-color: #bcf5c2;
+    margin-bottom: -1px;
+}

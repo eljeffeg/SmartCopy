@@ -347,10 +347,13 @@ function loadPage(request) {
                 }
                 focusrange = parsed.find(".recordSubtitle").text().trim();
                 if (!profilechanged) {
-                    var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
-                    if (exists(focusprofile)) {
-                        focusid = focusprofile.trim().replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");
-                        updateLinks("?profile=" + focusid);
+                    var smartmatchpage = parsed.find(".Breadcrumbs");
+                    if (exists(smartmatchpage[0])) {
+                        var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
+                        if (exists(focusprofile)) {
+                            focusid = focusprofile.trim().replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");
+                            updateLinks("?profile=" + focusid);
+                        }
                     }
                 }
                 //MyHeritage SmartMatch Page - Redirect to primary website
@@ -773,10 +776,16 @@ function buildParentSpouse() {
     if (exists(genifamily)) {
         var siblings = false;
         var parents = false;
+        var parval = {male: 0, female: 0, unknown: 0};
+        var sibval = {male: 0, female: 0, unknown: 0};
+        var chval = {male: 0, female: 0, unknown: 0};
+        var spval = {male: 0, female: 0, unknown: 0};
         for (var i = 0; i < genifamily.length; i++) {
             var familymem = genifamily[i];
             if (isParent(familymem.relation)) {
+                parval = countGeniMem(parval, familymem.relation);
                 parents = true;
+                document.getElementById("parentsearch").style.display = "none";
                 if (!parentblock) {
                     parentspouseunion = familymem.union;
                     parentblock = true;
@@ -786,9 +795,18 @@ function buildParentSpouse() {
                     parentblock = false;
                 }
             } else if (isSibling(familymem.relation)) {
+                sibval = countGeniMem(sibval, familymem.relation);
                 siblings = true;
+            } else if (isChild(familymem.relation)) {
+                chval = countGeniMem(chval, familymem.relation);
+            } else if (isPartner(familymem.relation)) {
+                spval = countGeniMem(spval, familymem.relation);
             }
         }
+        buildGeniCount(parval, "parentcount");
+        buildGeniCount(sibval, "siblingcount");
+        buildGeniCount(spval, "partnercount");
+        buildGeniCount(chval, "childcount");
         if (!parents && siblings) {
             for (var i = 0; i < genifamily.length; i++) {
                 var familymem = genifamily[i];
@@ -798,6 +816,36 @@ function buildParentSpouse() {
                     break;
                 }
             }
+        }
+    }
+}
+
+function countGeniMem(val, rel) {
+    if (isMale(rel)) {
+        val.male += 1;
+    } else if (isFemale(rel)) {
+        val.female += 1;
+    } else {
+        val.unknown += 1;
+    }
+    return val;
+}
+
+function buildGeniCount(val, name) {
+    if (val) {
+        var genifmcount = "";
+        if (val.male > 0) {
+            genifmcount += " " + val.male + " <span class='malebox'></span>";
+        }
+        if (val.female > 0) {
+            genifmcount += " " + val.female + " <span class='femalebox'></span>";
+        }
+        if (val.unknown > 0) {
+            genifmcount += " " + val.unknown + " <span class='unknownbox'></span>";
+        }
+        if (genifmcount.length > 0) {
+            genifmcount = " &mdash; Geni has" + genifmcount;
+            document.getElementById(name).innerHTML = genifmcount;
         }
     }
 }

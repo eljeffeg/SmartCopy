@@ -529,7 +529,7 @@ function loadPage(request) {
                     url: url
                 }, function (response) {
                     genifamily = JSON.parse(response.source);
-                    buildParentSpouse();
+                    buildParentSpouse(true);
                     familystatus.pop();
                 });
 
@@ -712,7 +712,7 @@ function loadSelectPage(request) {
             url: url
         }, function (response) {
             genifamily = JSON.parse(response.source);
-            buildParentSpouse();
+            buildParentSpouse(false);
             var result = genifamily;
             result.sort(function (a, b) {
                 var relA = a.relation.toLowerCase(), relB = b.relation.toLowerCase();
@@ -772,7 +772,7 @@ function loadSelectPage(request) {
     });
 }
 
-function buildParentSpouse() {
+function buildParentSpouse(finalid) {
     if (exists(genifamily)) {
         var siblings = false;
         var parents = false;
@@ -785,7 +785,9 @@ function buildParentSpouse() {
             if (isParent(familymem.relation)) {
                 parval = countGeniMem(parval, familymem.relation);
                 parents = true;
-                document.getElementById("parentsearch").style.display = "none";
+                if (finalid) {
+                    document.getElementById("parentsearch").style.display = "none";
+                }
                 if (!parentblock) {
                     parentspouseunion = familymem.union;
                     parentblock = true;
@@ -803,10 +805,12 @@ function buildParentSpouse() {
                 spval = countGeniMem(spval, familymem.relation);
             }
         }
-        buildGeniCount(parval, "parentcount");
-        buildGeniCount(sibval, "siblingcount");
-        buildGeniCount(spval, "partnercount");
-        buildGeniCount(chval, "childcount");
+        if (finalid) {
+            buildGeniCount(parval, "parentcount");
+            buildGeniCount(sibval, "siblingcount");
+            buildGeniCount(spval, "partnercount");
+            buildGeniCount(chval, "childcount");
+        }
         if (!parents && siblings) {
             for (var i = 0; i < genifamily.length; i++) {
                 var familymem = genifamily[i];

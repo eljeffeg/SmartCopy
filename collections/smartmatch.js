@@ -342,7 +342,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 title === "family reunion") {
                 var aboutinfo = $(row).find(".recordFieldValue").html();
                 if (exists(aboutinfo)) {
-                    aboutinfo = aboutinfo.replace('<div class="eventSeparator"></div>',' - ');
+                    aboutinfo = aboutinfo.replace(/<div class="eventSeparator"><\/div>/g,' - ');
                     aboutinfo = $('<div>').html(aboutinfo).text();
                     if (aboutinfo.contains("jQuery(function()")) {
                         var splitinfo = aboutinfo.split("jQuery(function()");

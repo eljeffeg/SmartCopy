@@ -64,7 +64,7 @@ function buildHistoryBox() {
 }
 
 function formatJSON(datastring, historytext, id) {
-    if (typeof datastring === 'string') {
+    if (typeof datastring === 'string' && datastring.length > 0) {
         var p = JSON.parse(datastring);
         historytext = '<ul id="slidehistory' + id + '" style="display: none;">';
     } else {
@@ -88,7 +88,7 @@ function formatJSON(datastring, historytext, id) {
             }
         }
     }
-    if (typeof datastring === 'string') {
+    if (typeof datastring === 'string' && datastring.length > 0) {
         historytext += '</ul>';
     }
     return historytext;
@@ -522,34 +522,26 @@ function loadPage(request) {
                 accessdialog.style.backgroundColor = "#dfe6ed";
 
                 familystatus.push(1);
-                var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusid;
-                chrome.extension.sendMessage({
-                    method: "GET",
-                    action: "xhttp",
-                    url: url
-                }, function (response) {
-                    genifamily = JSON.parse(response.source);
-                    buildParentSpouse(true);
-                    familystatus.pop();
-                });
-
-
-                var focusprofileurl = "";
-                if (focusid.startsWith("profile-g")) {
-                    focusprofileurl = "http://www.geni.com/profile/index/" + focusid.replace("profile-g", "");
-                } else {
-                    focusprofileurl = "http://www.geni.com/" + focusid;
-                }
-
-                document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + focusprofileurl + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
-                var descurl = "http://historylink.herokuapp.com/smartsubmit?fields=name,birth,death,gender,is_alive&profile=" + focusid;
+                var descurl = "http://historylink.herokuapp.com/smartsubmit?fields=id,name,birth,death,gender,is_alive,merged_into&profile=" + focusid;
                 chrome.extension.sendMessage({
                     method: "GET",
                     action: "xhttp",
                     url: descurl
                 }, function (response) {
                     var geni_return = JSON.parse(response.source);
+                    focusid = geni_return.id; //In case there is a merge_into return
+                    var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusid;
+                    chrome.extension.sendMessage({
+                        method: "GET",
+                        action: "xhttp",
+                        url: url
+                    }, function (response) {
+                        genifamily = JSON.parse(response.source);
+                        buildParentSpouse(true);
+                        familystatus.pop();
+                    });
 
+                    document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
                     var byear;
                     var dyear;
                     var dateinfo = "";
@@ -1434,9 +1426,9 @@ function buildTree(data, action, sendid) {
                 if (exists(result.id)) {
                     databyid[id]["geni_id"] = result.id;
                 }
-                if (response.variable.relation === "partner") {
+                if (response.variable.relation === "partner" && exists(result.unions)) {
                     spouselist[id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: databyid[id].status};
-                } else if (response.variable.relation === "parent") {
+                } else if (response.variable.relation === "parent" && exists(result.unions)) {
                     parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
                     if (parentlist.length > 0) {
                         if (exists(parentlist[0].id) && (exists(marriagedates[id]) || exists(marriagedates[parentlist[0].id]))) {

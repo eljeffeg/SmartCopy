@@ -1653,7 +1653,9 @@ function buildTempSpouse(parentid) {
             variable: {id: parentid}
         }, function (response) {
             var result = JSON.parse(response.source);
-            spouselist[response.variable.id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: "partner"};
+            if (exists(result.unions)) {
+                spouselist[response.variable.id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: "partner"};
+            }
             tempspouse[response.variable.id] = result.id;
             submitstatus.pop();
         });

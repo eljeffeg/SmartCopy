@@ -1066,6 +1066,9 @@ function getProfile(profile_id) {
             //But skip 6000000029660962822?highlight_id=6000000029660962822#6000000028974729472
             profile_id = "profile-g" + profile_id.substring(0, profile_id.lastIndexOf('?'));
         }
+        if (profile_id.indexOf("?from_flash") != -1) {
+            profile_id = "profile-g" + profile_id.substring(0, profile_id.lastIndexOf('?'));
+        }
         if (profile_id.indexOf("?highlight_id") != -1) {
             profile_id = "profile-g" + profile_id.substring(profile_id.lastIndexOf('=') + 1, profile_id.length);
         }

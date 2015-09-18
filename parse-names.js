@@ -23,7 +23,6 @@ var NameParse = (function(){
             fullastName = fullastName.replace(/\//g, "");
         }
         fullastName = fullastName.replace(/\s*\/\s*/g,'/');
-        var nameParts = [];
         var nickParts = [];
         var lastName = "";
         var firstName = "";
@@ -45,7 +44,10 @@ var NameParse = (function(){
             fullastName = fullastName.substring(0, fullastName.lastIndexOf("(")).trim();
         }
 
-        nameParts = fullastName.split(" ");
+        var nameParts = fullastName.split(" ");
+        if (nameParts.length > 0 && !isNaN(nameParts[nameParts.length-1])) {
+            nameParts.pop();
+        }
         fullastName = removeprefix(nameParts);
         // split into words
         // completely ignore any words in parentheses

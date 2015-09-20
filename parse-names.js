@@ -268,6 +268,9 @@ var NameParse = (function(){
     };
 
     NameParse.removeIgnoredChars = function (word) {
+        if (!exists(word)) {
+            return "";
+        }
         //ignore periods and commas
         word = word.replace(".","");
         word = word.replace(",","");

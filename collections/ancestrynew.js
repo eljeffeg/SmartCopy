@@ -87,7 +87,11 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     profiledata["status"] = relation.title;
 
     var usrimg = par.find("gmi");
-    var image = usrimg.attr("src");
+
+    if (usrimg.length > 1) {
+        var image = $(usrimg[1]).attr("src");
+    }
+
     if (exists(image)) {
         profiledata["thumb"] = image.replace("&maxHeight=280", "&maxWidth=152");
         profiledata["image"] = image.replace("&maxHeight=280", "");
@@ -106,9 +110,21 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
 
     var familydata = parsed.find(".familySection");
     var memberfam = familydata.find(".factsSubtitle");
+    var memberfam2 = familydata.find(".toggleSiblings");
+    if (memberfam2.length > 0) {
+        memberfam2[0].innerHTML = "siblings " + memberfam2[0].innerHTML;
+        memberfam.push.apply(memberfam, memberfam2);
+    }
+
     for (var i = 0; i < memberfam.length; i++) {
         var headtitle = $(memberfam[i]).text().toLowerCase();
-        var person = $(memberfam[i]).next().find("a");
+        if (headtitle.startsWith("siblings")) {
+            headtitle = "siblings";
+            var person = $(memberfam[i]).find("a");
+        } else {
+            var person = $(memberfam[i]).next().find("a");
+        }
+
         for (var x = 0; x < person.length; x++) {
             var title = headtitle;
             var url = $(person[x]).attr("href");

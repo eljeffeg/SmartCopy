@@ -411,7 +411,12 @@ function loadPage(request) {
                 if (title.contains("(")) {
                     var splitrange = title.split("(");
                     focusname = splitrange[0].trim();
-                    focusrange = splitrange[1];
+                    if (splitrange.length > 2) {
+                        focusname = focusname + " (" + splitrange[1].trim();
+                        focusrange = splitrange[2];
+                    } else {
+                        focusrange = splitrange[1];
+                    }
                     focusrange = focusrange.replace(")", "").replace(", ", " - ").trim();
                 } else {
                     focusname = title;

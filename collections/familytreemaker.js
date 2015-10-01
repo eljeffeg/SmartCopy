@@ -9,7 +9,12 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
     if (title.contains("(")) {
         var splitrange = title.split("(");
         focusperson = splitrange[0].trim();
-        focusdaterange = splitrange[1];
+        if (splitrange.length > 2) {
+            focusperson = focusperson + " (" + splitrange[1].trim();
+            focusdaterange = splitrange[2];
+        } else {
+            focusdaterange = splitrange[1];
+        }
         focusdaterange = focusdaterange.replace(")", "").replace(", ", " - ").trim();
         focusdaterange = focusdaterange.replace("date unknown", "?").replace("b. ", "").replace("d. ", "");
     } else {
@@ -52,7 +57,10 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
         } else {
             genderval = "female";
         }
-        var pinfo = header.match(/\((.*?)\)/);
+        var pinfo = header.match(/\((.*?)<br>/i);
+        if (exists(pinfo) && pinfo.length > 1) {
+            pinfo = pinfo[1].match(/(.*)\)/);
+        }
         if (exists(pinfo) && pinfo.length > 1) {
             var div = document.createElement("div");
             div.innerHTML = pinfo[1];
@@ -189,7 +197,7 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
         }
     }
 
-    var hsplit = fhtml.split(/<BR><BR>Children of/i);
+    var hsplit = fhtml.split(/<BR>Children of/i);
     if (hsplit.length > 1) {
         var div = document.createElement("div");
         div.innerHTML = hsplit[1];

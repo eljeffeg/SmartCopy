@@ -354,6 +354,15 @@ function loadPage(request) {
                             focusid = focusprofile.trim().replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");
                             updateLinks("?profile=" + focusid);
                         }
+                    } else if (focusURLid !== "") {
+                        for (var i = 0; i < buildhistory.length; i++) {
+                            if (buildhistory[i].itemId === focusURLid) {
+                                focusid = buildhistory[i].id;
+                                profilechanged = true;
+                                loadPage(request);
+                                return;
+                            }
+                        }
                     }
                 }
                 //MyHeritage SmartMatch Page - Redirect to primary website

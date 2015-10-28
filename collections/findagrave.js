@@ -195,6 +195,9 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                         var titlename = familymem[i].replace(":","").toLowerCase().trim();
                         if (familymem[i].trim() === "") {
                             continue;
+                        } else if (familymem[i].trim().toLowerCase().startsWith("note:")) {
+                            aboutdata = aboutdata + parseWikiURL(familymem[i].trim()) + "\n";
+                            continue;
                         } else if (familymem[i].startsWith("<script")) {
                             break;
                         } else if (familymem[i].startsWith("Inscription")) {
@@ -300,7 +303,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                     if (aboutinfo.trim() !== "" && !aboutinfo.contains("Edit Virtual Cemetery") &&
                         !aboutinfo.contains("Created by:")) {
                         aboutinfo = aboutinfo.replace(/<br>/ig, "\n").trim();
-                        aboutdata = parseWikiURL(aboutinfo) + "\n";
+                        aboutdata = aboutdata + parseWikiURL(aboutinfo) + "\n";
                     }
                 }
             }

@@ -396,6 +396,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 for (var i=0; i < fielddata.length; i++) {
                     if (exists(fielddata.get(i))) {
                         valdate = fielddata.get(i).nodeValue;
+                        if (exists(valdate) && valdate.startsWith("0/0/")) {
+                            valdate = valdate.replace("0/0/", "");
+                        }
                         var verifydate = moment(valdate, getDateFormat(valdate), true).isValid();
                         if (!verifydate) {
                             if (valdate !== null && (valdate.startsWith("Circa") || valdate.startsWith("After") || valdate.startsWith("From") || valdate.startsWith("To") || valdate.startsWith("Before") || valdate.startsWith("Between"))) {

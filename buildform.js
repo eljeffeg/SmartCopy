@@ -450,12 +450,14 @@ function buildForm() {
             }
             relationship = "parent";
         }
-        else if (isPartner(relationship)) {
+        else if (isPartner(relationship) || relationship.contains("veteran (self)")) {
             if (scorefactors.contains("spouse")) {
                 scored = true;
                 partnerck = true;
             }
             relationship = "partner";
+        } else {
+            continue;
         }
 
         var div = $("#" + relationship);
@@ -518,6 +520,10 @@ function buildForm() {
                 displayname = nameval.displayname;
             }
             var gender = members[member].gender;
+            if (gender === "unknown" && isPartner(relationship) && focusgender !== "unknown") {
+                //if unknown, assume spouse is opposite gender
+                gender = reverseGender(focusgender);
+            }
             var bgcolor = genderColor(gender);
 
             var actionicon = "add";

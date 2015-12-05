@@ -78,8 +78,19 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     if (urlval.length > 0) {
                         var hurl = urlval[0].href;
                         var itemid = getParameterByName('itemId', hurl);
+                        var title = $(hv[0]).text().toLowerCase();
                         if (itemid !== focusURLid) {
-                            housearray.push({name: $(hv[x]).text(), url: hurl, title: $(hv[0]).text().toLowerCase()});
+                            housearray.push({name: $(hv[x]).text(), url: hurl, title: title});
+                        } else {
+                            if (focusgender === "unknown") {
+                                if (title === "wife") {
+                                    genderval = "female";
+                                } else if (title === "husband") {
+                                    genderval = "male";
+                                }
+                                focusgender = genderval;
+                                profiledata["gender"] = focusgender;
+                            }
                         }
                     }
                 }

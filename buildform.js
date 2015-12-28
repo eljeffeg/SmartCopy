@@ -539,7 +539,7 @@ function buildForm() {
             membersstring += '<div class="membertitle" style="background-color: ' + bgcolor + '"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
                 '<td><input type="checkbox" class="checkslide" name="checkbox' + i + '-' + relationship + '" ' + isChecked(fullname, scored) + '></td>' +
                 '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;"><span style="font-size: 90%;">' +
-                '<img class="iconaction" style="width: 16px; margin-bottom: -4px; margin-left: -2px; padding-right: 3px;" src="/images/' + actionicon +  '.png" title=' + actionicon + ' description=' + actionicon + '>' + escapeHtml(fullname) + '</span>';
+                '<img class="iconaction" style="width: 16px; margin-bottom: -4px; margin-left: -2px; padding-right: 3px;" src="/images/' + actionicon +  '.png" title=' + actionicon + ' description=' + actionicon + '>' + escapeHtml(fullname.replace(/&quot;/g, '"')) + '</span>';
 
             membersstring += '<span id="ribbon' + i + '" style="display: ' + isHidden(living) + '; float: right; position: relative; margin-right: -10px; margin-bottom: -5px; right: 8px; top: -3px; margin-left: -8px;"><img src="/images/deceased.png"></span>';
 
@@ -1238,6 +1238,9 @@ function parseWikiURL(wikistring) {
 }
 
 function cleanHTML(html) {
+    if (!exists(html)) {
+        return "";
+    }
     html = html.replace(/<sup.*?<\/sup>/ig, "");
     var div = document.createElement("div");
     div.innerHTML = html;

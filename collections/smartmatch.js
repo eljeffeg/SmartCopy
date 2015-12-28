@@ -35,6 +35,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
 
     var imagebox = $(htmlstring).find(".recordImageBoxContainer");
+
     var thumb = imagebox.find('img.recordImage').attr('src');
     if (exists(thumb)) {
         var imageref = imagebox.find('a');
@@ -55,6 +56,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             //example:http://www.myheritage.com/research/collection-1/myheritage-family-trees?action=showRecord&itemId=187339442-1-500348&groupId&indId=externalindividual-60b8fd397ede07a7734908636547b649&callback_token=aJ246ziA8CCB8WycR8ujZxNXfJpZjcXsgCkoDd6U&mrid=0fcad2868a0e76a3fa94f97921debb00
             var paperclip = parsed.find(".paperClip");
             if (exists(paperclip[0])) {
+                profiledata["image"] = thumb;
+                profiledata["thumb"] = thumb;
+            } else if (!thumb.contains("myheritageimages.com") && !thumb.contains("mhcache.com") && !thumb.contains("myheritage.com")) {
+                //Not sure this is goign to cause issues, but it got this to work.
+                // https://www.myheritage.com/research/collection-10146/tributescom?action=showRecord&itemId=8511070-&indId=externalindividual-a927eb4277498b4bbc12570244a4988c&callback_token=5Z7xX1ABYHsR8qV5DXpwK55naXJ6nrC0FXCcCkuq&mrid=3e052f062f497f22bc557d280441ce1a
                 profiledata["image"] = thumb;
                 profiledata["thumb"] = thumb;
             }

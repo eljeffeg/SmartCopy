@@ -352,6 +352,9 @@ var NameParse = (function(){
     // helper for this.fix_case
     // uppercase words split by the seperator (ex. dashes or periods)
     NameParse.safe_ucfirst = function (seperator, word) {
+        if (!exists(word)) {
+            return "";
+        }
         return word.split(seperator).map(function(thisWord){
             if(this.is_camel_case(thisWord)) {
                 return thisWord;

@@ -469,11 +469,16 @@ function loadPage(request) {
                 var par = parsed.find("#personCard");
                 focusname = par.find(".userCardTitle").text();
                 focusrange = par.find(".userCardSubTitle").text().replace("&ndash;", " - ");
-            } else if (tablink.startsWith("https://familysearch.org/pal:")) {
+            } else if (tablink.startsWith("https://familysearch.org/pal:") || tablink.startsWith("https://familysearch.org/tree")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 recordtype = "FamilySearch Genealogy";
-                var fname = parsed.find('.name');
+                var fname = parsed.find("#PersonSummarySection").find(".fs-person-vitals__name-full");
+                if (fname.length === 0) {
+                    //Old method
+                    var fname = parsed.find('.name');
+                }
                 var focusperson = $(fname[0]).text();
+
                 if (focusperson.match(/\s\/\w+\//g, '')) {
                     focusperson = focusperson.replace(/\//g, "");
                 }
@@ -608,7 +613,7 @@ function loadPage(request) {
                     parseAncestryTrees(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (tablink.startsWith("http://person.ancestry.")) {
                     parseAncestryNew(request.source, (accountinfo.pro && accountinfo.user));
-                } else if (tablink.startsWith("https://familysearch.org/pal:")) {
+                } else if (tablink.startsWith("https://familysearch.org/pal:") || tablink.startsWith("https://familysearch.org/tree")) {
                     parseFamilySearch(request.source, (accountinfo.pro && accountinfo.user));
                 }
 
@@ -672,6 +677,8 @@ function loadPage(request) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1);
             } else if (tablink.startsWith("https://familysearch.org/pal:")) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace("?view=basic", "");
+            } else if (tablink.startsWith("https://familysearch.org/tree")) {
+                focusURLid = getParameterByName('person', tablink);
             }
             if (focusURLid !== "") {
                 for (var i = 0; i < buildhistory.length; i++) {
@@ -893,7 +900,8 @@ function getPageCode() {
             (tablink.startsWith("http://records.ancestry.") || tablink.startsWith("http://www.ancestry.com/genealogy/records/")) ||
             (tablink.startsWith("http://person.ancestry.") && (!tablink.endsWith("/story") && !tablink.endsWith("/gallery"))) ||
             (tablink.startsWith("http://trees.ancestry.") && !tablink.contains("family?cfpid=") && !isNaN(tablink.slice(-1))) ||
-            (tablink.startsWith("https://familysearch.org/pal:") && tablink.contains("?view=basic"))) {
+            (tablink.startsWith("https://familysearch.org/pal:") && tablink.contains("?view=basic")) ||
+            (tablink.startsWith("https://familysearch.org/tree") && tablink.contains("view=ancestor"))) {
             chrome.tabs.executeScript(null, {
                 file: "getPagesSource.js"
             }, function () {
@@ -956,6 +964,15 @@ function getPageCode() {
         } else if (tablink.startsWith("https://familysearch.org/pal:")) {
             tablink = tablink.replace("?view=details", "");
             tablink += "?view=basic";
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: tablink
+            }, function (response) {
+                loadPage(response);
+            });
+        } else if (tablink.startsWith("https://familysearch.org/tree") && tablink.contains("view=tree")) {
+            tablink = tablink.replace("view=tree", "view=ancestor");
             chrome.extension.sendMessage({
                 method: "GET",
                 action: "xhttp",
@@ -1244,7 +1261,8 @@ var submitform = function () {
             }
             if (sourcecheck) {
                 if (!focusabout.contains("Updated from [" + tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
-                    !focusabout.contains("Updated from [" + tablink + " " + recordtype + "] by [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
+                    !focusabout.contains("Updated from [" + tablink + " " + recordtype + "] by [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
+                    !focusabout.contains("Reference: [" + tablink + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
                     if (focusabout !== "") {
                         about = focusabout + "\n" + about;
                     }
@@ -1257,7 +1275,7 @@ var submitform = function () {
                             about += "*";
                         }
                     }
-                    profileout["about_me"] = about + "* Updated from [" + tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                    profileout["about_me"] = about + "* Reference: [" + tablink + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                 } else {
                     if (about !== "") {
                         profileout["about_me"] = focusabout + "\n" + about;
@@ -1316,7 +1334,7 @@ var submitform = function () {
                             } else {
                                 focusprofileurl = "http://www.geni.com/" + focusid;
                             }
-                            about = about + "* Updated from [" + fdata.url + " " + recordtype + "] via " + reverseRelationship(fdata.status) + " [" + focusprofileurl + " " + focusname.replace(/"/g, "'") + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                            about = about + "* Reference: [" + fdata.url + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                         }
                         if (about !== "") {
                             familyout["about_me"] = about;
@@ -1921,11 +1939,11 @@ function addHistory(id, itemId, name, data) {
 
 function supportedCollection() {
     var expenabled = $('#exponoffswitch').prop('checked');
-    if (!expenabled && tablink.startsWith("example")) {
+    if (!expenabled && tablink.startsWith("https://familysearch.org/tree")) {
         return false;
     } else return tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") ||
         tablink.startsWith("http://www.wikitree.com/") || validRootsWeb(tablink) ||
-        validAncestry(tablink) || tablink.startsWith("https://familysearch.org/pal:") ||
+        validAncestry(tablink) || (tablink.startsWith("https://familysearch.org/pal:") || tablink.startsWith("https://familysearch.org/tree")) ||
         tablink.startsWith("http://www.werelate.org/") || validMyHeritage(tablink) || validFamilyTree(tablink);
 }
 

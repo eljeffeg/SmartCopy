@@ -880,7 +880,7 @@ function getPageCode() {
         document.getElementById("smartcopy-container").style.display = "block";
         document.getElementById("loading").style.display = "block";
 
-        if (tablink.startsWith("http://www.myheritage.com/site-family-tree-") && !tablink.endsWith("-info")) {
+        if ((tablink.startsWith("http://www.myheritage.com/site-family-tree-") || tablink.startsWith("https://www.myheritage.com/site-family-tree-")) && !tablink.endsWith("-info")) {
             var linkid = getParameterByName("rootIndivudalID", tablink);
             var siteid = tablink.substring(tablink.lastIndexOf("-") + 1, tablink.lastIndexOf("/"));
             tablink = tablink.replace("site-family-tree-", "person-" + linkid + "_" + siteid + "_");
@@ -891,7 +891,7 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
-        } else if (tablink.startsWith("http://www.myheritage.com/") ||
+        } else if (tablink.startsWith("http://www.myheritage.com/") || tablink.startsWith("https://www.myheritage.com/") ||
             tablink.startsWith("http://www.findagrave.com") ||
             tablink.startsWith("http://www.wikitree.com/wiki/") ||
             tablink.startsWith("http://www.werelate.org/wiki/Person") ||
@@ -2177,7 +2177,8 @@ function validRootsWeb(url) {
 }
 
 function validMyHeritage(url) {
-    return (url.startsWith("http://www.myheritage.com/person-") || url.startsWith("http://www.myheritage.com/member-") || url.startsWith("http://www.myheritage.com/site-family-tree-"));
+    return (url.startsWith("http://www.myheritage.com/person-") || url.startsWith("http://www.myheritage.com/member-") || url.startsWith("http://www.myheritage.com/site-family-tree-") ||
+        url.startsWith("https://www.myheritage.com/person-") || url.startsWith("https://www.myheritage.com/member-") || url.startsWith("https://www.myheritage.com/site-family-tree-"));
 }
 
 function validFamilyTree(url) {

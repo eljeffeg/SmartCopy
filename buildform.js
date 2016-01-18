@@ -183,6 +183,15 @@ function buildForm() {
         x += 1;
         var thumbnail = alldata["profile"]["thumb"];
         var image = alldata["profile"]["image"];
+        if (Object.getOwnPropertyNames(fsimage).length > 0) {
+            for (var imgurl in fsimage) {
+                if (imgurl == thumbnail) {
+                    thumbnail = fsimage[imgurl];
+                    image = thumbnail;
+                    break;
+                }
+            }
+        }
         membersstring = membersstring +
             '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(thumbnail, scorephoto) + '>' +
             capFL(title) + ':</td><td style="float:right;padding: 0;"><input type="hidden" class="photocheck" name="' + title + '" value="' + image + '" ' + isEnabled(thumbnail, scorephoto) + '><img style="max-width: 152px" src="' + thumbnail + '"></td></tr>';
@@ -564,6 +573,15 @@ function buildForm() {
             if (exists(members[member]["thumb"])) {
                 var thumbnail = members[member]["thumb"];
                 var image = members[member]["image"];
+                if (Object.getOwnPropertyNames(fsimage).length > 0) {
+                    for (var imgurl in fsimage) {
+                        if (imgurl == thumbnail) {
+                            thumbnail = fsimage[imgurl];
+                            image = thumbnail;
+                            break;
+                        }
+                    }
+                }
                 membersstring = membersstring +
                     '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext photocheck" ' + isChecked(thumbnail, (scored && photoscore)) + '>' +
                     "Photo" + ':</td><td style="float:right;padding: 0; padding-top: 2px; "><input type="hidden" class="photocheck" name="photo" value="' + image + '" ' + isEnabled(thumbnail, (scored && photoscore)) + '><img style="max-width: 158px"  src="' + thumbnail + '"></td></tr>';
@@ -1271,6 +1289,8 @@ function cleanDate(dateval) {
         // Read as DD-MM-YYYY format
     } else if (dateval.search(/\d{4}-\d{4}/) === -1 && dateval.search(/\d{4}-\d{2}/) !== -1) {
         // Read as YYYY-MM-DD format
+    } else if (dateval.search(/\D{3}-\d{4}/)) {
+        // Read as MMM-YYYY format
     } else if (dateval.contains("-")) {
         dateval = dateval.replace("-", " and ");
         if (!dateval.startsWith("Between")) {

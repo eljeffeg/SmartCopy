@@ -71,6 +71,14 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
                     aboutdata += row[1];
                 }
             } else if (fieldname === "change date") {
+                //break;
+                //Caused a problem with these pages: http://wc.rootsweb.ancestry.com/cgi-bin/igm.cgi?op=GET&db=swissvol&id=I2905
+                //looking for father, mother, married instead
+            } else if (fieldname === "father") {
+                break;
+            } else if (fieldname === "mother") {
+                break;
+            } else if (fieldname === "married") {
                 break;
             }
         }
@@ -329,9 +337,10 @@ function parseRootsDate(vitalstring) {
     } else if (vitalinfo.toLowerCase().startsWith("bet") || vitalinfo.toLowerCase().startsWith("btw")) {
         datesplit[0] = vitalinfo;
     } else {
+
         var i = vitalinfo.substr(i).search(/\d{4}/);
         if (i == -1 || vitalstring.length < i + 5) {
-            datesplit = [ vitalinfo ];
+            datesplit = ["", vitalinfo ];
         } else {
             datesplit = [ vitalinfo.substr(0, i + 4).trim(), vitalinfo.substr(i + 4).trim() ];
         }

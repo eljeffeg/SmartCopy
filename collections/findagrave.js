@@ -87,90 +87,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                     continue;
                 }
             }
-            if ($(row).text().toLowerCase().trim().startsWith("birth:")) {
-                var cells = $(row).find('td');
-                var eventinfo = $(cells[1]).html();
-                if (exists(eventinfo)) {
-                    if (eventinfo.contains("<br>")) {
-                        var eventsplit = eventinfo.split("<br>");
-                        var dateval = eventsplit.shift().replace(".,", "").replace(/&nbsp;/g, " ").replace("  ", " ").trim();
-                        dateval = cleanDate(dateval);
-                        if (dateval !== "unknown" && dateval !== "") {
-                            data.push({date: dateval});
-                        }
-                        var eventlocation = eventsplit.join(", ");
-                        data.push({id: geoid, location: eventlocation});
-                        geoid++;
-                    } else if(eventinfo.search(/\d{4}, /) !== -1) {
-                        var eventsplit = eventinfo.split(/\d{4}, /);
-                        dateval = eventinfo.replace(", " + eventsplit[1], "").replace(".,", "").replace(/&nbsp;/g, " ").replace("  ", " ").trim();
-                        var eventlocation = eventsplit[1];
-                        dateval = cleanDate(dateval);
-                        if (dateval !== "unknown" && dateval !== "") {
-                            data.push({date: dateval});
-                        }
-                        if (exists(eventlocation) && eventlocation !== "") {
-                            data.push({id: geoid, location: eventlocation});
-                            geoid++;
-                        }
-                    } else {
-                        if (eventinfo !== "unknown") {
-                            data.push({date: eventinfo});
-                        }
-                    }
-                    if (!$.isEmptyObject(data)) {
-                        profiledata["birth"] = data;
-                    }
-                }
-
-            } else if ($(row).text().toLowerCase().trim().startsWith("death:")) {
-                var cells = $(row).find('td');
-                var eventinfo = $(cells[1]).html();
-                if (exists(eventinfo)) {
-                    if (eventinfo.contains("<br>")) {
-                        var eventsplit = eventinfo.split("<br>");
-                        var dateval = eventsplit.shift().replace(".,", "").replace(/&nbsp;/g, " ").replace("  ", " ").trim();
-                        dateval = cleanDate(dateval);
-                        if (dateval !== "unknown" && dateval !== "") {
-                            data.push({date: dateval});
-                            deathdtflag = true;
-                        }
-                        var eventlocation = eventsplit.join(", ");
-                        data.push({id: geoid, location: eventlocation});
-                        geoid++;
-                    } else {
-                        if (eventinfo !== "unknown") {
-                            data.push({date: eventinfo});
-                        }
-                    }
-                    if (!$.isEmptyObject(data)) {
-                        profiledata["death"] = data;
-                    }
-                }
-
-            } else if ($(row).text().toLowerCase().trim().startsWith("burial:")) {
-                var cells = $(row).find('td');
-                var eventlocation = $(cells[0]).html().replace(/burial:/i, "").replace(/&nbsp;/g, "").replace(/<a[^>]*>/ig, "").replace(/<\/a>/ig,"").trim();
-                var eventsplit = eventlocation.replace(/[\n\r]/g, "").replace(/,/g, "").split("<br>");
-                if (eventsplit.length > 0) {
-                    if (eventsplit[0] === "") {
-                        eventsplit.shift();
-                    }
-                    if (eventsplit[eventsplit.length-1].toLowerCase().startsWith("plot") || eventsplit[eventsplit.length-1].toLowerCase().startsWith("gps")) {
-                        if (eventsplit[eventsplit.length-1].toLowerCase().startsWith("gps")) {
-                            if (eventsplit[eventsplit.length-2].toLowerCase().startsWith("plot")) {
-                                eventsplit[eventsplit.length-2] += " " + eventsplit.pop();
-                            }
-                        }
-                        eventsplit[0] += " (" + eventsplit.pop() + ")";
-                    }
-                    eventlocation = eventsplit.join(", ").trim();
-                }
-                data.push({id: geoid, location: eventlocation});
-                geoid++;
-                buriallcflag = true;
-                profiledata["burial"] = data;
-            } else if ($(row).text().toLowerCase().contains("family links:")) {
+            if ($(row).text().toLowerCase().contains("family links:")) {
                 // ---------------------- Family Data --------------------
                 var cells = $(row).find('td');
                 var familysplit = $(cells[0]).html().split(/family links:/i);
@@ -302,6 +219,89 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                         }
                     }
                 }
+            } else if ($(row).text().toLowerCase().trim().startsWith("birth:")) {
+                var cells = $(row).find('td');
+                var eventinfo = $(cells[1]).html();
+                if (exists(eventinfo)) {
+                    if (eventinfo.contains("<br>")) {
+                        var eventsplit = eventinfo.split("<br>");
+                        var dateval = eventsplit.shift().replace(".,", "").replace(/&nbsp;/g, " ").replace("  ", " ").trim();
+                        dateval = cleanDate(dateval);
+                        if (dateval !== "unknown" && dateval !== "") {
+                            data.push({date: dateval});
+                        }
+                        var eventlocation = eventsplit.join(", ");
+                        data.push({id: geoid, location: eventlocation});
+                        geoid++;
+                    } else if(eventinfo.search(/\d{4}, /) !== -1) {
+                        var eventsplit = eventinfo.split(/\d{4}, /);
+                        dateval = eventinfo.replace(", " + eventsplit[1], "").replace(".,", "").replace(/&nbsp;/g, " ").replace("  ", " ").trim();
+                        var eventlocation = eventsplit[1];
+                        dateval = cleanDate(dateval);
+                        if (dateval !== "unknown" && dateval !== "") {
+                            data.push({date: dateval});
+                        }
+                        if (exists(eventlocation) && eventlocation !== "") {
+                            data.push({id: geoid, location: eventlocation});
+                            geoid++;
+                        }
+                    } else {
+                        if (eventinfo !== "unknown") {
+                            data.push({date: eventinfo});
+                        }
+                    }
+                    if (!$.isEmptyObject(data)) {
+                        profiledata["birth"] = data;
+                    }
+                }
+
+            } else if ($(row).text().toLowerCase().trim().startsWith("death:")) {
+                var cells = $(row).find('td');
+                var eventinfo = $(cells[1]).html();
+                if (exists(eventinfo)) {
+                    if (eventinfo.contains("<br>")) {
+                        var eventsplit = eventinfo.split("<br>");
+                        var dateval = eventsplit.shift().replace(".,", "").replace(/&nbsp;/g, " ").replace("  ", " ").trim();
+                        dateval = cleanDate(dateval);
+                        if (dateval !== "unknown" && dateval !== "") {
+                            data.push({date: dateval});
+                            deathdtflag = true;
+                        }
+                        var eventlocation = eventsplit.join(", ");
+                        data.push({id: geoid, location: eventlocation});
+                        geoid++;
+                    } else {
+                        if (eventinfo !== "unknown") {
+                            data.push({date: eventinfo});
+                        }
+                    }
+                    if (!$.isEmptyObject(data)) {
+                        profiledata["death"] = data;
+                    }
+                }
+
+            } else if ($(row).text().toLowerCase().trim().startsWith("burial:")) {
+                var cells = $(row).find('td');
+                var eventlocation = $(cells[0]).html().replace(/burial:/i, "").replace(/&nbsp;/g, "").replace(/<a[^>]*>/ig, "").replace(/<\/a>/ig,"").trim();
+                var eventsplit = eventlocation.replace(/[\n\r]/g, "").replace(/,/g, "").split("<br>");
+                if (eventsplit.length > 0) {
+                    if (eventsplit[0] === "") {
+                        eventsplit.shift();
+                    }
+                    if (eventsplit[eventsplit.length-1].toLowerCase().startsWith("plot") || eventsplit[eventsplit.length-1].toLowerCase().startsWith("gps")) {
+                        if (eventsplit[eventsplit.length-1].toLowerCase().startsWith("gps")) {
+                            if (eventsplit[eventsplit.length-2].toLowerCase().startsWith("plot")) {
+                                eventsplit[eventsplit.length-2] += " " + eventsplit.pop();
+                            }
+                        }
+                        eventsplit[0] += " (" + eventsplit.pop() + ")";
+                    }
+                    eventlocation = eventsplit.join(", ").trim();
+                }
+                data.push({id: geoid, location: eventlocation});
+                geoid++;
+                buriallcflag = true;
+                profiledata["burial"] = data;
             } else {
                 var cells = $(row).find('td');
                 if (exists(cells[0])) {

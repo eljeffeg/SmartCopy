@@ -156,6 +156,10 @@ function queryGeo(locationset, test) {
         }
         var place = "";
         var location = locationset.location.trim();
+        if (location.toLowerCase() == "y") {
+            geolocation[locationset.id] = parseGoogle("");
+            return;
+        }
         location = location.replace(/:/ig, "");
         location = location.replace(/Unknown/ig, "");
         location = location.replace(/\[Blank\]/ig, "");

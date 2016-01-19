@@ -92,7 +92,7 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
         var image = $(usrimg[1]).attr("src");
     }
 
-    if (exists(image) && !image.endsWith("puy35qab_original.jpg")) {
+    if (exists(image) && !image.endsWith("puy35qab_original.jpg") && !image.startsWith("data")) {
         profiledata["thumb"] = image.replace("&maxHeight=280", "&maxWidth=152");
         profiledata["image"] = image.replace("&maxHeight=280", "");
     }

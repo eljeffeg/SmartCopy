@@ -25,14 +25,14 @@ function parseAncestryTrees(htmlstring, familymembers, relation) {
     if (photoclass.hasClass("pImgMale")) {
         genderval = "male";
         var image = parsed.find("#" + ctprefix + "profile_picture160").attr("src");
-        if (exists(image)) {
+        if (exists(image) && !image.startsWith("data")) {
             profiledata["thumb"] = image;
             profiledata["image"] = image;
         }
     } else if (photoclass.hasClass("pImgFemale")) {
         genderval = "female";
         var image = parsed.find("#" + ctprefix + "profile_picture160").attr("src");
-        if (exists(image)) {
+        if (exists(image) && !image.startsWith("data")) {
             profiledata["thumb"] = image;
             profiledata["image"] = image;
         }

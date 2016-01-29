@@ -795,6 +795,7 @@ function buildParentSpouse(finalid) {
         var spval = {male: 0, female: 0, unknown: 0};
         for (var i = 0; i < genifamily.length; i++) {
             var familymem = genifamily[i];
+            familymem.relation = familymem.relation.toLowerCase();
             if (isParent(familymem.relation)) {
                 parval = countGeniMem(parval, familymem.relation);
                 parents = true;

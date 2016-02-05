@@ -6,34 +6,36 @@
 </head>
 <body>
 <a href=""></a><!-- For some reason, the first hyperlink adds a border - chrome extension feature? -->
-<div id="logo" style="background-color: #e5ebf0; margin: -2px -8px; padding-top:3px; padding-left: 8px; padding-right: 8px; border-bottom: solid 1px #fff;"><a href="https://www.geni.com/projects/SmartCopy/18783" target="_blank"><img src="images/smartcopy.png"></a>
+<div id="logo" style="background-color: #e5ebf0; margin: -2px -8px; padding-top:3px; padding-left: 8px; padding-right: 8px; border-bottom: solid 1px #fff;"><a href="https://www.geni.com/projects/SmartCopy/18783" target="_blank"><img src="images/smartcopylg.png" style="width: 200px;"></a>
     <span id="sclink" style="float: right;"><a href="https://www.geni.com/discussions?discussion_type=project-18783" target="_blank"><img src="/images/comment.png" title="Discussion" style="padding-top: 8px; padding-right: 4px; padding-left: 2px; width: 20px;"></a></span>
-    <span id="curator" style="display: none; float: right;"><a href="http://historylink.herokuapp.com/leaderboard" target="_blank"><img src="/images/curator.png" title="Leaderboard" style="padding-top: 8px; padding-right: 5px; width: 20px;"></a></span>
+    <span id="curator" style="display: none; float: right;"><a href="http://historylinktools.herokuapp.com/leaderboard" target="_blank"><img src="/images/curator.png" title="Leaderboard" style="padding-top: 8px; padding-right: 5px; width: 20px;"></a></span>
 
     <!-- <span style="display: inline-block; float: right; padding-top: 4px;"><img src="images/CuratorShield.png" width="22" align="right"></span> -->
 </div>
-<div id="backlinks" style="text-align:center;  margin-left: -8px; margin-right: -8px; padding-left: 8px; padding-right: 8px; padding-top: 3px; border-top: solid 1px #ddd;"><span style="margin-right: 8px; margin-top: -3px; font-size: 82%;"><strong><a href="http://historylink.herokuapp.com/graph?color=gender" target="_blank" id="graphurl">Ancestor Graph</a> <span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylink.herokuapp.com/graph?type=descendant&color=gender" target="_blank" id="descendanturl">Descendant Graph</a> <span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylink.herokuapp.com/history" target="_blank" id="historyurl">History Search</a></strong></span></div>
+<div id="backlinks" style="text-align:center;  margin-left: -8px; margin-right: -8px; padding-left: 8px; padding-right: 8px; padding-top: 3px; border-top: solid 1px #ddd;"><span style="margin-right: 8px; margin-top: -3px; font-size: 82%;"><strong><a href="http://historylinktools.herokuapp.com/graph?color=gender" target="_blank" id="graphurl">Ancestor Graph</a> <span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylinktools.herokuapp.com/graph?type=descendant&color=gender" target="_blank" id="descendanturl">Descendant Graph</a> <span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylinktools.herokuapp.com/history" target="_blank" id="historyurl">History Search</a></strong></span></div>
+
 <div id="smartcopy-container" style="margin-top: 10px; padding-right: 5px; padding-left: 5px; display: none;">
-    <div id="top-container" style="display: none;">
 
-        <table style="width: 100%;">
-            <tr><td>
-                <div id='focusname' style="font-size: large; font-weight: bold;"></div>
-                <div id='focusrange' style="font-size: small; margin-bottom: 5px; margin-top: 1px;" ></div>
-            </td><td style="vertical-align: top;">
-                <button type="button" id="submitbutton" class="cta cta-blue" style="float: right;">Submit</button>
-            </td>
-            </tr>
-        </table>
+<div id="top-container" style="display: none;">
+    <table style="width: 100%;">
+        <tr><td>
+            <div id='focusname' style="font-size: large; font-weight: bold;"></div>
+            <div id='focusrange' style="font-size: small; margin-bottom: 5px; margin-top: 1px;" ></div>
+        </td><td style="vertical-align: top;">
+            <button type="button" id="submitbutton" class="cta cta-blue" style="float: right;">Submit</button>
+        </td>
+        </tr>
+    </table>
 
-        <div class="shadoweffect" id="options" style="margin-bottom: 10px;">
-            <div id="optionbutton" style="vertical-align: middle; cursor: pointer;"><img src="/images/admin.png" style="float: left; margin-top: -2px;">
-                <span style="padding-left:5px"><strong>Configuration Options</strong></span><span style="float: right; font-size: 120%; padding-right: 2px;">&#9662;</span></div>
-            <div id="optionslide" style="display: none;">
-                <div class="separator"></div>
-                <table style="width: 100%; border-spacing: 0; border-collapse: collapse;">
+    <div class="shadoweffect" id="options" style="margin-bottom: 10px;">
+        <div id="optionbutton" style="vertical-align: middle; cursor: pointer;"><img src="/images/admin.png" style="float: left; margin-top: -1px; width: 20px;">
+            <span style="padding-left:5px"><strong>Configuration Options</strong></span><span style="float: right; font-size: 130%; padding-right: 2px;">&#9662;</span></div>
+        <div id="optionslide" style="display: none;">
+            <div class="separator"></div>
+            <table style="border-spacing: 0; border-collapse: collapse; white-space: nowrap; width: 100%;">
+                <tr><td><table>
                     <tr>
-                        <td style="width: 58px; padding: 0;">
+                        <td style="padding: 3px 6px 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="geoonoffswitch" checked>
@@ -43,10 +45,10 @@
                                 </label>
                             </div>
                         </td>
-                        <td style="text-align: left; padding: 0; vertical-align: middle;">Detect geolocation & populate fields</td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Detect geolocation & populate fields</td>
                     </tr>
                     <tr>
-                        <td style="padding: 3px 0 0; width: 58px;">
+                        <td style="padding: 3px 6px 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="privateonoffswitch" checked>
@@ -59,7 +61,7 @@
                         <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Exclude &lt;private&gt; profile auto-select</td>
                     </tr>
                     <tr>
-                        <td style="padding: 3px 0 0; width: 58px;">
+                        <td style="padding: 3px 6px 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="birthonoffswitch" checked>
@@ -72,7 +74,7 @@
                         <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Auto-populate empty birth name fields</td>
                     </tr>
                     <tr>
-                        <td style="padding: 3px 0 0; width: 58px;">
+                        <td style="padding: 3px 6px 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="mnameonoffswitch" checked>
@@ -85,7 +87,20 @@
                         <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Parse for middle names automatically</td>
                     </tr>
                     <tr>
-                        <td style="padding: 3px 0 0; width: 58px;">
+                        <td style="padding: 3px 6px 0; width: 58px;">
+                            <div class="onoffswitch" checked>
+                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                       id="adjustnameonoffswitch" checked>
+                                <label class="onoffswitch-label" for="adjustnameonoffswitch">
+                                    <span class="onoffswitch-inner"></span>
+                                    <span class="onoffswitch-switch"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Auto-adjust the names for mixed-case<div id="casenamechange" style="display: none; color: red;">This change will take effect at next use.</div></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="hideemptyonoffswitch" checked>
@@ -98,7 +113,7 @@
                         <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Simplify form by hiding unused fields</td>
                     </tr>
                     <tr>
-                        <td style="padding: 3px 0 0; width: 58px;">
+                        <td style="padding: 3px 6px 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="burialonoffswitch" checked>
@@ -111,7 +126,7 @@
                         <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Estimate burial date from death date<div id="burialchange" style="display: none; color: red;">This change will take effect at next use.</div></td>
                     </tr>
                     <tr>
-                        <td style="padding: 3px 0 0; width: 58px;">
+                        <td style="padding: 3px 6px 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="geniparentonoffswitch" checked>
@@ -124,7 +139,7 @@
                         <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Default children to likely Geni parent<div id="gparentchange" style="display: none; color: red;">This change will take effect at next use.</div></td>
                     </tr>
                     <tr>
-                        <td style="padding: 3px 0 0; width: 58px;">
+                        <td style="padding: 3px 6px 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="sourceonoffswitch"  checked>
@@ -134,10 +149,10 @@
                                 </label>
                             </div>
                         </td>
-                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Add source reference to About section</td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Add reference to Geni's About section</td>
                     </tr>
                     <tr>
-                        <td style="padding: 3px 0 0; width: 58px;">
+                        <td style="padding: 3px 6px 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="photoonoffswitch" checked>
@@ -150,7 +165,20 @@
                         <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Enable photo checkbox auto-selection</td>
                     </tr>
                     <tr>
-                        <td style="padding: 3px 0 0; width: 58px;">
+                        <td style="padding: 3px 6px 0; width: 58px;">
+                            <div class="onoffswitch">
+                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                       id="genislideonoffswitch" checked>
+                                <label class="onoffswitch-label" for="genislideonoffswitch">
+                                    <span class="onoffswitch-inner"></span>
+                                    <span class="onoffswitch-switch"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Display the Geni side data by default</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="exponoffswitch">
@@ -163,71 +191,110 @@
                         <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Enable experimental collection parsing</td>
                     </tr>
                 </table>
+                </td><td id="controlimage"><img style="margin-left: -10px; width: 170px;" src="images/control.png"></td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- The Modal -->
+<div id="GeoUpdateModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <div class="shadoweffect" style="margin: 12px; padding-left: 10px; padding-right: 10px; padding-top: 0px;">
+            <span class="close">&times;</span>
+            <table><tr><td><img src="images/redpin.png" align="left" style="width: 32px; margin-left: -5px;"></td><td><h2>Location Update</h2></td></tr></table>
+            Update the location and resubmit it to Google for GeoLocation.
+            <div class="modal-body" style="height: 100%;">
+                <p><input id="geoupdatetext" type="text" style="width: 100%;"></p>
+                <button type="button" id="geolookupbtn" class="cta cta-blue" style="float: right;">Update</button>
+                <br><br>
             </div>
         </div>
     </div>
-    <form id="formdata">
-        <div id="profiledata" style="display: none; text-align: center;">
-
-            <strong>Profile Data</strong>
-            <div class="shadoweffect" style="font-weight: bold;"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall">Update Profile<span id="updateslide" style="font-size: 130%; cursor: pointer; float: right; padding: 0px 4px;">&#9662;</span>
-
-                <fieldset id="profilefield" class="fieldeffect">
-                    <table style="width: 100%; border-spacing: 0; border-collapse: collapse;" id="profiletable">
-                    </table>
-                </fieldset>
-            </div>
-        </div>
-
-        <div id="familydata" style="display: none; margin-top: 10px; text-align: center;">
-            <strong>Family Members</strong>
-            <div class="shadoweffect">
-                <div id="parent" style="display: none;">
-                    <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addparentck">Parents</span><span id="parentcount" style="color: #949494; font-size: x-small;"></span><span id="parentsearch" style="padding-left: 5px;"><a href="http://www.geni.com/search/advanced" id="genisearch" target="_blank"><img src="images/search.png" alt="Search Geni for Parents" title="Search Geni for Parents" style="margin-bottom: -3px;" border="0"></a></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandparent" style="color: #000;">expand all</a>)</span>
-                    <fieldset class="fieldeffect">
-                        <div id="parentval" class="familydiv"></div>
-                    </fieldset>
-                </div>
-                 <div id="sibling" style="display: none; margin-top: 8px;">
-                    <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addsiblingck">Siblings</span><span id="siblingcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandsibling" style="color: #000;">expand all</a>)</span>
-                    <fieldset class="fieldeffect">
-                        <div id="siblingval" class="familydiv"></div>
-                    </fieldset>
-                </div>
-                <div id="partner" style="display: none; margin-top: 8px;">
-                    <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addpartnerck">Partners</span><span id="partnercount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandpartner" style="color: #000;">expand all</a>)</span>
-                    <fieldset class="fieldeffect">
-                        <div id="partnerval" class="familydiv"></div>
-                    </fieldset>
-                </div>
-                <div id="child" style="display: none; margin-top: 8px;">
-                    <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addchildck">Children</span><span id="childcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandchild"  style="color: #000;">expand all</a>)</span>
-                    <fieldset class="fieldeffect">
-                        <div id="childval" class="familydiv"></div>
-                    </fieldset>
-                </div>
-            </div>
-        </div>
-        <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px; margin-bottom: 15px;">
-            <div style="text-align: center; padding-top: 2px;"><img src="images/spinner.gif" style="height:24px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Reading Family Data...</strong><div id="readstatus"></div></div>
-        </div>
-        <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
-            <div style="text-align: center; padding-top: 2px; padding-right: 10px; padding-left: 10px;"><img src="images/spinner.gif" style="height:24px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Updating Geni (<span id="updatecount">1</span> of <span id="updatetotal">1</span>)</strong>
-                <div id="updatestatus"></div>
-            </div>
-        </div>
-        <div id="bottomsubmit" style="padding-top: 15px; text-align: center; display: none;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;">Submit</a></div>
-    </form>
 </div>
-<div id='loginspinner' style="padding-top: 11px; text-align: center;"><img src="images/spinnersm.gif"></div>
-<div class='colorbox' id='useraccess' style="display:none; width: 88%; margin-bottom: 12px; margin-right: 9px; margin-left: 9px; background-color:#dfe6ed;"></div>
-<div class='colorbox' id='message' style="display:none; width: 88%; margin-bottom: 15px; margin-right: 9px; margin-left: 9px; background-color:#D3D3D3;"></div>
+
+<form id="formdata">
+    <div id="genislider" title="Geni Data" class="ctx" style="display: none; z-index:99; cursor: pointer; position: fixed; top: 44%; left: -8px; height:70px; width: 0px;"><img src="images/openmenu.png" style="width: 10px; padding-top:22px; height: 25px; margin-left: -2px;"></div>
+    <div id="profiledata" style="display: none; text-align: center;">
+        <table style="margin-bottom: 10px; width: 100%;">
+            <strong>Profile Data</strong>
+            <td >
+                <div class="shadoweffect" style="padding-top: 12px; margin-right: 1px; margin-left: 1px; font-weight: bold;" id="profileshadowdiv"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall">Update Profile<span id="updateslide" style="font-size: 130%; cursor: pointer; float: right; padding: 0px 4px;">&#9662;</span><span class="genisliderow" style="float: right; font-size: 80%; font-weight: normal; margin-right: 100px; margin-top: 5px;">Geni Data</span>
+                    <fieldset id="profilefield" class="fieldeffect">
+                        <table style="width: 100%; border-spacing: 0; border-collapse: collapse;" id="profiletable">
+                        </table>
+                    </fieldset>
+                </div>
+            </td>
+        </table>
+    </div>
+
+    <div id="familydata" style="display: none; margin-top: 10px; text-align: center;">
+        <table style="margin-bottom: 10px; width: 100%;">
+            <strong>Family Members</strong>
+
+            <td >
+
+                <div class="shadoweffect" style="padding-top: 4px; margin-right: 1px; margin-left: 1px;">
+                    <div id="parent" style="display: none; margin-top: 8px;">
+                        <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addparentck">Parents</span><span id="parentcount" style="color: #949494; font-size: x-small;"></span><span id="parentsearch" style="padding-left: 5px;"><a href="http://www.geni.com/search/advanced" id="genisearch" target="_blank"><img src="images/search.png" alt="Search Geni for Parents" title="Search Geni for Parents" style="margin-bottom: -3px;" border="0"></a></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandparent" style="color: #000;">expand all</a>)</span>
+                        <fieldset class="fieldeffect">
+                            <div id="parentval" class="familydiv"></div>
+                        </fieldset>
+                    </div>
+                    <div id="sibling" style="display: none; margin-top: 8px;">
+                        <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addsiblingck">Siblings</span><span id="siblingcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandsibling" style="color: #000;">expand all</a>)</span>
+                        <fieldset class="fieldeffect">
+                            <div id="siblingval" class="familydiv"></div>
+                        </fieldset>
+                    </div>
+                    <div id="partner" style="display: none; margin-top: 8px;">
+                        <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addpartnerck">Partners</span><span id="partnercount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandpartner" style="color: #000;">expand all</a>)</span>
+                        <fieldset class="fieldeffect">
+                            <div id="partnerval" class="familydiv"></div>
+                        </fieldset>
+                    </div>
+                    <div id="child" style="display: none; margin-top: 8px;">
+                        <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addchildck">Children</span><span id="childcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandchild"  style="color: #000;">expand all</a>)</span>
+                        <fieldset class="fieldeffect">
+                            <div id="childval" class="familydiv"></div>
+                        </fieldset>
+                    </div>
+                    <div id="unknown" style="display: none; margin-top: 8px;">
+                        <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addunknownck" disabled>Unknown Relations</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandunknown"  style="color: #000;">expand all</a>)</span>
+                        <fieldset class="fieldeffect">
+                            <div id="unknownval" class="familydiv"></div>
+                        </fieldset>
+                    </div>
+                </div>
+            </td>
+        </table>
+    </div>
+
+    <div id="bottomsubmit" style="display: none; padding-top: 15px; text-align: center;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;">Submit</a></div>
+
+    <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px; margin-bottom: 15px;">
+        <div style="text-align: center; padding-top: 2px;"><img src="images/spinner.gif" style="height:24px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Reading Family Data...</strong><div id="readstatus"></div></div>
+    </div>
+    <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
+        <div style="text-align: center; padding-top: 2px; padding-right: 10px; padding-left: 10px;"><img src="images/spinner.gif" style="height:24px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Updating Geni (<span id="updatecount">1</span> of <span id="updatetotal">1</span>)</strong>
+            <div id="updatestatus"></div>
+        </div>
+    </div>
+</form>
+</div>
+<center>
+    <div id='loginspinner' style="padding-top: 11px; text-align: center;"><img src="images/spinnersm.gif"></div>
+    <div class='colorbox' id='useraccess' style="display:none; width: 88%; margin-bottom: 12px; margin-right: 9px; margin-left: 9px; background-color:#dfe6ed;"></div>
+    <div class='colorbox' id='message' style="display:none; width: 88%; margin-bottom: 15px; margin-right: 9px; margin-left: 9px; background-color:#D3D3D3;"></div>
+</center>
 <div style="display: table-cell; text-align: left; white-space: nowrap; font-size: x-small; padding-left: 10px;">
     <span style="display: none;" id="addhistoryblock"><a style="cursor: pointer;" id="addhistory">Add to History</a></span></div>
 <div style="display: table-cell;  width: 100%; text-align: right; white-space: nowrap; font-size: x-small; padding-right: 10px;"><a style="cursor: pointer;" id="showhistory">Show History</a></div>
-<div id='historybox' class="shadoweffect" style="display: none; margin-bottom: 20px;"><div id='historytext'></div><div style='font-size: x-small; text-align: center; padding-top: 5px;'><a style="cursor: pointer;" id="clearhistory">Clear History</a></div></div>
+<div id='historybox' class="shadoweffect" style="display: none; margin-bottom: 20px; margin-right: 10px; margin-left: 10px;"><div id='historytext'></div><div style='font-size: x-small; text-align: center; padding-top: 5px;'><a style="cursor: pointer;" id="clearhistory">Clear History</a></div></div>
 
-<div id="versionbox" style="width: 100%; z-index: -1; position:fixed; -webkit-user-select: none; cursor: default; margin-left: -8px; bottom:0px; color: #a9b5d4; text-align: center; white-space: nowrap; font-size: xx-small; "></div>
+<div id="versionbox" style="width: 100%; z-index: -1; position:relative; -webkit-user-select: none; cursor: default; bottom:-5px; margin-top: -15px; color: #a9b5d4; text-align: center; white-space: nowrap; font-size: xx-small; "></div>
 <script src="jquery.js"></script>
 <script src="popup.js"></script>
 <script src="research.js"></script>
@@ -236,7 +303,8 @@
 <script src="collections/smartmatch.js"></script>
 <script src="collections/findagrave.js"></script>
 <script src="collections/wikitree.js"></script>
-<script src="collections/familysearch.js"></script>
+<script src="collections/familysearchrecord.js"></script>
+<script src="collections/familysearchjson.js"></script>
 <script src="collections/rootsweb.js"></script>
 <script src="collections/ancestryfree.js"></script>
 <script src="collections/ancestrynew.js"></script>
@@ -244,6 +312,8 @@
 <script src="collections/werelate.js"></script>
 <script src="collections/myheritage.js"></script>
 <script src="collections/familytreemaker.js"></script>
+<script src="json2html.js"></script>
+<script src="jquery.json2html.js"></script>
 <script src="buildform.js"></script>
 <script src="moment.js"></script>
 </body>

@@ -156,6 +156,7 @@ function queryGeo(locationset, test) {
         }
         var place = "";
         var location = locationset.location.trim();
+
         if (location.toLowerCase() == "y") {
             geolocation[locationset.id] = parseGoogle("");
             return;
@@ -183,6 +184,7 @@ function queryGeo(locationset, test) {
             }
             return;
         }
+
         if (exists(locationset.place) && locationset.place !== "") {
             place = locationset.place.trim();
         } else {
@@ -216,6 +218,10 @@ function queryGeo(locationset, test) {
                     georesult.city = township;
                 }
             }
+            if (georesult.state !== "" && full_location.toLowerCase().endsWith(georesult.state.toLowerCase() + " colony") && !georesult.state.toLowerCase().contains("colony") && georesult.country !== "") {
+                georesult.state = georesult.state + " Colony";
+                georesult.country = "";
+            }
 
             geolocation[id] = georesult;
 
@@ -228,19 +234,24 @@ function queryGeo(locationset, test) {
                 location_split[0] = location_split[0] + " State";
             }
             // ----- Stage 2: Run again with one item removed from front, or modified, for comparison -----
-            var short_location = location_split.join(",");
+            var short_location = location_split.join(",").trim();
             if (location_split.length > 0) {
                 var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&address=" + encodeURIComponent(short_location);
                 chrome.extension.sendMessage({
                     method: "GET",
                     action: "xhttp",
                     url: url,
-                    variable: {id: id, location: short_location, unittest: unittest, place: response.variable.place}
+                    variable: {id: id, location: short_location, unittest: unittest, place: response.variable.place, full: full_location}
                 }, function (response) {
                     var result = jQuery.parseJSON(response.source);
                     var id = response.variable.id;
+                    var short_location = response.variable.location;
                     var unittest = response.variable.unittest;
                     var georesult = new GeoLocation(result, response.variable.location);
+                    if (georesult.state !== "" && short_location.toLowerCase().endsWith(georesult.state.toLowerCase() + " colony") && !georesult.state.toLowerCase().contains("colony") && georesult.country !== "") {
+                        georesult.state = georesult.state + " Colony";
+                        georesult.country = "";
+                    }
                     if (countGeoFields(georesult) === 0 && countGeoFields(geolocation[id]) === 0) {
                         georesult = geolocation[id];
                         georesult.place = geolocation[id].query;
@@ -258,6 +269,7 @@ function queryGeo(locationset, test) {
                             georesult.place = "";
                         }
                     }
+                    georesult.query = full_location;
                     geolocation[id] = georesult;
 
                     if (unittest !== "") {
@@ -430,7 +442,8 @@ function compareGeo(shortGeo, longGeo) {
 // use long results ... but this could really go either way!  (perhaps retain both for user to choose)
                 location = longGeo;
                 if (verbose){console.log("used long when field contents differ");}
-                if (!(ambig)) {
+                if (!(ambig) && longGeo.count !== 1) {
+                    //If the long has a count of 1, assume it's not ambig
                     ambig = true;
                     if (verbose){console.log("... and marked ambiguous");}
                 }

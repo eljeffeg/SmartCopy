@@ -20,6 +20,11 @@ var parentspouseunion;
 var parentspouselist = [];
 var genigender;
 var geniliving;
+var googlerequery = "";
+var genifocusdata;
+var genifamilydata = {};
+var genibuildaction = {};
+
 chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
         buildhistory = result.buildhistory;
@@ -156,6 +161,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tablink.startsWith("http://www.wikitree.com") || tablink.startsWith("http://trees.ancestry.") || tablink.startsWith("http://person.ancestry.") || tablink.startsWith("http://www.werelate.org/wiki/Person") ||
             (validRootsWeb(tablink) && tablink.contains("id=")) || (tablink.startsWith("http://records.ancestry.com") && tablink.contains("pid=")) || tablink.startsWith("http://www.ancestry.com/genealogy/records/") ||
             tablink.startsWith("https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
+            document.querySelector('#message').style.display = "none";
             getPageCode();
         } else if (startsWithMH(tablink, "matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr")) ||
             (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
@@ -167,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Profile pages on this site.');
         } else if (isGeni()) {
+            document.querySelector('#message').style.display = "none";
             var focusprofile = getProfile(tablink);
             focusid = focusprofile.replace("?profile=", "");
             document.getElementById("addhistoryblock").style.display = "block";
@@ -178,6 +185,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+var slideopen = false;
+$('#genislider').on('click', function () {
+    if (slideopen) {
+        $("body").animate({ 'max-width': "340px" }, 'slow');
+        $(".genisliderow").not(".genihidden").slideToggle();
+        $("#controlimage").slideUp();
+        $(this).find("img")[0].src = "images/openmenu.png";
+    } else {
+       // $("body").animate({ 'max-width': "550px" }, 'slow');
+        $("body").animate({ 'max-width': "500px" }, 'slow');
+        $(".genisliderow").not(".genihidden").slideToggle();
+        $("#controlimage").slideDown();
+        $(this).find("img")[0].src = "images/closemenu.png";
+    }
+    slideopen = !slideopen;
+});
+
 
 function isGeni() {
     return (tablink.startsWith("http://www.geni.com/people") || tablink.startsWith("http://www.geni.com/family-tree") || tablink.startsWith("http://www.geni.com/profile") ||
@@ -469,21 +494,57 @@ function loadPage(request) {
                 var par = parsed.find("#personCard");
                 focusname = par.find(".userCardTitle").text();
                 focusrange = par.find(".userCardSubTitle").text().replace("&ndash;", " - ");
-            } else if (tablink.startsWith("https://familysearch.org/pal:") || tablink.startsWith("https://familysearch.org/tree")) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+            } else if (tablink.startsWith("https://familysearch.org/tree-data")) {
                 recordtype = "FamilySearch Genealogy";
-                var fname = parsed.find("#PersonSummarySection").find(".fs-person-vitals__name-full");
-                if (fname.length === 0) {
-                    //Old method
-                    var fname = parsed.find('.name');
+                var parsed = "";
+                try {
+                    parsed = JSON.parse(request.source);
+                } catch(err) {
+                    setMessage("#f8ff86", "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
+                        "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
+                    document.getElementById("top-container").style.display = "block";
+                    document.getElementById("submitbutton").style.display = "none";
+                    document.getElementById("loading").style.display = "none";
+                    return;
                 }
-                var focusperson = $(fname[0]).text();
+                if (parsed["status"] !== "OK") {
+                    setMessage("#f8ff86", 'There was a problem reading this FamilySearch profile.<br>Unable to retrive the data via the id "' +
+                        '<a href="' + tablink + '" target="_blank">' + focusURLid + '</a>".');
+                    document.getElementById("top-container").style.display = "block";
+                    document.getElementById("submitbutton").style.display = "none";
+                    document.getElementById("loading").style.display = "none";
+                    return;
+                }
 
+                var focusperson = parsed["data"]["name"];
+                if (focusperson.match(/\s\/\w+\//g, '')) {
+                    focusperson = focusperson.replace(/\//g, "");
+                }
+                focusURLid = parsed["data"]["id"];  //In case it is merged with another profile - update
+                focusname = focusperson;
+                focusrange = parsed["data"]["lifeSpan"] || "";
+            } else if (tablink.startsWith("https://familysearch.org/platform")) {
+                recordtype = "FamilySearch Record";
+                var parsed = "";
+                try {
+                    parsed = JSON.parse(request.source);
+                } catch(err) {
+                    setMessage("#f8ff86", "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
+                        "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
+                    document.getElementById("top-container").style.display = "block";
+                    document.getElementById("submitbutton").style.display = "none";
+                    document.getElementById("loading").style.display = "none";
+                    return;
+                }
+
+                var focusperson = getFSRecordName(getFSFocus(parsed));
+                if (!focusperson) {
+                    return;
+                }
                 if (focusperson.match(/\s\/\w+\//g, '')) {
                     focusperson = focusperson.replace(/\//g, "");
                 }
                 focusname = focusperson;
-                focusrange = "";
             } else if (tablink.startsWith("http://www.wikitree.com")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 var personinfo = parsed.find(".VITALS");
@@ -534,6 +595,10 @@ function loadPage(request) {
                 focusid = null;
             }
             if (exists(focusid)) {
+                document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
+                if (focusrange !== "") {
+                    document.getElementById("focusrange").innerText = focusrange;
+                }
                 var accessdialog = document.querySelector('#useraccess');
                 accessdialog.style.display = "none";
                 accessdialog.style.marginBottom = "12px";
@@ -541,7 +606,7 @@ function loadPage(request) {
                 accessdialog.style.backgroundColor = "#dfe6ed";
 
                 familystatus.push(1);
-                var descurl = "http://historylink.herokuapp.com/smartsubmit?fields=id,name,birth,death,gender,is_alive,merged_into&profile=" + focusid;
+                var descurl = "http://historylink.herokuapp.com/smartsubmit?family=self&profile=" + focusid;
                 chrome.extension.sendMessage({
                     method: "GET",
                     action: "xhttp",
@@ -549,6 +614,8 @@ function loadPage(request) {
                 }, function (response) {
                     var geni_return = JSON.parse(response.source);
                     focusid = geni_return.id; //In case there is a merge_into return
+                   // $('#focusjsontable').json2html(response.source,focustransform);
+                    genifocusdata = new GeniPerson(geni_return);
                     var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusid;
                     chrome.extension.sendMessage({
                         method: "GET",
@@ -556,19 +623,28 @@ function loadPage(request) {
                         url: url
                     }, function (response) {
                         genifamily = JSON.parse(response.source);
+                        //$('#familyjsontable').json2html(response.source,familytransform);
+
+
                         buildParentSpouse(true);
                         familystatus.pop();
                     });
-
+                    //Update focusname again in case there is a merge_into
                     document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
                     var byear;
                     var dyear;
                     var dateinfo = "";
-                    if (exists(geni_return["birth"]) && exists(geni_return["birth"]["date"]) && exists(geni_return["birth"]["date"]["year"])) {
-                        byear = geni_return["birth"]["date"]["year"];
+                    if (exists(geni_return["birth"]) && exists(geni_return["birth"]["date"])) {
+                        var matches = geni_return["birth"]["date"].match(/\d+$/);
+                        if (matches) {
+                            byear = matches[0];
+                        }
                     }
-                    if (exists(geni_return["death"]) && exists(geni_return["death"]["date"]) && exists(geni_return["death"]["date"]["year"])) {
-                        dyear = geni_return["death"]["date"]["year"];
+                    if (exists(geni_return["death"]) && exists(geni_return["death"]["date"])) {
+                        var matches = geni_return["death"]["date"].match(/\d+$/);
+                        if (matches) {
+                            dyear = matches[0];
+                        }
                     }
                     if (exists(byear) || exists(dyear)) {
                         dateinfo = " (";
@@ -587,9 +663,6 @@ function loadPage(request) {
                     geniliving = geni_return.is_alive;
                     $("#genilinkdesc").attr('title', "Geni: " + geni_return.name + dateinfo);
                 });
-                if (focusrange !== "") {
-                    document.getElementById("focusrange").innerText = focusrange;
-                }
                 console.log("Parsing Family...");
                 if (tablink.contains("/collection-")) {
                     parseSmartMatch(request.source, (accountinfo.pro && accountinfo.user));
@@ -613,8 +686,10 @@ function loadPage(request) {
                     parseAncestryTrees(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (tablink.startsWith("http://person.ancestry.")) {
                     parseAncestryNew(request.source, (accountinfo.pro && accountinfo.user));
-                } else if (tablink.startsWith("https://familysearch.org/pal:") || tablink.startsWith("https://familysearch.org/tree")) {
-                    parseFamilySearch(request.source, (accountinfo.pro && accountinfo.user));
+                } else if (tablink.startsWith("https://familysearch.org/tree-data")) {
+                    parseFamilySearchJSON(request.source, (accountinfo.pro && accountinfo.user));
+                } else if (tablink.startsWith("https://familysearch.org/platform")) {
+                    parseFamilySearchRecord(request.source, (accountinfo.pro && accountinfo.user));
                 }
 
                 if (!accountinfo.pro) {
@@ -677,7 +752,7 @@ function loadPage(request) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1);
             } else if (tablink.startsWith("https://familysearch.org/pal:")) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace("?view=basic", "");
-            } else if (tablink.startsWith("https://familysearch.org/tree")) {
+            } else if (tablink.startsWith("https://familysearch.org/tree/")) {
                 focusURLid = getParameterByName('person', tablink);
             }
             if (focusURLid !== "") {
@@ -692,6 +767,12 @@ function loadPage(request) {
             }
 
             loadSelectPage(request);
+        } else if (tablink.startsWith("https://familysearch.org/search/")) {
+            document.getElementById("top-container").style.display = "block";
+            document.getElementById("submitbutton").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            setMessage("#f8ff86", 'SmartCopy does not work on Search pages.  Please open the page for a specific record.');
+
         } else {
             document.getElementById("top-container").style.display = "block";
             document.getElementById("submitbutton").style.display = "none";
@@ -699,6 +780,32 @@ function loadPage(request) {
             setMessage("#f8ff86", 'This website is not fully supported by SmartCopy. You could try enabling experimental collection parsing under options.');
         }
     }
+}
+
+function cleanJSONTable() {
+    $(".genicontainer div").each(function(){
+        var childs = $(this).children();
+        if($(childs[1]).is(":empty")){
+            $(this).hide();
+        } else if (exists($(childs[1]).html())) {
+            var value = $(childs[1]).html();
+            if (value.replace("<br>","").length === 0) {
+                $(this).hide();
+            } else if (value.startsWith("<br>")) {
+                $(childs[1]).html(value.replace("<br>",""));
+            } else if (value === "male" || value === "female" || value === "unknown") {
+                $(childs[1]).html(capFL(value));
+            } else if (value === "true" || value === "false") {
+                $(childs[1]).html(capFL(value));
+            }
+        }
+        if (exists($(childs[0]).html())) {
+            var value = $(childs[0]).html();
+            if (isParent(value) || isChild(value) || isSibling(value)) {
+                $(childs[0]).html(capFL(value));
+            }
+        }
+    });
 }
 
 function loadSelectPage(request) {
@@ -795,6 +902,10 @@ function buildParentSpouse(finalid) {
         var spval = {male: 0, female: 0, unknown: 0};
         for (var i = 0; i < genifamily.length; i++) {
             var familymem = genifamily[i];
+<<<<<<< HEAD
+=======
+            genifamilydata[familymem.id] = new GeniPerson(familymem)
+>>>>>>> 2.0
             familymem.relation = familymem.relation.toLowerCase();
             if (isParent(familymem.relation)) {
                 parval = countGeniMem(parval, familymem.relation);
@@ -902,7 +1013,7 @@ function getPageCode() {
             (tablink.startsWith("http://person.ancestry.") && (!tablink.endsWith("/story") && !tablink.endsWith("/gallery"))) ||
             (tablink.startsWith("http://trees.ancestry.") && !tablink.contains("family?cfpid=") && !isNaN(tablink.slice(-1))) ||
             (tablink.startsWith("https://familysearch.org/pal:") && tablink.contains("?view=basic")) ||
-            (tablink.startsWith("https://familysearch.org/tree") && tablink.contains("view=ancestor"))) {
+            tablink.startsWith("https://familysearch.org/tree-data") || tablink.startsWith("https://familysearch.org/platform")) {
             chrome.tabs.executeScript(null, {
                 file: "getPagesSource.js"
             }, function () {
@@ -963,8 +1074,9 @@ function getPageCode() {
                 loadPage(response);
             });
         } else if (tablink.startsWith("https://familysearch.org/pal:")) {
-            tablink = tablink.replace("?view=details", "");
-            tablink += "?view=basic";
+            var urlparts= tablink.split('?');
+            focusURLid = urlparts[0].substring(tablink.lastIndexOf('/') + 1);
+            tablink = "https://familysearch.org/tree-data/person/" + focusURLid + "/all?locale=en";
             chrome.extension.sendMessage({
                 method: "GET",
                 action: "xhttp",
@@ -972,8 +1084,9 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
-        } else if (tablink.startsWith("https://familysearch.org/tree") && tablink.contains("view=tree")) {
-            tablink = tablink.replace("view=tree", "view=ancestor");
+        } else if (tablink.startsWith("https://familysearch.org/tree/")) {
+            focusURLid = getParameterByName('person', tablink);
+            tablink = "https://familysearch.org/tree-data/person/" + focusURLid + "/all?locale=en";
             chrome.extension.sendMessage({
                 method: "GET",
                 action: "xhttp",
@@ -981,30 +1094,28 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
-        } else if (tablink.startsWith("https://familysearch.org/ark:")) {
+        } else if (tablink.startsWith("https://familysearch.org/ark:") && !tablink.contains("/1:1:")) {
+            var urlparts= tablink.split('?');
+            focusURLid = urlparts[0].substring(tablink.lastIndexOf(':') + 1);
+            tablink = "https://familysearch.org/tree-data/person/" + focusURLid + "/all?locale=en";
             chrome.extension.sendMessage({
                 method: "GET",
                 action: "xhttp",
                 url: tablink
             }, function (response) {
-                var match = response.source.match(/<dc:identifier>(.*?)<\/dc:identifier>/i);
-                if (exists(match) && match.length > 0) {
-                    tablink = match[1] + "?view=basic";
-                    if (tablink.startsWith("http:")) {
-                        tablink = tablink.replace("http:", "https:");
-                    }
-                    chrome.extension.sendMessage({
-                        method: "GET",
-                        action: "xhttp",
-                        url: tablink
-                    }, function (response) {
-                        loadPage(response);
-                    });
-                } else {
-                    document.getElementById("submitbutton").style.display = "none";
-                    document.getElementById("loading").style.display = "none";
-                    setMessage("#f9acac", 'SmartCopy does not currently support parsing this site / collection.');
-                }
+                loadPage(response);
+            });
+
+        } else if (tablink.startsWith("https://familysearch.org/ark:") && tablink.contains("/1:1:")) {
+            var urlparts= tablink.split('?');
+            focusURLid = urlparts[0].substring(tablink.lastIndexOf(':') + 1);
+            tablink = "https://familysearch.org/platform/records/personas/" + focusURLid + ".json";
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: tablink
+            }, function (response) {
+                loadPage(response);
             });
 
         } else {
@@ -1026,6 +1137,8 @@ function getPageCode() {
     }
 }
 
+var accountretry = 0;
+
 function checkAccount() {
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "http://historylink.herokuapp.com/account?version=" + chrome.runtime.getManifest().version, true);
@@ -1038,10 +1151,12 @@ function checkAccount() {
             }
             if (!exists(response)) {
                 setMessage("#f8ff86", 'Problem getting account information - trying again.');
-                checkAccount();
+                accountretry ++;
+                if (accountretry < 4) {
+                    checkAccount();
+                }
                 return;
             }
-            document.querySelector('#message').style.display = "none";
             if (response.curator) {
                 //display leaderboard link if user is a curator - page itself still verifies
                 document.getElementById("curator").style.display = "inline-block";
@@ -1137,6 +1252,9 @@ var exlinks = document.getElementsByClassName("expandlinks");
 var expandAll = function () {
     var expandmembers = $(this).closest('div').find('.memberexpand');
     for (var i = 0; i < expandmembers.length; i++) {
+        if (!exists(window[this.name])) {
+            window[this.name] = true;
+        }
         if (window[this.name]) {
             $(expandmembers[i]).slideDown();
             this.innerText = "collapse all";
@@ -1185,11 +1303,14 @@ $(function () {
         var ffs = fs.find('[type="checkbox"]');
         var photoon = $('#photoonoffswitch').prop('checked');
         ffs.filter(function (item) {
+            if ($(ffs[item]).closest('tr').css("display") === "none") {
+                return false;
+            }
             return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
         }).prop('checked', this.checked);
-        var ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea');
+        var ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput");
         ffs.filter(function (item) {
-            return !((ffs[item].type === "checkbox") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
+            return !((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
         }).attr('disabled', !this.checked);
     });
 });
@@ -1308,7 +1429,11 @@ var submitform = function () {
             var entry = privateprofiles[profile];
             if (exists(entry.name) && entry.name.startsWith("checkbox") && entry.checked) {
                 fs = $("#" + entry.name.replace("checkbox", "slide"));
+
                 var actionname = entry.name.split("-"); //get the relationship
+                if (actionname[1] === "unknown") {
+                    continue;
+                }
                 var familyout = parseForm(fs);
                 var tempfamilyout = jQuery.extend(true, {}, familyout);
                 delete tempfamilyout.profile_id;  //check to see if it's only the hidden profile_id
@@ -1427,7 +1552,7 @@ function getUnion(profileid) {
 
 var noerror = true;
 function buildTree(data, action, sendid) {
-    if (!$.isEmptyObject(data) && !devblocksend) {
+    if (!$.isEmptyObject(data) && exists(sendid) && !devblocksend) {
         if (action !== "add-photo" && action !== "delete") {
             updatetotal += 1;
             document.getElementById("updatetotal").innerText = updatetotal;
@@ -1510,7 +1635,7 @@ function buildTree(data, action, sendid) {
             }
             submitstatus.pop();
         });
-    } else if (!$.isEmptyObject(data) && devblocksend) {
+    } else if (!$.isEmptyObject(data) && exists(sendid) && devblocksend) {
         if (exists(data.profile_id)) {
             var id = data.profile_id;
             if (exists(databyid[id])) {
@@ -1596,6 +1721,9 @@ function submitChildren() {
                 }
                 if (exists(marriagedates[i])) {
                     marriageupdate.marriage = marriagedates[i].marriage;
+                    if (exists(marriagedates[i].divorce)) {
+                        marriageupdate.divorce = marriagedates[i].divorce;
+                    }
                 }
                 if (!$.isEmptyObject(marriageupdate) && !devblocksend) {
                     chrome.extension.sendMessage({
@@ -1654,7 +1782,7 @@ function submitChildren() {
         if (photototal > 1) {
             photodialog = photototal + " Photos";
         }
-        document.getElementById("updatestatus").innerText = "Uploading " + photodialog;
+        document.getElementById("updatestatus").innerText = "Queuing " + photodialog;
         document.getElementById("updatetotal").innerText = photototal;
         document.getElementById("updatecount").innerText = Math.min(photocount, photototal).toString();
         if (exists(focusphotoinfo)) {
@@ -1745,7 +1873,8 @@ document.getElementById('optionbutton').addEventListener('click', slideoptions, 
 function parseForm(fs) {
     var objentry = {};
     var marentry = {};
-    var rawinput = fs.find('input[type="text"],select,input[type="hidden"],textarea');
+    var diventry = {};
+    var rawinput = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput");
     var updatefd = (fs.selector === "#profiletable");
     var fsinput = rawinput.filter(function (item) {
         return ($(rawinput[item]).closest('tr').css('display') !== 'none');
@@ -1761,7 +1890,12 @@ function parseForm(fs) {
                     if (!$.isEmptyObject(vardate)) {
                         var finalentry = {};
                         finalentry[splitentry[1]] = vardate;
-                        if (splitentry[0] !== "marriage") {
+                        if (splitentry[0] === "divorce") {
+                            if (!exists(diventry[splitentry[0]])) {
+                                diventry[splitentry[0]] = {};
+                            }
+                            $.extend(diventry[splitentry[0]], finalentry);
+                        } else if (splitentry[0] !== "marriage") {
                             if (!exists(objentry[splitentry[0]])) {
                                 objentry[splitentry[0]] = {};
                             }
@@ -1782,7 +1916,15 @@ function parseForm(fs) {
                         }
                         varlocation[fieldname] = fsinput[item].value;
 
-                        if (splitentry[0] !== "marriage") {
+                        if (splitentry[0] === "divorce") {
+                            if (!exists(diventry[splitentry[0]])) {
+                                diventry[splitentry[0]] = {};
+                            }
+                            if (!exists(diventry[splitentry[0]][splitentry[1]])) {
+                                diventry[splitentry[0]][splitentry[1]] = {};
+                            }
+                            $.extend(diventry[splitentry[0]][splitentry[1]], varlocation);
+                        } else if (splitentry[0] !== "marriage") {
                             if (!exists(objentry[splitentry[0]])) {
                                 objentry[splitentry[0]] = {};
                             }
@@ -1821,7 +1963,12 @@ function parseForm(fs) {
         //var entry = focusprofile[profile];
         //console.log(entry);
     }
-    if (!$.isEmptyObject(marentry)) {
+    if (!$.isEmptyObject(marentry) || !$.isEmptyObject(diventry)) {
+        if (!$.isEmptyObject(marentry) && !$.isEmptyObject(diventry)) {
+            marentry["divorce"] = diventry["divorce"];
+        } else if (!$.isEmptyObject(diventry)) {
+            marentry = diventry;
+        }
         marriagedates[objentry.profile_id] = marentry;
     }
     return objentry;
@@ -1940,11 +2087,11 @@ function addHistory(id, itemId, name, data) {
 
 function supportedCollection() {
     var expenabled = $('#exponoffswitch').prop('checked');
-    if (!expenabled && tablink.startsWith("https://familysearch.org/tree")) {
+    if (!expenabled && tablink.startsWith("https://familysearch.org/platform")) {
         return false;
     } else return tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") ||
         tablink.startsWith("http://www.wikitree.com/") || validRootsWeb(tablink) ||
-        validAncestry(tablink) || (tablink.startsWith("https://familysearch.org/pal:") || tablink.startsWith("https://familysearch.org/tree")) ||
+        validAncestry(tablink) || (tablink.startsWith("https://familysearch.org/pal:") || tablink.startsWith("https://familysearch.org/tree") || tablink.startsWith("https://familysearch.org/platform")) ||
         tablink.startsWith("http://www.werelate.org/") || validMyHeritage(tablink) || validFamilyTree(tablink);
 }
 
@@ -1961,6 +2108,68 @@ function getParameterByName(name, url) {
         return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
     }
     return null;
+}
+
+function relationshipToHead(focusrel, relationship) {
+    //console.log(focusrel + ":" + relationship);
+    if (relationship === "notfound") {
+        return relationship;
+    } else if (focusrel === "head" || focusrel === "self") {
+        if (isChild(relationship) || isPartner(relationship) || isParent(relationship) || isSibling(relationship)) {
+            return relationship;
+        } else if (relationship !== "") {
+            return "exclude";
+        }
+    } else if (isChild(focusrel)) {
+        if (relationship === "head" || relationship === "self") {
+            return "parent";
+        } else if (isChild(relationship)) {
+            return "sibling";
+        } else if (isPartner(relationship)) {
+            return "parent";
+        } else if (relationship !== "") {
+            return "exclude";
+        }
+    } else if (isPartner(focusrel)) {
+        if (relationship === "head" || relationship === "self") {
+            return "spouse";
+        } else if (isChild(relationship)) {
+            return relationship;
+        } else if (relationship.contains("-in-law")) {
+            return relationship.replace("-in-law", "");
+        } else if (relationship !== "") {
+            return "exclude";
+        }
+    } else if (isParent(focusrel)) {
+        if (relationship === "head" || relationship === "self") {
+            return "child";
+        } else if (isParent(relationship)) {
+            return "spouse";
+        } else if (relationship !== "") {
+            return "exclude";
+        }
+    } else if (isSibling(focusrel)) {
+        if (relationship === "head" || relationship === "self") {
+            return "sibling";
+        } else if (relationship !== "") {
+            return "exclude";
+        }
+    } else if (focusrel.contains("-in-law")) {
+        var focusinlaw = focusrel.replace("-in-law", "");
+        if (isPartner(relationship)) {
+            return reverseRelationship(focusinlaw);
+        } else if (relationship.contains("-in-law")) {
+            var relationinlaw = relationship.replace("-in-law", "");
+            if (!isChild(relationinlaw)) {
+                return relationshipToHead(focusinlaw, relationinlaw);
+            }
+        } else if (relationship !== "") {
+            return "exclude";
+        }
+    } else if (focusrel !== "" && focusrel !== "unknown") {
+        return "exclude";
+    }
+    return "unknown";
 }
 
 function reverseRelationship(relationship) {
@@ -2019,7 +2228,7 @@ $(function () {
                             $(privateprofiles[profile]).prop('checked', !this.checked);
                             var fs = $("#" + privateprofiles[profile].name.replace("checkbox", "slide"));
                             fs.find('[type="checkbox"]').prop('checked', !this.checked);
-                            fs.find('input[type="text"]').attr('disabled', this.checked);
+                            fs.find('input[type="text"]').not(".genislideinput").attr('disabled', this.checked);
                         }
                     }
                 }
@@ -2031,6 +2240,16 @@ $(function () {
         geoonoff(this.checked);
         hideempty($('#hideemptyonoffswitch').prop('checked'));
     });
+    $('#genislideonoffswitch').on('click', function () {
+        chrome.storage.local.set({'genislideout': this.checked});
+        if (this.checked) {
+            $("body").css('max-width', "500px");
+            $("#genislider").find("img")[0].src = "images/closemenu.png";
+            $("#controlimage").slideDown();
+            slideopen = this.checked;
+        }
+    });
+
     function geoonoff(value) {
         if (value) {
             var locobj = document.getElementsByClassName("geoloc");
@@ -2057,7 +2276,7 @@ $(function () {
             var placeobj = document.getElementsByClassName("geoplace");
             for (var i = 0; i < placeobj.length; i++) {
                 placeobj[i].style.display = "table-row";
-                var pinput = $(placeobj[i]).find('input[type="text"]');
+                var pinput = $(placeobj[i]).find('input[type="text"]').not(".genislideinput");
                 pinput.filter(function (item) {
                     var checkbox = $(pinput[item]).closest("tr").find('input[type="checkbox"]');
                     return (pinput[item].value !== "" && checkbox.checked);
@@ -2138,6 +2357,10 @@ $(function () {
     $('#exponoffswitch').on('click', function () {
         chrome.storage.local.set({'excollection': this.checked});
     });
+    $('#adjustnameonoffswitch').on('click', function () {
+        chrome.storage.local.set({'adjustname': this.checked});
+        $("#casenamechange").css("display", "block");
+    });
     $('#sourceonoffswitch').on('click', function () {
         chrome.storage.local.set({'addsource': this.checked});
     });
@@ -2171,6 +2394,38 @@ $(function () {
             geoonoff($('#geoonoffswitch').prop('checked'));
         }
     }
+    var modal = document.getElementById('GeoUpdateModal');
+// Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+// When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+    $(function () {
+        $('#geolookupbtn').on('click', function () {
+            $("body").toggleClass("wait");
+            googlerequery = $('#geoupdatetext').attr("reference");
+            var modal = document.getElementById('GeoUpdateModal');
+            var locationset = {"id": geoid, "location": $('#geoupdatetext').val()};
+            modal.style.display = "none";
+            queryGeo(locationset);
+            updateGeoLocation();
+            geoid++;
+        });
+    });
+    $("#geoupdatetext").keyup(function(event){
+        if(event.keyCode == 13){
+            $("#geolookupbtn").click();
+        }
+    });
 });
 
 function validRootsWeb(url) {
@@ -2193,11 +2448,38 @@ chrome.storage.local.get('autogeo', function (result) {
     }
 });
 
+chrome.storage.local.get('adjustname', function (result) {
+    var adjustname = result.adjustname;
+    if (exists(adjustname)) {
+        $('#adjustnameonoffswitch').prop('checked', adjustname);
+    }
+});
+
 chrome.storage.local.get('autoprivate', function (result) {
     var privatechecked = result.autoprivate;
     if (exists(privatechecked)) {
         $('#privateonoffswitch').prop('checked', privatechecked);
     }
+});
+
+chrome.storage.local.get('genislideout', function (result) {
+    var genislideoutchecked = result.genislideout;
+    if (!exists(genislideoutchecked)) {
+        genislideoutchecked = true;
+    }
+    $('#genislideonoffswitch').prop('checked', genislideoutchecked);
+    if (genislideoutchecked) {
+        $('body').css('max-width', '500px');
+        $("#controlimage").slideDown();
+        slideopen = true;
+        $("#genislider").find("img")[0].src = "images/closemenu.png";
+    } else {
+        $('body').css('max-width', '340px');
+        $("#controlimage").slideUp();
+        slideopen = false;
+        $("#genislider").find("img")[0].src = "images/openmenu.png";
+    }
+
 });
 
 chrome.storage.local.get('autobirth', function (result) {

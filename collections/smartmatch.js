@@ -43,10 +43,10 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     if (exists(thumb)) {
         var imageref = imagebox.find('a');
         if (exists(imageref[0])) {
-            if (!thumb.startsWith("http://recordsthumbnail.myheritageimages.com")) {
+            if (!thumb.startsWith("https://recordsthumbnail.myheritageimages.com") && !thumb.startsWith("http://recordsthumbnail.myheritageimages.com")) {
                 var image = imageref[0].href;
                 if (image.startsWith("http://www.findagrave.com")) {
-                    profiledata["image"] = thumb.replace("http://records.myheritageimages.com/wvrcontent/findagrave_photos", "http://image1.findagrave.com");
+                    profiledata["image"] = thumb.replace("https://records.myheritageimages.com/wvrcontent/findagrave_photos", "http://image1.findagrave.com");
                 } else if (image.startsWith("http://billiongraves.com")) {
                     profiledata["image"] = thumb.replace("thumbnails", "images")
                 } else {
@@ -78,7 +78,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }, function (response) {
                     var thumb = response.source;
                     var imgurl = decodeURIComponent(response.variable);
-                    if (!thumb.contains("myheritageimages.com") && !thumb.contains("mhcache.com") && !thumb.contains("myheritage.com")) {
+                    if (imgurl.startsWith("http") && !thumb.contains("myheritageimages.com") && !thumb.contains("mhcache.com") && !thumb.contains("myheritage.com")) {
                         //https://www.myheritage.com/research/collection-40001/familysearch-family-tree?itemId=149064846&action=showRecord
                         //https://www.myheritage.com/research/collection-40001/familysearch-family-tree?itemId=337043845&action=showRecord
                         profiledata["image"] = imgurl;
@@ -396,7 +396,10 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     if (aboutdash.length > 1) {
                         aboutinfo = aboutdash[0] + " - " + aboutdash[1].trim();
                     }
-                    aboutdata += "* '''" + capFL(title) + "''': " + aboutinfo + "\n";
+                    var addaboutinfo = "* '''" + capFL(title) + "''': " + aboutinfo + "\n";
+                    if (!aboutdata.contains(addaboutinfo)) {
+                        aboutdata += addaboutinfo;
+                    }
                 }
                 continue;
             } else if (familymembers && title === "source") {

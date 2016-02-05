@@ -342,6 +342,9 @@ var NameParse = (function(){
     // ucfirst words split by dashes or periods
     // ucfirst all upper/lower strings, but leave camelcase words alone
     NameParse.fix_case = function (word) {
+        if (!$('#adjustnameonoffswitch').prop('checked')) {
+            return word;
+        }
         // uppercase words split by dashes, like "Kimura-Fay"
         word = this.safe_ucfirst("-",word);
         // uppercase words split by periods, like "J.P."

@@ -3,11 +3,7 @@
     "name": "HistoryLink SmartCopy",
     "short_name": "SmartCopy",
     "description": "Tool for copying genealogical data into Geni.",
-<<<<<<< HEAD
-    "version": "1.61.7",
-=======
     "version": "2.0",
->>>>>>> 2.0
     "icons": { "16": "images/icon16.png",
         "48": "images/icon48.png",
         "128": "images/icon128.png" },

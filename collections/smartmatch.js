@@ -742,7 +742,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     var row = rows[i];
                     var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
                     if (isPartner(title)){
-                        profiledata["mstatus"] = title;
+                        profiledata["mstatus"] = reverseRelationship(title);
                         break;
                     }
                 }

@@ -14,6 +14,25 @@
 </div>
 <div id="backlinks" style="text-align:center;  margin-left: -8px; margin-right: -8px; padding-left: 8px; padding-right: 8px; padding-top: 3px; border-top: solid 1px #ddd;"><span style="margin-right: 8px; margin-top: -3px; font-size: 82%;"><strong><a href="http://historylinktools.herokuapp.com/graph?color=gender" target="_blank" id="graphurl">Ancestor Graph</a> <span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylinktools.herokuapp.com/graph?type=descendant&color=gender" target="_blank" id="descendanturl">Descendant Graph</a> <span style="color:#0645AD;">&nbsp;&bull;&nbsp;</span> <a href="http://historylinktools.herokuapp.com/history" target="_blank" id="historyurl">History Search</a></strong></span></div>
 
+<div id="AboutModal" class="modal2">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <div class="shadoweffect" style="margin: 12px; padding-left: 10px; padding-right: 10px; padding-top: 0px;">
+            <span id="modalclose2" class="close">&times;</span>
+            <center><img src="images/smartcopylg.png" style="width: 200px; padding-top: 20px; padding-left: 10px;">
+                <p><strong>Developed by Jeffrey Gentes</strong></p>
+            </center>
+            <div class="modal-body" style="height: 100%;">
+                <strong>Special Thanks:</strong>
+                <ul>
+                    <li><strong>Dan Cornett</strong> (Design, Testing, Documentation, and Support)</li>
+                    <li><strong>Randy Schoenberg</strong> (Resources and Infrastructure)</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+</div>
 <div id="smartcopy-container" style="margin-top: 10px; padding-right: 5px; padding-left: 5px; display: none;">
 
 <div id="top-container" style="display: none;">
@@ -202,12 +221,12 @@
     <!-- Modal content -->
     <div class="modal-content">
         <div class="shadoweffect" style="margin: 12px; padding-left: 10px; padding-right: 10px; padding-top: 0px;">
-            <span class="close">&times;</span>
+            <span id="modalclose1" class="close">&times;</span>
             <table><tr><td><img src="images/redpin.png" align="left" style="width: 32px; margin-left: -5px;"></td><td><h2>Location Update</h2></td></tr></table>
             Update the location and resubmit it to Google for GeoLocation.
             <div class="modal-body" style="height: 100%;">
                 <p><input id="geoupdatetext" type="text" style="width: 100%;"></p>
-                <button type="button" id="geolookupbtn" class="cta cta-blue" style="float: right;">Update</button>
+                <button type="button" id="georevertbtn" value="" class="cta cta-blue" title="Restore Original Location" style="float: left;"><img style="width: 22px; margin-top: 3px;" src="images/revert.png"></button><button type="button" id="geolookupbtn" class="cta cta-blue" style="float: right;">Update</button>
                 <br><br>
             </div>
         </div>
@@ -272,7 +291,7 @@
         </table>
     </div>
 
-    <div id="bottomsubmit" style="display: none; padding-top: 15px; text-align: center;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;">Submit</a></div>
+    <div id="bottomsubmit" style="display: none; padding-top: 10px; padding-bottom: 5px; text-align: center;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;">Submit</a></div>
 
     <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px; margin-bottom: 15px;">
         <div style="text-align: center; padding-top: 2px;"><img src="images/spinner.gif" style="height:24px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Reading Family Data...</strong><div id="readstatus"></div></div>
@@ -293,8 +312,9 @@
     <span style="display: none;" id="addhistoryblock"><a style="cursor: pointer;" id="addhistory">Add to History</a></span></div>
 <div style="display: table-cell;  width: 100%; text-align: right; white-space: nowrap; font-size: x-small; padding-right: 10px;"><a style="cursor: pointer;" id="showhistory">Show History</a></div>
 <div id='historybox' class="shadoweffect" style="display: none; margin-bottom: 20px; margin-right: 10px; margin-left: 10px;"><div id='historytext'></div><div style='font-size: x-small; text-align: center; padding-top: 5px;'><a style="cursor: pointer;" id="clearhistory">Clear History</a></div></div>
-
-<div id="versionbox" style="width: 100%; z-index: -1; position:relative; -webkit-user-select: none; cursor: default; bottom:-5px; margin-top: -15px; color: #a9b5d4; text-align: center; white-space: nowrap; font-size: xx-small; "></div>
+<center>
+    <div id="aboutdev" style="cursor: pointer; width:90px; padding-top: 0px; margin-top: -15px;"><div id="versionbox" style="width: 90px; z-index: -1; position:relative; -webkit-user-select: none; bottom:-5px; margin-top: -15px; color: #a9b5d4; text-align: center; white-space: nowrap; font-size: xx-small; "></div></div>
+</center>
 <script src="jquery.js"></script>
 <script src="popup.js"></script>
 <script src="research.js"></script>

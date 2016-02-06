@@ -2392,20 +2392,37 @@ $(function () {
         }
     }
     var modal = document.getElementById('GeoUpdateModal');
-// Get the <span> element that closes the modal
-    var span = document.getElementsByClassName("close")[0];
-
-// When the user clicks on <span> (x), close the modal
-    span.onclick = function() {
-        modal.style.display = "none";
-    }
+    var modal2 = document.getElementById('AboutModal');
 
 // When the user clicks anywhere outside of the modal, close it
     window.onclick = function(event) {
         if (event.target == modal) {
             modal.style.display = "none";
         }
+        if (event.target == modal2) {
+            modal2.style.display = "none";
+        }
     }
+    $(function () {
+        $('#aboutdev').on('click', function () {
+            var modal2 = document.getElementById('AboutModal');
+            modal2.style.display = "block";
+            $('body').css('min-height', '300px');
+        });
+    });
+    $(function () {
+        // When the user clicks on <span> (x), close the modal
+        $('#modalclose2').on('click', function () {
+            document.getElementById('AboutModal').style.display = "none";
+            $('body').css('min-height', '');
+        });
+    });
+    $(function () {
+        // When the user clicks on <span> (x), close the modal
+        $('#modalclose1').on('click', function () {
+            document.getElementById('GeoUpdateModal').style.display = "none";
+        });
+    });
     $(function () {
         $('#geolookupbtn').on('click', function () {
             $("body").toggleClass("wait");
@@ -2422,6 +2439,11 @@ $(function () {
         if(event.keyCode == 13){
             $("#geolookupbtn").click();
         }
+    });
+    $(function () {
+        $('#georevertbtn').on('click', function () {
+            $('#geoupdatetext').val($('#georevertbtn').attr("value"));
+        });
     });
 });
 

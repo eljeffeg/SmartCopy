@@ -760,7 +760,7 @@ function buildForm() {
                     }
                     if (!locationadded) {
                         locationval = locationval +
-                            '<tr class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
+                            '<tr id="'+ i + "_" +title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
                             '<img class="geoicon" style="cursor: pointer; float:left; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px"><img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;"><img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
                             '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                             '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -779,7 +779,7 @@ function buildForm() {
                         membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_cause_of_death" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                     }
                     membersstring = membersstring +
-                        '<tr class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
+                        '<tr id="'+ i + "_" +title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;">' +
                         '<img class="geoicon" style="cursor: pointer; float:left; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px"><img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;"><img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
                         '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                         '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -1027,17 +1027,36 @@ function updateClassResponse() {
     $(function () {
         $('.geoUpdateBtn').on('click', function () {
             var id = $(this).closest("tr")[0].id;
+            $('#georevertbtn').attr("value", getParsedLocation(id));
             var placetr = $(this).closest("tr")[0].nextElementSibling;
             var placevalue = $(placetr).find("input[type=text]")[0].value;
             $('#geoupdatetext').val(placevalue);
             $('#geoupdatetext').attr("reference", id);
-            var modal = document.getElementById('GeoUpdateModal');
-            modal.style.display = "block";
+            document.getElementById('GeoUpdateModal').style.display = "block";
             $("#geoupdatetext").focus();
         });
     });
     if ($('#genislideonoffswitch').prop('checked')) {
-         $(".genisliderow").not(".genihidden").slideToggle();
+        $(".genisliderow").not(".genihidden").slideToggle();
+    }
+}
+
+function getParsedLocation(dataid) {
+    var idsplit = dataid.split("_");
+    var item = idsplit[1];
+    var dataroot;
+    if (idsplit[0] === "focus") {
+        dataroot = alldata["profile"];
+    } else {
+        var id = parseInt(idsplit[0]);
+        dataroot = databyid[id];
+    }
+    if (checkNested(dataroot, item, 1, "location")) {
+        return dataroot[item][1]["location"];
+    } else if (checkNested(dataroot, item, 0, "location")) {
+        return dataroot[item][0]["location"];
+    } else {
+        return "";
     }
 }
 

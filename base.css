@@ -630,7 +630,6 @@ body.wait, body.wait *{
     background-color: #f7f7f7;
     border:1px solid #cccccc;
     padding: 2px;
-    -webkit-user-select: none;
     -webkit-box-shadow: 0 0 0px rgba(0, 0, 0, 0.5);
 }
 

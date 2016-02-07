@@ -800,8 +800,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
             }
         } else if (exists(relation) && isPartner(relation.title)) {
-            myhspouse.push(relation.proid);
-            if (marriagedata.length === 1) {
+            if (marriagedata.length === 1 && !exists(profiledata["marriage"])) {
                 profiledata["marriage"] = marriagedata[0];
             }
         } else if (relation === "") {

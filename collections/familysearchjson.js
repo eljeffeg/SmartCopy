@@ -106,6 +106,11 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
         var famid = 0;
     }
 
+    if (familymembers) {
+        profiledata["url"] = "https://familysearch.org/tree/#view=ancestor&person=" + focusURLid;
+    } else {
+        profiledata["url"] = "https://familysearch.org/tree/#view=ancestor&person=" + relation.itemId;
+    }
 
     // ---------------------- Family Data --------------------
     if (familymembers) {
@@ -334,6 +339,7 @@ function getFamilySearchJSON(famid, url, subdata) {
             person["thumb"] = arg.image;
         }
         //person = updateInfoData(person, arg);
+        person["profile_id"] = arg.profile_id;
         databyid[arg.profile_id] = person;
         alldata["family"][arg.title].push(person);
         familystatus.pop();

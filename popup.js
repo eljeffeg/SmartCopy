@@ -150,6 +150,7 @@ if (!String.prototype.contains) {
 document.addEventListener('DOMContentLoaded', function () {
     console.log(chrome.app.getDetails().name + " v" + chrome.runtime.getManifest().version);
     document.getElementById("versionbox").innerHTML = "SmartCopy v" + chrome.runtime.getManifest().version;
+    document.getElementById("versionbox2").innerHTML = "SmartCopy v" + chrome.runtime.getManifest().version;
     loadLogin();
     checkAccount();
     chrome.tabs.getSelected(null, function (tab) {
@@ -1379,9 +1380,13 @@ var submitform = function () {
                 }
             }
             if (sourcecheck) {
-                if (!focusabout.contains("Updated from [" + tablink + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
-                    !focusabout.contains("Updated from [" + tablink + " " + recordtype + "] by [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
-                    !focusabout.contains("Reference: [" + tablink + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
+                var refurl = tablink;
+                if (exists(alldata["profile"].url)) {
+                    refurl = alldata["profile"].url;
+                }
+                if (!focusabout.contains("Updated from [" + refurl + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
+                    !focusabout.contains("Updated from [" + refurl + " " + recordtype + "] by [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
+                    !focusabout.contains("Reference: [" + refurl + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
                     if (focusabout !== "") {
                         about = focusabout + "\n" + about;
                     }
@@ -1394,7 +1399,7 @@ var submitform = function () {
                             about += "*";
                         }
                     }
-                    profileout["about_me"] = about + "* Reference: [" + tablink + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                    profileout["about_me"] = about + "* Reference: [" + refurl + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                 } else {
                     if (about !== "") {
                         profileout["about_me"] = focusabout + "\n" + about;
@@ -2404,10 +2409,10 @@ $(function () {
         }
     }
     $(function () {
-        $('#aboutdev').on('click', function () {
+        $('.aboutdev').on('click', function () {
             var modal2 = document.getElementById('AboutModal');
             modal2.style.display = "block";
-            $('body').css('min-height', '300px');
+            $('body').css('min-height', '355px');
         });
     });
     $(function () {

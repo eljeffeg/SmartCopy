@@ -813,6 +813,9 @@ function buildForm() {
     iconUpdate();
     updateClassResponse();
     placementUpdate();
+    if ($('#genislideonoffswitch').prop('checked')) {
+        $(".genisliderow").not(".genihidden").slideToggle();
+    }
 
     if ($("#parent")[0].style.display === "block") {
         var father = null;
@@ -1036,9 +1039,6 @@ function updateClassResponse() {
             $("#geoupdatetext").focus();
         });
     });
-    if ($('#genislideonoffswitch').prop('checked')) {
-        $(".genisliderow").not(".genihidden").slideToggle();
-    }
 }
 
 function getParsedLocation(dataid) {

@@ -7,7 +7,7 @@
 <body>
 <a href=""></a><!-- For some reason, the first hyperlink adds a border - chrome extension feature? -->
 <div id="logo" style="background-color: #e5ebf0; margin: -2px -8px; padding-top:3px; padding-left: 8px; padding-right: 8px; border-bottom: solid 1px #fff;"><a href="https://www.geni.com/projects/SmartCopy/18783" target="_blank"><img src="images/smartcopylg.png" style="width: 200px;"></a>
-    <span id="sclink" style="float: right;"><a href="https://www.geni.com/discussions?discussion_type=project-18783" target="_blank"><img src="/images/comment.png" title="Discussion" style="padding-top: 8px; padding-right: 4px; padding-left: 2px; width: 20px;"></a></span>
+    <span id="sclink" style="float: right;"><a href="https://www.geni.com/discussions?discussion_type=project-18783" target="_blank"><img src="/images/comment.png" title="Discussion" style="padding-top: 8px; padding-right: 4px; padding-left: 2px; width: 20px;"></a></span><span class="aboutdev" style="float: right; cursor: pointer;"><img src="/images/info.png" title="Information" style="padding-top: 8px; padding-right: 4px; padding-left: 2px; width: 20px;"></span>
     <span id="curator" style="display: none; float: right;"><a href="http://historylinktools.herokuapp.com/leaderboard" target="_blank"><img src="/images/curator.png" title="Leaderboard" style="padding-top: 8px; padding-right: 5px; width: 20px;"></a></span>
 
     <!-- <span style="display: inline-block; float: right; padding-top: 4px;"><img src="images/CuratorShield.png" width="22" align="right"></span> -->
@@ -20,15 +20,26 @@
         <div class="shadoweffect" style="margin: 12px; padding-left: 10px; padding-right: 10px; padding-top: 0px;">
             <span id="modalclose2" class="close">&times;</span>
             <center><img src="images/smartcopylg.png" style="width: 200px; padding-top: 20px; padding-left: 10px;">
-                <p><strong>Developed by Jeffrey Gentes</strong></p>
+                <div id="versionbox2" style="font-size: x-small; margin-top: -10px; -webkit-user-select: none;"></div>
             </center>
-            <div class="modal-body" style="height: 100%;">
+
+            <table width="100%"><tr><td>
+                <strong>Developed by Jeffrey Gentes</strong>
+            </td><td><div style="float:right;">
+                <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+                    <input type="hidden" name="cmd" value="_s-xclick">
+                    <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----">
+                    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+                    <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+                </form></div></td></tr></table>
+            <div class="modal-body" style="height: 100%; padding-left: 5px; padding-bottom: 5px;">
                 <strong>Special Thanks:</strong>
                 <ul>
                     <li><strong>Dan Cornett</strong> (Design, Testing, Documentation, and Support)</li>
-                    <li><strong>Randy Schoenberg</strong> (Resources and Infrastructure)</li>
+                    <li><strong>Randy Schoenberg</strong> (Infrastructure)</li>
                 </ul>
-
+                <strong>Disclaimer:</strong>
+                <div style="font-size: x-small;">The user is responsible for obtaining any required permission from the creator of the work, such as biographies or images.  This software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</div>
             </div>
         </div>
     </div>
@@ -313,7 +324,7 @@
 <div style="display: table-cell;  width: 100%; text-align: right; white-space: nowrap; font-size: x-small; padding-right: 10px;"><a style="cursor: pointer;" id="showhistory">Show History</a></div>
 <div id='historybox' class="shadoweffect" style="display: none; margin-bottom: 20px; margin-right: 10px; margin-left: 10px;"><div id='historytext'></div><div style='font-size: x-small; text-align: center; padding-top: 5px;'><a style="cursor: pointer;" id="clearhistory">Clear History</a></div></div>
 <center>
-    <div id="aboutdev" style="cursor: pointer; width:90px; padding-top: 0px; margin-top: -15px;"><div id="versionbox" style="width: 90px; z-index: -1; position:relative; -webkit-user-select: none; bottom:-5px; margin-top: -15px; color: #a9b5d4; text-align: center; white-space: nowrap; font-size: xx-small; "></div></div>
+    <div id="versionbox" style="width: 90px; z-index: -1; position:relative; -webkit-user-select: none; bottom:-5px; margin-top: -15px; color: #a9b5d4; text-align: center; white-space: nowrap; font-size: xx-small; "></div>
 </center>
 <script src="jquery.js"></script>
 <script src="popup.js"></script>

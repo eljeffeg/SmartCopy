@@ -217,6 +217,11 @@ function getFSProfileData(focusRecord, relation) {
     var deathdtflag = false;
     var aboutdata = "";
 
+    if (focusRecord["identifiers"] && focusRecord["identifiers"]["http://gedcomx.org/Persistent"]) {
+        profiledata["url"] = focusRecord["identifiers"]["http://gedcomx.org/Persistent"][0];
+    } else {
+        profiledata["url"] = tablink;
+    }
 
     if (focusRecord["facts"]) {
         var facts = focusRecord["facts"];

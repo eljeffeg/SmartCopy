@@ -37,7 +37,7 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
     } else {
         fsplit2 = fsplit;
     }
-    var fhtml = fsplit2[0].replace(/<sup.*?<\/sup>/ig, "");
+    var fhtml = fsplit2[0].replace(/<sup.*?<\/sup>/ig, "").replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
     fsplit = fhtml.split("Notes for"); //What if Notes don't exist
     var header = fsplit[0];
     var imagetable = header.match(/<td><gmi src.*?<\/td>/i);
@@ -58,11 +58,19 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
             genderval = "female";
         }
         var pinfo = header.match(/\((.*?)<br>/i);
+
         if (exists(pinfo) && pinfo.length > 1) {
             pinfo = pinfo[1].match(/(.*)\)/);
         }
         if (exists(pinfo) && pinfo.length > 1) {
             var div = document.createElement("div");
+            if (pinfo[1].contains("She married")) {
+                var pinfosp = pinfo[1].split("She married");
+                pinfo[1] = pinfosp[0];
+            } else if (pinfo[1].contains("He married")) {
+                var pinfosp = pinfo[1].split("He married");
+                pinfo[1] = pinfosp[0];
+            }
             div.innerHTML = pinfo[1];
             var parents = $(div).find("a");
             for (var i = 0; i < parents.length; i++) {
@@ -230,8 +238,9 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
         //Notes for...
         fsplit2 = fsplit[1].split(/<BR><BR>More About/i);
         fsplit2 = fsplit2[0].split(/<BR><BR>Children of/i);
+        fsplit2 = fsplit2[0].split(/<\/li>/i);
         aboutdata += fsplit2[0].replace(/^.*?<br>/i, "").replace(/<br>/ig, "\n").trim();
-        aboutdata = aboutdata.replace("\n\n\n\n\n", "");
+        aboutdata = cleanHTML(aboutdata.replace("\n\n\n\n\n", ""));
     }
 
     if (hsplit.length > 1) {

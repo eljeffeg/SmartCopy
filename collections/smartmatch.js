@@ -251,6 +251,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                                 myhspouse.push(famid);
                                             }
                                             unionurls[famid] = itemid;
+                                            famid++;
                                             chrome.extension.sendMessage({
                                                 method: "GET",
                                                 action: "xhttp",
@@ -275,9 +276,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                     if (isPartner(title)) {
                                         myhspouse.push(famid);
                                     }
+                                    famid++;
                                 }
-
-                                famid++;
                             }
                         }
                     }
@@ -411,7 +411,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
 
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
                 && title !== 'occupation' && title !== 'cemetery' && title !== 'christening'
-                && !(title === 'marriage' && (relation === "" || isParent(relation.title)))) {
+                && !(title === 'marriage' && (relation === "" || isParent(relation.title) || isPartner(relation.title)))) {
                 /*
                  This will exclude residence, since the API seems to only support current residence.
                  It also will remove Military Service and any other entry not explicitly defined above.
@@ -491,7 +491,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             if (valdate !== "") {
                 data.push({date: cleanDate(valdate)});
             }
-
             vallocal = vallocal.replace(/Unknown/ig, "");
             vallocal = vallocal.replace(/\[Blank\]/ig, "");
             if (vallocal !== "") {
@@ -523,6 +522,18 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     //parent profiles
                     if (!parentflag) {
                         parentmarset.push(data);
+                    } else if (isPartner(relation.title)) {
+                        if (exists(data[0].name) && exists(data[0].name === "<Private>")) {
+                            //Verify the date in spouse marriage dates
+                            for (var i=0; i < marriagedata.length; i++) {
+                                if (checkNested(marriagedata[i],1,"date") && checkNested(data,1, "date")) {
+                                    if (marriagedata[i][1].date === data[1].date) {
+                                        profiledata[title] = data;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     } else {
                         //attempt to match up parent with multiple spouses via matching date / location
                         for (var pm = 0; pm < parentmarset.length; pm++) {
@@ -647,8 +658,13 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         variable: subdata
                     }, function (response) {
                         var arg = response.variable;
+
                         var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
                         person = updateInfoData(person, arg);
+                        if (person.name === "") {
+
+                            console.log(response.source);
+                        }
                         databyid[arg.profile_id] = person;
                         alldata["family"][arg.title].push(person);
                         familystatus.pop();
@@ -686,7 +702,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
                 var subdata = {name: housearray[i].name, gender: gendersv, title: title};
                 familystatus.push(familystatus.length);
-                famid++;
                 subdata["url"] = urlval;
                 subdata["itemId"] = itemid;
                 subdata["profile_id"] = famid;
@@ -696,6 +711,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     myhspouse.push(famid);
                 }
                 unionurls[famid] = itemid;
+                famid++;
                 chrome.extension.sendMessage({
                     method: "GET",
                     action: "xhttp",

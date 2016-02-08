@@ -636,7 +636,7 @@ function buildForm() {
                 '<td><input type="checkbox" class="checkslide" name="checkbox' + i + '-' + relationship + '" ' + isChecked(fullname, scored) + checkunknown + '></td>' +
                 '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;">';
             membersstring += '<span id="ribbon' + i + '" style="display: ' + isHidden(living) + '; float: right; position: relative; margin-right: -12px; margin-bottom: -5px; right: 8px; top: -3px; margin-left: -8px;"><img src="images/deceased.png" style="width: 18px;"></span>';
-            membersstring += '<span style="font-size: 130%; float: right; padding-right: 8px; padding-left:2px;">&#9662;</span>';
+            membersstring += '<span style="font-size: 130%; float: right; padding-right: 8px; padding-left:2px;"><img src="images/dropdown.png" style="width: 11px;"></span>';
             membersstring += '<span style="font-size: 90%;"><img class="iconaction" style="width: 16px; margin-bottom: -4px; margin-left: -2px; padding-right: 3px;" src="/images/' + actionicon +  '.png" title=' + actionicon + ' description=' + actionicon + '>' + escapeHtml(fullname.replace(/&quot;/g, '"')) + '</span>';
 
             if (halfsibling) {

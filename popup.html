@@ -58,8 +58,8 @@
     </table>
 
     <div class="shadoweffect" id="options" style="margin-bottom: 10px;">
-        <div id="optionbutton" style="vertical-align: middle; cursor: pointer;"><img src="/images/admin.png" style="float: left; margin-top: -1px; width: 20px;">
-            <span style="padding-left:5px"><strong>Configuration Options</strong></span><span style="float: right; font-size: 130%; padding-right: 2px;">&#9662;</span></div>
+        <div id="optionbutton" style="vertical-align: middle; cursor: pointer; margins: 0px;"><img src="/images/admin.png" style="vertical-align: middle; width: 20px;">
+            <span style="padding-left:5px; vertical-align: middle;"><strong>Configuration Options</strong></span><span style="float: right; font-size: 130%; padding-right: 2px;"><img src="images/dropdown.png" style="width: 11px;"></span></div>
         <div id="optionslide" style="display: none;">
             <div class="separator"></div>
             <table style="border-spacing: 0; border-collapse: collapse; white-space: nowrap; width: 100%;">
@@ -185,19 +185,6 @@
                         <td style="padding: 3px 6px 0; width: 58px;">
                             <div class="onoffswitch">
                                 <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                       id="photoonoffswitch" checked>
-                                <label class="onoffswitch-label" for="photoonoffswitch">
-                                    <span class="onoffswitch-inner"></span>
-                                    <span class="onoffswitch-switch"></span>
-                                </label>
-                            </div>
-                        </td>
-                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Enable photo checkbox auto-selection</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 3px 6px 0; width: 58px;">
-                            <div class="onoffswitch">
-                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                        id="genislideonoffswitch" checked>
                                 <label class="onoffswitch-label" for="genislideonoffswitch">
                                     <span class="onoffswitch-inner"></span>
@@ -206,6 +193,19 @@
                             </div>
                         </td>
                         <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Display the Geni side data by default</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 3px 6px 0; width: 58px;">
+                            <div class="onoffswitch">
+                                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                       id="photoonoffswitch">
+                                <label class="onoffswitch-label" for="photoonoffswitch">
+                                    <span class="onoffswitch-inner"></span>
+                                    <span class="onoffswitch-switch"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Enable photo checkbox auto-selection</td>
                     </tr>
                     <tr>
                         <td style="padding: 3px 6px 0; width: 58px;">
@@ -250,7 +250,7 @@
         <table style="margin-bottom: 10px; width: 100%;">
             <strong>Profile Data</strong>
             <td >
-                <div class="shadoweffect" style="padding-top: 12px; margin-right: 1px; margin-left: 1px; font-weight: bold;" id="profileshadowdiv"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall">Update Profile<span id="updateslide" style="font-size: 130%; cursor: pointer; float: right; padding: 0px 4px;">&#9662;</span><span class="genisliderow" style="float: right; font-size: 80%; font-weight: normal; margin-right: 100px; margin-top: 5px;">Geni Data</span>
+                <div class="shadoweffect" style="padding-top: 12px; margin-right: 1px; margin-left: 1px; font-weight: bold;" id="profileshadowdiv"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall">Update Profile<span id="updateslide" style="font-size: 130%; cursor: pointer; float: right; padding: 0px 4px;"><img src="images/dropdown.png" style="width: 11px;"></span><span class="genisliderow" style="float: right; font-size: 80%; font-weight: normal; margin-right: 100px; margin-top: 5px;">Geni Data</span>
                     <fieldset id="profilefield" class="fieldeffect">
                         <table style="width: 100%; border-spacing: 0; border-collapse: collapse;" id="profiletable">
                         </table>

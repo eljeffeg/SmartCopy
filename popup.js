@@ -53,7 +53,7 @@ function buildHistoryBox() {
                 focusprofileurl = "http://www.geni.com/" + buildhistory[i].id;
             }
             if (exists(buildhistory[i].data)) {
-                historytext += '<span class="expandhistory" name="history' + buildhistory[i].id + '" style="font-size: large; cursor: pointer;">&#9662;</span> ' + datetxt + '<a href="' + focusprofileurl + '" target="_blank">' + name + '</a><br/>';
+                historytext += '<span class="expandhistory" name="history' + buildhistory[i].id + '" style="font-size: large; cursor: pointer;"><img src="images/dropdown.png" style="width: 11px;"></span> ' + datetxt + '<a href="' + focusprofileurl + '" target="_blank">' + name + '</a><br/>';
                 historytext += formatJSON(buildhistory[i].data, "", buildhistory[i].id);
             } else {
                 historytext += '<span style="padding-left: 2px; padding-right: 2px;">&#x25cf;</span> ' + datetxt + '<a href="' + focusprofileurl + '" target="_blank">' + name + '</a><br/>';

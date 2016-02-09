@@ -408,9 +408,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     tablink = hlink;
                 }
             }
-
+            if (title === "occupations") {
+                title = "occupation";
+            }
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
-                && title !== 'occupation' && title !== 'cemetery' && title !== 'christening'
+                && title !== 'occupation' && title !== 'cemetery' && title !== 'christening' && title !== 'aliases'
                 && !(title === 'marriage' && (relation === "" || isParent(relation.title) || isPartner(relation.title)))) {
                 /*
                  This will exclude residence, since the API seems to only support current residence.
@@ -422,6 +424,12 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             if (title === "occupation") {
                 if (exists($(row).find(".recordFieldValue").contents().get(0))) {
                     profiledata[title] = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
+                }
+                continue;
+            }
+            if (title === "aliases") {
+                if (exists($(row).find(".recordFieldValue").contents().get(0))) {
+                    profiledata["nicknames"] = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
                 }
                 continue;
             }
@@ -455,8 +463,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                     vallocal = valdate;
                                     valdate = "";
                                 }
-                            } else if (valdate !== null && valdate.toLowerCase().startsWith("marriage to")) {
-                                data.push({name: valdate.replace("Marriage to: ","")});
+                            } else if (valdate !== null && (valdate.toLowerCase().startsWith("marriage to") || valdate.toLowerCase().startsWith("spouse:"))) {
+                                data.push({name: valdate.replace("Marriage to: ","").replace("Spouse: ", "")});
                             } else {
                                 if (fielddata.get(i).hasChildNodes()) {
                                     var checkchild = fielddata.get(i).childNodes;
@@ -816,8 +824,18 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
             }
         } else if (exists(relation) && isPartner(relation.title)) {
+
             if (marriagedata.length === 1 && !exists(profiledata["marriage"])) {
                 profiledata["marriage"] = marriagedata[0];
+            } else if (marriagedata.length > 1) {
+                for (var m=0; m < marriagedata.length; m++) {
+                    if (exists(marriagedata[m][0]) && exists(marriagedata[m][0].name)) {
+                        if (marriagedata[m][0].name === profiledata.name) {
+                            profiledata["marriage"] = marriagedata[m];
+                            break;
+                        }
+                    }
+                }
             }
         } else if (relation === "") {
             closeout = true;

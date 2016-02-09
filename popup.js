@@ -167,12 +167,12 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (startsWithMH(tablink, "matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr")) ||
             (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
             document.querySelector('#loginspinner').style.display = "none";
-            setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Matches on this results page.');
+            setMessage("#f8ff86", 'Please select one of the Matches on this results page.');
         } else if ((validRootsWeb(tablink) && tablink.toLowerCase().contains("igm.cgi")) ||
             tablink === "http://records.ancestry.com/Home/Results" ||
             tablink.startsWith("https://familysearch.org/search/tree/")) {
             document.querySelector('#loginspinner').style.display = "none";
-            setMessage("#f8ff86", 'SmartCopy Disabled: Please select one of the Profile pages on this site.');
+            setMessage("#f8ff86", 'Please select one of the Profile pages on this site.');
         } else if (isGeni()) {
             document.querySelector('#message').style.display = "none";
             var focusprofile = getProfile(tablink);
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
             updateLinks(focusprofile);
             userAccess();
         } else {
-            setMessage("#f9acac", 'SmartCopy does not currently support parsing this site / collection.');
+            setMessage("#f9acac", 'SmartCopy does not currently support parsing this page / site / collection.');
             document.querySelector('#loginspinner').style.display = "none";
         }
     });

@@ -503,7 +503,7 @@ function buildForm() {
     obj = alldata["family"];
     //console.log("");
     //console.log(JSON.stringify(obj));
-    var i = 0;
+    var icount = 0;
     var photoscore = $('#photoonoffswitch').prop('checked');
     for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
         var members = obj[relationship];
@@ -551,6 +551,12 @@ function buildForm() {
         var parentscore = scored;
         var skipprivate = $('#privateonoffswitch').prop('checked');
         for (var member in members) if (members.hasOwnProperty(member)) {
+            var i = members[member]["profile_id"];
+            if (!exists(i)) {
+                i = icount;
+                //Just in case a parser misses this in the future, add a nice warning
+                console.warn("Family Member lacks profile_id (famid)!  Using fallback count, but this needs to be fixed.");
+            }
             scored = parentscore;
             var entry = $("#" + relationship + "val")[0];
             if (!exists(entry)) {
@@ -783,8 +789,8 @@ function buildForm() {
                         '<img class="geoicon" style="cursor: pointer; float:left; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px"><img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;"><img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
                         '<tr class="geoplace hiddenrow" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                         '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_state" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:county" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_country" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_city" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                        '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">County: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:county" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_county" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                         '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">State: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:state" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_state" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                         '<tr class="geoloc hiddenrow" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Country: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:country" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_country" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
 
@@ -795,7 +801,7 @@ function buildForm() {
             entry.innerHTML = membersstring;
 
             //log("  " + members[member].name);
-            i++;
+            icount ++;
         }
         if (scoreused) {
             if (childck) {
@@ -868,7 +874,7 @@ function buildForm() {
         $("#genisearch").attr("href", genisearchurl);
     }
 
-    if (i > 0) {
+    if (icount > 0) {
         document.getElementById("familydata").style.display = "block";
         document.getElementById("genislider").style.display = "block";
     }

@@ -1879,7 +1879,7 @@ function parseForm(fs) {
     var rawinput = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput");
     var updatefd = (fs.selector === "#profiletable");
     var fsinput = rawinput.filter(function (item) {
-        return ($(rawinput[item]).closest('tr'));
+        return (!$(rawinput[item]).closest('tr').hasClass("geohidden"));
     });
     for (var item in fsinput) if (fsinput.hasOwnProperty(item)) {
         if (exists(fsinput[item].value) && !fsinput[item].disabled && fsinput[item].name !== "") {
@@ -2356,9 +2356,11 @@ $(function () {
         if (value) {
             $('#formdata').find(".hiddenrow").css("display", "none");
             $('.showhide').attr("src", "images/show.png");
+            $('.showhide').attr("title", "Show All Fields");
         } else {
             $('#formdata').find(".hiddenrow").css("display", "table-row");
             $('.showhide').attr("src", "images/hide.png");
+            $('.showhide').attr("title", "Hide Unused Fields");
             geoonoff($('#geoonoffswitch').prop('checked'));
         }
     }
@@ -2526,6 +2528,10 @@ chrome.storage.local.get('hideempty', function (result) {
     var hidechecked = result.hideempty;
     if (exists(hidechecked)) {
         $('#hideemptyonoffswitch').prop('checked', hidechecked);
+        if (!$('#hideemptyonoffswitch').prop('checked')) {
+                $("#focusshowhide").attr("src", "images/hide.png");
+                $("#focusshowhide").attr("title", "Hide Unused Fields");
+            }
     }
 });
 

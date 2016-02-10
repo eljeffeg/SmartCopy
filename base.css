@@ -721,7 +721,7 @@ textarea:disabled {
 }
 
 .actionselect {
-    width: 80%;
+    width: 76%;
     float: right;
     box-sizing: border-box;
     -webkit-box-sizing:border-box;
@@ -732,7 +732,7 @@ textarea:disabled {
 }
 
 .unknownselect {
-    width: 80%;
+    width: 76%;
     float: right;
     box-sizing: border-box;
     -webkit-box-sizing:border-box;
@@ -743,7 +743,7 @@ textarea:disabled {
 }
 
 .parentselector {
-    width: 80%;
+    width: 76%;
     float: right;
     box-sizing: border-box;
     -webkit-box-sizing:border-box;

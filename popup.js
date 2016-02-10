@@ -1306,7 +1306,7 @@ $(function () {
             }
             return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
         }).prop('checked', this.checked);
-        var ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput");
+        var ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector");
         ffs.filter(function (item) {
             return !((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
         }).attr('disabled', !this.checked);
@@ -1879,7 +1879,7 @@ function parseForm(fs) {
     var rawinput = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput");
     var updatefd = (fs.selector === "#profiletable");
     var fsinput = rawinput.filter(function (item) {
-        return ($(rawinput[item]).closest('tr').css('display') !== 'none');
+        return ($(rawinput[item]).closest('tr'));
     });
     for (var item in fsinput) if (fsinput.hasOwnProperty(item)) {
         if (exists(fsinput[item].value) && !fsinput[item].disabled && fsinput[item].name !== "") {
@@ -2252,42 +2252,6 @@ $(function () {
         }
     });
 
-    function geoonoff(value) {
-        if (value) {
-            var locobj = document.getElementsByClassName("geoloc");
-            for (var i = 0; i < locobj.length; i++) {
-                locobj[i].style.display = "table-row";
-                var pinput = $(locobj[i]).find('input[type="text"]');
-                pinput.filter(function (item) {
-                    var checkbox = $(pinput[item]).closest("tr").find('input[type="checkbox"]');
-                    return (pinput[item].value !== "" && checkbox.checked);
-                }).prop("disabled", false);
-            }
-            var placeobj = document.getElementsByClassName("geoplace");
-            for (var i = 0; i < placeobj.length; i++) {
-                placeobj[i].style.display = "none";
-                //$(placeobj[i]).find(":input:text").prop("disabled", true);
-            }
-            $(".geoicon").attr("src", "images/geoon.png");
-        } else {
-            var locobj = document.getElementsByClassName("geoloc");
-            for (var i = 0; i < locobj.length; i++) {
-                locobj[i].style.display = "none";
-                //$(locobj[i]).find(":input:text").prop("disabled", true);
-            }
-            var placeobj = document.getElementsByClassName("geoplace");
-            for (var i = 0; i < placeobj.length; i++) {
-                placeobj[i].style.display = "table-row";
-                var pinput = $(placeobj[i]).find('input[type="text"]').not(".genislideinput");
-                pinput.filter(function (item) {
-                    var checkbox = $(pinput[item]).closest("tr").find('input[type="checkbox"]');
-                    return (pinput[item].value !== "" && checkbox.checked);
-                }).prop("disabled", false);
-            }
-            $(".geoicon").attr("src", "images/geooff.png");
-        }
-    }
-
     $('#birthonoffswitch').on('click', function () {
         chrome.storage.local.set({'autobirth': this.checked});
         var profilegroup = $('.checkall');
@@ -2451,6 +2415,42 @@ $(function () {
         });
     });
 });
+
+function geoonoff(value) {
+    if (value) {
+        var locobj = document.getElementsByClassName("geoloc");
+        for (var i = 0; i < locobj.length; i++) {
+            locobj[i].style.display = "table-row";
+            var pinput = $(locobj[i]).find('input[type="text"]');
+            pinput.filter(function (item) {
+                var checkbox = $(pinput[item]).closest("tr").find('input[type="checkbox"]');
+                return (pinput[item].value !== "" && checkbox.checked);
+            }).prop("disabled", false);
+        }
+        var placeobj = document.getElementsByClassName("geoplace");
+        for (var i = 0; i < placeobj.length; i++) {
+            placeobj[i].style.display = "none";
+            //$(placeobj[i]).find(":input:text").prop("disabled", true);
+        }
+        $(".geoicon").attr("src", "images/geoon.png");
+    } else {
+        var locobj = document.getElementsByClassName("geoloc");
+        for (var i = 0; i < locobj.length; i++) {
+            locobj[i].style.display = "none";
+            //$(locobj[i]).find(":input:text").prop("disabled", true);
+        }
+        var placeobj = document.getElementsByClassName("geoplace");
+        for (var i = 0; i < placeobj.length; i++) {
+            placeobj[i].style.display = "table-row";
+            var pinput = $(placeobj[i]).find('input[type="text"]').not(".genislideinput");
+            pinput.filter(function (item) {
+                var checkbox = $(pinput[item]).closest("tr").find('input[type="checkbox"]');
+                return (pinput[item].value !== "" && checkbox.checked);
+            }).prop("disabled", false);
+        }
+        $(".geoicon").attr("src", "images/geooff.png");
+    }
+}
 
 function validRootsWeb(url) {
     return (url.startsWith("http://worldconnect.rootsweb.ancestry.com/") || url.startsWith("http://wc.rootsweb.ancestry.com/"));

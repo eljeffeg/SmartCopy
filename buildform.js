@@ -1060,6 +1060,7 @@ function updateClassResponse() {
             if (value.attr("src") === "images/hide.png") {
                 $(this).closest("table").find(".hiddenrow").css("display", "none");
                 value.attr("src", "images/show.png");
+                value.attr("title", "Show All Fields");
             } else {
                 if ($('#geoonoffswitch').prop('checked')) {
                     $(this).closest("table").find(".hiddenrow").not(".geoplace").css("display", "table-row");
@@ -1067,6 +1068,7 @@ function updateClassResponse() {
                     $(this).closest("table").find(".hiddenrow").not(".geoloc").css("display", "table-row");
                 }
                 value.attr("src", "images/hide.png");
+                value.attr("title", "Hide Unused Fields");
             }
         });
     });

@@ -2355,8 +2355,10 @@ $(function () {
     function hideempty(value) {
         if (value) {
             $('#formdata').find(".hiddenrow").css("display", "none");
+            $('.showhide').attr("src", "images/show.png");
         } else {
             $('#formdata').find(".hiddenrow").css("display", "table-row");
+            $('.showhide').attr("src", "images/hide.png");
             geoonoff($('#geoonoffswitch').prop('checked'));
         }
     }

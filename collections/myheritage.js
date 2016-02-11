@@ -152,23 +152,23 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
                         famid++;
                     }
                 }
-            }
-        } else if (isChild(relation.title)) {
-            if (exists(title) && isParent(title)) {
-                if (focusURLid !== itemid) {
-                    childlist[relation.proid] = $.inArray(itemid, unionurls);
-                    profiledata["parent_id"] = $.inArray(itemid, unionurls);
-                    break;
+            } else if (isChild(relation.title)) {
+                if (isParent(title)) {
+                    if (focusURLid !== itemid) {
+                        childlist[relation.proid] = $.inArray(itemid, unionurls);
+                        profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                        break;
+                    }
                 }
+            } else if (isSibling(relation.title)) {
+                if (isParent(title)) {
+                    siblingparents.push(itemid);
+                }
+            } else if (isPartner(relation.title)) {
+                //marriage data - parse event tab
+            } else if (isParent(relation.title)) {
+                //marriage data - parse event tab
             }
-        } else if (isSibling(relation.title)) {
-            if (exists(title) && isParent(title)) {
-                siblingparents.push(itemid);
-            }
-        } else if (isPartner(relation.title)) {
-            //marriage data - parse event tab
-        } else if (isParent(relation.title)) {
-            //marriage data - parse event tab
         }
     }
     if (exists(relation.title) && isSibling(relation.title) && siblingparents.length > 0) {

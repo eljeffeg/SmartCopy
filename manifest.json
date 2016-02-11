@@ -1,9 +1,9 @@
 {
     "manifest_version": 2,
-    "name": "HistoryLink SmartCopy",
+    "name": "SmartCopy",
     "short_name": "SmartCopy",
     "description": "Tool for copying genealogical data into Geni.",
-    "version": "2.0",
+    "version": "2.0.1",
     "icons": { "16": "images/icon16.png",
         "48": "images/icon48.png",
         "128": "images/icon128.png" },

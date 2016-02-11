@@ -107,7 +107,7 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     }
 
     // ---------------------- Family Data --------------------
-
+    var siblingparents = [];
     var familydata = parsed.find(".familySection");
     var memberfam = familydata.find(".factsSubtitle");
     var memberfam2 = familydata.find(".toggleSiblings");
@@ -142,14 +142,25 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
                     var name = $(person[x]).find(".userCardTitle").text();
                     getAncestryNewTreeFamily(famid, itemid, name, title, url);
                     famid++;
-                } else if (exists(relation.title) && isChild(relation.title)) {
-                    if (focusURLid !== itemid) {
-                        childlist[relation.proid] = $.inArray(itemid, unionurls);
-                        profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                } else if (exists(relation.title)) {
+                    if (isChild(relation.title)) {
+                        if (isParent(title)) {
+                            if (focusURLid !== itemid) {
+                                childlist[relation.proid] = $.inArray(itemid, unionurls);
+                                profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                            }
+                        }
+                    } else if (isSibling(relation.title)) {
+                        if (isParent(title)) {
+                            siblingparents.push(itemid);
+                        }
                     }
                 }
             }
         }
+    }
+    if (exists(relation.title) && isSibling(relation.title) && siblingparents.length > 0) {
+        profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
     }
 
     // ---------------------- Profile Data --------------------

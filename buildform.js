@@ -125,6 +125,10 @@ function updateGeoLocation() {
                 $("#" + tableid + "gpin").attr("title", "");
             }
         }
+        var globalloc = $('#forcegeoswitch').prop('checked');
+        if (globalloc) {
+            $($($(eventrow).closest("tr")[0]).find("input[type=checkbox]")[0]).prop("checked", true);
+        }
         var titlesplit = titleobj[0].nextSibling.nodeValue.split("Location: ");
         titleobj[0].nextSibling.nodeValue = titlesplit[0] + "Location: " + locationdata.query;
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
@@ -132,19 +136,19 @@ function updateGeoLocation() {
         $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", geoon).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.place;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !(locationdata.place !== "" && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.place !== "" || globalloc) && geoon)).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.city;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !(locationdata.city !== "" && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.city !== "" || globalloc) && geoon)).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.county;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !(locationdata.county !== "" && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.county !== "" || globalloc) && geoon)).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.state;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !(locationdata.state !== "" && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.state !== "" || globalloc) && geoon)).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.country;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !(locationdata.country !== "" && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.country !== "" || globalloc) && geoon)).trigger("click");
         $("body").toggleClass("wait");
     }
 }
@@ -1211,7 +1215,7 @@ function placementUpdate() {
 }
 
 function isEnabled(value, score, force) {
-    if (force) {
+    if (force && score) {
         return "";
     } else if (score && isValue(value)) {
         return "";
@@ -1307,7 +1311,7 @@ function isSelected(id1, id2) {
 
 function isChecked(value, score, force) {
     force = force || false;
-    if (force) {
+    if (force && score) {
         return "checked";
     } else if (score && isValue(value)) {
         return "checked";

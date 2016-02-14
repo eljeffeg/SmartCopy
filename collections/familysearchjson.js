@@ -334,6 +334,9 @@ function getFamilySearchJSON(famid, url, subdata) {
         if (arg.halfsibling) {
             person["halfsibling"] = true;
         }
+        if (arg.marriage) {
+            person["marriage"] = arg.marriage;
+        }
         if (arg.image) {
             person["image"] = arg.image;
             person["thumb"] = arg.image;

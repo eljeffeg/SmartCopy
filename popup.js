@@ -2242,6 +2242,10 @@ $(function () {
         geoonoff(this.checked);
         hideempty($('#hideemptyonoffswitch').prop('checked'));
     });
+    $('#forcegeoswitch').on('click', function () {
+        chrome.storage.local.set({'forcegeo': this.checked});
+        $("#forcegeochange").css("display", "block");
+    });
     $('#genislideonoffswitch').on('click', function () {
         chrome.storage.local.set({'genislideout': this.checked});
         if (this.checked) {
@@ -2473,6 +2477,13 @@ chrome.storage.local.get('autogeo', function (result) {
     var geochecked = result.autogeo;
     if (exists(geochecked)) {
         $('#geoonoffswitch').prop('checked', geochecked);
+    }
+});
+
+chrome.storage.local.get('forcegeo', function (result) {
+    var forcechecked = result.forcegeo;
+    if (exists(forcechecked)) {
+        $('#forcegeoswitch').prop('checked', forcechecked);
     }
 });
 

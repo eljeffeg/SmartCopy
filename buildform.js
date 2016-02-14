@@ -138,7 +138,7 @@ function updateGeoLocation() {
         $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !(locationdata.city !== "" && geoon)).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.county;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !(locationdata.country !== "" && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !(locationdata.county !== "" && geoon)).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.state;
         $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !(locationdata.state !== "" && geoon)).trigger("click");

@@ -188,6 +188,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                     if (isPartner(title)) {
                                         myhspouse.push(famid);
                                     }
+                                    famid++;
                                 }
                             } else if (listrowval.className !== "eventSeparator") {
                                 var urlval = $(listrowval).attr("href");
@@ -205,6 +206,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                         myhspouse.push(famid);
                                     }
                                     unionurls[famid] = itemid;
+                                    famid++;
                                     chrome.extension.sendMessage({
                                         method: "GET",
                                         action: "xhttp",
@@ -220,7 +222,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                     });
                                 }
                             }
-                            famid++;
                         }
                     } else {
                         var splitlrnv = $(row).find(".recordFieldValue").contents().get(0).nodeValue;

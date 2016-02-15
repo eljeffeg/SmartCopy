@@ -367,6 +367,9 @@ function loadPage(request) {
                 recordtype = parsed.find(".infoGroupTitle");
                 var shorturl = tablink.substring(0, tablink.indexOf('showRecord') + 10);
                 focusURLid = getParameterByName('itemId', shorturl);
+                if (focusURLid === "") {
+                   focusURLid = getParameterByName('itemId', tablink);
+                }
                 smscorefactors = parsed.find(".value_add_score_factors_container").text().trim();
                 if (exists(recordtype[0])) {
                     recordtype = recordtype[0].innerText;

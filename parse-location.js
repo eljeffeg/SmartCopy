@@ -166,12 +166,12 @@ function queryGeo(locationset, test) {
         location = location.replace(/\[Blank\]/ig, "");
         location = location.replace(/ Dist,/ig, ",");
         location = location.replace(/ Co,/ig, ",");
-        if (location.startsWith("Prob ")) {
-            location = location.replace(/^Prob /,'');
-        } else if (location.startsWith("From ")) {
-            location = location.replace(/^From /,'');
-        } else if (location.startsWith("of ")) {
-            location = location.replace(/^of /,'');
+        if (location.startsWith("Prob")) {
+            location = location.replace(/^Prob[, ]/,'').trim();
+        } else if (location.startsWith("From")) {
+            location = location.replace(/^From[, ]/,'').trim();
+        } else if (location.startsWith("of")) {
+            location = location.replace(/^of[, ]/,'').trim();
         }
         if (location.contains("\?")) {
             var questionmark = parseGoogle("");

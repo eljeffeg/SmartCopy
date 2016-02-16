@@ -381,7 +381,11 @@ function loadPage(request) {
                         var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
                         if (exists(focusprofile)) {
                             focusid = focusprofile.trim().replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");
-                            updateLinks("?profile=" + focusid);
+                            if (exists(focusid) && focusid.contains("myheritage.com")) {
+                                focusid = null;
+                            } else {
+                                updateLinks("?profile=" + focusid);
+                            }
                         }
                     } else if (focusURLid !== "") {
                         for (var i = 0; i < buildhistory.length; i++) {
@@ -827,6 +831,9 @@ function loadSelectPage(request) {
     var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
     var focusperson = parsed.find(".individualInformationName").text().trim();
     var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
+    if (exists(focusprofile) && focusprofile.contains("myheritage.com")) {
+        focusprofile = null;
+    }
     if (exists(focusprofile)) {
         focusprofile = focusprofile.replace("http://www.geni.com/", "").replace("https://www.geni.com/", "").trim();
         var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusprofile;

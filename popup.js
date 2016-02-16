@@ -382,6 +382,16 @@ function loadPage(request) {
                         if (exists(focusprofile)) {
                             focusid = focusprofile.trim().replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");
                             if (exists(focusid) && focusid.contains("myheritage.com")) {
+                                if (focusURLid !== "") {
+                                    for (var i = 0; i < buildhistory.length; i++) {
+                                        if (buildhistory[i].itemId === focusURLid) {
+                                            focusid = buildhistory[i].id;
+                                            profilechanged = true;
+                                            loadPage(request);
+                                            return;
+                                        }
+                                    }
+                                }
                                 focusid = null;
                             } else {
                                 updateLinks("?profile=" + focusid);

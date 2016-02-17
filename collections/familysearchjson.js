@@ -342,6 +342,7 @@ function getFamilySearchJSON(famid, url, subdata) {
             person["thumb"] = arg.image;
         }
         //person = updateInfoData(person, arg);
+        person["itemId"] = arg.itemId;
         person["profile_id"] = arg.profile_id;
         databyid[arg.profile_id] = person;
         alldata["family"][arg.title].push(person);

@@ -75,6 +75,7 @@ function parseFamilySearchRecord(htmlstring, familymembers, relation) {
                         var itemid = getFSRecordId(person);
                         var pdata = getFSProfileData(person, title);
                         pdata["profile_id"] = famid;
+                        pdata["itemId"] = itemid;
                         if (!$.isEmptyObject(mdata)) {
                             pdata["marriage"] = mdata;
                             pdata["mstatus"] = "spouse";

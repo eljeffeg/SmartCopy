@@ -772,7 +772,15 @@ function loadPage(request) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace("?view=basic", "");
             } else if (tablink.startsWith("https://familysearch.org/tree/")) {
                 focusURLid = getParameterByName('person', tablink);
+            } else if (tablink.startsWith("https://familysearch.org/tree-data/")) {
+                var focussplit = tablink.split("/");
+                if (focussplit.length > 1) {
+                    focusURLid = focussplit[focussplit.length - 2];
+                }
+            } else if (tablink.startsWith("https://familysearch.org/platform/records/")) {
+                focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace(".json", "");
             }
+
             if (focusURLid !== "") {
                 for (var i = 0; i < buildhistory.length; i++) {
                     if (buildhistory[i].itemId === focusURLid) {

@@ -31,3 +31,4 @@ All Saints, Leicester, Leicestershire, England|{"place":"All Saints","city":"Lei
 Bulloch Co, GA|{"place":"","city":"","county":"Bulloch County","state":"Georgia","country":"United States"}
 Wright-Patterson Air Force Base, OH, USA|{"place": "", "city": "Wright-Patterson Air Force Base","county":"Greene County","state":"Ohio","country":"United States"}
 Taj Majal, India|{"place": "Taj Majal", "city": "Agra", "county": "Agra", "state": "Uttar Pradesh", "country": "India"}
+Ontario, CA|{"state": "Ontario", "country": "Canada"}

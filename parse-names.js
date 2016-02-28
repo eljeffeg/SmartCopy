@@ -344,6 +344,8 @@ var NameParse = (function(){
     NameParse.fix_case = function (word) {
         if (!$('#adjustnameonoffswitch').prop('checked')) {
             return word;
+        } else if (word === "NN") {
+            return word;
         }
         // uppercase words split by dashes, like "Kimura-Fay"
         word = this.safe_ucfirst("-",word);

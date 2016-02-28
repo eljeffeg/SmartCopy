@@ -461,6 +461,13 @@ function compareGeo(shortGeo, longGeo) {
     if (location.country === "United States" && location.state === "USA") {
         location.state = "";
     }
+
+    //----------- Problem Locations --------
+    if (location.city === "Ontario") {
+        ambig = true;
+    }
+    //--------------------------------------
+
     location.ambiguous = ambig;
     return location;
 }

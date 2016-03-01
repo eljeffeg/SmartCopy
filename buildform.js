@@ -1849,7 +1849,6 @@ function GeniPerson(obj) {
                 if (!obj || !obj.hasOwnProperty(args[i])) {
                     return false;
                 }
-                console.log(obj[args[i]]);
                 obj = obj[args[i]];
             }
             return obj;

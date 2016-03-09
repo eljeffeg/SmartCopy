@@ -103,6 +103,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         }
         if (household.length > 0) {
             var housearray = [];
+            var focustitle = "";
             for (var i = 0; i < household.length; i++) {
                 var hv = $(household[i]).find('td');
                 for (var x = 0; x < hv.length; x++) {
@@ -110,10 +111,12 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     if (urlval.length > 0) {
                         var hurl = urlval[0].href;
                         var itemid = getParameterByName('itemId', hurl);
-                        var title = $(hv[0]).text().toLowerCase();
+                        var title = $(hv[0]).text().toLowerCase().replace(" (implied)", "");
+
                         if (itemid !== focusURLid) {
                             housearray.push({name: $(hv[x]).text(), url: hurl, title: title});
                         } else {
+                            focustitle = title;
                             if (focusgender === "unknown") {
                                 if (title === "wife") {
                                     genderval = "female";
@@ -129,6 +132,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             }
         }
     }
+
 
     if (records.length > 0 && records[0].hasChildNodes()) {
         var famid = 0;
@@ -147,6 +151,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             // console.log(row);
             var row = rows[r];
             var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
+
             if (title === "gender") {
                 if (exists($(row).find(".recordFieldValue").contents().get(0))) {
                     genderval = $(row).find(".recordFieldValue").contents().get(0).nodeValue.toLowerCase();
@@ -223,7 +228,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                 }
                             }
                         }
-                    } else {
+                    } else if (!exists(housearray)) {
                         var splitlrnv = $(row).find(".recordFieldValue").contents().get(0).nodeValue;
                         if (exists(splitlrnv)) {
                             var splitlr = splitlrnv.split(",");
@@ -235,50 +240,13 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             }
                             for (var lr =0;lr < splitlr.length; lr++) {
                                 var splitval = splitlr[lr];
-                                if (exists(housearray)) {
-                                    for (var i = 0; i < housearray.length; i++) {
-                                        if (housearray[i].name === splitval.trim()) {
-                                            familystatus.push(familystatus.length);
-                                            var subdata = {name: splitval.trim(), gender: gendersv, title: title};
-                                            var urlval = housearray[i].url;
-                                            var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
-                                            var itemid = getParameterByName('itemId', shorturl);
-                                            subdata["url"] = urlval;
-                                            subdata["itemId"] = itemid;
-                                            subdata["profile_id"] = famid;
-                                            if (isParent(title)) {
-                                                parentlist.push(itemid);
-                                            } else if (isPartner(title)) {
-                                                myhspouse.push(famid);
-                                            }
-                                            unionurls[famid] = itemid;
-                                            famid++;
-                                            chrome.extension.sendMessage({
-                                                method: "GET",
-                                                action: "xhttp",
-                                                url: shorturl,
-                                                variable: subdata
-                                            }, function (response) {
-                                                var arg = response.variable;
-                                                var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
-                                                person = updateInfoData(person, arg);
-                                                databyid[arg.profile_id] = person;
-                                                alldata["family"][arg.title].push(person);
-                                                familystatus.pop();
-                                            });
-                                            housearray.splice(i, 1);
-                                            break;
-                                        }
-                                    }
-                                } else {
-                                    var profile = {name: splitval.trim(), gender: gendersv,  profile_id: famid, title: title, status: title};
-                                    alldata["family"][title].push(profile);
-                                    databyid[famid] = profile;
-                                    if (isPartner(title)) {
-                                        myhspouse.push(famid);
-                                    }
-                                    famid++;
+                                var profile = {name: splitval.trim(), gender: gendersv,  profile_id: famid, title: title, status: title};
+                                alldata["family"][title].push(profile);
+                                databyid[famid] = profile;
+                                if (isPartner(title)) {
+                                    myhspouse.push(famid);
                                 }
+                                famid++;
                             }
                         }
                     }
@@ -671,7 +639,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
                         person = updateInfoData(person, arg);
                         if (person.name === "") {
-
                             console.log(response.source);
                         }
                         databyid[arg.profile_id] = person;
@@ -702,7 +669,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 if (!urlval.startsWith("http") || itemid === "") {
                     continue;
                 }
-                var title = housearray[i].title;
+                var title = relationshipToHead(focustitle, housearray[i].title);
                 var gendersv = "unknown";
                 if (isFemale(title)) {
                     gendersv = "female";
@@ -735,7 +702,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         alldata["family"][arg.title] = [];
                     }
                     alldata["family"][arg.title].push(person);
-
                     familystatus.pop();
                 });
             }

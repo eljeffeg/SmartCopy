@@ -20,6 +20,11 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     for (var i = 0; i < usercard.length; i++) {
         var entry = $(usercard[i]);
         var titlename = entry.text();
+        var encodetitle = encodeURI(titlename);
+        if (encodetitle.contains("%20%E2%80%94%20")) {
+            var splittitle = encodetitle.split("%20%E2%80%94%20");
+            titlename = splittitle[1];
+        }
         if (titlename === "Birth") {
             var data = parseAncestryNewDate(entry.next());
             if (!$.isEmptyObject(data)) {

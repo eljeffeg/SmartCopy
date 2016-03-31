@@ -245,7 +245,7 @@ var NameParse = (function(){
                 'hon', 'amd', 'bg', 'bgen', 'brig gen', 'cpt', 'capt', 'cwo', 'lady',
                 'col', 'cdr', 'cpl', 'ens', '1lt', '1st lt', 'ltjg', '2lt', '2nd lt',
                 'lt', 'gen', 'ltc', 'lt col', 'lcdr', 'ltg', 'lt gen', 'maj gen', 'mg',
-                'pvt', 'maj', 'msg', 'msgt', 'sgt', 'radm', 'vadm', 'brother', 'chaplain',
+                'pvt', 'maj', 'msg', 'msgt', 'sgt', 'radm', 'vadm', 'brother', 'chaplain', 'deacon',
                 'doctor', 'father', 'judge', 'missus', 'madam', 'professor', 'reverend', 'baron',
                 'senator', 'congressman', 'governor', 'sister', 'the honorable', 'honerable',
                 'admiral', 'brigadier general', 'captain', 'chief warrant officer', 'colonel',

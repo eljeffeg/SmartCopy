@@ -993,15 +993,38 @@ function updateClassResponse() {
         $('.checknext').on('click', function () {
             $(this).closest('tr').find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
             if (this.checked) {
+                if ($(this).closest('tr').hasClass("geoloc") || $(this).closest('tr').hasClass("geoplace")) {
+                    //This checks the geotopcheck when a child location is checked
+                    var ps = $(this).closest('tr')[0].previousElementSibling;
+                    while (exists(ps)) {
+                        ps = $(ps)[0].previousElementSibling;
+                        if (exists(ps) && ps.id !== "") {
+                            $(ps).find('.geotopcheck').prop('checked', true);
+                            break;
+                        }
+                    }
+                }
                 var personslide = $(this).closest('.memberexpand').prev('.membertitle');
                 personslide.find('.checkslide').prop('checked', true);
                 personslide.find('input[type="hidden"]').not(".genislideinput").attr('disabled', false);
+                if($($(this).closest("fieldset")[0].parentElement)[0].id === "profileshadowdiv") {
+                    $("#updateprofile").prop('checked', true);
+                }
             }
         });
     });
     $('.geotopcheck').off();
     $(function () {
         $('.geotopcheck').on('click', function () {
+            if (this.checked) {
+                //Check the very top box
+                var personslide = $(this).closest('.memberexpand').prev('.membertitle');
+                personslide.find('.checkslide').prop('checked', true);
+                personslide.find('input[type="hidden"]').not(".genislideinput").attr('disabled', false);
+                if($($(this).closest("fieldset")[0].parentElement)[0].id === "profileshadowdiv") {
+                    $("#updateprofile").prop('checked', true);
+                }
+            }
             var row = $(this).closest('tr');
             var icon = $(row.find("img")[0]).attr("src");
             row = $(row[0].nextElementSibling);

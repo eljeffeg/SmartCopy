@@ -180,6 +180,9 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById("addhistoryblock").style.display = "block";
             updateLinks(focusprofile);
             userAccess();
+        } else if (MHLanguageCheck(tablink)) {
+            setMessage("#f8ff86", 'SmartCopy will only parse MyHeritage when your language is defined as English. Retry using ".com": https://www.myheritage.com');
+            document.querySelector('#loginspinner').style.display = "none";
         } else {
             setMessage("#f9acac", 'SmartCopy does not currently support parsing this page / site / collection.');
             document.querySelector('#loginspinner').style.display = "none";
@@ -2495,6 +2498,15 @@ function validRootsWeb(url) {
 function validMyHeritage(url) {
     return (url.startsWith("http://www.myheritage.com/person-") || url.startsWith("http://www.myheritage.com/member-") || url.startsWith("http://www.myheritage.com/site-family-tree-") ||
         url.startsWith("https://www.myheritage.com/person-") || url.startsWith("https://www.myheritage.com/member-") || url.startsWith("https://www.myheritage.com/site-family-tree-"));
+}
+
+function MHLanguageCheck(url) {
+    if (startsWithMH(url, "person-") || startsWithMH(url, "member-") || startsWithMH(url, "site-family-tree-")) {
+        if (!validMyHeritage(url)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function validFamilyTree(url) {

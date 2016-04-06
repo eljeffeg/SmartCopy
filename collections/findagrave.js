@@ -288,6 +288,10 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                     if (eventsplit[0] === "") {
                         eventsplit.shift();
                     }
+                    if (eventsplit[0].contains("&gt;")) {
+                        var fixCRid = eventsplit[0].split("&gt;");
+                        eventsplit[0] = fixCRid[fixCRid.length-1];
+                    }
                     if (eventsplit[eventsplit.length-1].toLowerCase().startsWith("plot") || eventsplit[eventsplit.length-1].toLowerCase().startsWith("gps")) {
                         if (eventsplit[eventsplit.length-1].toLowerCase().startsWith("gps")) {
                             if (eventsplit[eventsplit.length-2].toLowerCase().startsWith("plot")) {

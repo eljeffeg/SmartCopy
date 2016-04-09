@@ -127,9 +127,7 @@ function checkPlace(location) {
     var splitplace = location.split(",");
     var checkplace = splitplace[0].toLowerCase().trim();
     var place = "";
-    if (checkplace.contains(" cemetery") || checkplace.contains(" cemetary") || checkplace.contains(" grave") ||
-        checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.") ||
-        checkplace.toLowerCase().endsWith(" territory") || checkplace.toLowerCase().endsWith(" church") || checkplace.toLowerCase().endsWith("temple")) {
+    if (isCem(checkplace)) {
         if (checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.")) {
             place = splitplace[0].replace(/ cem\.?/i, " Cemetery").trim();
         } else if (checkplace.contains(" cemetary")) {
@@ -145,6 +143,13 @@ function checkPlace(location) {
         }
     }
     return place;
+}
+
+function isCem(checkplace) {
+    return checkplace.contains(" cemetery") || checkplace.contains(" cemetary") || checkplace.contains(" grave") ||
+        checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.") ||
+        checkplace.toLowerCase().endsWith(" territory") || checkplace.toLowerCase().endsWith(" church") ||
+        checkplace.toLowerCase().endsWith("temple") || checkplace.contains("mausoleum");
 }
 
 function queryGeo(locationset, test) {

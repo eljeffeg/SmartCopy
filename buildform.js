@@ -1842,6 +1842,13 @@ function GeniPerson(obj) {
         } else if (!obj.hasOwnProperty(path)) {
             return "";
         } else if (!exists(subpath)) {
+            if (typeof obj[path] === 'string' || obj[path] instanceof String) {
+                obj[path] = obj[path].replace(/"/g, "&quot;");
+            } else {
+                for (var i = 0; i < obj[path].length; i++) {
+                    obj[path][i] = obj[path][i].replace(/"/g, "&quot;");
+                }
+            }
             return obj[path];
         } else {
             obj = obj[path];

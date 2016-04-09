@@ -800,7 +800,7 @@ function loadPage(request) {
             document.getElementById("top-container").style.display = "block";
             document.getElementById("submitbutton").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage("#f8ff86", 'SmartCopy does not work on Search pages.  Please open the page for a specific record.');
+            setMessage("#f8ff86", 'SmartCopy does not work on Search pages.  Please open the <b>Details</b> page for a specific record.');
 
         } else {
             document.getElementById("top-container").style.display = "block";

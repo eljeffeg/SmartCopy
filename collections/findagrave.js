@@ -108,14 +108,13 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                         aboutdata += parseWikiURL(aboutinfo) + "\n";
                     }
                 }
-
-                if (familymembers) {
-                    familylinks = familylinks.replace(/&nbsp;/g, "").trim().replace(/<br><br><br>/ig, '<br>').replace(/<br><br>/ig, '<br>');
-                    familymem = familylinks.split("<br>");
-                    //familylist = [];
-                    var title = "";
-                    for (var i=0;i<familymem.length;i++) {
-                        var titlename = familymem[i].replace(":","").toLowerCase().trim();
+                familylinks = familylinks.replace(/&nbsp;/g, "").trim().replace(/<br><br><br>/ig, '<br>').replace(/<br><br>/ig, '<br>');
+                familymem = familylinks.split("<br>");
+                var title = "";
+                var siblingparents = [];
+                for (var i=0;i<familymem.length;i++) {
+                    var titlename = familymem[i].replace(":","").toLowerCase().trim();
+                    if (familymembers) {
                         if (familymem[i].trim() === "") {
                             continue;
                         } else if (familymem[i].trim().toLowerCase().startsWith("note:") && familymem[i].trim().toLowerCase() !== "note: researching") {
@@ -172,6 +171,13 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                                 subdata["itemId"] = itemid;
                                 subdata["profile_id"] = famid;
                                 unionurls[famid] = itemid;
+                                if (isPartner(title)) {
+                                    myhspouse.push(famid);
+                                }
+                                if (isParent(title)) {
+                                    parentlist.push(itemid);
+                                }
+                                famid++;
                                 chrome.extension.sendMessage({
                                     method: "GET",
                                     action: "xhttp",
@@ -189,10 +195,6 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                                     alldata["family"][arg.title].push(person);
                                     familystatus.pop();
                                 });
-                                if (isPartner(title)) {
-                                    myhspouse.push(famid);
-                                }
-                                famid++;
                             } else {
                                 var profile = {name: name, gender: gendersv, profile_id: famid, title: title};
                                 if (drange !== "") {
@@ -217,7 +219,46 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                                 famid++;
                             }
                         }
+                    } else if (isChild(relation.title) && isParent(titlename)) {
+                        i++;
+                        for (var i=i;i<familymem.length;i++) {
+                            var datarow = familymem[i].trim();
+                            if (!datarow.startsWith("<")) {
+                                i = familymem.length;
+                                break;
+                            }
+                            var urlset = datarow.match('href="(.*)"');
+                            var url = "";
+                            if (exists(urlset) && exists(urlset[1])) {
+                                url = "http://www.findagrave.com/cgi-bin/" + urlset[1];
+                                var itemid = getParameterByName('GRid', url);
+                                if (focusURLid !== itemid) {
+                                    childlist[relation.proid] = $.inArray(itemid, unionurls);
+                                    profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                                    break;
+                                }
+                            }
+                        }
+                    } else if (isSibling(relation.title) && isParent(titlename)) {
+                        i++;
+                        for (var i=i;i<familymem.length;i++) {
+                            var datarow = familymem[i].trim();
+                            if (!datarow.startsWith("<")) {
+                                i = familymem.length;
+                                break;
+                            }
+                            var urlset = datarow.match('href="(.*)"');
+                            var url = "";
+                            if (exists(urlset) && exists(urlset[1])) {
+                                url = "http://www.findagrave.com/cgi-bin/" + urlset[1];
+                                var itemid = getParameterByName('GRid', url);
+                                siblingparents.push(itemid);
+                            }
+                        }
                     }
+                }
+                if (siblingparents.length > 0) {
+                    profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
                 }
             } else if ($(row).text().toLowerCase().trim().startsWith("birth:")) {
                 var cells = $(row).find('td');
@@ -259,15 +300,22 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 var cells = $(row).find('td');
                 var eventinfo = $(cells[1]).html();
                 if (exists(eventinfo)) {
-                    if (eventinfo.contains("<br>")) {
-                        var eventsplit = eventinfo.split("<br>");
+                    if (eventinfo.contains("<br>") || (eventinfo.split(",").length - 1) > 1) {
+                        var eventsplit = [];
+                        if (eventinfo.contains("<br>")) {
+                            eventsplit = eventinfo.split("<br>");
+                        } else {
+                            eventsplit = eventinfo.split(",");
+                            eventsplit[0] = eventsplit[0] + eventsplit.splice(1, 1)[0];
+                        }
+
                         var dateval = eventsplit.shift().replace(".,", "").replace(/&nbsp;/g, " ").replace("  ", " ").trim();
                         dateval = cleanDate(dateval);
                         if (dateval !== "unknown" && dateval !== "") {
                             data.push({date: dateval});
                             deathdtflag = true;
                         }
-                        var eventlocation = eventsplit.join(", ");
+                        var eventlocation = eventsplit.join(", ").trim();
                         data.push({id: geoid, location: eventlocation});
                         geoid++;
                     } else {

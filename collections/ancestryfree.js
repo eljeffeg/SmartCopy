@@ -1,9 +1,12 @@
-// Parse Ancestry Free Records (records.ancestry.com)
+// Parse Ancestry Free Records (records.ancestry.com or ancestry.com/genealogy/records)
 function parseAncestryFree(htmlstring, familymembers, relation) {
     relation = relation || "";
 
     var parsed = $(htmlstring.replace(/<img/ig, "<gmi"));
-    var focusperson = parsed.filter('title').text().trim();
+    var focusperson = parsed.find(".personName").text();
+    if (focusperson === "") {
+        focusperson = parsed.filter('title').text().trim();
+    }
     var focusdaterange = "";
     var frange = parsed.find(".pageCrumb");
     for (var i = 0; i < frange.length; i++) {

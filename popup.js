@@ -479,7 +479,11 @@ function loadPage(request) {
             } else if (tablink.startsWith("http://records.ancestry.com/")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 recordtype = "Ancestry Records";
-                focusname = parsed.filter('title').text();
+                focusname = parsed.find(".personName").text();
+                if (focusname === "") {
+                    focusname = parsed.filter('title').text();
+                }
+
                 var frange = parsed.find(".pageCrumb");
                 for (var i = 0; i < frange.length; i++) {
                     if ($(frange[i]).text().startsWith(focusname)) {
@@ -493,7 +497,10 @@ function loadPage(request) {
             } else if (tablink.startsWith("http://www.ancestry.com/genealogy/records/")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 recordtype = "Ancestry Records";
-                focusname = parsed.filter('title').text();
+                focusname = parsed.find(".personName").text();
+                if (focusname === "") {
+                    focusname = parsed.filter('title').text();
+                }
                 var frange = parsed.find(".pageCrumb");
                 for (var i = 0; i < frange.length; i++) {
                     if ($(frange[i]).text().startsWith(focusname)) {

@@ -218,7 +218,7 @@ function userAccess() {
         chrome.extension.sendMessage({
             method: "GET",
             action: "xhttp",
-            url: "http://historylink.herokuapp.com/account?profile=" + focusid,
+            url: "https://historylink.herokuapp.com/account?profile=" + focusid,
             variable: ""
         }, function (response) {
             document.querySelector('#loginspinner').style.display = "none";
@@ -264,7 +264,7 @@ function userAccess() {
 function userrestore() {
     document.querySelector('#useraccess').style.display = "none";
     document.querySelector('#loginspinner').style.display = "block";
-    var prefixurl = "http://historylink.herokuapp.com/account?profile=" + focusid;
+    var prefixurl = "https://historylink.herokuapp.com/account?profile=" + focusid;
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -278,7 +278,7 @@ function userrestore() {
 function useradd() {
     document.querySelector('#useraccess').style.display = "none";
     document.querySelector('#loginspinner').style.display = "block";
-    var prefixurl = "http://historylink.herokuapp.com/account?profile=" + focusid;
+    var prefixurl = "https://historylink.herokuapp.com/account?profile=" + focusid;
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -296,7 +296,7 @@ function useradd() {
                         code: "document.getElementById('thread_subject').value='SmartCopy Invite';" +
                             "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, " +
                             "which is a Google Chrome extension that allows advanced Geni users to copy information and profiles from various sources into Geni.\\n\\n" +
-                            "The extension can be downloaded here: http://historylink.herokuapp.com/smartcopy\\n" +
+                            "The extension can be downloaded here: https://historylink.herokuapp.com/smartcopy\\n" +
                             "More information and discussion can be found in the Geni project: http://www.geni.com/projects/SmartCopy/18783\\n\\n" +
                             "Before using SmartCopy, please read the cautionary notes and feedback request in the Project Description.\\n\\n" +
                             "SmartCopy can be a powerful tool to help us build the world tree, but it could also quickly create duplication and introduce bad data. " +
@@ -315,7 +315,7 @@ function useradd() {
 function userrevoke() {
     document.querySelector('#useraccess').style.display = "none";
     document.querySelector('#loginspinner').style.display = "block";
-    var prefixurl = "http://historylink.herokuapp.com/account?profile=" + focusid;
+    var prefixurl = "https://historylink.herokuapp.com/account?profile=" + focusid;
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -332,9 +332,9 @@ function startsWithMH(stringToCheck, query) {
 }
 
 function updateLinks(focusprofile) {
-    $("#historyurl").attr("href", "http://historylink.herokuapp.com/history" + focusprofile);
-    $("#graphurl").attr("href", "http://historylink.herokuapp.com/graph" + focusprofile + "&color=gender");
-    $("#descendanturl").attr("href", "http://historylink.herokuapp.com/graph" + focusprofile + "&type=descendant&color=gender");
+    $("#historyurl").attr("href", "https://historylink.herokuapp.com/history" + focusprofile);
+    $("#graphurl").attr("href", "https://historylink.herokuapp.com/graph" + focusprofile + "&color=gender");
+    $("#descendanturl").attr("href", "https://historylink.herokuapp.com/graph" + focusprofile + "&type=descendant&color=gender");
 }
 
 chrome.extension.onMessage.addListener(function (request, sender, callback) {
@@ -634,7 +634,7 @@ function loadPage(request) {
                 accessdialog.style.backgroundColor = "#dfe6ed";
 
                 familystatus.push(1);
-                var descurl = "http://historylink.herokuapp.com/smartsubmit?family=self&profile=" + focusid;
+                var descurl = "https://historylink.herokuapp.com/smartsubmit?family=self&profile=" + focusid;
                 chrome.extension.sendMessage({
                     method: "GET",
                     action: "xhttp",
@@ -644,7 +644,7 @@ function loadPage(request) {
                     focusid = geni_return.id; //In case there is a merge_into return
                    // $('#focusjsontable').json2html(response.source,focustransform);
                     genifocusdata = new GeniPerson(geni_return);
-                    var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusid;
+                    var url = "https://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusid;
                     chrome.extension.sendMessage({
                         method: "GET",
                         action: "xhttp",
@@ -864,7 +864,7 @@ function loadSelectPage(request) {
     }
     if (exists(focusprofile)) {
         focusprofile = focusprofile.replace("http://www.geni.com/", "").replace("https://www.geni.com/", "").trim();
-        var url = "http://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusprofile;
+        var url = "https://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusprofile;
         chrome.extension.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -1177,7 +1177,7 @@ var accountretry = 0;
 
 function checkAccount() {
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "http://historylink.herokuapp.com/account?version=" + chrome.runtime.getManifest().version, true);
+    xhr.open("GET", "https://historylink.herokuapp.com/account?version=" + chrome.runtime.getManifest().version, true);
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
             try {
@@ -1207,9 +1207,9 @@ function loadLogin() {
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
-        url: "http://historylink.herokuapp.com/smartlogin"
+        url: "https://historylink.herokuapp.com/smartlogin"
     }, function (responseText) {
-        if (responseText.source === "<script>window.open('', '_self', ''); window.close();</script>") {
+        if (responseText.source === "<center><br><h3>Authorization Completed</h3></center>" || responseText.source === "<script>window.open('', '_self', ''); window.close();</script>") {
             console.log("Logged In...");
             loggedin = true;
         } else {
@@ -1548,7 +1548,7 @@ var submitform = function () {
                             }
                         }
                         if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "")) {
-                            var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me,nicknames&profile=" + pid;
+                            var abouturl = "https://historylink.herokuapp.com/smartsubmit?fields=about_me,nicknames&profile=" + pid;
                             submitstatus.push(updatetotal);
                             chrome.extension.sendMessage({
                                 method: "GET",
@@ -1607,7 +1607,7 @@ function buildTree(data, action, sendid) {
         chrome.extension.sendMessage({
             method: "POST",
             action: "xhttp",
-            url: "http://historylink.herokuapp.com/smartsubmit?profile=" + sendid + "&action=" + action,
+            url: "https://historylink.herokuapp.com/smartsubmit?profile=" + sendid + "&action=" + action,
             data: $.param(data),
             variable: {id: id, relation: action.replace("add-", ""), data: data}
         }, function (response) {
@@ -1644,7 +1644,7 @@ function buildTree(data, action, sendid) {
                             }
                             submitstatus.push(updatetotal);
                             var source = JSON.parse(response.source);
-                            var familyurl = "http://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + source.id;
+                            var familyurl = "https://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + source.id;
                             chrome.extension.sendMessage({
                                 method: "GET",
                                 action: "xhttp",
@@ -1769,7 +1769,7 @@ function submitChildren() {
                     chrome.extension.sendMessage({
                         method: "POST",
                         action: "xhttp",
-                        url: "http://historylink.herokuapp.com/smartsubmit?profile=" + spouseinfo.union + "&action=update",
+                        url: "https://historylink.herokuapp.com/smartsubmit?profile=" + spouseinfo.union + "&action=update",
                         data: $.param(marriageupdate),
                         variable: ""
                     }, function (response) {
@@ -1852,7 +1852,7 @@ function buildTempSpouse(parentid) {
         chrome.extension.sendMessage({
             method: "POST",
             action: "xhttp",
-            url: "http://historylink.herokuapp.com/smartsubmit?profile=" + focusid + "&action=add-partner",
+            url: "https://historylink.herokuapp.com/smartsubmit?profile=" + focusid + "&action=add-partner",
             data: $.param({gender: tgender}),
             variable: {id: parentid}
         }, function (response) {
@@ -2422,7 +2422,7 @@ $(function () {
         $('.aboutdev').on('click', function () {
             var modal2 = document.getElementById('AboutModal');
             modal2.style.display = "block";
-            $('body').css('min-height', '355px');
+            $('body').css('min-height', '370px');
         });
     });
     $(function () {

@@ -69,7 +69,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 profiledata["thumb"] = thumb;
             } else if (thumb.contains("get-fs-image.php")) {
                 familystatus.push(familystatus.length);
-                var imgurl = "http://historylink.herokuapp.com/smartredirect?url=" + encodeURIComponent(thumb).replace(/'/g,"%27").replace(/"/g,"%22");
+                var imgurl = "https://historylink.herokuapp.com/smartredirect?url=" + encodeURIComponent(thumb).replace(/'/g,"%27").replace(/"/g,"%22");
                 chrome.extension.sendMessage({
                     method: "GET",
                     action: "xhttp",
@@ -813,7 +813,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             if (!familymembers) {
                 //revisit - not sure when this would actually run as it's run above when familymembers is true
                 familystatus.push("about");
-                var abouturl = "http://historylink.herokuapp.com/smartsubmit?fields=about_me&profile=" + focusid;
+                var abouturl = "https://historylink.herokuapp.com/smartsubmit?fields=about_me&profile=" + focusid;
                 chrome.extension.sendMessage({
                     method: "GET",
                     action: "xhttp",

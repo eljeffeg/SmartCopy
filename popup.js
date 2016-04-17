@@ -151,44 +151,53 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log(chrome.app.getDetails().name + " v" + chrome.runtime.getManifest().version);
     document.getElementById("versionbox").innerHTML = "SmartCopy v" + chrome.runtime.getManifest().version;
     document.getElementById("versionbox2").innerHTML = "SmartCopy v" + chrome.runtime.getManifest().version;
-    loadLogin();
-    checkAccount();
-    chrome.tabs.getSelected(null, function (tab) {
-        tablink = tab.url;
-        if (tablink.startsWith("http://findagrave.com")) {
-            tablink = tablink.replace("http://findagrave.com", "http://www.findagrave.com");
-        }
-        if (startsWithMH(tablink, "research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
-            tablink.startsWith("http://www.wikitree.com") || tablink.startsWith("http://trees.ancestry.") || tablink.startsWith("http://person.ancestry.") || tablink.startsWith("http://www.werelate.org/wiki/Person") ||
-            (validRootsWeb(tablink) && tablink.contains("id=")) || (tablink.startsWith("http://records.ancestry.com") && tablink.contains("pid=")) || tablink.startsWith("http://www.ancestry.com/genealogy/records/") ||
-            tablink.startsWith("https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
-            document.querySelector('#message').style.display = "none";
-            getPageCode();
-        } else if (startsWithMH(tablink, "matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr")) ||
-            (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
-            document.querySelector('#loginspinner').style.display = "none";
-            setMessage("#f8ff86", 'Please select one of the Matches on this results page.');
-        } else if ((validRootsWeb(tablink) && tablink.toLowerCase().contains("igm.cgi")) ||
-            tablink === "http://records.ancestry.com/Home/Results" ||
-            tablink.startsWith("https://familysearch.org/search/tree/")) {
-            document.querySelector('#loginspinner').style.display = "none";
-            setMessage("#f8ff86", 'Please select one of the Profile pages on this site.');
-        } else if (isGeni()) {
-            document.querySelector('#message').style.display = "none";
-            var focusprofile = getProfile(tablink);
-            focusid = focusprofile.replace("?profile=", "");
-            document.getElementById("addhistoryblock").style.display = "block";
-            updateLinks(focusprofile);
-            userAccess();
-        } else if (MHLanguageCheck(tablink)) {
-            setMessage("#f8ff86", 'SmartCopy will only parse MyHeritage when your language is defined as English. Retry using ".com": https://www.myheritage.com');
-            document.querySelector('#loginspinner').style.display = "none";
-        } else {
-            setMessage("#f9acac", 'SmartCopy does not currently support parsing this page / site / collection.');
-            document.querySelector('#loginspinner').style.display = "none";
-        }
-    });
+    loginProcess();
 });
+
+
+function loginProcess() {
+
+    if (!loggedin) {
+        loadLogin();
+    } else {
+        checkAccount();
+        chrome.tabs.getSelected(null, function (tab) {
+            tablink = tab.url;
+            if (tablink.startsWith("http://findagrave.com")) {
+                tablink = tablink.replace("http://findagrave.com", "http://www.findagrave.com");
+            }
+            if (startsWithMH(tablink, "research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
+                tablink.startsWith("http://www.wikitree.com") || tablink.startsWith("http://trees.ancestry.") || tablink.startsWith("http://person.ancestry.") || tablink.startsWith("http://www.werelate.org/wiki/Person") ||
+                (validRootsWeb(tablink) && tablink.contains("id=")) || (tablink.startsWith("http://records.ancestry.com") && tablink.contains("pid=")) || tablink.startsWith("http://www.ancestry.com/genealogy/records/") ||
+                tablink.startsWith("https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
+                document.querySelector('#message').style.display = "none";
+                getPageCode();
+            } else if (startsWithMH(tablink, "matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr")) ||
+                (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
+                document.querySelector('#loginspinner').style.display = "none";
+                setMessage("#f8ff86", 'Please select one of the Matches on this results page.');
+            } else if ((validRootsWeb(tablink) && tablink.toLowerCase().contains("igm.cgi")) ||
+                tablink === "http://records.ancestry.com/Home/Results" ||
+                tablink.startsWith("https://familysearch.org/search/tree/")) {
+                document.querySelector('#loginspinner').style.display = "none";
+                setMessage("#f8ff86", 'Please select one of the Profile pages on this site.');
+            } else if (isGeni()) {
+                document.querySelector('#message').style.display = "none";
+                var focusprofile = getProfile(tablink);
+                focusid = focusprofile.replace("?profile=", "");
+                document.getElementById("addhistoryblock").style.display = "block";
+                updateLinks(focusprofile);
+                userAccess();
+            } else if (MHLanguageCheck(tablink)) {
+                setMessage("#f8ff86", 'SmartCopy will only parse MyHeritage when your language is defined as English. Retry using ".com": https://www.myheritage.com');
+                document.querySelector('#loginspinner').style.display = "none";
+            } else {
+                setMessage("#f9acac", 'SmartCopy does not currently support parsing this page / site / collection.');
+                document.querySelector('#loginspinner').style.display = "none";
+            }
+        });
+    }
+}
 
 var slideopen = false;
 $('#genislider').on('click', function () {
@@ -1203,27 +1212,48 @@ function checkAccount() {
     xhr.send();
 }
 
+var loginprocessing = true;
+var logincount = 0;
 function loadLogin() {
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
-        url: "https://historylink.herokuapp.com/smartlogin"
+        url: "https://historylink.herokuapp.com/smartlogin?version=" + chrome.runtime.getManifest().version
     }, function (responseText) {
-        if (responseText.source === "<center><br><h3>Authorization Completed</h3></center>" || responseText.source === "<script>window.open('', '_self', ''); window.close();</script>") {
+        if (responseText.source === "<script>window.open('', '_self', ''); window.close();</script>") {
             console.log("Logged In...");
             loggedin = true;
-        } else {
+            if (!loginprocessing) {
+                $("#logindiv").slideUp();
+                document.getElementById("loginspinner").style.display = "block";
+                if (!slideopen) {
+                    $("body").animate({ 'max-width': "340px" }, 'slow');
+                    $("body").animate({ 'width': "340px" }, 'slow');
+                } else {
+                    $("body").animate({ 'max-width': "500px" }, 'slow');
+                    $("body").animate({ 'width': "500px" }, 'slow');
+                }
+            }
+            loginProcess();
+        } else if (loginprocessing) {
             console.log("Logged Out...");
-            var w = 600;
-            var h = 450;
-            var left = Math.round((screen.width / 2) - (w / 2));
-            var top = Math.round((screen.height / 2) - (h / 2));
-            //redirect helps it close the window properly.. not sure why
-            chrome.windows.create({'url': 'redirect.html', 'type': 'panel', 'width': w, 'height': h, 'left': left, 'top': top, 'focused': true}, function (window) {
-                //grab the window.id if needed
+            loginprocessing = false;
+            var frame = $("#loginframe");
+            frame.attr('src', 'https://historylink.herokuapp.com/smartlogin');
+            $("body").css('max-width', "640px");
+            $("body").animate({ 'width': "640px" }, 'slow');
+            frame.load(function(){
+                if (logincount > 0) {
+                    loginProcess();
+                } else if (logincount === 0) {
+                    $("#logindiv").slideDown();
+                    document.getElementById("loginspinner").style.display = "none";
+                }
+                logincount++;
             });
         }
     });
+
 }
 
 function getProfile(profile_id) {

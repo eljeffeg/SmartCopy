@@ -23,7 +23,7 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
     var genderval = "unknown";
     var famid = 0;
     var urlroot = tablink.substring(0, tablink.lastIndexOf('/') + 1);
-    document.getElementById("readstatus").innerText = focusperson;
+    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
     var profiledata = {};
     var burialdtflag = false;
     var buriallcflag = false;

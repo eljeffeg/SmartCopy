@@ -7,7 +7,7 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     var focusperson = par.find(".userCardTitle").text();
     var focusdaterange = par.find(".userCardSubTitle").text().replace("&ndash;", " - ");
 
-    document.getElementById("readstatus").innerText = focusperson;
+    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
     var profiledata = {};
     var genderval = "unknown";
     var burialdtflag = false;

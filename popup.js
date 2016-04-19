@@ -1341,16 +1341,17 @@ function expandFamily(member) {
 }
 
 var entityMap = {
-    "&": "&amp;",
+    "& ": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
     '"': '&quot;',
     "'": '&#39;',
-    "/": '&#x2F;'
+    "/": '&#x2F;',
+    "`": '&DiacriticalGrave;'
 };
 
 function escapeHtml(string) {
-    return String(string).replace(/[&<>"'\/]/g, function (s) {
+    return String(string).replace(/& |[<>"'`\/]/g, function (s) {
         return entityMap[s];
     });
 }

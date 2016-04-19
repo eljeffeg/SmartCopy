@@ -14,7 +14,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
 
     var fperson = parsed.find("li");
     var focusperson = parseRootsName(fperson);
-    document.getElementById("readstatus").innerText = focusperson;
+    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
     var genderval = "unknown";
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     var burialdtflag = false;

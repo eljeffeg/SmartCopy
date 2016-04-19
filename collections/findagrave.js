@@ -39,7 +39,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     }
     var focusperson = getPersonName(fperson[0].innerHTML);
 
-    document.getElementById("readstatus").innerText = focusperson;
+    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
     var genderval = "unknown";
 
     if (relation === "") {

@@ -20,7 +20,7 @@ function parseWeRelate(htmlstring, familymembers, relation) {
         var title = cleanHTML($(cell[0]).html());
         if (title.toLowerCase() === "name") {
             focusperson = $(cell[1]).text();
-            document.getElementById("readstatus").innerText = focusperson;
+            document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
         } else if (title.toLowerCase().startsWith("gender")) {
             genderval = $(cell[1]).text().toLowerCase();
         } else if (title.toLowerCase().startsWith("birth")) {

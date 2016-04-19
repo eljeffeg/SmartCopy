@@ -19,7 +19,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     var parsed = $('<div>').html(htmlstring.replace(/<img[^>]*>/ig, ""));
 
     var focusperson = parsed.find(".recordTitle").text().trim();
-    document.getElementById("readstatus").innerText = focusperson;
+    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
     var focusdaterange = parsed.find(".recordSubtitle").text().trim();
     //console.log(focusperson);
     var genderdiv = parsed.find(".recordImage");

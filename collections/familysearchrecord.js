@@ -210,7 +210,7 @@ function getFSProfileData(focusRecord, relation) {
     var genderval = getFSRecordGender(focusRecord) || "unknown";
     var focusdaterange = "";
 
-    document.getElementById("readstatus").innerText = focusperson;
+    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
 
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     var burialdtflag = false;

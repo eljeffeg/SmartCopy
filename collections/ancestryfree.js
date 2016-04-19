@@ -19,7 +19,7 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
         }
     }
 
-    document.getElementById("readstatus").innerText = focusperson;
+    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
 
     var genderval = "unknown";
     var photoclass = parsed.find(".personPhoto ");

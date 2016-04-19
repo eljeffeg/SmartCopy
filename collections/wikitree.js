@@ -27,7 +27,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
             focusperson = focusperson.replace("formerly", "").replace("[surname unknown]", "").trim();
         }
     }
-    document.getElementById("readstatus").innerText = focusperson;
+    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
     var imageflag = false;
     var genderval = "unknown";
     if (htmlstring.contains("http://www.wikitree.com/images/icons/female.gif")) {

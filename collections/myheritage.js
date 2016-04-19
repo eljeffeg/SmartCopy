@@ -8,7 +8,7 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
     var focusdaterange = "";
     var fperson = parsed.find("span.FL_LabelxxLargeBold");
     var focusperson = fperson.text();
-    document.getElementById("readstatus").innerText = focusperson;
+    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
     var genderval = "unknown";
     if (htmlstring.contains("PK_Silhouette PK_SilhouetteSize192 PK_Silhouette_S_192_F_A_LTR")) {
         genderval = "female";

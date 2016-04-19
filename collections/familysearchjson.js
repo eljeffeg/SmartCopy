@@ -14,8 +14,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
 
     var focusperson = parsed["data"]["name"];
     var focusdaterange = parsed["data"]["lifeSpan"] || "";
-
-    document.getElementById("readstatus").innerText = focusperson;
+    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
 
     var genderval = String(parsed["data"]["gender"] || "unknown").toLowerCase();
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
@@ -124,6 +123,14 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
         }, function (response) {
             var arg = response.variable;
             var source = JSON.parse(response.source);
+            if (!exists(source["data"])) {
+                setMessage("#f8ff86", "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
+                        "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
+                    document.getElementById("top-container").style.display = "block";
+                    document.getElementById("submitbutton").style.display = "none";
+                    document.getElementById("loading").style.display = "none";
+                    return;
+            }
             if (source["data"]["parents"]) {
                 var jsonrel = source["data"]["parents"];
                 var parentset;

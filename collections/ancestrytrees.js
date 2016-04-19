@@ -6,7 +6,7 @@ function parseAncestryTrees(htmlstring, familymembers, relation) {
     var focusperson = parsed.find(".pageTitle").text();
     var focusdaterange = "";
 
-    document.getElementById("readstatus").innerText = focusperson;
+    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
     var profiledata = {};
     var genderval = "unknown";
     var ctprefix = "ctl43_ctl00_";

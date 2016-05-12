@@ -88,7 +88,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                     var altname = evt["details"]["fullText"].replace(/,/g,"").replace(/&quot;/g,'"').trim();
                     if (!nicknames.contains(altname)) {
                         if (nicknames !== "") {
-                        nicknames += ",";
+                            nicknames += ",";
                         }
                         nicknames += altname;
                     }
@@ -125,11 +125,11 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
             var source = JSON.parse(response.source);
             if (!exists(source["data"])) {
                 setMessage("#f8ff86", "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
-                        "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
-                    document.getElementById("top-container").style.display = "block";
-                    document.getElementById("submitbutton").style.display = "none";
-                    document.getElementById("loading").style.display = "none";
-                    return;
+                    "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
+                document.getElementById("top-container").style.display = "block";
+                document.getElementById("submitbutton").style.display = "none";
+                document.getElementById("loading").style.display = "none";
+                return;
             }
             if (source["data"]["parents"]) {
                 var jsonrel = source["data"]["parents"];
@@ -296,7 +296,7 @@ function parseFSJSONDate(eventinfo) {
         }
         if (checkNested(details["date"],"fields",0,"values",0,"labelId")) {
             if (details["date"]["fields"][0]["values"][0]["labelId"].contains("EST")) {
-               dateval =  "Circa " + dateval;
+                dateval =  "Circa " + dateval;
             }
         }
         if (dateval !== "") {

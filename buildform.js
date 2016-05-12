@@ -269,7 +269,7 @@ function buildForm() {
             }
         }
         membersstring = membersstring +
-            '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(thumbnail, scorephoto) + '>' +
+            '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext photocheck" ' + isChecked(thumbnail, scorephoto) + '>' +
             capFL(title) + ':</td><td style="padding: 0;"><div style="float: right;"><input type="hidden" class="photocheck" name="' + title + '" value="' + image + '" ' + isEnabled(thumbnail, scorephoto) + '><img style="max-width: 150px; max-height: 120px; object-fit: contain; padding: 0px;" src="' + thumbnail + '"></div></td><td class="genisliderow" style="vertical-align: middle; padding: 0;"><div style="display: inline-block; vertical-align: middle; padding: 0;"><img src="' + isAppend(genifocusdata.get("photo_urls")) + '" class="genislideimage" style="padding-left: 5px;"></div><div style="display: inline-block; vertical-align: middle; padding: 0;"><img align="right" style="max-width: 150px; max-height: 120px; object-fit: contain; padding: 0px;" src="' + genifocusdata.get("photo_urls") + '"></div></td></tr>';
         membersstring = membersstring + '<tr><td colspan="3" style="padding: 0;"><div class="separator"></div></td></tr>';
         div[0].innerHTML = membersstring;

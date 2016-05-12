@@ -163,8 +163,9 @@ function loginProcess() {
         checkAccount();
         chrome.tabs.getSelected(null, function (tab) {
             tablink = tab.url;
-            if (tablink.startsWith("http://findagrave.com")) {
+            if (tablink.startsWith("http://findagrave.com") || tablink.startsWith("http://forums.findagrave.com")) {
                 tablink = tablink.replace("http://findagrave.com", "http://www.findagrave.com");
+                tablink = tablink.replace("http://forums.findagrave.com", "http://www.findagrave.com");
             }
             if (startsWithMH(tablink, "research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
                 tablink.startsWith("http://www.wikitree.com") || tablink.startsWith("http://trees.ancestry.") || tablink.startsWith("http://person.ancestry.") || tablink.startsWith("http://www.werelate.org/wiki/Person") ||
@@ -2404,6 +2405,9 @@ $(function () {
         chrome.storage.local.set({'addsource': this.checked});
     });
     $('#photoonoffswitch').on('click', function () {
+        if (this.checked) {
+            $("#photochange").css("display", "block");
+        }
         chrome.storage.local.set({'addphoto': this.checked});
     });
     $('#geniparentonoffswitch').on('click', function () {

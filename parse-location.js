@@ -194,9 +194,12 @@ function queryGeo(locationset, test) {
             place = locationset.place.trim();
         } else {
             place = checkPlace(location);
+            var georesult = parseGoogle("", location);
             if (place !== "" && place === location) {
-                var georesult = parseGoogle("", location);
                 georesult.place = place;
+                geolocation[locationset.id] = georesult;
+                return;
+            } else if (location === "") {
                 geolocation[locationset.id] = georesult;
                 return;
             }
@@ -463,7 +466,7 @@ function compareGeo(shortGeo, longGeo) {
     if (location.country === location.state && location.county === "" && location.city === "") {
         location.state = "";
     }
-    if (location.country === "United States" && location.state === "USA") {
+    if (exists(location.country) && exists(location.state) && location.country.toLowerCase() === "united states" && location.state.toLowerCase() === "usa") {
         location.state = "";
     }
 

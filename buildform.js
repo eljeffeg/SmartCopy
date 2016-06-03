@@ -927,19 +927,7 @@ function Abbr(title) {
 function iconUpdate() {
     $('.actionselect').off();
     $('.actionselect').on('change', function () {
-        var actionicon = $(this).closest("div").prev().find(".iconaction");
-        if (this.value === "add") {
-            actionicon.attr('src','images/add.png');
-            actionicon.attr('title','add');
-            actionicon.attr('description','add');
-        } else {
-            actionicon.attr('src','images/update.png');
-            actionicon.attr('title','update');
-            actionicon.attr('description','update');
-        }
-        var profile = $(this)[0].value;
-        var id = $(this).closest("table")[0].id.replace("familytable_", "");
-        setGeniFamilyData(id, profile);
+        actionUpdate(this);
     });
     for (var property in genibuildaction) {
         if (genibuildaction.hasOwnProperty(property)) {
@@ -947,6 +935,23 @@ function iconUpdate() {
         }
     }
     genibuildaction = {};
+}
+
+function actionUpdate(object) {
+    var id = $(object).closest("table")[0].id.replace("familytable_", "");
+    var actionicon = $(document.getElementById("familytable_" + id)).closest("div").prev().find(".iconaction");
+    var profile = $(object)[0].value;
+    if (profile === "add") {
+        actionicon.attr('src','images/add.png');
+        actionicon.attr('title','add');
+        actionicon.attr('description','add');
+    } else {
+        actionicon.attr('src','images/update.png');
+        actionicon.attr('title','update');
+        actionicon.attr('description','update');
+    }
+
+    setGeniFamilyData(id, profile);
 }
 
 function updateClassResponse() {
@@ -1236,6 +1241,7 @@ function placementUpdate() {
                 $("#unknown").hide();
             }
             iconUpdate();
+            actionUpdate($(this).closest("tbody").find(".actionselect")[0]);
             updateClassResponse();
         }
     });
@@ -1705,6 +1711,12 @@ function cleanDate(dateval) {
     }
     if (dateval.search(/\d{4}\/\d{4}/) !== -1) {
         dateval = "Between " + dateval.replace("/", " and ");
+    } else if (dateval.search(/\d{4}\-\d{4}/) !== -1) {
+        var andval = " and ";
+        if (dateval.contains("Circa")) {
+            andval = andval + "Circa ";
+        }
+        dateval = "Between " + dateval.replace("-", andval);
     } else if (dateval.search(/\d{4}\/\d{2}/) !== -1) {
         dateval = dateval.replace(/\d{2}\//,"");
     }

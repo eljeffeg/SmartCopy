@@ -146,8 +146,8 @@ function buildBillionGraves(responsedata) {
     } else if (exists(responsedata.maiden_name)) {
         lastname = responsedata.maiden_name;
     }
-    //http://billiongraves.com/pages/search/#given_names=John&family_names=Smith&birth_year=1830&death_year=1880&year_range=5&lim=0&num=10&action=search&exact=false&phonetic=true&record_type=0&country=United+States&state=Arizona&county=0
-    var query = 'http://billiongraves.com/pages/search/#given_names=' + firstname + '&family_names=' + lastname;
+    //https://billiongraves.com/search/results?given_names=John&family_names=Smith&birth_year=1830&death_year=1880&year_range=5&lim=0&num=10&action=search&exact=false&phonetic=true&record_type=0&country=United+States&state=Arizona&county=0
+    var query = 'https://billiongraves.com/search/results?given_names=' + firstname + '&family_names=' + lastname;
     if (exists(responsedata.birth)) {
         if (exists(responsedata.birth.date) && exists(responsedata.birth.date.year)) {
             query += '&birth_year=' + responsedata.birth.date.year;

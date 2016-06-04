@@ -43,7 +43,7 @@ function parseFamilySearchRecord(htmlstring, familymembers, relation) {
     if (parsed) {
         for (var i = 0; i < parsed["persons"].length; i++) {
             var person = parsed["persons"][i];
-            if (checkNested(person, "links","persona","href") && !person["links"]["persona"]["href"].contains(focusRecordId)) {
+            if (checkNested(person, "links","persona","href") && !person["links"]["persona"]["href"].contains(focusURLid)) {
                 var title = relationshipToHead(focusrelation, getFSRecordRelation(person));
 
                 var profileRecordId = person["id"];

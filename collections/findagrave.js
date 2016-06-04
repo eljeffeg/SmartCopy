@@ -417,6 +417,10 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 var image = thumb.replace("photos250/", "");
                 profiledata["thumb"] = thumb;
                 profiledata["image"] = image;
+                var credit = $(records[0]).find(".minus1");
+                if (credit.length > 1) {
+                    profiledata["imagecredit"] = $(credit[1]).text().trim().replace('"', '').replace("'", "");
+                }
             }
         }
     }

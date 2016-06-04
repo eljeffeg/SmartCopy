@@ -575,7 +575,7 @@ function loadPage(request) {
                     return;
                 }
 
-                var focusperson = getFSRecordName(getFSFocus(parsed));
+                var focusperson = getFSRecordName(getFSFocus(parsed, focusURLid));
                 if (!focusperson) {
                     return;
                 }
@@ -1140,6 +1140,18 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
+        } else if (tablink.startsWith("https://familysearch.org/ark:") && tablink.contains("/2:2:")) {
+            var urlparts= tablink.split('?');
+            focusURLid = urlparts[0].substring(tablink.lastIndexOf('/') + 1);
+            tablink = "https://familysearch.org/platform/genealogies/persons/" + focusURLid + ".json";
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: tablink
+            }, function (response) {
+                loadPage(response);
+            });
+
         } else if (tablink.startsWith("https://familysearch.org/ark:") && !tablink.contains("/1:1:")) {
             var urlparts= tablink.split('?');
             focusURLid = urlparts[0].substring(tablink.lastIndexOf(':') + 1);
@@ -1487,8 +1499,13 @@ var submitform = function () {
                 } else {
                     var shorturl = tablink;
                 }
-                focusphotoinfo = {photo: profileout.photo, title: focusname, description: "Source: " + shorturl};
+                var description = "";
+                if (exists(profileout.author) && profileout.author !== "") {
+                    description = "Credit: " + profileout.author + ", ";
+                }
+                focusphotoinfo = {photo: profileout.photo, title: focusname, description: description + "Source: " + shorturl};
                 delete profileout.photo;
+                delete profileout.author;
             }
             buildTree(profileout, "update", focusid);
             document.getElementById("updatestatus").innerText = "Updating Profile";
@@ -1544,8 +1561,13 @@ var submitform = function () {
                         } else {
                             var shorturl = fdata.url;
                         }
-                        photosubmit[familyout.profile_id] = {photo: familyout.photo, title: fdata.name, description: "Source: " + shorturl};
+                        var description = "";
+                        if (exists(familyout.author) && familyout.author !== "") {
+                            description = "Credit: " + familyout.author + ", ";
+                        }
+                        photosubmit[familyout.profile_id] = {photo: familyout.photo, title: fdata.name, description: description + "Source: " + shorturl};
                         delete familyout.photo;
+                        delete familyout.author;
                     }
                     if (familyout.action === "add") {
                         delete familyout.action;
@@ -2029,6 +2051,9 @@ function parseForm(fs) {
                     }
                 } else if (fsinput[item].value !== "" || updatefd) {
                     objentry[fsinput[item].name] = fsinput[item].value;
+                    if (fsinput[item].name === "photo" && $(fsinput[item]).attr("author")) {
+                        objentry["author"] = $(fsinput[item]).attr("author");
+                    }
                 }
             }
         }

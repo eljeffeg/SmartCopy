@@ -1,20 +1,34 @@
 // Parse FamilySearch Records
+var siblinglist = [];
+var fsfamid = 0;
 function parseFamilySearchRecord(htmlstring, familymembers, relation) {
     relation = relation || "";
     var parsed = null;
     var focusRecord = null;
-    var focusRecordid = null;
+    var focusRecordId = null;
+    var focusrelation = null;
     if ($.type( htmlstring ) === "string") {
         try {
             parsed = JSON.parse(htmlstring);
             if (!exists(parsed)) {
                 return "";
             }
-            focusRecord = getFSFocus(parsed);
+
+            if (familymembers) {
+                focusRecord = getFSFocus(parsed, focusURLid);
+                focusrelation = getFSRecordRelation(focusRecord);
+            } else {
+                focusRecord = getFSFocus(parsed, relation.itemId);
+            }
             focusRecordId = focusRecord["id"];
-            focusrelation = getFSRecordRelation(focusRecord);
         } catch(err) {
             console.log(err);
+            setMessage("#f8ff86", "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
+                "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
+            document.getElementById("top-container").style.display = "block";
+            document.getElementById("submitbutton").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            return;
         }
     } else {
         focusRecord = htmlstring;
@@ -24,21 +38,93 @@ function parseFamilySearchRecord(htmlstring, familymembers, relation) {
 
     if (familymembers) {
         loadGeniData();
-        var famid = 0;
     }
 
     if (parsed) {
         for (var i = 0; i < parsed["persons"].length; i++) {
             var person = parsed["persons"][i];
-            if (checkNested(person, "links","persona","href")) {
-                if (!person["links"]["persona"]["href"].contains(focusURLid)) {
+            if (checkNested(person, "links","persona","href") && !person["links"]["persona"]["href"].contains(focusRecordId)) {
+                var title = relationshipToHead(focusrelation, getFSRecordRelation(person));
+
+                var profileRecordId = person["id"];
+                var mdata = [];
+                var ddata = [];
+                if (title === "notfound" && exists(parsed["relationships"])) {
+                    for (var x = 0; x < parsed["relationships"].length; x++) {
+                        var rel = parsed["relationships"][x];
+                        var p1 = rel["person1"]["resourceId"];
+                        var p2 = rel["person2"]["resourceId"];
+                        if ((p1 === focusRecordId || p2 === focusRecordId) && (p1 === profileRecordId || p2 === profileRecordId)) {
+                            var type = rmGED(rel["type"]);
+                            if (type === "couple") {
+                                title = "partner";
+                                if (checkNested(rel, "facts", 0)) {
+                                    for(var y = 0; y < rel["facts"].length; y++) {
+                                        if (rmGED(rel["facts"][y]["type"]) === "marriage") {
+                                            mdata = parseFSJSONDate(rel["facts"][y]);
+                                        } else if (rmGED(rel["facts"][y]["type"]) === "divorce") {
+                                            ddata = parseFSJSONDate(rel["facts"][y]);
+                                        }
+                                    }
+                                }
+                            } else if (type === "parentchild") {
+                                if (profileRecordId === p1) {
+                                    title = "parent";
+                                } else {
+                                    title = "child";
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    if (title === "notfound") {
+                        title = "exclude";
+                    }
+                }
+                if (title === "notfound") {
+                    title = "unknown";
+                }
+                if (title !== "exclude") {
+                    var itemid = getFSRecordId(person);
+                    var pdata = getFSProfileData(person, title);
+                    pdata["profile_id"] = fsfamid;
+                    pdata["itemId"] = itemid;
+                    if (!$.isEmptyObject(mdata)) {
+                        pdata["marriage"] = mdata;
+                        pdata["mstatus"] = "spouse";
+                    }
+                    if (!$.isEmptyObject(ddata)) {
+                        pdata["divorce"] = ddata;
+                        pdata["mstatus"] = "ex-spouse";
+                    }
+                    if (!exists(alldata["family"][title])) {
+                        alldata["family"][title] = [];
+                    }
+                    if (isParent(title)) {
+                        parentlist.push(itemid);
+                    }
+                    if (isPartner(title)) {
+                        myhspouse.push(fsfamid);
+                    }
+                    unionurls[fsfamid] = itemid;
+                    databyid[fsfamid] = pdata;
+                    alldata["family"][title].push(pdata);
+                    fsfamid++;
+                }
+
+            }
+            if (checkNested(person, "links","person","href")) {
+                if (relation === ""){
                     var title = relationshipToHead(focusrelation, getFSRecordRelation(person));
+
                     var profileRecordId = person["id"];
                     var mdata = [];
                     var ddata = [];
                     if (title === "notfound" && exists(parsed["relationships"])) {
                         for (var x = 0; x < parsed["relationships"].length; x++) {
                             var rel = parsed["relationships"][x];
+                            var url = "";
+                            var itemid = "";
                             var p1 = rel["person1"]["resourceId"];
                             var p2 = rel["person2"]["resourceId"];
                             if ((p1 === focusRecordId || p2 === focusRecordId) && (p1 === profileRecordId || p2 === profileRecordId)) {
@@ -54,52 +140,237 @@ function parseFamilySearchRecord(htmlstring, familymembers, relation) {
                                             }
                                         }
                                     }
+                                    if (profileRecordId !== p1) {
+                                        url = rel["person1"]["resource"];
+                                        itemid = p1;
+                                    } else {
+                                        url = rel["person2"]["resource"];
+                                        itemid = p2;
+                                    }
                                 } else if (type === "parentchild") {
-                                    if (profileRecordId === p1) {
+                                    if (profileRecordId !== p1) {
                                         title = "parent";
+                                        url = rel["person1"]["resource"];
+                                        itemid = p1;
                                     } else {
                                         title = "child";
+                                        url = rel["person2"]["resource"];
+                                        itemid = p2;
                                     }
                                 }
-                                break;
+
+                                if (title === "notfound") {
+                                    title = "exclude";
+                                }
+
+                                if (title !== "exclude" && itemid !== "") {
+                                    if (!exists(alldata["family"][title])) {
+                                        alldata["family"][title] = [];
+                                    }
+                                    if (isParent(title)) {
+                                        parentlist.push(itemid);
+                                    }
+                                    if (isPartner(title)) {
+                                        myhspouse.push(fsfamid);
+                                    }
+                                    var gendersv = "unknown";
+                                    if (isFemale(title)) {
+                                        gendersv = "female";
+                                    } else if (isMale(title)) {
+                                        gendersv = "male";
+                                    } else if (isPartner(title)) {
+                                        gendersv = reverseGender(focusgender);
+                                    }
+                                    var subdata = {title: title, gender: gendersv};
+                                    subdata["url"] = url;
+                                    subdata["itemId"] = itemid;
+                                    subdata["profile_id"] = fsfamid;
+                                    unionurls[fsfamid] = itemid;
+                                    familystatus.push(fsfamid);
+                                    chrome.extension.sendMessage({
+                                        method: "GET",
+                                        action: "xhttp",
+                                        url: url,
+                                        variable: subdata
+                                    }, function (response) {
+                                        var arg = response.variable;
+                                        var person = parseFamilySearchRecord(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+                                        if (person === "") {
+                                            familystatus.pop();
+                                            return;
+                                        }
+
+                                        person = updateInfoData(person, arg);
+                                        databyid[arg.profile_id] = person;
+                                        alldata["family"][arg.title].push(person);
+                                        familystatus.pop();
+                                    });
+
+                                    fsfamid++;
+
+                                }
                             }
                         }
-                        if (title === "notfound") {
-                            title = "exclude";
+
+                    }
+                } else if (isParent(relation.title)) {
+                    if (parentmarriageid === "") {
+                        parentmarriageid = relation.itemId;
+                    } else if (relation.itemId !== parentmarriageid) {
+                        var mdata = [];
+                        var ddata = [];
+                        if (exists(parsed["relationships"])) {
+                            for (var x = 0; x < parsed["relationships"].length; x++) {
+                                var rel = parsed["relationships"][x];
+                                var type = rmGED(rel["type"]);
+                                if (type === "couple") {
+                                    var p1 = rel["person1"]["resourceId"];
+                                    var p2 = rel["person2"]["resourceId"];
+                                    if (p1 === parentmarriageid || p2 === parentmarriageid) {
+                                        if (checkNested(rel, "facts", 0)) {
+                                            for(var y = 0; y < rel["facts"].length; y++) {
+                                                if (rmGED(rel["facts"][y]["type"]) === "marriage") {
+                                                    mdata = parseFSJSONDate(rel["facts"][y]);
+                                                    if (!$.isEmptyObject(mdata)) {
+                                                        profiledata["marriage"] = mdata;
+                                                    }
+                                                } else if (rmGED(rel["facts"][y]["type"]) === "divorce") {
+                                                    ddata = parseFSJSONDate(rel["facts"][y]);
+                                                    if (!$.isEmptyObject(ddata)) {
+                                                        profiledata["divorce"] = ddata;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+
                         }
                     }
-                    if (title === "notfound") {
-                        title = "unknown";
+                    //This doesn't list sibling relationships - look at child relations of parent
+                    for (var x = 0; x < parsed["relationships"].length; x++) {
+                        var rel = parsed["relationships"][x];
+                        var type = rmGED(rel["type"]);
+
+                        if (type === "parentchild") {
+                            var p1 = rel["person1"]["resourceId"];
+                            var p2 = rel["person2"]["resourceId"];
+                            var url = "";
+                            var itemid = "";
+                            var title = "";
+                            if (relation.itemId !== p1) {
+                                title = "parent";
+                                url = rel["person1"]["resource"];
+                                itemid = p1;
+                            } else {
+                                title = "child";
+                                url = rel["person2"]["resource"];
+                                itemid = p2;
+                            }
+
+                            if (title === "child" && itemid !== focusURLid && siblinglist.indexOf(itemid) === -1) {
+                                siblinglist.push(itemid);
+                                if (!exists(alldata["family"]["sibling"])) {
+                                    alldata["family"]["sibling"] = [];
+                                }
+
+                                var subdata = {title: "sibling"};
+                                subdata["url"] = url;
+                                subdata["itemId"] = itemid;
+                                subdata["profile_id"] = fsfamid;
+                                unionurls[fsfamid] = itemid;
+                                familystatus.push(fsfamid);
+                                chrome.extension.sendMessage({
+                                    method: "GET",
+                                    action: "xhttp",
+                                    url: url,
+                                    variable: subdata
+                                }, function (response) {
+                                    var arg = response.variable;
+                                    var person = parseFamilySearchRecord(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+                                    if (person === "") {
+                                        familystatus.pop();
+                                        return;
+                                    }
+
+                                    person = updateInfoData(person, arg);
+                                    databyid[arg.profile_id] = person;
+                                    alldata["family"][arg.title].push(person);
+                                    familystatus.pop();
+                                });
+
+                                fsfamid++;
+                            }
+                        }
                     }
-                    if (title !== "exclude") {
-                        var itemid = getFSRecordId(person);
-                        var pdata = getFSProfileData(person, title);
-                        pdata["profile_id"] = famid;
-                        pdata["itemId"] = itemid;
-                        if (!$.isEmptyObject(mdata)) {
-                            pdata["marriage"] = mdata;
-                            pdata["mstatus"] = "spouse";
+                } else if (isPartner(relation.title)) {
+                    var mdata = [];
+                    var ddata = [];
+                    if (exists(parsed["relationships"])) {
+                        for (var x = 0; x < parsed["relationships"].length; x++) {
+                            var rel = parsed["relationships"][x];
+                            var type = rmGED(rel["type"]);
+                            if (type === "couple") {
+                                var p1 = rel["person1"]["resourceId"];
+                                var p2 = rel["person2"]["resourceId"];
+                                if (p1 === focusURLid || p2 === focusURLid) {
+                                    if (checkNested(rel, "facts", 0)) {
+                                        for(var y = 0; y < rel["facts"].length; y++) {
+                                            if (rmGED(rel["facts"][y]["type"]) === "marriage") {
+                                                mdata = parseFSJSONDate(rel["facts"][y]);
+                                                if (!$.isEmptyObject(mdata)) {
+                                                    profiledata["marriage"] = mdata;
+                                                }
+                                            } else if (rmGED(rel["facts"][y]["type"]) === "divorce") {
+                                                ddata = parseFSJSONDate(rel["facts"][y]);
+                                                if (!$.isEmptyObject(ddata)) {
+                                                    profiledata["divorce"] = ddata;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
                         }
-                        if (!$.isEmptyObject(ddata)) {
-                            pdata["divorce"] = ddata;
-                            pdata["mstatus"] = "ex-spouse";
+                    }
+                } else if (isChild(relation.title)) {
+                    if (exists(parsed["relationships"])) {
+                        for (var x = 0; x < parsed["relationships"].length; x++) {
+                            var rel = parsed["relationships"][x];
+                            var type = rmGED(rel["type"]);
+                            if (type === "parentchild") {
+                                var itemid = rel["person1"]["resourceId"];
+                                if (relation.itemId !== itemid && itemid !== focusURLid) {
+                                    childlist[relation.proid] = $.inArray(itemid, unionurls);
+                                    profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                                    break;
+                                }
+                            }
                         }
-                        if (!exists(alldata["family"][title])) {
-                            alldata["family"][title] = [];
+                    }
+                } else if (isSibling(relation.title)) {
+                    if (exists(parsed["relationships"])) {
+                        var siblingparents = [];
+                        for (var x = 0; x < parsed["relationships"].length; x++) {
+                            var rel = parsed["relationships"][x];
+                            var type = rmGED(rel["type"]);
+                            if (type === "parentchild") {
+                                var itemid = rel["person1"]["resourceId"];
+                                if (relation.itemId !== itemid) {
+                                    siblingparents.push(itemid);
+                                }
+                            }
                         }
-                        if (isParent(title)) {
-                            parentlist.push(itemid);
+                        if (siblingparents.length > 0) {
+                            profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
                         }
-                        if (isPartner(title)) {
-                            myhspouse.push(famid);
-                        }
-                        unionurls[famid] = itemid;
-                        databyid[famid] = pdata;
-                        alldata["family"][title].push(pdata);
-                        famid++;
                     }
                 }
             }
+
         }
     }
 
@@ -139,11 +410,15 @@ function getFSRecordGender(person) {
     return "unknown";
 }
 
-function getFSFocus(personlist) {
+function getFSFocus(personlist, focus) {
     for (var i = 0; i < personlist["persons"].length; i++) {
         var person = personlist["persons"][i];
         if (checkNested(person, "links","persona","href")) {
-            if (person["links"]["persona"]["href"].contains(focusURLid)) {
+            if (person["links"]["persona"]["href"].contains(focus)) {
+                return person;
+            }
+        } else if (checkNested(person, "links","person","href")) {
+            if (person["links"]["person"]["href"].contains(focus)) {
                 return person;
             }
         }
@@ -180,6 +455,10 @@ function getFSRecordId(person) {
     if (checkNested(person, "links","persona","href")) {
         var profileid = person["links"]["persona"]["href"];
         profileid = profileid.replace("https://familysearch.org/platform/records/personas/", "").replace(".json", "").trim();
+        return profileid;
+    } else if (checkNested(person, "links","person","href")) {
+        var profileid = person["links"]["person"]["href"];
+        profileid = profileid.replace("https://familysearch.org/platform/genealogies/persons/", "").replace(".json", "").trim();
         return profileid;
     }
     return "";

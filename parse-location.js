@@ -41,6 +41,9 @@ function parseGoogle(result, query) {
     var location = {};
     location.query = query || "";
     location.query = location.query.replace("<", "").replace(">", "");
+    if (location.query.startsWith("of ")) {
+        location.query = location.query.replace("of ", "");
+    }
     location.place = "";
     location.zip = "";
     location.city = "";

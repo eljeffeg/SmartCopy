@@ -154,6 +154,12 @@ document.addEventListener('DOMContentLoaded', function () {
     loginProcess();
 });
 
+function startsWithHTTP(url, match) {
+    url = url.replace("https://", "").replace("http://", "");
+    match = match.replace("https://", "").replace("http://", "");
+    return url.startsWith(match);
+}
+
 
 function loginProcess() {
 
@@ -163,23 +169,28 @@ function loginProcess() {
         checkAccount();
         chrome.tabs.getSelected(null, function (tab) {
             tablink = tab.url;
-            if (tablink.startsWith("http://findagrave.com") || tablink.startsWith("http://forums.findagrave.com")) {
+            if (startsWithHTTP(tablink,"http://findagrave.com") || startsWithHTTP(tablink,"http://forums.findagrave.com")) {
                 tablink = tablink.replace("http://findagrave.com", "http://www.findagrave.com");
                 tablink = tablink.replace("http://forums.findagrave.com", "http://www.findagrave.com");
             }
-            if (startsWithMH(tablink, "research/collection") || (tablink.startsWith("http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
-                tablink.startsWith("http://www.wikitree.com") || tablink.startsWith("http://trees.ancestry.") || tablink.startsWith("http://person.ancestry.") || tablink.startsWith("http://www.werelate.org/wiki/Person") ||
-                (validRootsWeb(tablink) && tablink.contains("id=")) || (tablink.startsWith("http://records.ancestry.com") && tablink.contains("pid=")) || tablink.startsWith("http://www.ancestry.com/genealogy/records/") ||
-                tablink.startsWith("https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
+            if (startsWithHTTP(tablink,"http://www.ancestry.") && !startsWithHTTP(tablink,"http://www.ancestry.com") && tablink.contains("/genealogy/records/")) {
+                var ancestrystart = tablink.split("www.ancestry.");
+                //Replace domain for other countries, such as http://www.ancestry.ca/genealogy/records/abraham-knowlton_17477348
+                tablink = ancestrystart[0] + "www.ancestry.com" + ancestrystart[1].substring(ancestrystart[1].indexOf("/"));
+            }
+            if (startsWithMH(tablink, "research/collection") || (startsWithHTTP(tablink,"http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
+                startsWithHTTP(tablink,"http://www.wikitree.com") || startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
+                (validRootsWeb(tablink) && tablink.contains("id=")) || (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
+                startsWithHTTP(tablink,"https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
                 document.querySelector('#message').style.display = "none";
                 getPageCode();
-            } else if (startsWithMH(tablink, "matchingresult") || (tablink.startsWith("http://www.findagrave.com") && tablink.contains("page=gsr")) ||
+            } else if (startsWithMH(tablink, "matchingresult") || (startsWithHTTP(tablink,"http://www.findagrave.com") && tablink.contains("page=gsr")) ||
                 (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
                 document.querySelector('#loginspinner').style.display = "none";
                 setMessage("#f8ff86", 'Please select one of the Matches on this results page.');
             } else if ((validRootsWeb(tablink) && tablink.toLowerCase().contains("igm.cgi")) ||
                 tablink === "http://records.ancestry.com/Home/Results" ||
-                tablink.startsWith("https://familysearch.org/search/tree/")) {
+                startsWithHTTP(tablink,"https://familysearch.org/search/tree/")) {
                 document.querySelector('#loginspinner').style.display = "none";
                 setMessage("#f8ff86", 'Please select one of the Profile pages on this site.');
             } else if (isGeni()) {
@@ -219,8 +230,7 @@ $('#genislider').on('click', function () {
 
 
 function isGeni() {
-    return (tablink.startsWith("http://www.geni.com/people") || tablink.startsWith("http://www.geni.com/family-tree") || tablink.startsWith("http://www.geni.com/profile") ||
-        tablink.startsWith("https://www.geni.com/people") || tablink.startsWith("https://www.geni.com/family-tree") || tablink.startsWith("https://www.geni.com/profile"));
+    return (startsWithHTTP(tablink,"http://www.geni.com/people") || startsWithHTTP(tablink,"http://www.geni.com/family-tree") || startsWithHTTP(tablink,"http://www.geni.com/profile"));
 }
 
 function userAccess() {
@@ -451,7 +461,7 @@ function loadPage(request) {
                         return;
                     }
                 }
-            } else if (tablink.startsWith("http://www.findagrave.com")) {
+            } else if (startsWithHTTP(tablink,"http://www.findagrave.com")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 var fperson = parsed.find(".plus2").find("b");
                 focusname = getPersonName(fperson[0].innerHTML);
@@ -486,7 +496,7 @@ function loadPage(request) {
                 } else {
                     focusname = title;
                 }
-            } else if (tablink.startsWith("http://records.ancestry.com/")) {
+            } else if (startsWithHTTP(tablink,"http://records.ancestry.com/")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 recordtype = "Ancestry Records";
                 focusname = parsed.find(".personName").text();
@@ -504,7 +514,7 @@ function loadPage(request) {
                         break;
                     }
                 }
-            } else if (tablink.startsWith("http://www.ancestry.com/genealogy/records/")) {
+            } else if (startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 recordtype = "Ancestry Records";
                 focusname = parsed.find(".personName").text();
@@ -521,18 +531,18 @@ function loadPage(request) {
                         break;
                     }
                 }
-            } else if (tablink.startsWith("http://trees.ancestry.")) {
+            } else if (startsWithHTTP(tablink,"http://trees.ancestry.")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 recordtype = "Ancestry Genealogy";
                 focusname = parsed.find(".pageTitle").text();
                 focusrange = "";
-            }  else if (tablink.startsWith("http://person.ancestry.")) {
+            }  else if (startsWithHTTP(tablink,"http://person.ancestry.")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 recordtype = "Ancestry Genealogy";
                 var par = parsed.find("#personCard");
                 focusname = par.find(".userCardTitle").text();
                 focusrange = par.find(".userCardSubTitle").text().replace("&ndash;", " - ");
-            } else if (tablink.startsWith("https://familysearch.org/tree-data")) {
+            } else if (startsWithHTTP(tablink,"https://familysearch.org/tree-data")) {
                 recordtype = "FamilySearch Genealogy";
                 var parsed = "";
                 try {
@@ -561,7 +571,7 @@ function loadPage(request) {
                 focusURLid = parsed["data"]["id"];  //In case it is merged with another profile - update
                 focusname = focusperson;
                 focusrange = parsed["data"]["lifeSpan"] || "";
-            } else if (tablink.startsWith("https://familysearch.org/platform")) {
+            } else if (startsWithHTTP(tablink,"https://familysearch.org/platform")) {
                 recordtype = "FamilySearch Record";
                 var parsed = "";
                 try {
@@ -583,7 +593,7 @@ function loadPage(request) {
                     focusperson = focusperson.replace(/\//g, "");
                 }
                 focusname = focusperson;
-            } else if (tablink.startsWith("http://www.wikitree.com")) {
+            } else if (startsWithHTTP(tablink,"http://www.wikitree.com")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 var personinfo = parsed.find(".VITALS");
                 var focusperson = "";
@@ -608,7 +618,7 @@ function loadPage(request) {
                         focusrange = "? " + focusrange;
                     }
                 }
-            } else if (tablink.startsWith("http://www.werelate.org/wiki/Person")) {
+            } else if (startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 var infotable = parsed.find(".wr-infotable").find("tr");
                 for (var i = 0; i < infotable.length; i++) {
@@ -704,11 +714,11 @@ function loadPage(request) {
                 console.log("Parsing Family...");
                 if (tablink.contains("/collection-")) {
                     parseSmartMatch(request.source, (accountinfo.pro && accountinfo.user));
-                } else if (tablink.startsWith("http://www.findagrave.com")) {
+                } else if (startsWithHTTP(tablink,"http://www.findagrave.com")) {
                     parseFindAGrave(request.source, (accountinfo.pro && accountinfo.user));
-                } else if (tablink.startsWith("http://www.wikitree.com")) {
+                } else if (startsWithHTTP(tablink,"http://www.wikitree.com")) {
                     parseWikiTree(request.source, (accountinfo.pro && accountinfo.user));
-                } else if (tablink.startsWith("http://www.werelate.org")) {
+                } else if (startsWithHTTP(tablink,"http://www.werelate.org")) {
                     parseWeRelate(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (validRootsWeb(tablink)) {
                     parseRootsWeb(request.source, (accountinfo.pro && accountinfo.user));
@@ -716,17 +726,17 @@ function loadPage(request) {
                     parseFamilyTreeMaker(request.source, (accountinfo.pro && accountinfo.user));
                 } else if (validMyHeritage(tablink)) {
                     parseMyHeritage(request.source, (accountinfo.pro && accountinfo.user));
-                } else if (tablink.startsWith("http://records.ancestry.")) {
+                } else if (startsWithHTTP(tablink,"http://records.ancestry.")) {
                     parseAncestryFree(request.source, (accountinfo.pro && accountinfo.user));
-                } else if (tablink.startsWith("http://www.ancestry.com/genealogy/records/")) {
+                } else if (startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/")) {
                     parseAncestryFree(request.source, (accountinfo.pro && accountinfo.user));
-                } else if (tablink.startsWith("http://trees.ancestry.")) {
+                } else if (startsWithHTTP(tablink,"http://trees.ancestry.")) {
                     parseAncestryTrees(request.source, (accountinfo.pro && accountinfo.user));
-                } else if (tablink.startsWith("http://person.ancestry.")) {
+                } else if (startsWithHTTP(tablink,"http://person.ancestry.")) {
                     parseAncestryNew(request.source, (accountinfo.pro && accountinfo.user));
-                } else if (tablink.startsWith("https://familysearch.org/tree-data")) {
+                } else if (startsWithHTTP(tablink,"https://familysearch.org/tree-data")) {
                     parseFamilySearchJSON(request.source, (accountinfo.pro && accountinfo.user));
-                } else if (tablink.startsWith("https://familysearch.org/platform")) {
+                } else if (startsWithHTTP(tablink,"https://familysearch.org/platform")) {
                     parseFamilySearchRecord(request.source, (accountinfo.pro && accountinfo.user));
                 }
 
@@ -750,11 +760,11 @@ function loadPage(request) {
         }
     } else {
         if (supportedCollection()) {
-            if (tablink.startsWith("http://www.findagrave.com")) {
+            if (startsWithHTTP(tablink,"http://www.findagrave.com")) {
                 focusURLid = getParameterByName('GRid', tablink);
-            } else if (tablink.startsWith("http://www.wikitree.com")) {
+            } else if (startsWithHTTP(tablink,"http://www.wikitree.com")) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace("-Family-Tree", "");
-            } else if (tablink.startsWith("http://www.werelate.org/wiki/Person")) {
+            } else if (startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person")) {
                 focusURLid = decodeURIComponent(tablink.substring(tablink.lastIndexOf(':') + 1));
             } else if (validRootsWeb(tablink)) {
                 focusURLid = getParameterByName('id', tablink);
@@ -776,28 +786,28 @@ function loadPage(request) {
                 }
             } else if (startsWithMH(tablink, "")) {
                 focusURLid = getParameterByName('itemId', tablink);
-            } else if (tablink.startsWith("http://records.ancestry.")) {
+            } else if (startsWithHTTP(tablink,"http://records.ancestry.")) {
                 focusURLid = getParameterByName('pid', tablink);
-            } else if (tablink.startsWith("http://trees.ancestry.")) {
+            } else if (startsWithHTTP(tablink,"http://trees.ancestry.")) {
                 if (tablink.contains("/fact/")) {
                     tablink = tablink.substring(0, tablink.lastIndexOf("/fact/"));
                 }
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1);
-            } else if (tablink.startsWith("http://person.ancestry.")) {
+            } else if (startsWithHTTP(tablink,"http://person.ancestry.")) {
                 if (tablink.contains("/fact")) {
                     tablink = tablink.substring(0, tablink.lastIndexOf("/fact"));
                 }
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1);
-            } else if (tablink.startsWith("https://familysearch.org/pal:")) {
+            } else if (startsWithHTTP(tablink,"https://familysearch.org/pal:")) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace("?view=basic", "");
-            } else if (tablink.startsWith("https://familysearch.org/tree/")) {
+            } else if (startsWithHTTP(tablink,"https://familysearch.org/tree/")) {
                 focusURLid = getParameterByName('person', tablink);
-            } else if (tablink.startsWith("https://familysearch.org/tree-data/")) {
+            } else if (startsWithHTTP(tablink,"https://familysearch.org/tree-data/")) {
                 var focussplit = tablink.split("/");
                 if (focussplit.length > 1) {
                     focusURLid = focussplit[focussplit.length - 2];
                 }
-            } else if (tablink.startsWith("https://familysearch.org/platform/records/")) {
+            } else if (startsWithHTTP(tablink,"https://familysearch.org/platform/records/")) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace(".json", "");
             }
 
@@ -813,7 +823,7 @@ function loadPage(request) {
             }
 
             loadSelectPage(request);
-        } else if (tablink.startsWith("https://familysearch.org/search/")) {
+        } else if (startsWithHTTP(tablink,"https://familysearch.org/search/")) {
             document.getElementById("top-container").style.display = "block";
             document.getElementById("submitbutton").style.display = "none";
             document.getElementById("loading").style.display = "none";
@@ -1038,7 +1048,7 @@ function getPageCode() {
         document.getElementById("smartcopy-container").style.display = "block";
         document.getElementById("loading").style.display = "block";
 
-        if ((tablink.startsWith("http://www.myheritage.com/site-family-tree-") || tablink.startsWith("https://www.myheritage.com/site-family-tree-")) && !tablink.endsWith("-info")) {
+        if ((startsWithHTTP(tablink,"http://www.myheritage.com/site-family-tree-") || startsWithHTTP(tablink,"https://www.myheritage.com/site-family-tree-")) && !tablink.endsWith("-info")) {
             var linkid = getParameterByName("rootIndivudalID", tablink);
             var siteid = tablink.substring(tablink.lastIndexOf("-") + 1, tablink.lastIndexOf("/"));
             tablink = tablink.replace("site-family-tree-", "person-" + linkid + "_" + siteid + "_");
@@ -1049,17 +1059,17 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
-        } else if (tablink.startsWith("http://www.myheritage.com/") || tablink.startsWith("https://www.myheritage.com/") ||
-            tablink.startsWith("http://www.findagrave.com") ||
-            tablink.startsWith("http://www.wikitree.com/wiki/") ||
-            tablink.startsWith("http://www.werelate.org/wiki/Person") ||
+        } else if (startsWithHTTP(tablink,"http://www.myheritage.com/") || startsWithHTTP(tablink,"https://www.myheritage.com/") ||
+            startsWithHTTP(tablink,"http://www.findagrave.com") ||
+            startsWithHTTP(tablink,"http://www.wikitree.com/wiki/") ||
+            startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
             validFamilyTree(tablink) ||
             (validRootsWeb(tablink) && getParameterByName("op", tablink).toLowerCase() === "get") ||
-            (tablink.startsWith("http://records.ancestry.") || tablink.startsWith("http://www.ancestry.com/genealogy/records/")) ||
-            (tablink.startsWith("http://person.ancestry.") && (!tablink.endsWith("/story") && !tablink.endsWith("/gallery"))) ||
-            (tablink.startsWith("http://trees.ancestry.") && !tablink.contains("family?cfpid=") && !isNaN(tablink.slice(-1))) ||
-            (tablink.startsWith("https://familysearch.org/pal:") && tablink.contains("?view=basic")) ||
-            tablink.startsWith("https://familysearch.org/tree-data") || tablink.startsWith("https://familysearch.org/platform")) {
+            (startsWithHTTP(tablink,"http://records.ancestry.") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/")) ||
+            (startsWithHTTP(tablink,"http://person.ancestry.") && (!tablink.endsWith("/story") && !tablink.endsWith("/gallery"))) ||
+            (startsWithHTTP(tablink,"http://trees.ancestry.") && !tablink.contains("family?cfpid=") && !isNaN(tablink.slice(-1))) ||
+            (startsWithHTTP(tablink,"https://familysearch.org/pal:") && tablink.contains("?view=basic")) ||
+            startsWithHTTP(tablink,"https://familysearch.org/tree-data") || startsWithHTTP(tablink,"https://familysearch.org/platform")) {
             chrome.tabs.executeScript(null, {
                 file: "getPagesSource.js"
             }, function () {
@@ -1068,7 +1078,7 @@ function getPageCode() {
                     message.innerText = 'There was an error injecting script : \n' + chrome.extension.lastError.message;
                 }
             });
-        } else if (tablink.startsWith("http://trees.ancestry.")) {
+        } else if (startsWithHTTP(tablink,"http://trees.ancestry.")) {
             tablink = tablink.replace("family?cfpid=", "person/") + "/facts";
             tablink = tablink.replace("trees.ancestry.", "person.ancestry.");
             if (tablink.endsWith("/family")) {
@@ -1091,7 +1101,7 @@ function getPageCode() {
                 });
             }
 
-        } else if (tablink.startsWith("http://person.ancestry.")) {
+        } else if (startsWithHTTP(tablink,"http://person.ancestry.")) {
             tablink = tablink.replace("/story", "/facts");
             tablink = tablink.replace("/gallery", "/facts");
             chrome.extension.sendMessage({
@@ -1101,7 +1111,7 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
-        } else if (tablink.startsWith("http://www.wikitree.com/genealogy/")) {
+        } else if (startsWithHTTP(tablink,"http://www.wikitree.com/genealogy/")) {
             tablink = tablink.replace("genealogy/", "wiki/").replace("-Family-Tree", "");
             chrome.extension.sendMessage({
                 method: "GET",
@@ -1119,7 +1129,7 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
-        } else if (tablink.startsWith("https://familysearch.org/pal:")) {
+        } else if (startsWithHTTP(tablink,"https://familysearch.org/pal:")) {
             var urlparts= tablink.split('?');
             focusURLid = urlparts[0].substring(tablink.lastIndexOf('/') + 1);
             tablink = "https://familysearch.org/tree-data/person/" + focusURLid + "/all?locale=en";
@@ -1130,7 +1140,7 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
-        } else if (tablink.startsWith("https://familysearch.org/tree/")) {
+        } else if (startsWithHTTP(tablink,"https://familysearch.org/tree/")) {
             focusURLid = getParameterByName('person', tablink);
             tablink = "https://familysearch.org/tree-data/person/" + focusURLid + "/all?locale=en";
             chrome.extension.sendMessage({
@@ -1140,7 +1150,7 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
-        } else if (tablink.startsWith("https://familysearch.org/ark:") && tablink.contains("/2:2:")) {
+        } else if (startsWithHTTP(tablink,"https://familysearch.org/ark:") && tablink.contains("/2:2:")) {
             var urlparts= tablink.split('?');
             focusURLid = urlparts[0].substring(tablink.lastIndexOf('/') + 1);
             tablink = "https://familysearch.org/platform/genealogies/persons/" + focusURLid + ".json";
@@ -1152,7 +1162,7 @@ function getPageCode() {
                 loadPage(response);
             });
 
-        } else if (tablink.startsWith("https://familysearch.org/ark:") && !tablink.contains("/1:1:")) {
+        } else if (startsWithHTTP(tablink,"https://familysearch.org/ark:") && !tablink.contains("/1:1:")) {
             var urlparts= tablink.split('?');
             focusURLid = urlparts[0].substring(tablink.lastIndexOf(':') + 1);
             tablink = "https://familysearch.org/tree-data/person/" + focusURLid + "/all?locale=en";
@@ -1164,7 +1174,7 @@ function getPageCode() {
                 loadPage(response);
             });
 
-        } else if (tablink.startsWith("https://familysearch.org/ark:") && tablink.contains("/1:1:")) {
+        } else if (startsWithHTTP(tablink,"https://familysearch.org/ark:") && tablink.contains("/1:1:")) {
             var urlparts= tablink.split('?');
             focusURLid = urlparts[0].substring(tablink.lastIndexOf(':') + 1);
             tablink = "https://familysearch.org/platform/records/personas/" + focusURLid + ".json";
@@ -1503,7 +1513,7 @@ var submitform = function () {
                 if (exists(profileout.author) && profileout.author !== "") {
                     description = "Credit: " + profileout.author + ", ";
                 }
-                focusphotoinfo = {photo: profileout.photo, title: focusname, description: description + "Source: " + shorturl};
+                focusphotoinfo = {photo: profileout.photo, title: focusname, attribution: description + "Source: " + shorturl};
                 delete profileout.photo;
                 delete profileout.author;
             }
@@ -1565,7 +1575,7 @@ var submitform = function () {
                         if (exists(familyout.author) && familyout.author !== "") {
                             description = "Credit: " + familyout.author + ", ";
                         }
-                        photosubmit[familyout.profile_id] = {photo: familyout.photo, title: fdata.name, description: description + "Source: " + shorturl};
+                        photosubmit[familyout.profile_id] = {photo: familyout.photo, title: fdata.name, attribution: description + "Source: " + shorturl};
                         delete familyout.photo;
                         delete familyout.author;
                     }
@@ -2184,16 +2194,16 @@ function addHistory(id, itemId, name, data) {
 
 function supportedCollection() {
     var expenabled = $('#exponoffswitch').prop('checked');
-    if (!expenabled && tablink.startsWith("https://familysearch.org/platform")) {
+    if (!expenabled && startsWithHTTP(tablink,"https://familysearch.org/platform")) {
         return false;
-    } else return tablink.contains("/collection-") || tablink.startsWith("http://www.findagrave.com") ||
-        tablink.startsWith("http://www.wikitree.com/") || validRootsWeb(tablink) ||
-        validAncestry(tablink) || (tablink.startsWith("https://familysearch.org/pal:") || tablink.startsWith("https://familysearch.org/tree") || tablink.startsWith("https://familysearch.org/platform")) ||
-        tablink.startsWith("http://www.werelate.org/") || validMyHeritage(tablink) || validFamilyTree(tablink);
+    } else return tablink.contains("/collection-") || startsWithHTTP(tablink,"http://www.findagrave.com") ||
+        startsWithHTTP(tablink,"http://www.wikitree.com/") || validRootsWeb(tablink) ||
+        validAncestry(tablink) || (startsWithHTTP(tablink,"https://familysearch.org/pal:") || startsWithHTTP(tablink,"https://familysearch.org/tree") || startsWithHTTP(tablink,"https://familysearch.org/platform")) ||
+        startsWithHTTP(tablink,"http://www.werelate.org/") || validMyHeritage(tablink) || validFamilyTree(tablink);
 }
 
 function validAncestry() {
-    return tablink.startsWith("http://records.ancestry.com") || tablink.startsWith("http://trees.ancestry.") || tablink.startsWith("http://person.ancestry.") || tablink.startsWith("http://www.ancestry.com/genealogy/records/");
+    return startsWithHTTP(tablink,"http://records.ancestry.com") || startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/");
 }
 
 function getParameterByName(name, url) {

@@ -83,15 +83,15 @@ function buildGeni(responsedata) {
 }
 
 function buildFamilySearch(responsedata) {
-    var query = 'results?count=75&query=%2Bgivenname%3A' + wrapEncode(responsedata.first_name.replace("'",""));
-    var lastname = wrapEncode(responsedata.last_name);
+    var query = 'results?count=75&query=%2Bgivenname%3A%22' + wrapEncode(responsedata.first_name.replace("'","")).replace(/%22/g, "") + '%22';
+    var lastname = wrapEncode(responsedata.last_name).replace(/%22/g, "");
     if (exists(responsedata.maiden_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
-        lastname = wrapEncode(responsedata.maiden_name.replace("'",""));
+        lastname = wrapEncode(responsedata.maiden_name.replace("'","")).replace(/%22/g, "");
         if (exists(responsedata.last_name)) {
-            query += '~%20%2Bspouse_surname%3A' + wrapEncode(responsedata.last_name.replace("'",""));
+            query += '~%20%2Bspouse_surname%3A%22' + wrapEncode(responsedata.last_name.replace("'","")).replace(/%22/g, "") + '%22';
         }
     }
-    query += '~%20%2Bsurname%3A' + wrapEncode(lastname);
+    query += '~%20%2Bsurname%3A%22' + wrapEncode(lastname).replace(/%22/g, "") + '%22';
     if (exists(responsedata.birth)) {
         if (exists(responsedata.birth.date) && exists(responsedata.birth.date.year)) {
             query += '~%20%2Bbirth_year%3A' + (responsedata.birth.date.year - 1) + '-' + (responsedata.birth.date.year + 1);
@@ -121,14 +121,14 @@ function buildFindAGrave(responsedata) {
     var lastname = "";
     var firstname = "";
     if (responsedata.first_name) {
-        firstname = responsedata.first_name;
+        firstname = wrapEncode(responsedata.first_name.replace("'",""));
     }
     if (exists(responsedata.last_name)) {
-        lastname = responsedata.last_name;
+        lastname = wrapEncode(responsedata.last_name.replace("'",""));
     } else if (exists(responsedata.maiden_name)) {
-        lastname = responsedata.maiden_name;
+        lastname = wrapEncode(responsedata.maiden_name.replace("'",""));
     }
-    var query = 'http://www.findagrave.com/cgi-bin/fg.cgi?page=gsr&GSfn=' + firstname + '&GSmn=&GSln=' + lastname + '&GSiman=1&GScntry=0&GSst=0&GSgrid=&df=all&GSob=n';
+    var query = 'http://www.findagrave.com/cgi-bin/fg.cgi?page=gsr&GSfn=' + firstname.replace(/%22/g, "") + '&GSmn=&GSln=' + lastname.replace(/%22/g, "") + '&GSiman=1&GScntry=0&GSst=0&GSgrid=&df=all&GSob=n';
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>FindAGrave</strong>';
     researchstring += '<li><a class="ctrllink" url="' + query + '">FindAGrave (Gravestones)</a></li>';
     researchstring += '</div>';

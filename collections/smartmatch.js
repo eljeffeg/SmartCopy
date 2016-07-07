@@ -380,6 +380,10 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             if (title === "occupations") {
                 title = "occupation";
             }
+            if (title.startsWith('birth') || title.startsWith('death') || title.startsWith('burial') || title.startsWith('baptism')) {
+                title = title.replace("date", "").replace("place","");
+                title = title.trim();
+            }
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
                 && title !== 'occupation' && title !== 'cemetery' && title !== 'christening' && title !== 'aliases'
                 && !(title === 'marriage' && (relation === "" || isParent(relation.title) || isPartner(relation.title)))) {
@@ -474,9 +478,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 data.push({id: geoid, location: vallocal, place: valplace});
                 geoid++;
             }
-            if (exists(profiledata[title]) && profiledata[title].length >= data.length) {
-                continue;
-            }
             if (title === "burial" && valdate !== "") {
                 profiledata["alive"] = false;
                 burialdtflag = true;
@@ -487,6 +488,12 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             if (title === "burial" && valdate === "" && vallocal !== "") {
                 profiledata["alive"] = false;
                 buriallcflag = true;
+            }
+            if (exists(profiledata[title]) && profiledata[title].length >= data.length) {
+                if (data.length > 0 && ((valdate === "" && vallocal !== "") || (valdate !== "" && vallocal === ""))) {
+                    profiledata[title][0] = $.extend(profiledata[title][0], data[0]);
+                }
+                continue;
             }
 
             if (title !== 'marriage') {

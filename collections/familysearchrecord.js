@@ -200,6 +200,7 @@ function parseFamilySearchRecord(htmlstring, familymembers, relation) {
                                             return;
                                         }
 
+                                        arg.url = person.url;
                                         person = updateInfoData(person, arg);
                                         databyid[arg.profile_id] = person;
                                         alldata["family"][arg.title].push(person);
@@ -295,6 +296,7 @@ function parseFamilySearchRecord(htmlstring, familymembers, relation) {
                                         return;
                                     }
 
+                                    arg.url = person.url;
                                     person = updateInfoData(person, arg);
                                     databyid[arg.profile_id] = person;
                                     alldata["family"][arg.title].push(person);

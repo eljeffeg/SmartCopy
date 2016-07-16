@@ -905,7 +905,7 @@ function buildForm() {
         $("#genisearch").attr("href", genisearchurl);
     }
 
-    if (icount > 0) {
+    if (icount > 0 && accountinfo.pro && accountinfo.user) {
         document.getElementById("familydata").style.display = "block";
         document.getElementById("genislider").style.display = "block";
     }

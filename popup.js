@@ -713,41 +713,41 @@ function loadPage(request) {
                 });
                 console.log("Parsing Family...");
                 if (tablink.contains("/collection-")) {
-                    parseSmartMatch(request.source, (accountinfo.pro && accountinfo.user));
+                    parseSmartMatch(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://www.findagrave.com")) {
-                    parseFindAGrave(request.source, (accountinfo.pro && accountinfo.user));
+                    parseFindAGrave(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://www.wikitree.com")) {
-                    parseWikiTree(request.source, (accountinfo.pro && accountinfo.user));
+                    parseWikiTree(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://www.werelate.org")) {
-                    parseWeRelate(request.source, (accountinfo.pro && accountinfo.user));
+                    parseWeRelate(request.source, true);
                 } else if (validRootsWeb(tablink)) {
-                    parseRootsWeb(request.source, (accountinfo.pro && accountinfo.user));
+                    parseRootsWeb(request.source, true);
                 } else if(validFamilyTree(tablink)) {
-                    parseFamilyTreeMaker(request.source, (accountinfo.pro && accountinfo.user));
+                    parseFamilyTreeMaker(request.source, true);
                 } else if (validMyHeritage(tablink)) {
-                    parseMyHeritage(request.source, (accountinfo.pro && accountinfo.user));
+                    parseMyHeritage(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://records.ancestry.")) {
-                    parseAncestryFree(request.source, (accountinfo.pro && accountinfo.user));
+                    parseAncestryFree(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/")) {
-                    parseAncestryFree(request.source, (accountinfo.pro && accountinfo.user));
+                    parseAncestryFree(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://trees.ancestry.")) {
-                    parseAncestryTrees(request.source, (accountinfo.pro && accountinfo.user));
+                    parseAncestryTrees(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://person.ancestry.")) {
-                    parseAncestryNew(request.source, (accountinfo.pro && accountinfo.user));
+                    parseAncestryNew(request.source, true);
                 } else if (startsWithHTTP(tablink,"https://familysearch.org/tree-data")) {
-                    parseFamilySearchJSON(request.source, (accountinfo.pro && accountinfo.user));
+                    parseFamilySearchJSON(request.source, true);
                 } else if (startsWithHTTP(tablink,"https://familysearch.org/platform")) {
-                    parseFamilySearchRecord(request.source, (accountinfo.pro && accountinfo.user));
+                    parseFamilySearchRecord(request.source, true);
                 }
 
                 if (!accountinfo.pro) {
-                    document.getElementById("loading").style.display = "none";
+                    //document.getElementById("loading").style.display = "none";
                     $("#familymembers").attr('disabled', 'disabled');
                     setMessage("#f8ff86", 'The copying of Family Members is only available to Geni Pro Members.');
                 } else if (!accountinfo.user) {
-                    document.getElementById("loading").style.display = "none";
+                    //document.getElementById("loading").style.display = "none";
                     $("#familymembers").attr('disabled', 'disabled');
-                    setMessage("#f8ff86", 'Copying Family Members has been restricted to trusted Geni Pro users.  You may request this ability from a Curator.');
+                    setMessage("#f8ff86", 'Copying Family Members has been restricted to trusted Geni Pro users.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
                 }
             } else {
                 loadSelectPage(request);
@@ -1225,11 +1225,11 @@ function checkAccount() {
                 }
                 return;
             }
-            if (response.curator) {
+            accountinfo = response;
+            if (accountinfo.curator) {
                 //display leaderboard link if user is a curator - page itself still verifies
                 document.getElementById("curator").style.display = "inline-block";
             }
-            accountinfo = response;
         }
     };
     xhr.send();

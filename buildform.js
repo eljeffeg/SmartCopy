@@ -1634,7 +1634,9 @@ function updateInfoData(person, arg) {
             person["divorce"] = arg["divorce"];
         }
     } else if (exists(person.name) && !exists(person["alive"])) {
-        if (checkLiving(person.name)) {
+        if (exists(person["death"]) || exists(person["burial"])) {
+            person["alive"] = false;
+        } else if (checkLiving(person.name)) {
             person["alive"] = true;
         } else if (exists(person["birth"])) {
             var fulldate = null;

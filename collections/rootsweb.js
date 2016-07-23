@@ -337,12 +337,16 @@ function parseRootsDate(vitalstring) {
     } else if (vitalinfo.toLowerCase().startsWith("bet") || vitalinfo.toLowerCase().startsWith("btw")) {
         datesplit[0] = vitalinfo;
     } else {
-
-        var i = vitalinfo.substr(i).search(/\d{4}/);
-        if (i == -1 || vitalstring.length < i + 5) {
-            datesplit = ["", vitalinfo ];
+        var verifydate = moment(vitalinfo, getDateFormat(vitalinfo), true).isValid();
+        if (!verifydate) {
+            var i = vitalinfo.substr(i).search(/\d{4}/);
+            if (i == -1 || vitalstring.length < i + 5) {
+                datesplit = ["", vitalinfo ];
+            } else {
+                datesplit = [ vitalinfo.substr(0, i + 4).trim(), vitalinfo.substr(i + 4).trim() ];
+            }
         } else {
-            datesplit = [ vitalinfo.substr(0, i + 4).trim(), vitalinfo.substr(i + 4).trim() ];
+            datesplit = [vitalinfo, "" ];
         }
     }
 

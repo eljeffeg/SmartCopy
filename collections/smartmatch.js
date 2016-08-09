@@ -249,6 +249,40 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                 famid++;
                             }
                         }
+                    } else if (exists(housearray)) {
+                        for (var i = 0; i < housearray.length; i++) {
+                            var urlval = housearray[i].url;
+                            if (exists(urlval) && urlval !== "") {
+                                familystatus.push(familystatus.length);
+                                var subdata = {name: $(housearray[i]).text().trim(), gender: gendersv, title: title};
+                                var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                var itemid = getParameterByName('itemId', shorturl);
+                                subdata["url"] = urlval;
+                                subdata["itemId"] = itemid;
+                                subdata["profile_id"] = famid;
+                                if (isParent(title)) {
+                                    parentlist.push(itemid);
+                                } else if (isPartner(title)) {
+                                    myhspouse.push(famid);
+                                }
+                                unionurls[famid] = itemid;
+                                famid++;
+                                chrome.extension.sendMessage({
+                                    method: "GET",
+                                    action: "xhttp",
+                                    url: shorturl,
+                                    variable: subdata
+                                }, function (response) {
+                                    var arg = response.variable;
+                                    var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
+                                    person = updateInfoData(person, arg);
+                                    databyid[arg.profile_id] = person;
+                                    alldata["family"][arg.title].push(person);
+                                    familystatus.pop();
+                                });
+                            }
+                        }
+                        break;
                     }
                 }
                 continue;

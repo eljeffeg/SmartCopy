@@ -170,6 +170,11 @@ function queryGeo(locationset, test) {
             geolocation[locationset.id] = parseGoogle("");
             return;
         }
+        if (location.toLowerCase() == "at sea") {
+            geolocation[locationset.id] = parseGoogle("");
+            geolocation[locationset.id].place = location;
+            return;
+        }
         location = location.replace(/:/ig, "");
         location = location.replace(/Unknown/ig, "");
         location = location.replace(/\[Blank\]/ig, "");

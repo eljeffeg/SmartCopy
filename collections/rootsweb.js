@@ -334,7 +334,9 @@ function parseRootsDate(vitalstring) {
         datesplit[1] = vitalinfo.replace(/^in /, "");
     } else if (vitalinfo.contains(" in ")) {
         datesplit = vitalinfo.split(" in ");
-    } else if (vitalinfo.toLowerCase().startsWith("bet") || vitalinfo.toLowerCase().startsWith("btw")) {
+    } else if (vitalinfo.toLowerCase().startsWith("bet") || vitalinfo.toLowerCase().startsWith("btw") ||
+        vitalinfo.toLowerCase().startsWith("est") || vitalinfo.toLowerCase().startsWith("abt") ||
+        vitalinfo.toLowerCase().startsWith("bef") || vitalinfo.toLowerCase().startsWith("aft")) {
         datesplit[0] = vitalinfo;
     } else {
         var verifydate = moment(vitalinfo, getDateFormat(vitalinfo), true).isValid();

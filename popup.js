@@ -1142,6 +1142,11 @@ function getPageCode() {
             });
         } else if (startsWithHTTP(tablink,"https://familysearch.org/tree/")) {
             focusURLid = getParameterByName('person', tablink);
+            if (focusURLid === "") {
+                focusURLid = tablink.substring(tablink.replace("/details", "").lastIndexOf('/') + 1).replace("/details","");
+
+                console.log(focusURLid);
+            }
             tablink = "https://familysearch.org/tree-data/person/" + focusURLid + "/all?locale=en";
             chrome.extension.sendMessage({
                 method: "GET",

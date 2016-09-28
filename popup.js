@@ -178,7 +178,7 @@ function loginProcess() {
                 //Replace domain for other countries, such as http://www.ancestry.ca/genealogy/records/abraham-knowlton_17477348
                 tablink = ancestrystart[0] + "www.ancestry.com" + ancestrystart[1].substring(ancestrystart[1].indexOf("/"));
             }
-            if (startsWithMH(tablink, "research/collection") || (startsWithHTTP(tablink,"http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
+            if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") || (startsWithHTTP(tablink,"http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
                 startsWithHTTP(tablink,"http://www.wikitree.com") || startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
                 (validRootsWeb(tablink) && tablink.contains("id=")) || (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
                 startsWithHTTP(tablink,"https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
@@ -712,7 +712,7 @@ function loadPage(request) {
                     $("#genilinkdesc").attr('title', "Geni: " + geni_return.name + dateinfo);
                 });
                 console.log("Parsing Family...");
-                if (tablink.contains("/collection-")) {
+                if (tablink.contains("/collection-") || tablink.contains("/research/record-")) {
                     parseSmartMatch(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://www.findagrave.com")) {
                     parseFindAGrave(request.source, true);
@@ -2196,7 +2196,7 @@ function supportedCollection() {
     var expenabled = $('#exponoffswitch').prop('checked');
     if (!expenabled && startsWithHTTP(tablink,"https://familysearch.org/platform")) {
         return false;
-    } else return tablink.contains("/collection-") || startsWithHTTP(tablink,"http://www.findagrave.com") ||
+    } else return tablink.contains("/collection-") || tablink.contains("research/record-") || startsWithHTTP(tablink,"http://www.findagrave.com") ||
         startsWithHTTP(tablink,"http://www.wikitree.com/") || validRootsWeb(tablink) ||
         validAncestry(tablink) || (startsWithHTTP(tablink,"https://familysearch.org/pal:") || startsWithHTTP(tablink,"https://familysearch.org/tree") || startsWithHTTP(tablink,"https://familysearch.org/platform")) ||
         startsWithHTTP(tablink,"http://www.werelate.org/") || validMyHeritage(tablink) || validFamilyTree(tablink);

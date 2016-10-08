@@ -206,7 +206,7 @@ function buildAncestry(responsedata) {
     } else if (exists(responsedata.maiden_name)) {
         lastname = responsedata.maiden_name;
     }
-    var query = 'http://records.ancestry.com/?firstname=' + firstname + '&lastname=' + lastname;
+    var query = 'http://www.ancestry.com/genealogy/records/results?firstname=' + firstname + '&lastname=' + lastname;
     var researchstring = '<div style="text-align: left; padding-top: 4px;"><strong>Ancestry</strong>';
     researchstring += '<li><a class="ctrllink" url="' + query + '">Ancestry (Genealogies)</a></li>';
     researchstring += '</div>';

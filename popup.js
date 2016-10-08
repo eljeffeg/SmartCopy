@@ -1144,8 +1144,9 @@ function getPageCode() {
             focusURLid = getParameterByName('person', tablink);
             if (focusURLid === "") {
                 focusURLid = tablink.substring(tablink.replace("/details", "").lastIndexOf('/') + 1).replace("/details","");
-
-                console.log(focusURLid);
+                if (exists(focusURLid) && focusURLid.contains("?")) {
+                    focusURLid = focusURLid.substring(0, focusURLid.lastIndexOf('?'));
+                }
             }
             tablink = "https://familysearch.org/tree-data/person/" + focusURLid + "/all?locale=en";
             chrome.extension.sendMessage({

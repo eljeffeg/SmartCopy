@@ -206,7 +206,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                 if (exists(urlval) && urlval !== "") {
                                     familystatus.push(familystatus.length);
                                     var subdata = {name: $(listrowval).text().trim(), gender: gendersv, title: title};
-                                    var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                    var shorturl = shorturlreader(urlval);
                                     var itemid = getParameterByName('itemId', shorturl);
                                     subdata["url"] = urlval;
                                     subdata["itemId"] = itemid;
@@ -274,7 +274,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                 if (listrowval.className !== "eventSeparator" && listrowval.nodeValue === null) {
                                     var urlval = $(listrowval).attr("href");
                                     if (exists(urlval) && urlval !== "") {
-                                        var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                        var shorturl = shorturlreader(urlval);
                                         var itemid = getParameterByName('itemId', shorturl);
                                         if (focusURLid !== itemid) {
                                             childlist[relation.proid] = $.inArray(itemid, unionurls);
@@ -291,7 +291,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                 if (listrowval.className !== "eventSeparator" && listrowval.nodeValue === null) {
                                     var urlval = $(listrowval).attr("href");
                                     if (exists(urlval) && urlval !== "") {
-                                        var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                        var shorturl = shorturlreader(urlval);
                                         var itemid = getParameterByName('itemId', shorturl);
                                         siblingparents.push(itemid);
                                     }
@@ -319,7 +319,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                     for (var i = 0; i < housearray.length; i++) {
                                         if (housearray[i].name === splitval.trim()) {
                                             var urlval = housearray[i].url;
-                                            var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                            var shorturl = shorturlreader(urlval);
                                             var itemid = getParameterByName('itemId', shorturl);
                                             if (focusURLid !== itemid) {
                                                 childlist[relation.proid] = $.inArray(itemid, unionurls);
@@ -339,7 +339,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                     for (var i = 0; i < housearray.length; i++) {
                                         if (housearray[i].name === splitval.trim()) {
                                             var urlval = housearray[i].url;
-                                            var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                                            var shorturl = shorturlreader(urlval);
                                             var itemid = getParameterByName('itemId', shorturl);
                                             siblingparents.push(itemid);
                                             break;
@@ -630,7 +630,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     subdata["title"] = title;
                     //console.log(subdata);
                     var urlval = $(row).find(".individualListBodyContainer a").attr("href");
-                    var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                    var shorturl = shorturlreader(urlval);
                     var itemid = getParameterByName('itemId', shorturl);
                     if (isParent(title)) {
                         parentlist.push(itemid);
@@ -677,7 +677,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         } else if (familymembers && exists(housearray)) {
             for (var i = 0; i < housearray.length; i++) {
                 var urlval = housearray[i].url;
-                var shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+                var shorturl = shorturlreader(urlval);
                 var itemid = getParameterByName('itemId', shorturl);
                 if (!urlval.startsWith("http") || itemid === "") {
                     continue;
@@ -843,6 +843,14 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         }
     }
     return profiledata;
+}
+
+function shorturlreader(urlval) {
+    var shorturl = urlval;
+    if (urlval.contains('showRecord')) {
+        shorturl = urlval.substring(0, urlval.indexOf('showRecord') + 10);
+    }
+    return shorturl;
 }
 
 function parseInfoData(row) {

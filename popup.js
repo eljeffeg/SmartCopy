@@ -1143,7 +1143,8 @@ function getPageCode() {
         } else if (startsWithHTTP(tablink,"https://familysearch.org/tree/")) {
             focusURLid = getParameterByName('person', tablink);
             if (focusURLid === "") {
-                focusURLid = tablink.substring(tablink.replace("/details", "").lastIndexOf('/') + 1).replace("/details","");
+                tablink = tablink.replace("/details", "").replace("/memories", "").replace("/landscape", "").replace("/portrait", "").replace("/fanchart", "").replace("/descendancy", "");
+                focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1);
                 if (exists(focusURLid) && focusURLid.contains("?")) {
                     focusURLid = focusURLid.substring(0, focusURLid.lastIndexOf('?'));
                 }

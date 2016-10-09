@@ -388,10 +388,10 @@ function loadPage(request) {
                 var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
                 focusname = parsed.find(".recordTitle").text().trim();
                 recordtype = parsed.find(".infoGroupTitle");
-                var shorturl = tablink.substring(0, tablink.indexOf('showRecord') + 10);
-                focusURLid = getParameterByName('itemId', shorturl);
+                var shorturl = shorturlreader(tablink);
+                focusURLid = getMHURLId(shorturl);
                 if (focusURLid === "") {
-                   focusURLid = getParameterByName('itemId', tablink);
+                   focusURLid = getMHURLId(tablink);
                 }
                 smscorefactors = parsed.find(".value_add_score_factors_container").text().trim();
                 if (exists(recordtype[0])) {
@@ -785,7 +785,7 @@ function loadPage(request) {
                     focusURLid = focusURLid.substring(0, focusURLid.indexOf('_'));
                 }
             } else if (startsWithMH(tablink, "")) {
-                focusURLid = getParameterByName('itemId', tablink);
+                focusURLid = getMHURLId(tablink);
             } else if (startsWithHTTP(tablink,"http://records.ancestry.")) {
                 focusURLid = getParameterByName('pid', tablink);
             } else if (startsWithHTTP(tablink,"http://trees.ancestry.")) {

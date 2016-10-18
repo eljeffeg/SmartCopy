@@ -1518,7 +1518,7 @@ var submitform = function () {
                 }
                 var description = "";
                 if (exists(profileout.author) && profileout.author !== "") {
-                    description = "Credit: " + profileout.author + ", ";
+                    description = profileout.author + ", ";
                 }
                 focusphotoinfo = {photo: profileout.photo, title: focusname, attribution: description + "Source: " + shorturl};
                 delete profileout.photo;
@@ -1580,7 +1580,7 @@ var submitform = function () {
                         }
                         var description = "";
                         if (exists(familyout.author) && familyout.author !== "") {
-                            description = "Credit: " + familyout.author + ", ";
+                            description = familyout.author + ", ";
                         }
                         photosubmit[familyout.profile_id] = {photo: familyout.photo, title: fdata.name, attribution: description + "Source: " + shorturl};
                         delete familyout.photo;

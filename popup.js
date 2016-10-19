@@ -2201,7 +2201,7 @@ function addHistory(id, itemId, name, data) {
 
 function supportedCollection() {
     var expenabled = $('#exponoffswitch').prop('checked');
-    if (!expenabled && startsWithHTTP(tablink,"https://familysearch.org/platform")) {
+    if (!expenabled && startsWithHTTP(tablink,"https://expermientalsite.com")) {
         return false;
     } else return tablink.contains("/collection-") || tablink.contains("research/record-") || startsWithHTTP(tablink,"http://www.findagrave.com") ||
         startsWithHTTP(tablink,"http://www.wikitree.com/") || validRootsWeb(tablink) ||

@@ -249,17 +249,22 @@ var NameParse = (function(){
             // these are some common suffixes - what am I missing?
             var prefixArray = [
                 'dr', 'rev', 'fr', 'bro', 'chap', 'jud', 'prof', "rabbi", "sr", 'sen', 'the hon',
-                'hon', 'amd', 'bg', 'bgen', 'brig gen', 'cpt', 'capt', 'cwo', 'lady',
+                'hon', 'amd', 'bg', 'bgen', 'brig gen', 'cpt', 'capt', 'cwo', 'lady', 'dea',
                 'col', 'cdr', 'cpl', 'ens', '1lt', '1st lt', 'ltjg', '2lt', '2nd lt',
                 'lt', 'gen', 'ltc', 'lt col', 'lcdr', 'ltg', 'lt gen', 'maj gen', 'mg',
                 'pvt', 'maj', 'msg', 'msgt', 'sgt', 'radm', 'vadm', 'brother', 'chaplain', 'deacon',
-                'doctor', 'father', 'judge', 'missus', 'madam', 'professor', 'reverend', 'baron',
-                'senator', 'congressman', 'governor', 'sister', 'the honorable', 'honerable',
+                'doctor', 'father', 'judge', 'missus', 'madam', 'professor', 'reverend', 'reverand', 'baron',
+                'senator', 'congressman', 'governor', 'governer', 'govenor', 'sister', 'the honorable', 'honorable', 'honerable',
                 'admiral', 'brigadier general', 'captain', 'chief warrant officer', 'colonel',
                 'commander', 'corporal', 'ensign', 'first lieutenant', 'lieutenant colonel',
                 'lieutenant general', 'lieutenant commander', 'lieutenant', 'master sergeant',
                 'major general', 'major', 'general', 'rear admiral', 'vice admiral', 'admiral',
-                'second lieutenant', 'sergeant'
+                'second lieutenant', 'sergeant', 'the honourable', 'right honourable', 'pfc',
+                'president', 'representative','councilor', 'ambassador','mayor','secretary','emperor','empress',
+                'tsar','tsarina','king','queen','shah','sultan','sheik','sheikh','shaik','shaikh',
+                'shayk','shaykh','shekh','cheikh','prince','princess','elector','duke','duchess',
+                'count','countess','baron','baroness','sir','pope','cardinal','archbishop','bishop',
+                'patriarch','abbot','vicar','father','rabbi','caliph','imam','ayatollah','chancellor','commissioner'
             ];
             for (var i=0; i < prefixArray.length; i++) {
                 if (tempword1.startsWith(prefixArray[i] + " ")) {
@@ -328,12 +333,13 @@ var NameParse = (function(){
     NameParse.is_compound_lastName = function (word) {
         word = word.toLocaleLowerCase();
         // these are some common prefixes that identify a compound last names - what am I missing?
-        var words = ['vere','von','van','de','del','della','di','da','pietro','vanden','du','st.','st','la','lo','ter', 'mc'];
+        var words = ['vere','von','van','de','del','della','di','da','pietro','vanden','du','st.','st','la','lo','ter','o',"o'",'mc','mac','fitz'];
         return (words.indexOf(word) >= 0);
     };
 
     // single letter, possibly followed by a period
     NameParse.is_initial = function (word) {
+        if (!word) { return false; }
         word = this.removeIgnoredChars(word);
         return (word.length === 1);
     };

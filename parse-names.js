@@ -249,7 +249,7 @@ var NameParse = (function(){
             // these are some common suffixes - what am I missing?
             var prefixArray = [
                 'dr', 'rev', 'fr', 'bro', 'chap', 'jud', 'prof', "rabbi", "sr", 'sen', 'the hon',
-                'hon', 'amd', 'bg', 'bgen', 'brig gen', 'cpt', 'capt', 'cwo', 'lady', 'dea',
+                'hon', 'amd', 'bg', 'bgen', 'brig gen', 'cpt', 'capt', 'cwo', 'lord', 'lady', 'dea',
                 'col', 'cdr', 'cpl', 'ens', '1lt', '1st lt', 'ltjg', '2lt', '2nd lt',
                 'lt', 'gen', 'ltc', 'lt col', 'lcdr', 'ltg', 'lt gen', 'maj gen', 'mg',
                 'pvt', 'maj', 'msg', 'msgt', 'sgt', 'radm', 'vadm', 'brother', 'chaplain', 'deacon',
@@ -259,11 +259,12 @@ var NameParse = (function(){
                 'commander', 'corporal', 'ensign', 'first lieutenant', 'lieutenant colonel',
                 'lieutenant general', 'lieutenant commander', 'lieutenant', 'master sergeant',
                 'major general', 'major', 'general', 'rear admiral', 'vice admiral', 'admiral',
-                'second lieutenant', 'sergeant', 'the honourable', 'right honourable', 'pfc',
+                'second lieutenant', 'sergeant', 'the honourable', 'honourable', 'right honourable', 'pfc',
                 'president', 'representative','councilor', 'ambassador','mayor','secretary','emperor','empress',
                 'tsar','tsarina','king','queen','shah','sultan','sheik','sheikh','shaik','shaikh',
-                'shayk','shaykh','shekh','cheikh','prince','princess','elector','duke','duchess',
-                'count','countess','baron','baroness','sir','pope','cardinal','archbishop','bishop',
+                'shayk','shaykh','shekh','cheikh','prince','princess','elector', 'arch duke', 'duchess',
+                'marquis', 'marquess', 'marquise', 'marchioness', 'viscount', 'viscountess',
+                'count','countess','baron','baroness','sir','pope','cardinal','archbishop','bishop', 'cantor', 'hon cantor',
                 'patriarch','abbot','vicar','father','rabbi','caliph','imam','ayatollah','chancellor','commissioner'
             ];
             for (var i=0; i < prefixArray.length; i++) {

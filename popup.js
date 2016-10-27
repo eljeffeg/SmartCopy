@@ -2226,7 +2226,9 @@ function getParameterByName(name, url) {
 
 function relationshipToHead(focusrel, relationship) {
     //console.log(focusrel + ":" + relationship);
-    if (relationship === "notfound") {
+    if (focusrel === "notfound" && relationship !== "notfound") {
+        return "unknown";
+    } else if (relationship === "notfound") {
         return relationship;
     } else if (focusrel === "head" || focusrel === "self") {
         if (isChild(relationship) || isPartner(relationship) || isParent(relationship) || isSibling(relationship)) {

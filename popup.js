@@ -1049,6 +1049,12 @@ function getPageCode() {
         document.getElementById("loading").style.display = "block";
 
         if ((startsWithHTTP(tablink,"http://www.myheritage.com/site-family-tree-") || startsWithHTTP(tablink,"https://www.myheritage.com/site-family-tree-")) && !tablink.endsWith("-info")) {
+            setMessage("#f8ff86", 'Unable to read in tree view.  Please select the Profile page instead.');
+            document.getElementById("smartcopy-container").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            return;
+            /*
+            This stopped working due to MyHeritage formatting changes
             var linkid = getParameterByName("rootIndivudalID", tablink);
             var siteid = tablink.substring(tablink.lastIndexOf("-") + 1, tablink.lastIndexOf("/"));
             tablink = tablink.replace("site-family-tree-", "person-" + linkid + "_" + siteid + "_");
@@ -1059,6 +1065,7 @@ function getPageCode() {
             }, function (response) {
                 loadPage(response);
             });
+            */
         } else if (startsWithHTTP(tablink,"http://www.myheritage.com/") || startsWithHTTP(tablink,"https://www.myheritage.com/") ||
             startsWithHTTP(tablink,"http://www.findagrave.com") ||
             startsWithHTTP(tablink,"http://www.wikitree.com/wiki/") ||
@@ -2176,7 +2183,7 @@ function getDateFormat(valdate) {
     if (exists(valdate)) {
         if (valdate.trim().search(/\d{4}-\d{2}/) !== -1) {
             dateformat = "YYYY-MM-DD";
-        } else if (valdate.trim().search(/\d{2}-\d{4}/) !== -1) {
+        } else if ((valdate.trim().search(/\d{2}-\d{4}/) !== -1) || (valdate.trim().search(/\d{1}-\d{1}-\d{4}/) !== -1)) {
             var datesplit = valdate.split("-");
             //assume a MM-DD-YYYY format
             if (parseInt(datesplit[0]) > 12) {
@@ -2187,6 +2194,16 @@ function getDateFormat(valdate) {
         }
     }
     return dateformat;
+}
+
+function dateAmbigous(valdate) {
+    if (getDateFormat(valdate) === "MM-DD-YYYY") {
+        var datesplit = valdate.split("-");
+        if (parseInt(datesplit[1]) < 13) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function addHistory(id, itemId, name, data) {

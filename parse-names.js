@@ -250,7 +250,7 @@ var NameParse = (function(){
             var prefixArray = [
                 'dr', 'rev', 'fr', 'bro', 'chap', 'jud', 'prof', "rabbi", "sr", 'sen', 'the hon',
                 'hon', 'amd', 'bg', 'bgen', 'brig gen', 'cpt', 'capt', 'cwo', 'lord', 'lady', 'dea',
-                'col', 'cdr', 'cpl', 'ens', '1lt', '1st lt', 'ltjg', '2lt', '2nd lt',
+                'col', 'cdr', 'cpl', 'ens', '1lt', '1st lt', 'ltjg', '2lt', '2nd lt', 'lieut',
                 'lt', 'gen', 'ltc', 'lt col', 'lcdr', 'ltg', 'lt gen', 'maj gen', 'mg',
                 'pvt', 'maj', 'msg', 'msgt', 'sgt', 'radm', 'vadm', 'brother', 'chaplain', 'deacon',
                 'doctor', 'father', 'judge', 'missus', 'madam', 'professor', 'reverend', 'reverand', 'baron',

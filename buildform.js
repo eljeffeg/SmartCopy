@@ -419,9 +419,13 @@ function buildForm() {
                     }
 
                     var dateval = obj[item].date;
+                     var dateambig = "";
+                        if (dateAmbigous(dateval)) {
+                            dateambig = 'style="color: #ff0000;" ';
+                        }
                     membersstring = membersstring +
                         '<tr id="' + title + 'date"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored) + '>' +
-                        capFL(title) + ' Date:</td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored) + '></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "date") + '" disabled></td></tr>';
+                        capFL(title) + ' Date:</td><td style="float:right;padding: 0;"><input type="text" class="formtext" ' + dateambig + 'name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored) + '></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "date") + '" disabled></td></tr>';
                     dateadded = true;
 
                     //div[0].style.display = "block";
@@ -756,8 +760,12 @@ function buildForm() {
                     for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
                         if (exists(memberobj[item].date)) {
                             var dateval = memberobj[item].date;
+                            var dateambig = "";
+                            if (dateAmbigous(dateval)) {
+                                dateambig = 'style="color: #ff0000;" ';
+                            }
                             membersstring = membersstring +
-                                '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored) + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                                '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored) + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext" ' + dateambig + 'name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                             dateadded = true;
                         }
                         if (exists(memberobj[item].location)) {
@@ -793,8 +801,12 @@ function buildForm() {
                         }
                     }
                     if (!dateadded) {
+                        var dateambig = "";
+                        if (dateAmbigous(dateval)) {
+                            dateambig = 'style="color: #ff0000;" ';
+                        }
                         membersstring = membersstring +
-                            '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                            '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext" ' + dateambig + 'name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
 
                     }
                     if (title === "death") {

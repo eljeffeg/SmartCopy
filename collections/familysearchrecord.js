@@ -539,6 +539,10 @@ function getFSProfileData(focusRecord, relation) {
                     }
                     profiledata["burial"] = data;
                 }
+            } else if (type === "occupation") {
+                if ("value" in eventinfo) {
+                    profiledata["occupation"] = eventinfo["value"];
+                }
             } else if (type === "census") {
                 var data = parseFSJSONDate(eventinfo);
                 if (!$.isEmptyObject(data)) {

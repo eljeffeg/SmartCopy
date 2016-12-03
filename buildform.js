@@ -1691,7 +1691,8 @@ function cleanHTML(html) {
 }
 
 function cleanDate(dateval) {
-    dateval = dateval.replace(/\//g, "-");
+    dateval = dateval.replace(/ - /g, "-");
+    dateval = dateval.replace(/\s?\/\s?/g, "-");
     dateval = dateval.replace(/\?/g, "");
     dateval = dateval.replace(/ABT /i, "Circa ");
     dateval = dateval.replace(/EST /i, "Circa ");

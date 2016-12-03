@@ -186,10 +186,18 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         checklist = true;
                     } else if (listrow.length == 1 && exists($(listrow[0]).attr("href"))) {
                         checklist = true;
+                    } else if (listrow.length == 1 && listrow[0].hasChildNodes() && exists($(listrow[0].childNodes[0]).attr("href"))) {
+                        checklist = true;
                     }
                     if (checklist) {
                         for (var lr =0;lr < listrow.length; lr++) {
                             var listrowval = listrow[lr];
+                            if (listrowval.nodeName === "SPAN" && listrowval.hasChildNodes()) {
+                                listrowval = listrowval.childNodes[0];
+                            } else if (listrowval.nodeName === "BR") {
+                                continue;
+                            }
+
                             if (listrowval.className !== "eventSeparator" && listrowval.nodeValue !== null) {
                                 var name = listrowval.nodeValue.trim();
                                 if (name.replace(",","").length > 1) {
@@ -266,11 +274,18 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         checklist = true;
                     } else if (listrow.length == 1 && exists($(listrow[0]).attr("href"))) {
                         checklist = true;
+                    } else if (listrow.length == 1 && listrow[0].hasChildNodes() && exists($(listrow[0].childNodes[0]).attr("href"))) {
+                        checklist = true;
                     }
                     if (checklist) {
                         if (isChild(relation.title)) {
                             for (var lr =0;lr < listrow.length; lr++) {
                                 var listrowval = listrow[lr];
+                                if (listrowval.nodeName === "SPAN" && listrowval.hasChildNodes()) {
+                                    listrowval = listrowval.childNodes[0];
+                                } else if (listrowval.nodeName === "BR") {
+                                    continue;
+                                }
                                 if (listrowval.className !== "eventSeparator" && listrowval.nodeValue === null) {
                                     var urlval = $(listrowval).attr("href");
                                     if (exists(urlval) && urlval !== "") {
@@ -288,6 +303,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             var siblingparents = [];
                             for (var lr =0;lr < listrow.length; lr++) {
                                 var listrowval = listrow[lr];
+                                if (listrowval.nodeName === "SPAN" && listrowval.hasChildNodes()) {
+                                    listrowval = listrowval.childNodes[0];
+                                } else if (listrowval.nodeName === "BR") {
+                                    continue;
+                                }
                                 if (listrowval.className !== "eventSeparator" && listrowval.nodeValue === null) {
                                     var urlval = $(listrowval).attr("href");
                                     if (exists(urlval) && urlval !== "") {

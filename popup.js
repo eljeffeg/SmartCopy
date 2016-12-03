@@ -352,9 +352,9 @@ function startsWithMH(stringToCheck, query) {
 }
 
 function updateLinks(focusprofile) {
-    $("#historyurl").attr("href", "https://historylink.herokuapp.com/history" + focusprofile);
-    $("#graphurl").attr("href", "https://historylink.herokuapp.com/graph" + focusprofile + "&color=gender");
-    $("#descendanturl").attr("href", "https://historylink.herokuapp.com/graph" + focusprofile + "&type=descendant&color=gender");
+    $("#historyurl").attr("href", "https://historylinktools.herokuapp.com/history" + focusprofile);
+    $("#graphurl").attr("href", "https://historylinktools.herokuapp.com/graph" + focusprofile + "&color=gender");
+    $("#descendanturl").attr("href", "https://historylinktools.herokuapp.com/graph" + focusprofile + "&type=descendant&color=gender");
 }
 
 chrome.extension.onMessage.addListener(function (request, sender, callback) {

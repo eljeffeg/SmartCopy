@@ -2462,6 +2462,10 @@ $(function () {
         chrome.storage.local.set({'adjustname': this.checked});
         $("#casenamechange").css("display", "block");
     });
+    $('#compountlastonoffswitch').on('click', function () {
+        chrome.storage.local.set({'compoundlast': this.checked});
+        $("#compoundlast").css("display", "block");
+    });
     $('#sourceonoffswitch').on('click', function () {
         chrome.storage.local.set({'addsource': this.checked});
     });
@@ -2634,6 +2638,13 @@ chrome.storage.local.get('adjustname', function (result) {
     var adjustname = result.adjustname;
     if (exists(adjustname)) {
         $('#adjustnameonoffswitch').prop('checked', adjustname);
+    }
+});
+
+chrome.storage.local.get('compoundlast', function (result) {
+    var compoundlast = result.compoundlast;
+    if (exists(compoundlast)) {
+        $('#compountlastonoffswitch').prop('checked', compoundlast);
     }
 });
 

@@ -1691,15 +1691,23 @@ function cleanHTML(html) {
 }
 
 function cleanDate(dateval) {
+    if (dateval.contains("WFT ")) {
+        /*
+        WFT is an abbreviation for the World Family Tree algorithm, used in cases where the submitter did not provide a date.
+        It is used to satisfy the database requirements of the World Family Tree Project and has no basis in fact.
+        For genealogical purposes, it is best to ignore these computer assigned WFT dates.
+        */
+        dateval = "";
+    }
     dateval = dateval.replace(/ - /g, "-");
     dateval = dateval.replace(/\s?\/\s?/g, "-");
     dateval = dateval.replace(/\?/g, "");
-    dateval = dateval.replace(/ABT /i, "Circa ");
-    dateval = dateval.replace(/EST /i, "Circa ");
-    dateval = dateval.replace(/BEF /i, "Before ");
-    dateval = dateval.replace(/AFT /i, "After ");
-    dateval = dateval.replace(/BET /i, "Between ");
-    dateval = dateval.replace(/BTW /i, "Between ");
+    dateval = dateval.replace(/ABT\.? /i, "Circa ");
+    dateval = dateval.replace(/EST\.? /i, "Circa ");
+    dateval = dateval.replace(/BEF\.? /i, "Before ");
+    dateval = dateval.replace(/AFT\.? /i, "After ");
+    dateval = dateval.replace(/BET\.? /i, "Between ");
+    dateval = dateval.replace(/BTW\.? /i, "Between ");
     dateval = dateval.replace(/about/i, "Circa");
     dateval = dateval.replace(/before/i, "Before");
     dateval = dateval.replace(/after/i, "After");

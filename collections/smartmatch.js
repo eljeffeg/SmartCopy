@@ -194,6 +194,10 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             var listrowval = listrow[lr];
                             if (listrowval.nodeName === "SPAN" && listrowval.hasChildNodes()) {
                                 listrowval = listrowval.childNodes[0];
+                                var urlval = $(listrowval).attr("href");
+                                if (!exists(urlval) || urlval === "") {
+                                    continue;
+                                }
                             } else if (listrowval.nodeName === "BR") {
                                 continue;
                             }

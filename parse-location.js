@@ -281,7 +281,19 @@ function queryGeo(locationset, test) {
                             georesult.place = response.variable.place.trim();
                         } else if (georesult.place === georesult.state) {
                             georesult.place = "";
+                        } else if (georesult.city !== "" && georesult.city === georesult.state) {
+                            //This tries to deal with "New York", or "New York, United States"
+                            //to prevent it from listing the City of New York.
+                            if (georesult.query === georesult.city) {
+                                georesult.city = "";
+                            } else {
+                                var querysplit = georesult.query.split(",");
+                                if (querysplit.length > 1 && querysplit[1].trim() === georesult.country) {
+                                    georesult.city = "";
+                                }
+                            }
                         }
+
                         if (georesult.place === georesult.city) {
                             georesult.place = "";
                         }

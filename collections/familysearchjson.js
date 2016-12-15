@@ -22,7 +22,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
     var buriallcflag = false;
     var deathdtflag = false;
     var aboutdata = "";
-
+    var fsspouselist = [];
     var alive = parsed["data"]["isLiving"] || null;
     if (alive !== null) {
         profiledata["alive"] = alive;
@@ -199,22 +199,47 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         var data = parseFSJSONUnion(jsonrel[x]["event"]);
                         var valid = processFamilySearchJSON(spouse, "spouse", famid, image, data);
                         if (valid) {
+                            fsspouselist.push(spouse);
                             myhspouse.push(famid);
                             famid++;
                         }
                     }
-                    if (jsonrel[x]["children"]) {
-                        var childset = jsonrel[x]["children"];
-                        for (var i = 0; i < childset.length; i++) {
-                            var itemid = childset[i]["id"];
-                            var image = childset[i]["portraitUrl"] || "";
-                            var valid = processFamilySearchJSON(itemid, "child", famid, image);
-                            if (valid) {
-                                childlist[famid] = $.inArray(spouse, unionurls);
-                                profiledata["parent_id"] = $.inArray(spouse, unionurls);
-                                famid++;
+                }
+
+                // ---------------------- Children --------------------
+                if (fsspouselist.length > 0) {
+                    for (var x = 0; x < fsspouselist.length; x++) {
+                        var spouse = fsspouselist[x];
+                        familystatus.push(famid);
+                        //https://familysearch.org/tree-data/family-members/couple/LKKN-H49_LH2H-51B/children?focusPersonId=LH2H-51B&includePhotos=true&locale=en
+                        var url = "https://familysearch.org/tree-data/family-members/couple/" + spouse + "_" + focusURLid + "/children?focusPersonId=" + focusURLid + "&includePhotos=true&locale=en"
+                        var subdata = {spouse: spouse};
+                        chrome.extension.sendMessage({
+                            method: "GET",
+                            action: "xhttp",
+                            url: url,
+                            variable: subdata
+                        }, function (response) {
+                            var arg = response.variable;
+                            var source = JSON.parse(response.source);
+                            if (!exists(source["data"])) {
+                                setMessage("#f8ff86", "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
+                                    "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
+                                document.getElementById("top-container").style.display = "block";
+                                document.getElementById("submitbutton").style.display = "none";
+                                document.getElementById("loading").style.display = "none";
+                                return;
                             }
-                        }
+                            var childset = source["data"];
+                            for (var i = 0; i < childset.length; i++) {
+                                 var itemid = childset[i]["id"];
+                                 var image = childset[i]["portraitUrl"] || "";
+                                 childlist[famid] = $.inArray(arg.spouse, unionurls);
+                                 processFamilySearchJSON(itemid, "child", famid, image);
+                                 famid++;
+                            }
+                            familystatus.pop();
+                        });
                     }
                 }
             }
@@ -344,6 +369,9 @@ function getFamilySearchJSON(famid, url, subdata) {
         if (arg.marriage) {
             person["marriage"] = arg.marriage;
         }
+        if (arg.parent_id) {
+            person["parent_id"] = arg.parent_id;
+        }
         if (arg.image) {
             person["image"] = arg.image;
             person["thumb"] = arg.image;
@@ -375,6 +403,9 @@ function processFamilySearchJSON(itemid, title, famid, image, data) {
     }
     if (title === "halfsibling") {
         subdata["halfsibling"] = true;
+    }
+    if (title === "child") {
+        subdata["parent_id"] = childlist[famid];
     }
     if (image !== "") {
         subdata["image"] = image;

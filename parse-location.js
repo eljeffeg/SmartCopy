@@ -151,9 +151,9 @@ function checkPlace(location) {
 
 function isCem(checkplace) {
     return checkplace.contains(" cemetery") || checkplace.contains(" cemetary") || checkplace.contains(" grave") ||
-        checkplace.toLowerCase().endsWith(" cem") || checkplace.toLowerCase().endsWith(" cem.") ||
-        checkplace.toLowerCase().endsWith(" territory") || checkplace.toLowerCase().endsWith(" church") ||
-        checkplace.toLowerCase().endsWith("temple") || checkplace.contains("mausoleum");
+        checkplace.endsWith(" cem") || checkplace.endsWith(" cem.") || checkplace.contains(" burying") ||
+        checkplace.endsWith(" territory") || checkplace.endsWith(" church") || checkplace.contains(" burial") ||
+        checkplace.endsWith("temple") || checkplace.contains("mausoleum") || checkplace.contains("memorial");
 }
 
 function queryGeo(locationset, test) {
@@ -288,7 +288,7 @@ function queryGeo(locationset, test) {
                                 georesult.city = "";
                             } else {
                                 var querysplit = georesult.query.split(",");
-                                if (querysplit.length > 1 && querysplit[1].trim() === georesult.country) {
+                                if (querysplit.length > 1 && (querysplit[1].trim() === georesult.country || querysplit[0].trim() === georesult.state)) {
                                     georesult.city = "";
                                 }
                             }

@@ -18,7 +18,7 @@ var NameParse = (function(){
     NameParse.parse = function (fullastName, detectMiddleName) {
 
         var displayname = fullastName;
-        if (fullastName.match(/\s\/\w+\//g,'')) {
+        if (fullastName.match(/\s\/\s?\w+\s?\//g,'')) {
             //Strip "/" from names like Daniel /Bubier/
             fullastName = fullastName.replace(/\//g, "");
         }
@@ -40,7 +40,7 @@ var NameParse = (function(){
         // Look for a birth / maiden name: Mary Smith (Jones)
         if ((fullastName.indexOf(")", fullastName.length - 1) !== -1) && (fullastName.indexOf("(") !== -1)) {
             birthName = fullastName.substring(fullastName.lastIndexOf("(") + 1, fullastName.length).replace(")","");
-            birthName = NameParse.fix_case(birthName.replace(/^born /, ''));
+            birthName = NameParse.fix_case(birthName.replace(/^born /, '').replace(/^z d\. /, '').replace(/^nee /,''));
             fullastName = fullastName.substring(0, fullastName.lastIndexOf("(")).trim();
         }
 

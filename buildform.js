@@ -1691,7 +1691,7 @@ function cleanHTML(html) {
 }
 
 function cleanDate(dateval) {
-    if (dateval.contains("WFT ")) {
+    if (dateval.contains("WFT ") || dateval.contains("Calculated")) {
         /*
         WFT is an abbreviation for the World Family Tree algorithm, used in cases where the submitter did not provide a date.
         It is used to satisfy the database requirements of the World Family Tree Project and has no basis in fact.
@@ -1951,9 +1951,9 @@ function setGeniFamilyData(id, profile) {
     $("#" + id + "_geni_mugshot").attr('src', isAppend(getGeniData(profile, "photo_urls")));
     $("#" + id + "_geni_title").val(getGeniData(profile, "title"));
     $("#" + id + "_geni_title").prev().attr('src', nameicon);
-    $("#" + id + "_geni_first_name").val(getGeniData(profile, "first_name"));
+    $("#" + id + "_geni_first_name").val(getGeniData(profile, "first_name").replace(/&quot;/g, '"'));
     $("#" + id + "_geni_first_name").prev().attr('src', nameicon);
-    $("#" + id + "_geni_middle_name").val(getGeniData(profile, "middle_name"));
+    $("#" + id + "_geni_middle_name").val(getGeniData(profile, "middle_name").replace(/&quot;/g, '"'));
     $("#" + id + "_geni_middle_name").prev().attr('src', nameicon);
     $("#" + id + "_geni_last_name").val(getGeniData(profile, "last_name"));
     $("#" + id + "_geni_last_name").prev().attr('src', nameicon);
@@ -1961,7 +1961,7 @@ function setGeniFamilyData(id, profile) {
     $("#" + id + "_geni_maiden_name").prev().attr('src', nameicon);
     $("#" + id + "_geni_suffix").val(getGeniData(profile, "suffix"));
     $("#" + id + "_geni_suffix").prev().attr('src', nameicon);
-    $("#" + id + "_geni_display_name").val(getGeniData(profile, "display_name"));
+    $("#" + id + "_geni_display_name").val(getGeniData(profile, "display_name").replace(/&quot;/g, '"'));
     $("#" + id + "_geni_display_name").prev().attr('src', nameicon);
     $("#" + id + "_geni_nicknames").val(getGeniData(profile, "nicknames"));
     $("#" + id + "_geni_nickimage").attr('src', isAppend(profile));

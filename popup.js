@@ -2226,8 +2226,8 @@ function supportedCollection() {
         startsWithHTTP(tablink,"http://www.werelate.org/") || validMyHeritage(tablink) || validFamilyTree(tablink);
 }
 
-function validAncestry() {
-    return startsWithHTTP(tablink,"http://records.ancestry.com") || startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/");
+function validAncestry(url) {
+    return startsWithHTTP(url,"http://records.ancestry.com") || startsWithHTTP(url,"http://trees.ancestry.") || startsWithHTTP(url,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/");
 }
 
 function getParameterByName(name, url) {

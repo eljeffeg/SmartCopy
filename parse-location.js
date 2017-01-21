@@ -50,9 +50,12 @@ function parseGoogle(result, query) {
     location.county = "";
     location.state = "";
     location.country = "";
+    location.state_short = "";
+    location.country_short = "";
     if (exists(result.address_components)) {
         for (var i = 0; i < result.address_components.length; i++) {
             var long_name = result.address_components[i].long_name.replace(/^\d*, /, "");
+            var short_name = result.address_components[i].short_name.replace(/^\d*, /, "");
             switch (result.address_components[i].types.join(",")) {
                 case 'postal_code':
                 case 'postal_code_prefix,postal_code':
@@ -95,11 +98,17 @@ function parseGoogle(result, query) {
                     if (isNaN(long_name)) {
                         location.state = long_name;
                     }
+                    if (isNaN(short_name)) {
+                        location.state_short = short_name;
+                    }
                     break;
 
                 case 'country,political':
                     if (isNaN(long_name)) {
                         location.country = long_name;
+                    }
+                    if (isNaN(short_name)) {
+                        location.country_short = short_name;
                     }
                     break;
             }
@@ -282,13 +291,15 @@ function queryGeo(locationset, test) {
                         } else if (georesult.place === georesult.state) {
                             georesult.place = "";
                         } else if (georesult.city !== "" && georesult.city === georesult.state) {
-                            //This tries to deal with "New York", or "New York, United States"
+                            //This tries to deal with "New York", "NY", or "New York, United States"
                             //to prevent it from listing the City of New York.
                             if (georesult.query === georesult.city) {
                                 georesult.city = "";
                             } else {
                                 var querysplit = georesult.query.split(",");
-                                if (querysplit.length > 1 && (querysplit[1].trim() === georesult.country || querysplit[0].trim() === georesult.state)) {
+                                if (querysplit.length > 1 && ((querysplit[1].trim() === georesult.country || querysplit[1].trim() === georesult.country_short) || (querysplit[0].trim() === georesult.state || querysplit[0].trim() === georesult.state_short))) {
+                                    georesult.city = "";
+                                } else if (querysplit[0].trim() === georesult.state || querysplit[0].trim() === georesult.state_short) {
                                     georesult.city = "";
                                 }
                             }

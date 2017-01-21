@@ -167,7 +167,8 @@ function loginProcess() {
         loadLogin();
     } else {
         checkAccount();
-        chrome.tabs.getSelected(null, function (tab) {
+        chrome.tabs.query({"currentWindow": true, "status": "complete", "windowType": "normal", "active": true}, function (tabs) {
+            var tab = tabs[0];
             tablink = tab.url;
             if (startsWithHTTP(tablink,"http://findagrave.com") || startsWithHTTP(tablink,"http://forums.findagrave.com")) {
                 tablink = tablink.replace("http://findagrave.com", "http://www.findagrave.com");
@@ -306,7 +307,8 @@ function useradd() {
         variable: ""
     }, function (response) {
     });
-    chrome.tabs.getSelected(null, function (tab) {
+    chrome.tabs.query({"currentWindow": true, "status": "complete", "windowType": "normal", "active": true}, function (tabs) {
+        var tab = tabs[0];
         chrome.tabs.update(tab.id, {url: "http://www.geni.com/threads/new/" + focusid.replace("profile-g", "") + "?return_here=true"}, function (tab1) {
             var listener = function(tabId, changeInfo, tab) {
                 if (tabId == tab1.id && changeInfo.status === 'complete') {

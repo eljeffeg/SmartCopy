@@ -1148,7 +1148,8 @@ function updateClassResponse() {
         $('.ctrllink').on('click', function (event) {
             var ctrlpressed = (event.ctrlKey || event.metaKey);
             var url = $(this).attr('url');
-            chrome.tabs.getSelected(null, function (tab) {
+            chrome.tabs.query({"currentWindow": true, "status": "complete", "windowType": "normal", "active": true}, function (tabs) {
+            var tab = tabs[0];
                 tabplacement += 1;
                 var index = tab.index + tabplacement;
                 chrome.tabs.create({'url': url, active: !ctrlpressed, 'index': index});

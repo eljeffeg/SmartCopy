@@ -55,7 +55,7 @@ registerCollection({
     profiledata["baptism"] = parseGeneanetDate(fullBaptism.text().replace('Baptized ', ''));
 
     fullDeath = parsed.find("ul li:contains('Deceased ')");
-    profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', ''));
+    profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/, at age .*/, ''));
 
     console.log(profiledata);
 
@@ -78,27 +78,42 @@ registerCollection({
 });
 
 function parseGeneanetDate(vitalstring) {
+  console.log("Parsing date "+vitalstring);
   var data = [];
-  var matches = vitalstring.match(/([^-]+) - ([^-]+)/);
+  var matches = vitalstring.match(/([^-]+[^-\s])(?:\s+-\s+(.+))?/);
   if (exists(matches)) {
     var dateval = matches[1].trim();
     // Warning: nbsp; in date format!
     var nbspre = new RegExp(String.fromCharCode(160), "g");
     dateval = dateval.replace(nbspre, " ");
-    var momentval = moment(dateval, "DD MMMM YYYY");
-    console.log(dateval);
+    // Parse stricly, and try harder if it fails
+    var momentval;
+    var date_format;
+    if (dateval.startsWith("in ")) {
+      momentval = moment(dateval.replace("in ", ""), "YYYY", true);
+      date_format = "YYYY";
+    } else {
+      momentval = moment(dateval, "DD MMMM YYYY", true);
+      date_format = "YYYY-MM-DD";
+      if (!momentval.isValid()) {
+        momentval = moment(dateval, "MMMM YYYY", true);
+        date_format = "YYYY-MM";
+      }
+    }
     console.log(momentval);
-    console.log(momentval.format("YYYY-MM-DD"));
-    dateval = cleanDate(moment(dateval, "DD MMMM YYYY").format("YYYY-MM-DD"));
+    dateval = cleanDate(momentval.format(date_format));
     console.log(dateval);
     if (dateval !== "") {
       data.push({date: dateval});
     }
 
-    var eventlocation = matches[2].trim();
-    if (eventlocation !== "") {
-      data.push({id: geoid, location: eventlocation});
-      geoid++;
+    var eventlocation = matches[2];
+    if (eventlocation) {
+      eventlocation = eventlocation.trim();
+      if (eventlocation !== "") {
+        data.push({id: geoid, location: eventlocation});
+        geoid++;
+      }
     }
   }
   return data;

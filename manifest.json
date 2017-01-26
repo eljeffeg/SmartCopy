@@ -61,6 +61,7 @@
         "*://*.myheritage.pl/",
         "*://*.myheritage.se/",
         "*://*.myheritage.sk/",
+        "*://*.geneanet.org/",
         "*://historylink.herokuapp.com/",
         "*://maps.googleapis.com/"
     ]

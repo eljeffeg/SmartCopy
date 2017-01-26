@@ -154,11 +154,12 @@ function processGeneanetFamily(person, title, famid) {
 
 function getGeneanetFamily(famid, url, subdata) {
     familystatus.push(famid);
+    var fullurl = "http://gw.geneanet.org/"+url;
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
-        url: url,
-        variable: subdata
+        variable: subdata,
+        url: fullurl
     }, function (response) {
         var arg = response.variable;
         var person = parseGeneanet(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});

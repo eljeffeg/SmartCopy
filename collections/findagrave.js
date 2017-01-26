@@ -1,6 +1,7 @@
 registerCollection({
   "url": "http://www.findagrave.com",
   "prepareUrl": function(url) {
+      return url;
   },
 });
 

@@ -18,64 +18,79 @@ registerCollection({
         }
       });
   },
-  "parseProfileData": function(htmlstring, familymembers, relation) {
-    console.log("In parseProfileData");
-    relation = relation || "";
-    //var parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));
-    var parsed = $(htmlstring);
+  "parseProfileData": parseGeneanet,
+});
 
-    // TODO: check language is English!
+function parseGeneanet(htmlstring, familymembers, relation) {
+  console.log("In parseProfileData");
+  relation = relation || "";
+  //var parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));
+  var parsed = $(htmlstring);
 
-    nameTab = parsed.find(".with_tabs.name")
-    console.log(nameTab);
-    var genderval = "unknown";
-    var genderImg = nameTab.find("img").first();
-    console.log(genderImg);
-    if (genderImg.attr("title") === "M") {
-      genderval = "male";
-    } else if (genderImg.attr("title") === "F") {
-      genderval = "female";
+  // TODO: check language is English!
+
+  nameTab = parsed.find(".with_tabs.name")
+  console.log(nameTab);
+  var genderval = "unknown";
+  var genderImg = nameTab.find("img").first();
+  console.log(genderImg);
+  if (genderImg.attr("title") === "M") {
+    genderval = "male";
+  } else if (genderImg.attr("title") === "F") {
+    genderval = "female";
+  }
+
+  givenName = nameTab.find("a").first().text();
+  familyName = nameTab.find("a").first().next().text();
+  focusperson = givenName + " " + familyName;
+  // hack required?
+  focusname = focusperson;
+  document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+
+  var profiledata = {name: focusperson, gender: genderval, status: relation.title};
+
+  recordtype = "Geneanet profile";
+
+  fullBirth = parsed.find("ul li:contains('Born ')");
+  profiledata["birth"] = parseGeneanetDate(fullBirth.text().replace('Born ', ''));
+
+  fullBaptism = parsed.find("ul li:contains('Baptized ')");
+  profiledata["baptism"] = parseGeneanetDate(fullBaptism.text().replace('Baptized ', ''));
+
+  fullDeath = parsed.find("ul li:contains('Deceased ')");
+  profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/, at age .*/, ''));
+
+  console.log(profiledata);
+
+  if (familymembers) {
+    loadGeniData();
+    var famid = 0;
+
+    var parents = $(parsed).find('h2:has(span:contains("Parents")) + ul li');
+    if (exists(parents[0])) {
+      processGeneanetFamily(parents[0], "father", famid);
+      famid++;
     }
-
-    givenName = nameTab.find("a").first().text();
-    familyName = nameTab.find("a").first().next().text();
-    focusperson = givenName + " " + familyName;
-    // hack required?
-    focusname = focusperson;
-    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
-
-    var profiledata = {name: focusperson, gender: genderval, status: relation.title};
-
-    recordtype = "Geneanet profile";
-
-    fullBirth = parsed.find("ul li:contains('Born ')");
-    profiledata["birth"] = parseGeneanetDate(fullBirth.text().replace('Born ', ''));
-
-    fullBaptism = parsed.find("ul li:contains('Baptized ')");
-    profiledata["baptism"] = parseGeneanetDate(fullBaptism.text().replace('Baptized ', ''));
-
-    fullDeath = parsed.find("ul li:contains('Deceased ')");
-    profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/, at age .*/, ''));
-
-    console.log(profiledata);
-
-    if (familymembers) {
-        loadGeniData();
+    if (exists(parents[1])) {
+      processGeneanetFamily(parents[1], "mother", famid);
+      famid++;
     }
 
     console.log("Family members loaded");
+  }
 
-    //updateInfoData();
-    
-    if (familymembers) {
-      alldata["profile"] = profiledata;
-      alldata["scorefactors"] = smscorefactors;
-      updateGeo();
-    }
+  console.log(alldata);
 
-    return profiledata;
-  },
-});
+  //updateInfoData();
+
+  if (familymembers) {
+    alldata["profile"] = profiledata;
+    alldata["scorefactors"] = smscorefactors;
+    updateGeo();
+  }
+
+  return profiledata;
+}
 
 function parseGeneanetDate(vitalstring) {
   console.log("Parsing date "+vitalstring);
@@ -93,7 +108,7 @@ function parseGeneanetDate(vitalstring) {
       momentval = moment(dateval.replace("in ", ""), "YYYY", true);
       date_format = "YYYY";
     } else {
-      momentval = moment(dateval, "DD MMMM YYYY", true);
+      momentval = moment(dateval, "D MMMM YYYY", true);
       date_format = "YYYY-MM-DD";
       if (!momentval.isValid()) {
         momentval = moment(dateval, "MMMM YYYY", true);
@@ -117,4 +132,43 @@ function parseGeneanetDate(vitalstring) {
     }
   }
   return data;
+}
+
+function processGeneanetFamily(person, title, famid) {
+  console.log("Processing "+person+" as "+title+" with id "+famid);
+  var url = $(person).find("a").attr("href");
+  if (exists(url)) {
+    if (!exists(alldata["family"][title])) {
+      alldata["family"][title] = [];
+    }
+    // TODO: How do we get the gender?
+    var gendersv = "unknown";
+    var name = $(person).find("a").text();
+    // TODO: get itemID
+    var itemid;
+    var subdata = {name: name, title: title, gender: gendersv, url: url, itemId: itemid, profile_id: famid};
+    unionurls[famid] = itemid;
+    getGeneanetFamily(famid, url, subdata);
+  }
+}
+
+function getGeneanetFamily(famid, url, subdata) {
+    familystatus.push(famid);
+    chrome.extension.sendMessage({
+        method: "GET",
+        action: "xhttp",
+        url: url,
+        variable: subdata
+    }, function (response) {
+        var arg = response.variable;
+        var person = parseGeneanet(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+        if (person === "") {
+            familystatus.pop();
+            return;
+        }
+        person = updateInfoData(person, arg);
+        databyid[arg.profile_id] = person;
+        alldata["family"][arg.title].push(person);
+        familystatus.pop();
+    });
 }

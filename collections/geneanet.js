@@ -82,6 +82,14 @@ function parseGeneanet(htmlstring, familymembers, relation) {
         processGeneanetFamily(spouses[i], "spouse", famid);
         myhspouse.push(famid);
         famid++;
+
+        var children = spouses[i].find("ul li");
+        if (exists(children)) {
+          for (var j = 0; j < children.length; j++) {
+            processGeneanetFamily(children[i], "child", famid);
+            famid++;
+          }
+        }
       }
     }
 

@@ -160,18 +160,18 @@ function processGeneanetFamily(person, title, famid) {
     var itemid = getGeneanetItemId(url);
     var subdata = {name: name, title: title, gender: gendersv, url: url, itemId: itemid, profile_id: famid};
     unionurls[famid] = itemid;
-    getGeneanetFamily(famid, url, subdata);
+    var fullurl = "http://gw.geneanet.org/"+url;
+    getGeneanetFamily(famid, fullurl, subdata);
   }
 }
 
 function getGeneanetFamily(famid, url, subdata) {
     familystatus.push(famid);
-    var fullurl = "http://gw.geneanet.org/"+url;
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
         variable: subdata,
-        url: fullurl
+        url: url
     }, function (response) {
         var arg = response.variable;
         var person = parseGeneanet(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});

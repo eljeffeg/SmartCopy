@@ -4,7 +4,7 @@ var accountinfo;
 var profilechanged = false;
 var focusid;
 var focusURLid = "";
-var focusname;
+var focusname = "";
 var tablink;
 var submitcheck = true;
 var buildhistory = [];
@@ -208,9 +208,10 @@ function loginProcess() {
                 console.log("Going to parse data now");
                 collection.parseData();
             } else {
-                console.log("No parseData function");
-                setMessage("#f9acac", 'SmartCopy does not currently support parsing this page / site / collection.');
-                document.querySelector('#loginspinner').style.display = "none";
+                //TODO: Uncomment when collections are migrated
+                //console.log("No parseData function");
+                //setMessage("#f9acac", 'SmartCopy does not currently support parsing this page / site / collection.');
+                //document.querySelector('#loginspinner').style.display = "none";
             }
 
             // TODO: migrate all this to parseData()

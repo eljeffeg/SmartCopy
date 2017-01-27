@@ -60,7 +60,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 
   fullDeath = parsed.find("ul li:contains('Deceased ')");
   if (exists(fullDeath)) {
-    profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/, age at death .*/, ''));
+    profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/ at age .*/, '').replace(/ age at .*/, ''));
   }
 
   if (familymembers) {
@@ -117,7 +117,6 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 function parseGeneanetDate(vitalstring) {
   var data = [];
   var matches = vitalstring.match(/([\w\s]+\w)(?:\s+\(\w+\)\s+)?(?:\s+-\s+(.+))?/);
-    console.log(matches);
   if (exists(matches)) {
     var dateval = matches[1].trim();
     // Warning: nbsp; in date format!
@@ -131,20 +130,20 @@ function parseGeneanetDate(vitalstring) {
       date_format = "YYYY";
     } else {
       momentval = moment(dateval, "D MMMM YYYY", true);
-      date_format = "YYYY-MM-DD";
+      date_format = "MMM D YYYY";
       if (!momentval.isValid()) {
         momentval = moment(dateval, "MMMM YYYY", true);
-        date_format = "YYYY-MM";
+        date_format = "MMM-YYYY";
       }
     }
-    dateval = cleanDate(momentval.format(date_format));
-    if (dateval !== "") {
-      data.push({date: dateval});
+    if (momentval.isValid()) {
+        dateval = cleanDate(momentval.format(date_format));
+        data.push({date: dateval});
     }
 
     var eventlocation = matches[2];
     if (eventlocation) {
-      eventlocation = eventlocation.trim();
+      eventlocation = eventlocation.trim().replace(/ ?,$/,"");
       if (eventlocation !== "") {
         data.push({id: geoid, location: eventlocation});
         geoid++;

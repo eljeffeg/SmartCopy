@@ -185,15 +185,16 @@ function loginProcess() {
               }
             }
             if (collection == undefined) {
-              // TODO: display error
-              console.log("Could not find collection");
+                // TODO: display error
+                console.log("Could not find collection");
+                collection = {url: tablink};
+            } else {
+            	// prepareUrl
+            	if (collection.prepareUrl) {
+              		tablink = collection.prepareUrl(tablink);
+            	}
             }
             console.log("collection URL: "+collection.url);
-
-            // prepareUrl
-            if (collection.prepareUrl) {
-              tablink = collection.prepareUrl(tablink);
-            }
 
             // TODO: which collection is that?
             if (startsWithHTTP(tablink,"http://www.ancestry.") && !startsWithHTTP(tablink,"http://www.ancestry.com") && tablink.contains("/genealogy/records/")) {

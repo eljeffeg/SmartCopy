@@ -2,21 +2,21 @@ registerCollection({
   "url": "http://www.findagrave.com",
   "prepareUrl": function(url) {
       return url;
-  },
+  }
 });
 
 registerCollection({
   "url": "http://findagrave.com",
   "prepareUrl": function(url) {
-    return url.replace("http://findagrave.com", "http://www.findagrave.com");
-  },
+    return url.replace("//findagrave.com", "//www.findagrave.com");
+  }
 });
 
 registerCollection({
   "url": "http://forums.findagrave.com",
   "prepareUrl": function(url) {
-    return url.replace("http://forums.findagrave.com", "http://www.findagrave.com");
-  },
+    return url.replace("//forums.findagrave.com", "//www.findagrave.com");
+  }
 });
 
 // Parse FindAGrave
@@ -39,7 +39,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             var urlset = click[0].outerHTML.match('href="(.*)"');
             var url = "";
             if (exists(urlset) && exists(urlset[1])) {
-                url = "http://www.findagrave.com" + urlset[1];
+                url = "https://www.findagrave.com" + urlset[1];
                 familystatus.push(familystatus.length);
                 chrome.extension.sendMessage({
                     method: "GET",
@@ -184,7 +184,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                             var urlset = datarow.match('href="(.*)"');
                             var url = "";
                             if (exists(urlset) && exists(urlset[1])) {
-                                url = "http://www.findagrave.com/cgi-bin/" + urlset[1];
+                                url = "https://www.findagrave.com/cgi-bin/" + urlset[1];
                                 familystatus.push(familystatus.length);
                                 var subdata = {name: name, gender: gendersv, title: title};
                                 var itemid = getParameterByName('GRid', url);
@@ -251,7 +251,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                             var urlset = datarow.match('href="(.*)"');
                             var url = "";
                             if (exists(urlset) && exists(urlset[1])) {
-                                url = "http://www.findagrave.com/cgi-bin/" + urlset[1];
+                                url = "https://www.findagrave.com/cgi-bin/" + urlset[1];
                                 var itemid = getParameterByName('GRid', url);
                                 if (focusURLid !== itemid) {
                                     childlist[relation.proid] = $.inArray(itemid, unionurls);
@@ -271,7 +271,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                             var urlset = datarow.match('href="(.*)"');
                             var url = "";
                             if (exists(urlset) && exists(urlset[1])) {
-                                url = "http://www.findagrave.com/cgi-bin/" + urlset[1];
+                                url = "https://www.findagrave.com/cgi-bin/" + urlset[1];
                                 var itemid = getParameterByName('GRid', url);
                                 siblingparents.push(itemid);
                             }
@@ -434,7 +434,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
         var imagedata = $(records[0]).find("gmi");
         if (exists(imagedata[0])) {
             var thumb = $(imagedata[0]).attr( "src" );
-            if (thumb.startsWith("http://image") || thumb.contains("find-a-grave-prod/photos")) {
+            if (startsWithHTTP(thumb, "http://image") || thumb.contains("find-a-grave-prod/photos")) {
                 var image = thumb.replace("photos250/", "");
                 profiledata["thumb"] = thumb;
                 profiledata["image"] = image;

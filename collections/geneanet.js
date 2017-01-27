@@ -85,7 +85,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
         myhspouse.push(famid);
         famid++;
 
-        var children = $(spouse).find("ul li");
+        var children = $(spouse).find("> ul > li");
         if (exists(children[0])) {
           for (var j = 0; j < children.length; j++) {
             processGeneanetFamily(children[j], "child", famid);

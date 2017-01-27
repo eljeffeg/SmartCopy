@@ -88,6 +88,8 @@ function parseGeneanet(htmlstring, familymembers, relation) {
         }
       }
     }
+
+    // TODO: find siblings
   } else if (isParent(relation.title)) {
         if (parentmarriageid === "") {
             parentmarriageid = relation.itemId;

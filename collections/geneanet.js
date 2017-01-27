@@ -86,7 +86,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
         var children = spouses[i].find("ul li");
         if (exists(children)) {
           for (var j = 0; j < children.length; j++) {
-            processGeneanetFamily(children[i], "child", famid);
+            processGeneanetFamily(children[j], "child", famid);
             famid++;
           }
         }
@@ -193,10 +193,10 @@ function getGeneanetFamily(famid, url, subdata) {
 
 function getGeneanetItemId(url) {
     if (exists(url)) {
-        var pz = getParameterByName("pz", url);
-        var nz = getParameterByName("nz", url);
-        var ocz = getParameterByName("ocz", url);
-        return "pz="+pz+"&nz="+nz+"&ocz="+ocz;
+        var p = getParameterByName("p", url);
+        var n = getParameterByName("n", url);
+        var oc = getParameterByName("oc", url);
+        return "p="+p+"&n="+n+"&oc="+oc;
     } else {
         return "";
     }

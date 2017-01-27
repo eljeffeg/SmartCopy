@@ -76,6 +76,15 @@ function parseGeneanet(htmlstring, familymembers, relation) {
       famid++;
     }
 
+    var spouses = $(parsed).find('h2:has(span:contains("Spouses")) + ul.fiche_union li');
+    if (exists(spouses)) {
+      for (var i = 0; i < spouses.length; i++) {
+        processGeneanetFamily(spouses[i], "spouse", famid);
+        myhspouse.push(famid);
+        famid++;
+      }
+    }
+
     console.log("Family members loaded");
   }
 
@@ -145,7 +154,7 @@ function processGeneanetFamily(person, title, famid) {
     var gendersv = "unknown";
     var name = $(person).find("a").text();
     // TODO: get itemID
-    var itemid;
+    var itemid = getGeneanetItemId(url);
     var subdata = {name: name, title: title, gender: gendersv, url: url, itemId: itemid, profile_id: famid};
     unionurls[famid] = itemid;
     getGeneanetFamily(famid, url, subdata);
@@ -172,4 +181,15 @@ function getGeneanetFamily(famid, url, subdata) {
         alldata["family"][arg.title].push(person);
         familystatus.pop();
     });
+}
+
+function getGeneanetItemId(url) {
+    if (exists(url)) {
+        var pz = getParameterByName("pz", url);
+        var nz = getParameterByName("nz", url);
+        var ocz = getParameterByName("ocz", url);
+        return "pz="+pz+"&nz="+nz+"&ocz="+ocz;
+    } else {
+        return "";
+    }
 }

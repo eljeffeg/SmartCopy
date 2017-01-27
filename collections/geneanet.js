@@ -76,7 +76,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
       famid++;
     }
 
-    var spouses = $(parsed).find('h2:has(span:contains("Spouses")) + ul.fiche_union li');
+    var spouses = $(parsed).find('h2:has(span:contains("Spouses")) + ul.fiche_union > li');
     if (exists(spouses[0])) {
       for (var i = 0; i < spouses.length; i++) {
         var spouse = spouses[i];

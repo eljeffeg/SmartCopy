@@ -49,13 +49,19 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   recordtype = "Geneanet profile";
 
   fullBirth = parsed.find("ul li:contains('Born ')");
-  profiledata["birth"] = parseGeneanetDate(fullBirth.text().replace('Born ', ''));
+  if (exists(fullBirth)) {
+    profiledata["birth"] = parseGeneanetDate(fullBirth.text().replace('Born ', ''));
+  }
 
   fullBaptism = parsed.find("ul li:contains('Baptized ')");
-  profiledata["baptism"] = parseGeneanetDate(fullBaptism.text().replace('Baptized ', ''));
+  if (exists(fullBaptism)) {
+    profiledata["baptism"] = parseGeneanetDate(fullBaptism.text().replace('Baptized ', ''));
+  }
 
   fullDeath = parsed.find("ul li:contains('Deceased ')");
-  profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/, age at death .*/, ''));
+  if (exists(fullDeath)) {
+    profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/, age at death .*/, ''));
+  }
 
   if (familymembers) {
     loadGeniData();

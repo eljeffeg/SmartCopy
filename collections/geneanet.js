@@ -77,14 +77,15 @@ function parseGeneanet(htmlstring, familymembers, relation) {
     }
 
     var spouses = $(parsed).find('h2:has(span:contains("Spouses")) + ul.fiche_union li');
-    if (exists(spouses)) {
+    if (exists(spouses[0])) {
       for (var i = 0; i < spouses.length; i++) {
-        processGeneanetFamily(spouses[i], "spouse", famid);
+        var spouse = spouses[i];
+        processGeneanetFamily(spouse, "spouse", famid);
         myhspouse.push(famid);
         famid++;
 
-        var children = spouses[i].find("ul li");
-        if (exists(children)) {
+        var children = $(spouse).find("ul li");
+        if (exists(children[0])) {
           for (var j = 0; j < children.length; j++) {
             processGeneanetFamily(children[j], "child", famid);
             famid++;
@@ -152,7 +153,6 @@ function parseGeneanetDate(vitalstring) {
 }
 
 function processGeneanetFamily(person, title, famid) {
-  console.log("Processing "+person+" as "+title+" with id "+famid);
   var url = $(person).find("a").attr("href");
   if (exists(url)) {
     if (!exists(alldata["family"][title])) {

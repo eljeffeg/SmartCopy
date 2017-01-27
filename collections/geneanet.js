@@ -22,7 +22,6 @@ registerCollection({
 });
 
 function parseGeneanet(htmlstring, familymembers, relation) {
-  console.log("In parseProfileData");
   relation = relation || "";
   //var parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));
   var parsed = $(htmlstring);
@@ -30,10 +29,8 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   // TODO: check language is English!
 
   nameTab = parsed.find(".with_tabs.name")
-  console.log(nameTab);
   var genderval = "unknown";
   var genderImg = nameTab.find("img").first();
-  console.log(genderImg);
   if (genderImg.attr("title") === "M") {
     genderval = "male";
   } else if (genderImg.attr("title") === "F") {
@@ -59,8 +56,6 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 
   fullDeath = parsed.find("ul li:contains('Deceased ')");
   profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/, at age .*/, ''));
-
-  console.log(profiledata);
 
   if (familymembers) {
     loadGeniData();
@@ -93,13 +88,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
         }
       }
     }
-
-    console.log("Family members loaded");
   }
-
-  console.log(alldata);
-
-  //updateInfoData();
 
   if (familymembers) {
     alldata["profile"] = profiledata;
@@ -111,7 +100,6 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 }
 
 function parseGeneanetDate(vitalstring) {
-  console.log("Parsing date "+vitalstring);
   var data = [];
   var matches = vitalstring.match(/([^-]+[^-\s])(?:\s+-\s+(.+))?/);
   if (exists(matches)) {
@@ -133,9 +121,7 @@ function parseGeneanetDate(vitalstring) {
         date_format = "YYYY-MM";
       }
     }
-    console.log(momentval);
     dateval = cleanDate(momentval.format(date_format));
-    console.log(dateval);
     if (dateval !== "") {
       data.push({date: dateval});
     }

@@ -55,7 +55,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   profiledata["baptism"] = parseGeneanetDate(fullBaptism.text().replace('Baptized ', ''));
 
   fullDeath = parsed.find("ul li:contains('Deceased ')");
-  profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/, at age .*/, ''));
+  profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/, age at death .*/, ''));
 
   if (familymembers) {
     loadGeniData();

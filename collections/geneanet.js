@@ -88,7 +88,14 @@ function parseGeneanet(htmlstring, familymembers, relation) {
         }
       }
     }
-  }
+  } else if (isParent(relation.title)) {
+        if (parentmarriageid === "") {
+            parentmarriageid = relation.itemId;
+        } else if (relation.itemId !== parentmarriageid) {
+            //TODO - Not sure if this Marriage information is provided
+        }
+  } // TODO: children
+    // TODO: sibling
 
   if (familymembers) {
     alldata["profile"] = profiledata;

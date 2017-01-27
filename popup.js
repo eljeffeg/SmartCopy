@@ -160,6 +160,11 @@ function startsWithHTTP(url, match) {
     return url.startsWith(match);
 }
 
+var collections = new Array();
+var collection;
+function registerCollection(collection) {
+  collections.push(collection);
+}
 
 function loginProcess() {
 
@@ -170,15 +175,44 @@ function loginProcess() {
         chrome.tabs.query({"currentWindow": true, "status": "complete", "windowType": "normal", "active": true}, function (tabs) {
             var tab = tabs[0];
             tablink = tab.url;
-            if (startsWithHTTP(tablink,"http://findagrave.com") || startsWithHTTP(tablink,"http://forums.findagrave.com")) {
-                tablink = tablink.replace("http://findagrave.com", "http://www.findagrave.com");
-                tablink = tablink.replace("http://forums.findagrave.com", "http://www.findagrave.com");
+
+            console.log(collections);
+            // Select collection
+            for (var i=0; i<collections.length; i++) {
+              if (startsWithHTTP(tablink, collections[i].url)) {
+                collection = collections[i];
+                break;
+              }
             }
+            if (collection == undefined) {
+              // TODO: display error
+              console.log("Could not find collection");
+            }
+            console.log("collection URL: "+collection.url);
+
+            // prepareUrl
+            if (collection.prepareUrl) {
+              tablink = collection.prepareUrl(tablink);
+            }
+
+            // TODO: which collection is that?
             if (startsWithHTTP(tablink,"http://www.ancestry.") && !startsWithHTTP(tablink,"http://www.ancestry.com") && tablink.contains("/genealogy/records/")) {
                 var ancestrystart = tablink.split("www.ancestry.");
                 //Replace domain for other countries, such as http://www.ancestry.ca/genealogy/records/abraham-knowlton_17477348
                 tablink = ancestrystart[0] + "www.ancestry.com" + ancestrystart[1].substring(ancestrystart[1].indexOf("/"));
             }
+
+            // Parse data
+            if (collection.parseData) {
+                console.log("Going to parse data now");
+                collection.parseData();
+            } else {
+                console.log("No parseData function");
+                setMessage("#f9acac", 'SmartCopy does not currently support parsing this page / site / collection.');
+                document.querySelector('#loginspinner').style.display = "none";
+            }
+
+            // TODO: migrate all this to parseData()
             if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") || (startsWithHTTP(tablink,"http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
                 startsWithHTTP(tablink,"http://www.wikitree.com") || startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
                 (validRootsWeb(tablink) && tablink.contains("id=")) || (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
@@ -714,7 +748,10 @@ function loadPage(request) {
                     $("#genilinkdesc").attr('title', "Geni: " + geni_return.name + dateinfo);
                 });
                 console.log("Parsing Family...");
-                if (tablink.contains("/collection-") || tablink.contains("/research/record-")) {
+                // generic call
+                if (collection.parseData) {
+                    collection.parseProfileData(request.source, true);
+                } else if (tablink.contains("/collection-") || tablink.contains("/research/record-")) {
                     parseSmartMatch(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://www.findagrave.com")) {
                     parseFindAGrave(request.source, true);
@@ -1045,10 +1082,15 @@ function setMessage(color, messagetext) {
 }
 
 function getPageCode() {
+    console.log("Collection URL is still: "+collection.url);
     if (loggedin && exists(accountinfo)) {
         document.querySelector('#loginspinner').style.display = "none";
         document.getElementById("smartcopy-container").style.display = "block";
         document.getElementById("loading").style.display = "block";
+
+        if (collection.getPageCode) {
+          collection.getPageCode();
+        }
 
         if ((startsWithHTTP(tablink,"http://www.myheritage.com/site-family-tree-") || startsWithHTTP(tablink,"https://www.myheritage.com/site-family-tree-")) && !tablink.endsWith("-info")) {
             setMessage("#f8ff86", 'Unable to read in tree view.  Please select the Profile page instead.');
@@ -2220,7 +2262,9 @@ function addHistory(id, itemId, name, data) {
 
 function supportedCollection() {
     var expenabled = $('#exponoffswitch').prop('checked');
-    if (!expenabled && startsWithHTTP(tablink,"https://expermientalsite.com")) {
+    if (collection) {
+      return true;
+    } else if (!expenabled && startsWithHTTP(tablink,"https://expermientalsite.com")) {
         return false;
     } else return tablink.contains("/collection-") || tablink.contains("research/record-") || startsWithHTTP(tablink,"http://www.findagrave.com") ||
         startsWithHTTP(tablink,"http://www.wikitree.com/") || validRootsWeb(tablink) ||

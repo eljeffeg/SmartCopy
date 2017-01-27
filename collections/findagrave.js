@@ -1,3 +1,24 @@
+registerCollection({
+  "url": "http://www.findagrave.com",
+  "prepareUrl": function(url) {
+      return url;
+  },
+});
+
+registerCollection({
+  "url": "http://findagrave.com",
+  "prepareUrl": function(url) {
+    return url.replace("http://findagrave.com", "http://www.findagrave.com");
+  },
+});
+
+registerCollection({
+  "url": "http://forums.findagrave.com",
+  "prepareUrl": function(url) {
+    return url.replace("http://forums.findagrave.com", "http://www.findagrave.com");
+  },
+});
+
 // Parse FindAGrave
 function parseFindAGrave(htmlstring, familymembers, relation) {
     relation = relation || "";

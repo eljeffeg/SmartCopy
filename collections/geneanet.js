@@ -49,13 +49,19 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   recordtype = "Geneanet profile";
 
   fullBirth = parsed.find("ul li:contains('Born ')");
-  profiledata["birth"] = parseGeneanetDate(fullBirth.text().replace('Born ', ''));
+  if (exists(fullBirth)) {
+    profiledata["birth"] = parseGeneanetDate(fullBirth.text().replace('Born ', ''));
+  }
 
   fullBaptism = parsed.find("ul li:contains('Baptized ')");
-  profiledata["baptism"] = parseGeneanetDate(fullBaptism.text().replace('Baptized ', ''));
+  if (exists(fullBaptism)) {
+    profiledata["baptism"] = parseGeneanetDate(fullBaptism.text().replace('Baptized ', ''));
+  }
 
   fullDeath = parsed.find("ul li:contains('Deceased ')");
-  profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/, at age .*/, ''));
+  if (exists(fullDeath)) {
+    profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/, age at death .*/, ''));
+  }
 
   if (familymembers) {
     loadGeniData();
@@ -79,7 +85,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
         myhspouse.push(famid);
         famid++;
 
-        var children = $(spouse).find("ul li");
+        var children = $(spouse).find("> ul > li");
         if (exists(children[0])) {
           for (var j = 0; j < children.length; j++) {
             processGeneanetFamily(children[j], "child", famid);
@@ -110,7 +116,8 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 
 function parseGeneanetDate(vitalstring) {
   var data = [];
-  var matches = vitalstring.match(/([^-]+[^-\s])(?:\s+-\s+(.+))?/);
+  var matches = vitalstring.match(/([\w\s]+\w)(?:\s+\(\w+\)\s+)?(?:\s+-\s+(.+))?/);
+    console.log(matches);
   if (exists(matches)) {
     var dateval = matches[1].trim();
     // Warning: nbsp; in date format!
@@ -158,20 +165,20 @@ function processGeneanetFamily(person, title, famid) {
     var name = $(person).find("a").text();
     // TODO: get itemID
     var itemid = getGeneanetItemId(url);
-    var subdata = {name: name, title: title, gender: gendersv, url: url, itemId: itemid, profile_id: famid};
+    var fullurl = "http://gw.geneanet.org/"+url;
+    var subdata = {name: name, title: title, gender: gendersv, url: fullurl, itemId: itemid, profile_id: famid};
     unionurls[famid] = itemid;
-    getGeneanetFamily(famid, url, subdata);
+    getGeneanetFamily(famid, fullurl, subdata);
   }
 }
 
 function getGeneanetFamily(famid, url, subdata) {
     familystatus.push(famid);
-    var fullurl = "http://gw.geneanet.org/"+url;
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
         variable: subdata,
-        url: fullurl
+        url: url
     }, function (response) {
         var arg = response.variable;
         var person = parseGeneanet(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});

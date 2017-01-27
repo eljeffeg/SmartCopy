@@ -159,9 +159,9 @@ function processGeneanetFamily(person, title, famid) {
     var name = $(person).find("a").text();
     // TODO: get itemID
     var itemid = getGeneanetItemId(url);
-    var subdata = {name: name, title: title, gender: gendersv, url: url, itemId: itemid, profile_id: famid};
-    unionurls[famid] = itemid;
     var fullurl = "http://gw.geneanet.org/"+url;
+    var subdata = {name: name, title: title, gender: gendersv, url: fullurl, itemId: itemid, profile_id: famid};
+    unionurls[famid] = itemid;
     getGeneanetFamily(famid, fullurl, subdata);
   }
 }

@@ -18,7 +18,7 @@ registerCollection({
         }
       });
   },
-  "parseProfileData": parseGeneanet,
+  "parseProfileData": parseGeneanet
 });
 
 function parseGeneanet(htmlstring, familymembers, relation) {

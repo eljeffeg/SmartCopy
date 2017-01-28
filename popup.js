@@ -208,41 +208,36 @@ function loginProcess() {
                 console.log("Going to parse data now");
                 collection.parseData();
             } else {
-                //TODO: Uncomment when collections are migrated
-                //console.log("No parseData function");
-                //setMessage("#f9acac", 'SmartCopy does not currently support parsing this page / site / collection.');
-                //document.querySelector('#loginspinner').style.display = "none";
-            }
-
-            // TODO: migrate all this to parseData()
-            if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") || (startsWithHTTP(tablink,"http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
-                startsWithHTTP(tablink,"http://www.wikitree.com") || startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
-                (validRootsWeb(tablink) && tablink.contains("id=")) || (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
-                startsWithHTTP(tablink,"https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
-                document.querySelector('#message').style.display = "none";
-                getPageCode();
-            } else if (startsWithMH(tablink, "matchingresult") || (startsWithHTTP(tablink,"http://www.findagrave.com") && tablink.contains("page=gsr")) ||
-                (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
-                document.querySelector('#loginspinner').style.display = "none";
-                setMessage("#f8ff86", 'Please select one of the Matches on this results page.');
-            } else if ((validRootsWeb(tablink) && tablink.toLowerCase().contains("igm.cgi")) ||
-                tablink === "http://records.ancestry.com/Home/Results" ||
-                startsWithHTTP(tablink,"https://familysearch.org/search/tree/")) {
-                document.querySelector('#loginspinner').style.display = "none";
-                setMessage("#f8ff86", 'Please select one of the Profile pages on this site.');
-            } else if (isGeni()) {
-                document.querySelector('#message').style.display = "none";
-                var focusprofile = getProfile(tablink);
-                focusid = focusprofile.replace("?profile=", "");
-                document.getElementById("addhistoryblock").style.display = "block";
-                updateLinks(focusprofile);
-                userAccess();
-            } else if (MHLanguageCheck(tablink)) {
-                setMessage("#f8ff86", 'SmartCopy will only parse MyHeritage when your language is defined as English. Retry using ".com": https://www.myheritage.com');
-                document.querySelector('#loginspinner').style.display = "none";
-            } else {
-                setMessage("#f9acac", 'SmartCopy does not currently support parsing this page / site / collection.');
-                document.querySelector('#loginspinner').style.display = "none";
+                // TODO: migrate all this to parseData()
+                if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") || (startsWithHTTP(tablink,"http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
+                    startsWithHTTP(tablink,"http://www.wikitree.com") || startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
+                    (validRootsWeb(tablink) && tablink.contains("id=")) || (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
+                    startsWithHTTP(tablink,"https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
+                    document.querySelector('#message').style.display = "none";
+                    getPageCode();
+                } else if (startsWithMH(tablink, "matchingresult") || (startsWithHTTP(tablink,"http://www.findagrave.com") && tablink.contains("page=gsr")) ||
+                    (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
+                    document.querySelector('#loginspinner').style.display = "none";
+                    setMessage("#f8ff86", 'Please select one of the Matches on this results page.');
+                } else if ((validRootsWeb(tablink) && tablink.toLowerCase().contains("igm.cgi")) ||
+                    tablink === "http://records.ancestry.com/Home/Results" ||
+                    startsWithHTTP(tablink,"https://familysearch.org/search/tree/")) {
+                    document.querySelector('#loginspinner').style.display = "none";
+                    setMessage("#f8ff86", 'Please select one of the Profile pages on this site.');
+                } else if (isGeni()) {
+                    document.querySelector('#message').style.display = "none";
+                    var focusprofile = getProfile(tablink);
+                    focusid = focusprofile.replace("?profile=", "");
+                    document.getElementById("addhistoryblock").style.display = "block";
+                    updateLinks(focusprofile);
+                    userAccess();
+                } else if (MHLanguageCheck(tablink)) {
+                    setMessage("#f8ff86", 'SmartCopy will only parse MyHeritage when your language is defined as English. Retry using ".com": https://www.myheritage.com');
+                    document.querySelector('#loginspinner').style.display = "none";
+                } else {
+                    setMessage("#f9acac", 'SmartCopy does not currently support parsing this page / site / collection.');
+                    document.querySelector('#loginspinner').style.display = "none";
+                }
             }
         });
     }
@@ -1745,6 +1740,7 @@ function buildTree(data, action, sendid) {
                 }
                 setMessage("#f9acac", 'There was a problem adding a ' + response.variable.relation + ' to Geni. ' + extrainfo + 'Error Response: "' + e.message + '"');
                 console.log(e); //error in the above string(in this case,yes)!
+                console.log(response.source);
             }
             var id = response.variable.id;
             if (exists(databyid[id])) {

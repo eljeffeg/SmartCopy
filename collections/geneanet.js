@@ -1,20 +1,26 @@
 registerCollection({
-  "reload": false,
-  "expermiental": true,
-  "url": "http://gw.geneanet.org",
-  "prepareUrl": function(url) {
-      if (url.contains("type=")) {
-          url = url.replace(/&type=.*?&/, "&");
-          url = url.replace(/&type=.*?$/, "");
-          url = url.replace(/\?type=.*?&/, "?");
-          this.reload = true;
-      }
-      return url;
-  },
-  "parseData": function(url) {
-      getPageCode();
-  },
-  "parseProfileData": parseGeneanet
+    "reload": false,
+    "expermiental": true,
+    "url": "http://gw.geneanet.org",
+    "prepareUrl": function(url) {
+        if (url.contains("type=")) {
+            url = url.replace(/&type=.*?&/, "&");
+            url = url.replace(/&type=.*?$/, "");
+            url = url.replace(/\?type=.*?&/, "?");
+            this.reload = true;
+        }
+        return url;
+    },
+    "parseData": function(url) {
+        getPageCode();
+    },
+    "loadPage": function(request) {
+        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        var nameTab = parsed.find(".with_tabs.name");
+        focusname = nameTab.find("a").first().text() + " " + nameTab.find("a").first().next().text();
+        recordtype = "Geneanet Genealogy";
+    },
+    "parseProfileData": parseGeneanet
 });
 
 function parseGeneanet(htmlstring, familymembers, relation) {
@@ -24,7 +30,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 
   // TODO: check language is English!
 
-  nameTab = parsed.find(".with_tabs.name")
+  var nameTab = parsed.find(".with_tabs.name")
   var genderval = "unknown";
   var genderImg = nameTab.find("img").first();
   if (genderImg.attr("title") === "M") {
@@ -41,8 +47,6 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
 
   var profiledata = {name: focusperson, gender: genderval, status: relation.title};
-
-  recordtype = "Geneanet profile";
 
   fullBirth = parsed.find("ul li:contains('Born ')");
   if (exists(fullBirth)) {

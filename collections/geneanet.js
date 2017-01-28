@@ -100,15 +100,31 @@ function parseGeneanet(htmlstring, familymembers, relation) {
       }
     }
 
-    // TODO: find siblings
+    var siblings = $(parsed).find('h2:has(span:contains("Siblings")) + ul li');
+    siblings = siblings.filter(function(index) {
+        if($(siblings[index]).find('b').length === 0){ //0 index based
+            return true;
+        }
+    });
+    if (exists(siblings[1])) {
+        for (i=0; i<siblings.length; i++) {
+            processGeneanetFamily(siblings[i], "sibling", famid);
+            famid++;
+        }
+    }
+
   } else if (isParent(relation.title)) {
         if (parentmarriageid === "") {
             parentmarriageid = relation.itemId;
         } else if (relation.itemId !== parentmarriageid) {
             //TODO - Not sure if this Marriage information is provided
         }
-  } // TODO: children
-    // TODO: sibling
+  } else if (isSibling(relation.title)) {
+
+  } else if (isChild(relation.title)) {
+
+  }
+
 
   if (familymembers) {
     alldata["profile"] = profiledata;

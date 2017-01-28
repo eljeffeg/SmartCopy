@@ -116,7 +116,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 
 function parseGeneanetDate(vitalstring) {
   var data = [];
-  var matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\)\s+)?(?:\s+-\s+(.+))?/);
+  var matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\))?(?:\s+-\s+(.+))?/i);
   if (exists(matches)) {
     var dateval = matches[2].trim();
     // Warning: nbsp; in date format!

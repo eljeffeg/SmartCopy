@@ -7,7 +7,7 @@ registerCollection({
           url = url.replace(/&type=.*?&/, "&");
           url = url.replace(/&type=.*?$/, "");
           url = url.replace(/\?type=.*?&/, "?");
-          self.reload = true;
+          this.reload = true;
       }
       return url;
   },

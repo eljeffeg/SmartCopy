@@ -121,7 +121,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 
 function parseGeneanetDate(vitalstring) {
   var data = [];
-  var matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\))?(?:\s+-\s+(.+))?/i);
+  var matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\))?(?:\s*[-,]\s+(.+))?/i);
   if (exists(matches)) {
     var dateval = matches[2].trim();
     // Warning: nbsp; in date format!
@@ -178,7 +178,17 @@ function processGeneanetFamily(person, title, famid) {
     // TODO: get itemID
     var itemid = getGeneanetItemId(url);
     var fullurl = "http://gw.geneanet.org/"+url;
+    var text = $(person).text();
     var subdata = {name: name, title: title, gender: gendersv, url: fullurl, itemId: itemid, profile_id: famid};
+
+    // Parse marriage data
+    if ($(person).text().startsWith("Married")) {
+      var marriageinfo = $(person).find("em").first();
+      if (exists(marriageinfo)) {
+        subdata["marriage"] = parseGeneanetDate(marriageinfo.text());
+        console.log(subdata["marriage"]);
+      }
+    }
     unionurls[famid] = itemid;
     getGeneanetFamily(famid, fullurl, subdata);
   }

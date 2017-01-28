@@ -24,6 +24,8 @@ var googlerequery = "";
 var genifocusdata;
 var genifamilydata = {};
 var genibuildaction = {};
+var errormsg = "#f9acac";
+var warningmsg = "#f8ff86";
 
 chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
@@ -176,7 +178,6 @@ function loginProcess() {
             var tab = tabs[0];
             tablink = tab.url;
 
-            console.log(collections);
             // Select collection
             for (var i=0; i<collections.length; i++) {
               if (startsWithHTTP(tablink, collections[i].url)) {
@@ -206,24 +207,23 @@ function loginProcess() {
             // Parse data
             if (collection.parseData) {
                 console.log("Going to parse data now");
-                collection.parseData();
+                collection.parseData(tablink);
             } else {
                 // TODO: migrate all this to parseData()
-                if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") || (startsWithHTTP(tablink,"http://www.findagrave.com") && !tablink.contains("page=gsr")) ||
+                if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") ||
                     startsWithHTTP(tablink,"http://www.wikitree.com") || startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
                     (validRootsWeb(tablink) && tablink.contains("id=")) || (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
                     startsWithHTTP(tablink,"https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
-                    document.querySelector('#message').style.display = "none";
                     getPageCode();
-                } else if (startsWithMH(tablink, "matchingresult") || (startsWithHTTP(tablink,"http://www.findagrave.com") && tablink.contains("page=gsr")) ||
+                } else if (startsWithMH(tablink, "matchingresult") ||
                     (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
                     document.querySelector('#loginspinner').style.display = "none";
-                    setMessage("#f8ff86", 'Please select one of the Matches on this results page.');
+                    setMessage(warningmsg, 'Please select one of the Matches on this results page.');
                 } else if ((validRootsWeb(tablink) && tablink.toLowerCase().contains("igm.cgi")) ||
                     tablink === "http://records.ancestry.com/Home/Results" ||
                     startsWithHTTP(tablink,"https://familysearch.org/search/tree/")) {
                     document.querySelector('#loginspinner').style.display = "none";
-                    setMessage("#f8ff86", 'Please select one of the Profile pages on this site.');
+                    setMessage(warningmsg, 'Please select one of the Profile pages on this site.');
                 } else if (isGeni()) {
                     document.querySelector('#message').style.display = "none";
                     var focusprofile = getProfile(tablink);
@@ -232,10 +232,10 @@ function loginProcess() {
                     updateLinks(focusprofile);
                     userAccess();
                 } else if (MHLanguageCheck(tablink)) {
-                    setMessage("#f8ff86", 'SmartCopy will only parse MyHeritage when your language is defined as English. Retry using ".com": https://www.myheritage.com');
+                    setMessage(warningmsg, 'SmartCopy will only parse MyHeritage when your language is defined as English. Retry using ".com": https://www.myheritage.com');
                     document.querySelector('#loginspinner').style.display = "none";
                 } else {
-                    setMessage("#f9acac", 'SmartCopy does not currently support parsing this page / site / collection.');
+                    setMessage(errormsg, 'SmartCopy does not currently support parsing this page / site / collection.');
                     document.querySelector('#loginspinner').style.display = "none";
                 }
             }
@@ -405,7 +405,7 @@ function loadPage(request) {
     if (request.source.indexOf('SearchPlansPageManager') !== -1) {
         document.getElementById("smartcopy-container").style.display = "none";
         document.getElementById("loading").style.display = "none";
-        setMessage("#f8ff86", 'SmartCopy can work with the various language sites of MyHeritage, but you must have an authenticated session with the English website.<br/><a href="http://www.myheritage.com/">Please login to MyHeritage.com</a>');
+        setMessage(warningmsg, 'SmartCopy can work with the various language sites of MyHeritage, but you must have an authenticated session with the English website.<br/><a href="http://www.myheritage.com/">Please login to MyHeritage.com</a>');
     }
     else if ((tablink.contains("myheritage") && request.source.indexOf('pk_family_tabs') === -1) || profilechanged) {
         if (supportedCollection()) {
@@ -494,17 +494,6 @@ function loadPage(request) {
                         return;
                     }
                 }
-            } else if (startsWithHTTP(tablink,"http://www.findagrave.com")) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-                var fperson = parsed.find(".plus2").find("b");
-                focusname = getPersonName(fperson[0].innerHTML);
-                recordtype = "Find A Grave Memorial";
-                var title = parsed.filter('title').text().replace(" - Find A Grave Memorial", "");
-                if (title.contains("(")) {
-                    splitrange = title.split("(");
-                    focusrange = splitrange[1];
-                    focusrange = focusrange.replace(")", "").trim();
-                }
             } else if (validRootsWeb(tablink)) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 recordtype = "RootsWeb's WorldConnect";
@@ -581,7 +570,7 @@ function loadPage(request) {
                 try {
                     parsed = JSON.parse(request.source);
                 } catch(err) {
-                    setMessage("#f8ff86", "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
+                    setMessage(warningmsg, "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
                         "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
@@ -589,7 +578,7 @@ function loadPage(request) {
                     return;
                 }
                 if (parsed["status"] !== "OK") {
-                    setMessage("#f8ff86", 'There was a problem reading this FamilySearch profile.<br>Unable to retrive the data via the id "' +
+                    setMessage(warningmsg, 'There was a problem reading this FamilySearch profile.<br>Unable to retrive the data via the id "' +
                         '<a href="' + tablink + '" target="_blank">' + focusURLid + '</a>".');
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
@@ -610,7 +599,7 @@ function loadPage(request) {
                 try {
                     parsed = JSON.parse(request.source);
                 } catch(err) {
-                    setMessage("#f8ff86", "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
+                    setMessage(warningmsg, "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
                         "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
@@ -666,11 +655,15 @@ function loadPage(request) {
                 focusrange = "";
             }
 
+            if (collection.loadPage) {
+                collection.loadPage(request);
+            }
+
             if (focusid === "" || focusid === "Select from History") {
                 var accessdialog = document.querySelector('#useraccess');
                 accessdialog.style.marginBottom = "-2px";
                 accessdialog.innerText = "The URL or ID entered failed to resolve."
-                accessdialog.style.backgroundColor = "#f9acac";
+                accessdialog.style.backgroundColor = errormsg;
                 accessdialog.style.display = "block";
 
                 focusid = null;
@@ -746,12 +739,10 @@ function loadPage(request) {
                 });
                 console.log("Parsing Family...");
                 // generic call
-                if (collection.parseData) {
+                if (collection.parseProfileData) {
                     collection.parseProfileData(request.source, true);
                 } else if (tablink.contains("/collection-") || tablink.contains("/research/record-")) {
                     parseSmartMatch(request.source, true);
-                } else if (startsWithHTTP(tablink,"http://www.findagrave.com")) {
-                    parseFindAGrave(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://www.wikitree.com")) {
                     parseWikiTree(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://www.werelate.org")) {
@@ -779,11 +770,11 @@ function loadPage(request) {
                 if (!accountinfo.pro) {
                     //document.getElementById("loading").style.display = "none";
                     $("#familymembers").attr('disabled', 'disabled');
-                    setMessage("#f8ff86", 'The copying of Family Members is only available to Geni Pro Members.');
+                    setMessage(warningmsg, 'The copying of Family Members is only available to Geni Pro Members.');
                 } else if (!accountinfo.user) {
                     //document.getElementById("loading").style.display = "none";
                     $("#familymembers").attr('disabled', 'disabled');
-                    setMessage("#f8ff86", 'Copying Family Members has been restricted to trusted Geni Pro users.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
+                    setMessage(warningmsg, 'Copying Family Members has been restricted to trusted Geni Pro users.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
                 }
             } else {
                 loadSelectPage(request);
@@ -792,13 +783,11 @@ function loadPage(request) {
             document.getElementById("top-container").style.display = "block";
             document.getElementById("submitbutton").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage("#f8ff86", 'This MyHeritage collection is not fully supported by SmartCopy. You could try enabling experimental collection parsing under options.');
+            setMessage(warningmsg, 'This MyHeritage collection is not fully supported by SmartCopy. You could try enabling experimental collection parsing under options.');
         }
     } else {
         if (supportedCollection()) {
-            if (startsWithHTTP(tablink,"http://www.findagrave.com")) {
-                focusURLid = getParameterByName('GRid', tablink);
-            } else if (startsWithHTTP(tablink,"http://www.wikitree.com")) {
+            if (startsWithHTTP(tablink,"http://www.wikitree.com")) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace("-Family-Tree", "");
             } else if (startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person")) {
                 focusURLid = decodeURIComponent(tablink.substring(tablink.lastIndexOf(':') + 1));
@@ -810,7 +799,7 @@ function loadPage(request) {
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
                     document.getElementById("loading").style.display = "none";
-                    setMessage("#f8ff86", 'FamilyTreeMaker "Descendants of" generation pages are not supported by SmartCopy.');
+                    setMessage(warningmsg, 'FamilyTreeMaker "Descendants of" generation pages are not supported by SmartCopy.');
                     return;
                 }
             } else if (validMyHeritage(tablink)) {
@@ -863,13 +852,13 @@ function loadPage(request) {
             document.getElementById("top-container").style.display = "block";
             document.getElementById("submitbutton").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage("#f8ff86", 'SmartCopy does not work on Search pages.  Please open the <b>Details</b> page for a specific record.');
+            setMessage(warningmsg, 'SmartCopy does not work on Search pages.  Please open the <b>Details</b> page for a specific record.');
 
         } else {
             document.getElementById("top-container").style.display = "block";
             document.getElementById("submitbutton").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage("#f8ff86", 'This website is not fully supported by SmartCopy. You could try enabling experimental collection parsing under options.');
+            setMessage(warningmsg, 'This website is not fully supported by SmartCopy. You could try enabling experimental collection parsing under options.');
         }
     }
 }
@@ -903,7 +892,7 @@ function cleanJSONTable() {
 function loadSelectPage(request) {
     document.getElementById("smartcopy-container").style.display = "none";
     document.getElementById("loading").style.display = "none";
-    setMessage("#f8ff86", 'SmartCopy was unable to determine the matching Geni profile to use as a copy destination.<br/>' +
+    setMessage(warningmsg, 'SmartCopy was unable to determine the matching Geni profile to use as a copy destination.<br/>' +
         '<strong><span id="changetext">Set Geni Destination Profile</span></strong>' +
         '<table style="width: 100%;"><tr class="optionrow" style="display: none;">' +
         '<td id="focusoption" style="width: 100%; text-align: left;"></td></tr>' +
@@ -1079,18 +1068,30 @@ function setMessage(color, messagetext) {
 }
 
 function getPageCode() {
-    console.log("Collection URL is still: "+collection.url);
     if (loggedin && exists(accountinfo)) {
+        document.querySelector('#message').style.display = "none";
         document.querySelector('#loginspinner').style.display = "none";
         document.getElementById("smartcopy-container").style.display = "block";
         document.getElementById("loading").style.display = "block";
 
-        if (collection.getPageCode) {
-          collection.getPageCode();
-        }
-
-        if ((startsWithHTTP(tablink,"http://www.myheritage.com/site-family-tree-") || startsWithHTTP(tablink,"https://www.myheritage.com/site-family-tree-")) && !tablink.endsWith("-info")) {
-            setMessage("#f8ff86", 'Unable to read in tree view.  Please select the Profile page instead.');
+        if (collection.reload) {
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: tablink
+            }, function (response) {
+                loadPage(response);
+            });
+        } else if (collection.parseProfileData) {
+            chrome.tabs.executeScript(null, {
+                file: "getPagesSource.js"
+            }, function () {
+                if (chrome.extension.lastError) {
+                    setMessage(errormsg, 'There was an error injecting script : \n' + chrome.extension.lastError.message);
+                }
+            });
+        } else if ((startsWithHTTP(tablink,"http://www.myheritage.com/site-family-tree-") || startsWithHTTP(tablink,"https://www.myheritage.com/site-family-tree-")) && !tablink.endsWith("-info")) {
+            setMessage(warningmsg, 'Unable to read in tree view.  Please select the Profile page instead.');
             document.getElementById("smartcopy-container").style.display = "none";
             document.getElementById("loading").style.display = "none";
             return;
@@ -1108,7 +1109,6 @@ function getPageCode() {
             });
             */
         } else if (startsWithHTTP(tablink,"http://www.myheritage.com/") || startsWithHTTP(tablink,"https://www.myheritage.com/") ||
-            startsWithHTTP(tablink,"http://www.findagrave.com") ||
             startsWithHTTP(tablink,"http://www.wikitree.com/wiki/") ||
             startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
             validFamilyTree(tablink) ||
@@ -1130,7 +1130,7 @@ function getPageCode() {
             tablink = tablink.replace("family?cfpid=", "person/") + "/facts";
             tablink = tablink.replace("trees.ancestry.", "person.ancestry.");
             if (tablink.endsWith("/family")) {
-                setMessage("#f8ff86", 'Unable to identify Ancestry focus profile.  Please select a focus profile in the tree.');
+                setMessage(warningmsg, 'Unable to identify Ancestry focus profile.  Please select a focus profile in the tree.');
                 document.getElementById("smartcopy-container").style.display = "none";
                 document.getElementById("loading").style.display = "none";
                 return;
@@ -1273,7 +1273,7 @@ function checkAccount() {
                 console.log('Problem getting account information - trying again.');
             }
             if (!exists(response)) {
-                setMessage("#f8ff86", 'Problem getting account information - trying again.');
+                setMessage(warningmsg, 'Problem getting account information - trying again.');
                 accountretry ++;
                 if (accountretry < 4) {
                     checkAccount();
@@ -1510,7 +1510,7 @@ var submitform = function () {
         document.getElementById("familydata").style.display = "none";
         document.getElementById("profiledata").style.display = "none";
         document.getElementById("updating").style.display = "block";
-        setMessage("#f8ff86", 'Leaving this window before completion could result in an incomplete data copy.');
+        setMessage(warningmsg, 'Leaving this window before completion could result in an incomplete data copy.');
 
         var about = "";
         var sourcecheck = $('#sourceonoffswitch').prop('checked');
@@ -1738,7 +1738,7 @@ function buildTree(data, action, sendid) {
                 if (response.variable.relation === "photo") {
                     extrainfo = "The photo may be too large. "
                 }
-                setMessage("#f9acac", 'There was a problem adding a ' + response.variable.relation + ' to Geni. ' + extrainfo + 'Error Response: "' + e.message + '"');
+                setMessage(errormsg, 'There was a problem adding a ' + response.variable.relation + ' to Geni. ' + extrainfo + 'Error Response: "' + e.message + '"');
                 console.log(e); //error in the above string(in this case,yes)!
                 console.log(response.source);
             }
@@ -2260,11 +2260,11 @@ function addHistory(id, itemId, name, data) {
 
 function supportedCollection() {
     var expenabled = $('#exponoffswitch').prop('checked');
-    if (collection) {
+    if (!expenabled && collection.expermiental) {
+      return false;
+    } else if (collection.parseProfileData) {
       return true;
-    } else if (!expenabled && startsWithHTTP(tablink,"https://expermientalsite.com")) {
-        return false;
-    } else return tablink.contains("/collection-") || tablink.contains("research/record-") || startsWithHTTP(tablink,"http://www.findagrave.com") ||
+    } else return tablink.contains("/collection-") || tablink.contains("research/record-") ||
         startsWithHTTP(tablink,"http://www.wikitree.com/") || validRootsWeb(tablink) ||
         validAncestry(tablink) || (startsWithHTTP(tablink,"https://familysearch.org/pal:") || startsWithHTTP(tablink,"https://familysearch.org/tree") || startsWithHTTP(tablink,"https://familysearch.org/platform")) ||
         startsWithHTTP(tablink,"http://www.werelate.org/") || validMyHeritage(tablink) || validFamilyTree(tablink);

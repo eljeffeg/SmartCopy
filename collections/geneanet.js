@@ -1,22 +1,18 @@
 registerCollection({
+  "reload": false,
+  "expermiental": true,
   "url": "http://gw.geneanet.org",
   "prepareUrl": function(url) {
-    console.log("Nothing to do to prepare the URL");
-    return url;
+      if (url.contains("type=")) {
+          url = url.replace(/&type=.*?&/, "&");
+          url = url.replace(/&type=.*?$/, "");
+          url = url.replace(/\?type=.*?&/, "?");
+          self.reload = true;
+      }
+      return url;
   },
-  "parseData": function() {
-    console.log("Parsing geneanet data");
-    getPageCode();
-  },
-  "getPageCode": function() {
-      chrome.tabs.executeScript(null, {
-        file: "getPagesSource.js"
-      }, function () {
-        // If you try and inject into an extensions page or the webstore/NTP you'll get an error
-        if (chrome.extension.lastError) {
-          message.innerText = 'There was an error injecting script : \n' + chrome.extension.lastError.message;
-        }
-      });
+  "parseData": function(url) {
+      getPageCode();
   },
   "parseProfileData": parseGeneanet
 });

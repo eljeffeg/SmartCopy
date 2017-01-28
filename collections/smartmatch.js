@@ -6,12 +6,12 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         if ($(htmlstring).filter('title').text().contains("Marriages")) {
             document.getElementById("loading").style.display = "none";
             document.getElementById("top-container").style.display = "none";
-            setMessage("#f8ff86", 'This MyHeritage collection is not yet supported by SmartCopy.');
+            setMessage(warningmsg, 'This MyHeritage collection is not yet supported by SmartCopy.');
             return "";
         }
     } catch(e){
         noerror = false;
-        setMessage("#f9acac", 'There was a problem reading the SmartMatch page.');
+        setMessage(errormsg, 'There was a problem reading the SmartMatch page.');
         console.log(e); //error in the above string(in this case,yes)!
         return;
     }

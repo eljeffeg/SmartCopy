@@ -1,23 +1,34 @@
 registerCollection({
-  "url": "http://www.findagrave.com",
-  "prepareUrl": function(url) {
-      return url;
-  }
+    "url": "http://www.findagrave.com",
+    "prepareUrl": function(url) {
+        url = url.replace("//findagrave.com", "//www.findagrave.com");
+        url = url.replace("//forums.findagrave.com", "//www.findagrave.com");
+        return url;
+    },
+    "parseData": function(url) {
+        if (url.contains("page=gsr")) {
+            document.querySelector('#loginspinner').style.display = "none";
+            setMessage(warningmsg, 'Please select one of the Matches on this results page.');
+        } else {
+            focusURLid = getParameterByName('GRid', url);
+            getPageCode();
+        }
+    },
+    "loadPage": function(request) {
+        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        var fperson = parsed.find(".plus2").find("b");
+        focusname = getPersonName(fperson[0].innerHTML);
+        recordtype = "Find A Grave Memorial";
+        var title = parsed.filter('title').text().replace(" - Find A Grave Memorial", "");
+        if (title.contains("(")) {
+            splitrange = title.split("(");
+            focusrange = splitrange[1];
+            focusrange = focusrange.replace(")", "").trim();
+        }
+    },
+    "parseProfileData": parseFindAGrave
 });
 
-registerCollection({
-  "url": "http://findagrave.com",
-  "prepareUrl": function(url) {
-    return url.replace("//findagrave.com", "//www.findagrave.com");
-  }
-});
-
-registerCollection({
-  "url": "http://forums.findagrave.com",
-  "prepareUrl": function(url) {
-    return url.replace("//forums.findagrave.com", "//www.findagrave.com");
-  }
-});
 
 // Parse FindAGrave
 function parseFindAGrave(htmlstring, familymembers, relation) {

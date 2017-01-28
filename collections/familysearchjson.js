@@ -124,7 +124,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
             var arg = response.variable;
             var source = JSON.parse(response.source);
             if (!exists(source["data"])) {
-                setMessage("#f8ff86", "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
+                setMessage(warningmsg, "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
                     "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
                 document.getElementById("top-container").style.display = "block";
                 document.getElementById("submitbutton").style.display = "none";
@@ -223,7 +223,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                             var arg = response.variable;
                             var source = JSON.parse(response.source);
                             if (!exists(source["data"])) {
-                                setMessage("#f8ff86", "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
+                                setMessage(warningmsg, "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
                                     "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
                                 document.getElementById("top-container").style.display = "block";
                                 document.getElementById("submitbutton").style.display = "none";

@@ -783,7 +783,7 @@ function loadPage(request) {
             document.getElementById("top-container").style.display = "block";
             document.getElementById("submitbutton").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage(warningmsg, 'This MyHeritage collection is not fully supported by SmartCopy. You could try enabling experimental collection parsing under options.');
+            setMessage(warningmsg, 'This MyHeritage collection is not yet fully supported by SmartCopy.');
         }
     } else {
         if (supportedCollection()) {
@@ -858,7 +858,7 @@ function loadPage(request) {
             document.getElementById("top-container").style.display = "block";
             document.getElementById("submitbutton").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage(warningmsg, 'This website is not fully supported by SmartCopy. You could try enabling experimental collection parsing under options.');
+            setMessage(warningmsg, 'This website is not yet supported by SmartCopy.');
         }
     }
 }
@@ -2259,11 +2259,11 @@ function addHistory(id, itemId, name, data) {
 }
 
 function supportedCollection() {
-    var expenabled = $('#exponoffswitch').prop('checked');
-    if (!expenabled && collection.expermiental) {
-      return false;
-    } else if (collection.parseProfileData) {
-      return true;
+    if (collection.parseProfileData) {
+        if (collection.expermiental) {
+            $("#experimentalmessage").css("display", "block");
+        }
+        return true;
     } else return tablink.contains("/collection-") || tablink.contains("research/record-") ||
         startsWithHTTP(tablink,"http://www.wikitree.com/") || validRootsWeb(tablink) ||
         validAncestry(tablink) || (startsWithHTTP(tablink,"https://familysearch.org/pal:") || startsWithHTTP(tablink,"https://familysearch.org/tree") || startsWithHTTP(tablink,"https://familysearch.org/platform")) ||
@@ -2498,9 +2498,6 @@ $(function () {
             }
 
         }
-    });
-    $('#exponoffswitch').on('click', function () {
-        chrome.storage.local.set({'excollection': this.checked});
     });
     $('#adjustnameonoffswitch').on('click', function () {
         chrome.storage.local.set({'adjustname': this.checked});
@@ -2741,13 +2738,6 @@ chrome.storage.local.get('hideempty', function (result) {
                 $("#focusshowhide").attr("src", "images/hide.png");
                 $("#focusshowhide").attr("title", "Hide Unused Fields");
             }
-    }
-});
-
-chrome.storage.local.get('excollection', function (result) {
-    var experimental = result.excollection;
-    if (exists(experimental)) {
-        $('#exponoffswitch').prop('checked', experimental);
     }
 });
 

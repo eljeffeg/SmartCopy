@@ -135,6 +135,10 @@ function parseGeneanetDate(vitalstring) {
         momentval = moment(dateval, "MMMM YYYY", true);
         date_format = "MMM-YYYY";
       }
+      if (!momentval.isValid()) {
+        momentval = moment(dateval, "YYYY", true);
+        date_format = "YYYY";
+      }
     }
     if (momentval.isValid()) {
         momentdate = momentval.format(date_format);

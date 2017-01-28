@@ -9,6 +9,10 @@ registerCollection({
             url = url.replace(/\?type=.*?&/, "?");
             this.reload = true;
         }
+        if (url.contains("lang=") && !url.contains("lang=en")) {
+            url = url.replace(/lang=.*?(?=&|$)/, "lang=en");
+            this.reload = true;
+        }
         return url;
     },
     "parseData": function(url) {
@@ -27,8 +31,6 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   relation = relation || "";
   //var parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));
   var parsed = $(htmlstring);
-
-  // TODO: check language is English!
 
   var nameTab = parsed.find(".with_tabs.name")
   var genderval = "unknown";
@@ -102,7 +104,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 
     var siblings = $(parsed).find('h2:has(span:contains("Siblings")) + ul li');
     siblings = siblings.filter(function(index) {
-        if($(siblings[index]).find('b').length === 0){ //0 index based
+        if($(siblings[index]).find('b').length === 0){
             return true;
         }
     });
@@ -137,7 +139,8 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 
 function parseGeneanetDate(vitalstring) {
   var data = [];
-  var matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\))?(?:\s*[-,]\s+(.+))?/i);
+  var matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\))?(?:\s+-\s+(.+))?/i);
+
   if (exists(matches)) {
     var dateval = matches[2].trim();
     // Warning: nbsp; in date format!

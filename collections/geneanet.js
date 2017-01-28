@@ -63,6 +63,11 @@ function parseGeneanet(htmlstring, familymembers, relation) {
     profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/ at age .*/, '').replace(/ age at .*/, ''));
   }
 
+  fullBurial = parsed.find("ul li:contains('Buried ')");
+  if (exists(fullBurial)) {
+    profiledata["burial"] = parseGeneanetDate(fullBurial.text().replace('Buried ', ''));
+  }
+
   if (familymembers) {
     loadGeniData();
     var famid = 0;

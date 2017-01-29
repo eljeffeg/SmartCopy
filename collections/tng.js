@@ -57,6 +57,8 @@ function parseTNG(htmlstring, familymembers, relation) {
   profiledata["birth"] = parseTNGDate(parsed, "Born");
   profiledata["death"] = parseTNGDate(parsed, "Died");
 
+  profiledata["occupation"] = getTNGFieldText(parsed, "OCCU");
+
   if (familymembers) {
     loadGeniData();
     var famid = 0;

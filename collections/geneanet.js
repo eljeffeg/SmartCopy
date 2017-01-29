@@ -1,6 +1,6 @@
 registerCollection({
     "reload": false,
-    "expermiental": true,
+    "experimental": true,
     "url": "http://gw.geneanet.org",
     "prepareUrl": function(url) {
         if (url.contains("type=")) {

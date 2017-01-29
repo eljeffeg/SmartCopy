@@ -32,12 +32,14 @@ function getTNGFieldText(parsed, name, position) {
 
 function getTNGName(parsed) {
   var elem = getTNGField(parsed, "Name");
-  if (exists(elem)) {
+  if (elem.text() !== "") {
     var familyname = elem.find(".family-name").text();
     var givenname = elem.find(".given-name").text();
     return givenname + " " + familyname;
   }
-  return "";
+  // Less precise, but better than nothing
+  console.log("Count not find name, using nameheader");
+  return parsed.find("h1#nameheader").text();
 }
 
 function parseTNG(htmlstring, familymembers, relation) {

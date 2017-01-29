@@ -62,6 +62,7 @@
         "*://*.myheritage.se/",
         "*://*.myheritage.sk/",
         "*://*.geneanet.org/",
+        "*://*.farhi.org/",
         "*://historylink.herokuapp.com/",
         "*://maps.googleapis.com/"
     ]

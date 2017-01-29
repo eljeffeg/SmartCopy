@@ -2260,7 +2260,7 @@ function addHistory(id, itemId, name, data) {
 
 function supportedCollection() {
     if (collection.parseProfileData) {
-        if (collection.expermiental) {
+        if (collection.experimental) {
             $("#experimentalmessage").css("display", "block");
         }
         return true;

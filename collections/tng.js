@@ -6,7 +6,6 @@ registerCollection({
     getPageCode();
   },
   "loadPage": function(request) {
-    console.log("Loading page");
     var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
     focusname = getTNGName(parsed);
     recordtype = "TNG Genealogy";
@@ -32,7 +31,7 @@ function getTNGFieldText(parsed, name, position) {
 }
 
 function getTNGName(parsed) {
-  var elem = getTNGField(parsed);
+  var elem = getTNGField(parsed, "Name");
   if (exists(elem)) {
     var familyname = elem.find(".family-name").text();
     var givenname = elem.find(".given-name").text();
@@ -45,7 +44,7 @@ function parseTNG(htmlstring, familymembers, relation) {
   relation = relation || "";
   var parsed = $(htmlstring);
 
-  focusperson = getTNGFieldText(parsed, "Name");
+  focusperson = getTNGName(parsed);
   genderval = getTNGFieldText(parsed, "Gender");
   focusname = focusperson;
 
@@ -68,6 +67,26 @@ function parseTNG(htmlstring, familymembers, relation) {
     var mother = getTNGField(parsed, "Mother");
     if (exists(mother)) {
       processTNGFamily(mother, "mother", famid);
+    }
+
+    var spouses = getTNGField(parsed, "Family");
+    if (exists(spouses[0])) {
+      for (var i = 0; i < spouses.length; i++) {
+        var spouse = spouses[i];
+        processTNGFamily(spouse, "spouse", famid);
+        myhspouse.push(famid);
+        famid++;
+      }
+    }
+
+    var childrensection = getTNGField(parsed, "Children");
+    if (exists(childrensection)) {
+      var children = childrensection.find("tr span");
+      for (var i = 0; i < children.length; i++) {
+        var child = children[i];
+        processTNGFamily(child, "child", famid);
+        famid++;
+      }
     }
   }
 
@@ -95,7 +114,7 @@ function parseTNGDate(parsed, name) {
 }
 
 function processTNGFamily(person, title, famid) {
-  var url = $(person).find("a").attr("href");
+  var url = $(person).find("a").first().attr("href");
   if (exists(url)) {
     if (!exists(alldata["family"][title])) {
       alldata["family"][title] = [];
@@ -109,8 +128,6 @@ function processTNGFamily(person, title, famid) {
     var fullurl = basesplit.join("/") + "/" + url;
     var text = $(person).text();
     var subdata = {name: name, title: title, gender: gendersv, url: fullurl, itemId: itemid, profile_id: famid};
-    console.log("Person is "+title+" and has subdata");
-    console.log(subdata);
 
     // Parse marriage data
     /*

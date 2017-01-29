@@ -47,7 +47,7 @@ function parseTNG(htmlstring, familymembers, relation) {
   var parsed = $(htmlstring);
 
   focusperson = getTNGName(parsed);
-  genderval = getTNGFieldText(parsed, "Gender");
+  genderval = getTNGFieldText(parsed, "Gender").toLowerCase();;
   focusname = focusperson;
 
   document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);

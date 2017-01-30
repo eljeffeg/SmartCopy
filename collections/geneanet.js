@@ -16,6 +16,7 @@ registerCollection({
         return url;
     },
     "parseData": function(url) {
+        focusURLid = getGeneanetItemId(url);
         getPageCode();
     },
     "loadPage": function(request) {
@@ -116,15 +117,46 @@ function parseGeneanet(htmlstring, familymembers, relation) {
     }
 
   } else if (isParent(relation.title)) {
-        if (parentmarriageid === "") {
-            parentmarriageid = relation.itemId;
-        } else if (relation.itemId !== parentmarriageid) {
-            //TODO - Not sure if this Marriage information is provided
-        }
+      if (parentmarriageid === "") {
+          parentmarriageid = relation.itemId;
+      } else if (relation.itemId !== parentmarriageid) {
+          var spouses = $(parsed).find('h2:has(span:contains("Spouses")) + ul.fiche_union > li');
+          for (i=0;i<spouses.length;i++) {
+              var url = $(spouses[i]).find("a").attr("href");
+              if (exists(url)) {
+                  var itemid = getGeneanetItemId(url);
+                  if (itemid === parentmarriageid) {
+                      profiledata = processMarriage(spouses[i], profiledata);
+                  }
+              }
+          }
+      }
   } else if (isSibling(relation.title)) {
-
+      var siblingparents = [];
+      var parents = $(parsed).find('h2:has(span:contains("Parents")) + ul li');
+      for (i=0;i<parents.length;i++) {
+          var url = $(parent[i]).find("a").attr("href");
+          if (exists(url)) {
+              var itemid = getGeneanetItemId(url);
+              siblingparents.push(itemid);
+          }
+      }
+      if (siblingparents.length > 0) {
+          profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+      }
   } else if (isChild(relation.title)) {
-
+      var parents = $(parsed).find('h2:has(span:contains("Parents")) + ul li');
+      for (i=0;i<parents.length;i++) {
+          var url = $(parent[i]).find("a").attr("href");
+          if (exists(url)) {
+              var itemid = getGeneanetItemId(url);
+              if (focusURLid !== itemid) {
+                  childlist[relation.proid] = $.inArray(itemid, unionurls);
+                  profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                  break;
+              }
+          }
+      }
   }
 
 
@@ -206,25 +238,27 @@ function processGeneanetFamily(person, title, famid) {
     if (!exists(alldata["family"][title])) {
       alldata["family"][title] = [];
     }
-    // TODO: How do we get the gender?
-    var gendersv = "unknown";
+
     var name = $(person).find("a").text();
-    // TODO: get itemID
     var itemid = getGeneanetItemId(url);
     var fullurl = "http://gw.geneanet.org/"+url;
-    var text = $(person).text();
-    var subdata = {name: name, title: title, gender: gendersv, url: fullurl, itemId: itemid, profile_id: famid};
+    var subdata = {name: name, title: title, url: fullurl, itemId: itemid, profile_id: famid};
 
     // Parse marriage data
-    if ($(person).text().startsWith("Married")) {
-      var marriageinfo = $(person).find("em").first();
-      if (exists(marriageinfo)) {
-        subdata["marriage"] = parseGeneanetDate(marriageinfo.text(), "marriage");
-      }
-    }
+    subdata = processMarriage(person, subdata);
     unionurls[famid] = itemid;
     getGeneanetFamily(famid, fullurl, subdata);
   }
+}
+
+function processMarriage(person, subdata) {
+    if ($(person).text().startsWith("Married")) {
+        var marriageinfo = $(person).find("em").first();
+        if (exists(marriageinfo)) {
+            subdata["marriage"] = parseGeneanetDate(marriageinfo.text(), "marriage");
+        }
+    }
+    return subdata;
 }
 
 function getGeneanetFamily(famid, url, subdata) {

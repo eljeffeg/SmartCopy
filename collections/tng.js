@@ -3,6 +3,7 @@ registerCollection({
   "experimental": true,
   "url": "http://www.farhi.org",
   "parseData": function(url) {
+    focusURLid = getTNGItemId(url);
     getPageCode();
   },
   "loadPage": function(request) {

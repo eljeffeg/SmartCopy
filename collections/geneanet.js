@@ -137,11 +137,26 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   return profiledata;
 }
 
-function parseGeneanetDate(vitalstring) {
-  var data = [];
-  var matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\))?(?:\s+-\s+(.+))?/i);
-
+function parseGeneanetDate(vitalstring, type) {
+  vitalstring = vitalstring.replace(/,$/, "").trim();
+  // Example matches:
+  // in 1675
+  // about 1675
+  // before 1675
+  // after 1675
+  // 30 September 1675 - Crouy sur Cosson, 41, France
+  // 30 September 1675, Crouy sur Cosson, 41, France     // Marriage version
+  // 30 September 1675 (Saturday) - Crouy sur Cosson, 41, France
+  // before September 1675 - Crouy sur Cosson, 41, France
+  var data;
+  var matches;
+  if (type === "marriage") {
+    matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\))?(?:,\s+(.+))?/i);
+  } else {
+    matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\))?(?:\s+-\s+(.+))?/i);
+  }
   if (exists(matches)) {
+    data = [];
     var dateval = matches[2].trim();
     // Warning: nbsp; in date format!
     var nbspre = new RegExp(String.fromCharCode(160), "g");
@@ -204,8 +219,7 @@ function processGeneanetFamily(person, title, famid) {
     if ($(person).text().startsWith("Married")) {
       var marriageinfo = $(person).find("em").first();
       if (exists(marriageinfo)) {
-        subdata["marriage"] = parseGeneanetDate(marriageinfo.text());
-        console.log(subdata["marriage"]);
+        subdata["marriage"] = parseGeneanetDate(marriageinfo.text(), "marriage");
       }
     }
     unionurls[famid] = itemid;

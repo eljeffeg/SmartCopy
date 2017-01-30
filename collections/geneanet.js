@@ -40,6 +40,11 @@ function parseGeneanet(htmlstring, familymembers, relation) {
     genderval = "male";
   } else if (genderImg.attr("title") === "F") {
     genderval = "female";
+  } else if (exists(relation.gender) && relation.gender !== "unknown") {
+    genderval = relation.gender;
+  }
+  if (relation === "") {
+    focusgender = genderval;
   }
 
   givenName = nameTab.find("a").first().text();
@@ -241,8 +246,19 @@ function processGeneanetFamily(person, title, famid) {
 
     var name = $(person).find("a").text();
     var itemid = getGeneanetItemId(url);
+    if (isParent(title)) {
+      parentlist.push(itemid);
+    }
+    var gendersv = "unknown";
+    if (isFemale(title)) {
+      gendersv = "female";
+    } else if (isMale(title)) {
+      gendersv = "male";
+    } else if (isPartner(title)) {
+      gendersv = reverseGender(focusgender);
+    }
     var fullurl = "http://gw.geneanet.org/"+url;
-    var subdata = {name: name, title: title, url: fullurl, itemId: itemid, profile_id: famid};
+    var subdata = {name: name, title: title, url: fullurl, gender: gendersv, itemId: itemid, profile_id: famid};
 
     // Parse marriage data
     subdata = processMarriage(person, subdata);

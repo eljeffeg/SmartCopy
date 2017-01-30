@@ -195,7 +195,7 @@ function loginProcess() {
               		tablink = collection.prepareUrl(tablink);
             	}
             }
-            console.log("collection URL: "+collection.url);
+            console.log("Collection URL: "+collection.url);
 
             // TODO: which collection is that?
             if (startsWithHTTP(tablink,"http://www.ancestry.") && !startsWithHTTP(tablink,"http://www.ancestry.com") && tablink.contains("/genealogy/records/")) {

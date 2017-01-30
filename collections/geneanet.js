@@ -238,13 +238,13 @@ function parseGeneanetDate(vitalstring, type) {
 }
 
 function processGeneanetFamily(person, title, famid) {
-  var url = $(person).find("a").attr("href");
+  var url = $(person).find("a").first().attr("href");
   if (exists(url)) {
     if (!exists(alldata["family"][title])) {
       alldata["family"][title] = [];
     }
 
-    var name = $(person).find("a").text();
+    var name = $(person).find("a").first().text();
     var itemid = getGeneanetItemId(url);
     if (isParent(title)) {
       parentlist.push(itemid);

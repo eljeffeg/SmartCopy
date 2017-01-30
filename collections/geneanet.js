@@ -139,7 +139,16 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 
 function parseGeneanetDate(vitalstring) {
   var data = [];
-  var matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\))?(?:\s+-\s+(.+))?/i);
+  // Example matches:
+  // in 1675
+  // about 1675
+  // before 1675
+  // after 1675
+  // 30 September 1675 - Crouy sur Cosson, 41, France
+  // 30 September 1675, Crouy sur Cosson, 41, France     // Marriage version
+  // 30 September 1675 (Saturday) - Crouy sur Cosson, 41, France
+  // before September 1675 - Crouy sur Cosson, 41, France
+  var matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\))?(?:(?:\s+-)|(?:,)\s+(.+))?/i);
 
   if (exists(matches)) {
     var dateval = matches[2].trim();

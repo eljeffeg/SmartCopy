@@ -1643,11 +1643,11 @@ function updateInfoData(person, arg) {
                 }
             }
         }
-        if (exists(arg.marriage)) {
+        if (exists(arg.marriage) && exists(arg.marriage[0])) {
             delete arg["marriage"][0].name;
             person["marriage"] = arg["marriage"];
         }
-        if (exists(arg.divorce)) {
+        if (exists(arg.divorce) && exists(arg.divorce[0])) {
             delete arg["divorce"][0].name;
             person["divorce"] = arg["divorce"];
         }

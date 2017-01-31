@@ -180,8 +180,9 @@ function loginProcess() {
 
             // Select collection
             for (var i=0; i<collections.length; i++) {
-              if (startsWithHTTP(tablink, collections[i].url)) {
+              if (collections[i].prepareUrl && startsWithHTTP(collections[i].prepareUrl(tablink), collections[i].url)) {
                 collection = collections[i];
+                tablink = collection.prepareUrl(tablink);
                 break;
               }
             }
@@ -189,11 +190,6 @@ function loginProcess() {
                 // TODO: display error
                 console.log("Could not find collection");
                 collection = {url: tablink};
-            } else {
-            	// prepareUrl
-            	if (collection.prepareUrl) {
-              		tablink = collection.prepareUrl(tablink);
-            	}
             }
             console.log("Collection URL: "+collection.url);
 

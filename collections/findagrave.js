@@ -21,7 +21,6 @@ registerCollection({
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
         var fperson = parsed.find(".plus2").find("b");
         focusname = getPersonName(fperson[0].innerHTML);
-        recordtype = this.recordtype;
         var title = parsed.filter('title').text().replace(" - Find A Grave Memorial", "");
         if (title.contains("(")) {
             splitrange = title.split("(");

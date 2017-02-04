@@ -26,7 +26,6 @@ registerCollection({
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
         var nameTab = parsed.find(".with_tabs.name");
         focusname = nameTab.find("a").first().text() + " " + nameTab.find("a").first().next().text();
-        recordtype = this.recordtype;
     },
     "parseProfileData": parseGeneanet
 });

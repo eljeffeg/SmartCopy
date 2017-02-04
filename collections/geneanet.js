@@ -1,7 +1,7 @@
 registerCollection({
     "reload": false,
     "experimental": true,
-    "url": "http://gw.geneanet.org",
+    "recordtype": "Geneanet Genealogy",
     "prepareUrl": function(url) {
         if (url.contains("type=")) {
             url = url.replace(/&type=.*?&/, "&");
@@ -15,6 +15,9 @@ registerCollection({
         }
         return url;
     },
+    "collectionMatch": function(url) {
+        return (startsWithHTTP(url, "https://gw.geneanet.org"));
+    },
     "parseData": function(url) {
         focusURLid = getGeneanetItemId(url);
         getPageCode();
@@ -23,7 +26,7 @@ registerCollection({
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
         var nameTab = parsed.find(".with_tabs.name");
         focusname = nameTab.find("a").first().text() + " " + nameTab.find("a").first().next().text();
-        recordtype = "Geneanet Genealogy";
+        recordtype = this.recordtype;
     },
     "parseProfileData": parseGeneanet
 });

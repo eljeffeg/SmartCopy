@@ -1,7 +1,10 @@
 registerCollection({
   "reload": false,
   "experimental": true,
-  "url": "http://www.farhi.org",
+  "recordtype": "TNG Genealogy",
+  "collectionMatch": function(url) {
+      return (startsWithHTTP(url, "http://www.farhi.org"));
+  },
   "parseData": function(url) {
     focusURLid = getTNGItemId(url);
     getPageCode();
@@ -9,7 +12,6 @@ registerCollection({
   "loadPage": function(request) {
     var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
     focusname = getTNGName(parsed);
-    recordtype = "TNG Genealogy";
   },
   "parseProfileData": parseTNG
 });

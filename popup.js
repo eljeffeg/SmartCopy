@@ -180,18 +180,18 @@ function loginProcess() {
 
             // Select collection
             for (var i=0; i<collections.length; i++) {
-              if (collections[i].prepareUrl && startsWithHTTP(collections[i].prepareUrl(tablink), collections[i].url)) {
+              if (collections[i].collectionMatch(tablink)) {
                 collection = collections[i];
                 tablink = collection.prepareUrl(tablink);
+                recordtype = collection.recordtype;
+                console.log("Collection: " + recordtype);
                 break;
               }
             }
             if (collection == undefined) {
                 // TODO: display error
-                console.log("Could not find collection");
-                collection = {url: tablink};
+                console.log("Could not find new collection on " + tablink);
             }
-            console.log("Collection URL: "+collection.url);
 
             // TODO: which collection is that?
             if (startsWithHTTP(tablink,"http://www.ancestry.") && !startsWithHTTP(tablink,"http://www.ancestry.com") && tablink.contains("/genealogy/records/")) {
@@ -694,8 +694,6 @@ function loadPage(request) {
                     }, function (response) {
                         genifamily = JSON.parse(response.source);
                         //$('#familyjsontable').json2html(response.source,familytransform);
-
-
                         buildParentSpouse(true);
                         familystatus.pop();
                     });
@@ -982,7 +980,7 @@ function buildParentSpouse(finalid) {
         var spval = {male: 0, female: 0, unknown: 0};
         for (var i = 0; i < genifamily.length; i++) {
             var familymem = genifamily[i];
-            genifamilydata[familymem.id] = new GeniPerson(familymem)
+            genifamilydata[familymem.id] = new GeniPerson(familymem);
             familymem.relation = familymem.relation.toLowerCase();
             if (isParent(familymem.relation)) {
                 parval = countGeniMem(parval, familymem.relation);
@@ -2656,6 +2654,12 @@ function MHLanguageCheck(url) {
 function validFamilyTree(url) {
     return (url.startsWith("http://familytreemaker.genealogy.com/") || url.startsWith("http://www.genealogy.com/"));
 }
+
+function hostDomain(url) {
+    var a = document.createElement('a');
+    a.href = url;
+    return a.protocol + "//" + a.host;
+};
 
 chrome.storage.local.get('autogeo', function (result) {
     var geochecked = result.autogeo;

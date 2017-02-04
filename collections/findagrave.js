@@ -1,9 +1,12 @@
 registerCollection({
-    "url": "http://www.findagrave.com",
+    "recordtype": "Find A Grave Memorial",
     "prepareUrl": function(url) {
-        url = url.replace("//findagrave.com", "//www.findagrave.com");
-        url = url.replace("//forums.findagrave.com", "//www.findagrave.com");
         return url;
+    },
+    "collectionMatch": function(url) {
+        return (startsWithHTTP(url, "https://www.findagrave.com") ||
+            startsWithHTTP(url, "https://findagrave.com") ||
+            startsWithHTTP(url, "https://forum.findagrave.com"));
     },
     "parseData": function(url) {
         if (url.contains("page=gsr")) {
@@ -18,7 +21,7 @@ registerCollection({
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
         var fperson = parsed.find(".plus2").find("b");
         focusname = getPersonName(fperson[0].innerHTML);
-        recordtype = "Find A Grave Memorial";
+        recordtype = this.recordtype;
         var title = parsed.filter('title').text().replace(" - Find A Grave Memorial", "");
         if (title.contains("(")) {
             splitrange = title.split("(");
@@ -50,7 +53,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             var urlset = click[0].outerHTML.match('href="(.*)"');
             var url = "";
             if (exists(urlset) && exists(urlset[1])) {
-                url = "https://www.findagrave.com" + urlset[1];
+                url = hostDomain(tablink) + urlset[1];
                 familystatus.push(familystatus.length);
                 chrome.extension.sendMessage({
                     method: "GET",
@@ -195,7 +198,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                             var urlset = datarow.match('href="(.*)"');
                             var url = "";
                             if (exists(urlset) && exists(urlset[1])) {
-                                url = "https://www.findagrave.com/cgi-bin/" + urlset[1];
+                                url = hostDomain(tablink) + "/cgi-bin/" + urlset[1];
                                 familystatus.push(familystatus.length);
                                 var subdata = {name: name, gender: gendersv, title: title};
                                 var itemid = getParameterByName('GRid', url);
@@ -262,7 +265,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                             var urlset = datarow.match('href="(.*)"');
                             var url = "";
                             if (exists(urlset) && exists(urlset[1])) {
-                                url = "https://www.findagrave.com/cgi-bin/" + urlset[1];
+                                url = hostDomain(tablink) + "/cgi-bin/" + urlset[1];
                                 var itemid = getParameterByName('GRid', url);
                                 if (focusURLid !== itemid) {
                                     childlist[relation.proid] = $.inArray(itemid, unionurls);
@@ -282,7 +285,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                             var urlset = datarow.match('href="(.*)"');
                             var url = "";
                             if (exists(urlset) && exists(urlset[1])) {
-                                url = "https://www.findagrave.com/cgi-bin/" + urlset[1];
+                                url = hostDomain(tablink) + "/cgi-bin/" + urlset[1];
                                 var itemid = getParameterByName('GRid', url);
                                 siblingparents.push(itemid);
                             }

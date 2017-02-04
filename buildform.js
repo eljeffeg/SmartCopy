@@ -1872,6 +1872,30 @@ function getLocation(data) {
     }
 }
 
+function emptyEvent(data) {
+    if (exists(data)) {
+        if (exists(data.date)) {
+            var eventdate = data.date;
+            for (var key in eventdate){
+                var value = eventdate[key];
+                if (key !== "circa" && value !== "") {
+                    return false;
+                }
+            }
+        }
+        if (exists(data.location)) {
+            var eventlocation = data.location;
+            for (var key in eventlocation){
+                var value = eventlocation[key];
+                if (value !== "") {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 function GeniPerson(obj) {
     this.person = obj;
     this.get = function (path, subpath) {

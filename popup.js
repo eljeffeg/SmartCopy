@@ -464,7 +464,7 @@ function loadPage(request) {
                 if (recordtype === "Find a Grave") {
                     var recordurl = request.source.match('http://www.findagrave.com/cgi-bin(.*?)"');
                     if (exists(recordurl) && exists(recordurl[1])) {
-                        tablink = "http://www.findagrave.com/cgi-bin" + recordurl[1];
+                        tablink = "https://www.findagrave.com/cgi-bin" + recordurl[1];
                         profilechanged = true;
                         chrome.extension.sendMessage({
                             method: "GET",
@@ -478,7 +478,7 @@ function loadPage(request) {
                 } else if (recordtype === "WikiTree") {
                     var recordurl = request.source.match('http://www.wikitree.com/wiki/(.*?)"');
                     if (exists(recordurl) && exists(recordurl[1])) {
-                        tablink = "http://www.wikitree.com/wiki/" + recordurl[1];
+                        tablink = "https://www.wikitree.com/wiki/" + recordurl[1];
                         profilechanged = true;
                         chrome.extension.sendMessage({
                             method: "GET",
@@ -1654,10 +1654,14 @@ var submitform = function () {
                         if (exists(fdata)) {
                             databyid[familyout.profile_id]["geni_id"] = pid;
                         }
+                        var genidata;
+                        if (exists(genifamilydata[pid])) {
+                            genidata = genifamilydata[pid];
+                        }
                         if (isPartner(actionname[1]) || isParent(actionname[1])) {
                             var unionid = getUnion(pid);
                             if (unionid !== "") {
-                                spouselist[familyout.profile_id] = {union: unionid, status: ""};
+                                spouselist[familyout.profile_id] = {union: unionid, status: "", genidata: genidata};
                             }
                         }
                         if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "")) {
@@ -1738,11 +1742,15 @@ function buildTree(data, action, sendid) {
             }
             var id = response.variable.id;
             if (exists(databyid[id])) {
+                var genidata;
                 if (exists(result.id)) {
                     databyid[id]["geni_id"] = result.id;
                 }
+                if (exists(genifamilydata[databyid[id]["geni_id"]])) {
+                    genidata = genifamilydata[databyid[id]["geni_id"]];
+                }
                 if (response.variable.relation === "partner" && exists(result.unions)) {
-                    spouselist[id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: databyid[id].status};
+                    spouselist[id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: databyid[id].status, genidata: genidata};
                 } else if (response.variable.relation === "parent" && exists(result.unions)) {
                     parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
                     if (parentlist.length > 0) {
@@ -1767,8 +1775,12 @@ function buildTree(data, action, sendid) {
                             }, function (response) {
                                 var source2 = JSON.parse(response.source);
                                 var rid = response.variable.id;
+                                var genidata;
+                                if (exists(genifamilydata[source2.id])) {
+                                    genidata = genifamilydata[source2.id];
+                                }
                                 if (exists(source2[0]) && exists(source2[0].union)) {
-                                    spouselist[rid] = {union: source2[0].union, status: databyid[rid].mstatus};
+                                    spouselist[rid] = {union: source2[0].union, status: databyid[rid].mstatus, genidata: genidata};
                                 }
                                 if (action !== "add-photo" && action !== "delete") {
                                     updatecount += 1;
@@ -1793,15 +1805,18 @@ function buildTree(data, action, sendid) {
         if (exists(data.profile_id)) {
             var id = data.profile_id;
             if (exists(databyid[id])) {
-                databyid[id]["geni_id"] = "profile-123456" + id.toString();
-                console.log(action + " on " + databyid[id]["geni_id"]);
-                spouselist[id] = {union: "union" + id, status: databyid[id].status};
+                databyid[id]["geni_id"] = sendid;
+                var genidata;
+                if (exists(genifamilydata[sendid])) {
+                    genidata = genifamilydata[sendid];
+                }
+                spouselist[id] = {union: "union" + id, status: databyid[id].status, genidata: genidata};
                 if (parentlist.length > 0) {
                     if (exists(marriagedates[id])) {
-                        spouselist[id] = {union: "union" + id, status: databyid[id].mstatus};
+                        spouselist[id] = {union: "union" + id, status: databyid[id].mstatus, genidata: genidata};
                     } else if (exists(marriagedates[parentlist[0].id])) {
                         var pid = parentlist[0];
-                        spouselist[pid.id] = {union: "union" + pid.id, status: pid.mstatus};
+                        spouselist[pid.id] = {union: "union" + pid.id, status: pid.mstatus, genidata: genidata};
                     } else {
                         console.log("No Parent");
                     }
@@ -1860,22 +1875,40 @@ function submitChildren() {
         for (var i = 0; i < spouselist.length; i++) {
             if (exists(spouselist[i])) {
                 var spouseinfo = spouselist[i];
+                var genidata = spouseinfo.genidata;
+                var genimarriage;
+                var genidivorce;
+                var genistatus = "spouse";
+                if (exists(genidata) && exists(genidata.person)) {
+                    genistatus = genidata.get("status");
+                    genimarriage = genidata.person.marriage;
+                    genidivorce = genidata.person.divorce;
+                }
+
                 var marriageupdate = {};
                 var status = "";
 
-                if (spouseinfo.status === "partner") {
-                    status = "partner";
-                } else if (spouseinfo.status === ("ex-partner")) {
+                if (spouseinfo.status === ("ex-partner")) {
                     status = "ex_partner";
-                } else if (exists(spouseinfo.status) && spouseinfo.status.startsWith("ex-")) {
+                } else if (spouseinfo.status === "ex-spouse") {
                     status = "ex_spouse";
+                } else if (spouseinfo.status === "partner") {
+                    status = "partner";
                 }
                 if (status !== "") {
                     marriageupdate.status = status;
                 }
                 if (exists(marriagedates[i])) {
-                    marriageupdate.marriage = marriagedates[i].marriage;
-                    if (exists(marriagedates[i].divorce)) {
+                    if (exists(marriagedates[i].marriage) && (!emptyEvent(marriagedates[i].marriage) || !emptyEvent(genimarriage))) {
+                        if (status === "spouse" && genistatus !== "spouse") {
+                            marriageupdate.status = genistatus;
+                        }
+                        marriageupdate.marriage = marriagedates[i].marriage;
+                    }
+                    if (exists(marriagedates[i].divorce) && (!emptyEvent(marriagedates[i].divorce) || !emptyEvent(genidivorce))) {
+                        if (status === "spouse" && genistatus !== "spouse") {
+                            marriageupdate.status = genistatus;
+                        }
                         marriageupdate.divorce = marriagedates[i].divorce;
                     }
                 }
@@ -1972,14 +2005,14 @@ function buildTempSpouse(parentid) {
         }, function (response) {
             var result = JSON.parse(response.source);
             if (exists(result.unions)) {
-                spouselist[response.variable.id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: "partner"};
+                spouselist[response.variable.id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: "partner", genidata: ""};
             }
             tempspouse[response.variable.id] = result.id;
             submitstatus.pop();
         });
     } else if (devblocksend) {
         //Dev testing code - give it some fake data so it doesn't fail
-        spouselist[parentid] = {union: "union-58259268", status: "partner"};
+        spouselist[parentid] = {union: "union-58259268", status: "partner", genidata: ""};
     }
 }
 

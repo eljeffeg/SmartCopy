@@ -17,6 +17,7 @@
     },
     "permissions": ["activeTab", "storage",
         "*://*.geni.com/",
+        "*://*.findagrave.com/",
         "*://*.familysearch.org/",
         "*://familysearch.org/",
         "*://*.wikitree.org/",

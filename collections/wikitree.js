@@ -1,4 +1,49 @@
 // Parse WikiTree
+registerCollection({
+    "reload": false,
+    "recordtype": "WikiTree Genealogy",
+    "prepareUrl": function(url) {
+        if (startsWithHTTP(url,"https://www.wikitree.com/genealogy/")) {
+            url = url.replace("genealogy/", "wiki/").replace("-Family-Tree", "");
+            this.reload = true;
+        }
+        return url;
+    },
+    "collectionMatch": function(url) {
+        return (startsWithHTTP(url, "https://www.wikitree.com"));
+    },
+    "parseData": function(url) {
+        focusURLid = url.substring(url.lastIndexOf('/') + 1).replace("-Family-Tree", "");
+        getPageCode();
+    },
+    "loadPage": function(request) {
+        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        var personinfo = parsed.find(".VITALS");
+        var focusperson = "";
+        if (exists(personinfo[0])) {
+            focusperson = personinfo[0].innerText.replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
+            if (focusperson.contains("formerly")) {
+                focusperson = focusperson.replace("formerly", "(born") + ")";
+            } else if (focusperson.contains("formerly") && focusperson.contains("[surname unknown]")) {
+                focusperson = focusperson.replace("formerly", "").replace("[surname unknown]", "").trim();
+            }
+            focusname = focusperson;
+        }
+        var title = parsed.filter('title').text();
+        var focusrangearray = title.match(/\d* - \d*/);
+        if (exists(focusrangearray) && focusrangearray.length > 0) {
+            focusrange = focusrangearray[0].trim();
+            if (focusrange.endsWith("-")) {
+                focusrange += " ?";
+            }
+            if (focusrange.startsWith("-")) {
+                focusrange = "? " + focusrange;
+            }
+        }
+    },
+    "parseProfileData": parseWikiTree
+});
+
 function parseWikiTree(htmlstring, familymembers, relation) {
     relation = relation || "";
     var parsed = $(htmlstring.replace(/<img/ig, "<gmi"));

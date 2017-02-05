@@ -45,9 +45,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         if (exists(imageref[0])) {
             if (!thumb.startsWith("https://recordsthumbnail.myheritageimages.com") && !thumb.startsWith("http://recordsthumbnail.myheritageimages.com")) {
                 var image = imageref[0].href;
-                if (image.startsWith("http://www.findagrave.com")) {
+                if (startsWithHTTP(image, "https://www.findagrave.com")) {
                     profiledata["image"] = thumb.replace("https://records.myheritageimages.com/wvrcontent/findagrave_photos", "http://image1.findagrave.com");
-                } else if (image.startsWith("http://billiongraves.com")) {
+                } else if (startsWithHTTP(image, "https://billiongraves.com")) {
                     profiledata["image"] = thumb.replace("thumbnails", "images")
                 } else {
                     profiledata["image"] = image;

@@ -157,6 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function startsWithHTTP(url, match) {
+    //remove protocol and comapre
     url = url.replace("https://", "").replace("http://", "");
     match = match.replace("https://", "").replace("http://", "");
     return url.startsWith(match);
@@ -191,6 +192,7 @@ function loginProcess() {
             if (collection == undefined) {
                 // TODO: display error
                 console.log("Could not find new collection on " + tablink);
+                collection = {};
             }
 
             // TODO: which collection is that?
@@ -207,7 +209,7 @@ function loginProcess() {
             } else {
                 // TODO: migrate all this to parseData()
                 if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") ||
-                    startsWithHTTP(tablink,"http://www.wikitree.com") || startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
+                    startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
                     (validRootsWeb(tablink) && tablink.contains("id=")) || (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
                     startsWithHTTP(tablink,"https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
                     getPageCode();
@@ -611,31 +613,6 @@ function loadPage(request) {
                     focusperson = focusperson.replace(/\//g, "");
                 }
                 focusname = focusperson;
-            } else if (startsWithHTTP(tablink,"http://www.wikitree.com")) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-                var personinfo = parsed.find(".VITALS");
-                var focusperson = "";
-                if (exists(personinfo[0])) {
-                    focusperson = personinfo[0].innerText.replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
-                    if (focusperson.contains("formerly")) {
-                        focusperson = focusperson.replace("formerly", "(born") + ")";
-                    } else if (focusperson.contains("formerly") && focusperson.contains("[surname unknown]")) {
-                        focusperson = focusperson.replace("formerly", "").replace("[surname unknown]", "").trim();
-                    }
-                    focusname = focusperson;
-                }
-                recordtype = "WikiTree Genealogy";
-                var title = parsed.filter('title').text();
-                var focusrangearray = title.match(/\d* - \d*/);
-                if (exists(focusrangearray) && focusrangearray.length > 0) {
-                    focusrange = focusrangearray[0].trim();
-                    if (focusrange.endsWith("-")) {
-                        focusrange += " ?";
-                    }
-                    if (focusrange.startsWith("-")) {
-                        focusrange = "? " + focusrange;
-                    }
-                }
             } else if (startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 var infotable = parsed.find(".wr-infotable").find("tr");
@@ -737,8 +714,6 @@ function loadPage(request) {
                     collection.parseProfileData(request.source, true);
                 } else if (tablink.contains("/collection-") || tablink.contains("/research/record-")) {
                     parseSmartMatch(request.source, true);
-                } else if (startsWithHTTP(tablink,"http://www.wikitree.com")) {
-                    parseWikiTree(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://www.werelate.org")) {
                     parseWeRelate(request.source, true);
                 } else if (validRootsWeb(tablink)) {
@@ -781,9 +756,7 @@ function loadPage(request) {
         }
     } else {
         if (supportedCollection()) {
-            if (startsWithHTTP(tablink,"http://www.wikitree.com")) {
-                focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace("-Family-Tree", "");
-            } else if (startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person")) {
+            if (startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person")) {
                 focusURLid = decodeURIComponent(tablink.substring(tablink.lastIndexOf(':') + 1));
             } else if (validRootsWeb(tablink)) {
                 focusURLid = getParameterByName('id', tablink);
@@ -1103,7 +1076,6 @@ function getPageCode() {
             });
             */
         } else if (startsWithHTTP(tablink,"http://www.myheritage.com/") || startsWithHTTP(tablink,"https://www.myheritage.com/") ||
-            startsWithHTTP(tablink,"http://www.wikitree.com/wiki/") ||
             startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
             validFamilyTree(tablink) ||
             (validRootsWeb(tablink) && getParameterByName("op", tablink).toLowerCase() === "get") ||
@@ -1146,15 +1118,6 @@ function getPageCode() {
         } else if (startsWithHTTP(tablink,"http://person.ancestry.")) {
             tablink = tablink.replace("/story", "/facts");
             tablink = tablink.replace("/gallery", "/facts");
-            chrome.extension.sendMessage({
-                method: "GET",
-                action: "xhttp",
-                url: tablink
-            }, function (response) {
-                loadPage(response);
-            });
-        } else if (startsWithHTTP(tablink,"http://www.wikitree.com/genealogy/")) {
-            tablink = tablink.replace("genealogy/", "wiki/").replace("-Family-Tree", "");
             chrome.extension.sendMessage({
                 method: "GET",
                 action: "xhttp",
@@ -2291,8 +2254,7 @@ function supportedCollection() {
             $("#experimentalmessage").css("display", "block");
         }
         return true;
-    } else return tablink.contains("/collection-") || tablink.contains("research/record-") ||
-        startsWithHTTP(tablink,"http://www.wikitree.com/") || validRootsWeb(tablink) ||
+    } else return tablink.contains("/collection-") || tablink.contains("research/record-") || validRootsWeb(tablink) ||
         validAncestry(tablink) || (startsWithHTTP(tablink,"https://familysearch.org/pal:") || startsWithHTTP(tablink,"https://familysearch.org/tree") || startsWithHTTP(tablink,"https://familysearch.org/platform")) ||
         startsWithHTTP(tablink,"http://www.werelate.org/") || validMyHeritage(tablink) || validFamilyTree(tablink);
 }

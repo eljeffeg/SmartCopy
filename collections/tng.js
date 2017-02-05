@@ -5,6 +5,9 @@ registerCollection({
   "collectionMatch": function(url) {
       return (startsWithHTTP(url, "http://www.farhi.org"));
   },
+  "prepareUrl": function(url) {
+    return url;
+  },
   "parseData": function(url) {
     focusURLid = getTNGItemId(url);
     getPageCode();

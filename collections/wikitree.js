@@ -75,9 +75,9 @@ function parseWikiTree(htmlstring, familymembers, relation) {
     document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
     var imageflag = false;
     var genderval = "unknown";
-    if (htmlstring.contains("http://www.wikitree.com/images/icons/female.gif")) {
+    if (htmlstring.contains("www.wikitree.com/images/icons/female.gif")) {
         genderval = "female";
-    } else if (htmlstring.contains("http://www.wikitree.com/images/icons/female.gif")) {
+    } else if (htmlstring.contains("www.wikitree.com/images/icons/female.gif")) {
         genderval = "male";
     } else if (exists(relation.gender) && relation.gender !== "unknown") {
         genderval = relation.gender;
@@ -99,7 +99,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
             var imglink = $(imagedata[0]).find('a');
             var imgthumb = $(imagedata[0]).find('gmi');
             if (exists(imglink[0]) && exists(imgthumb)) {
-                var thumb = "http://www.wikitree.com" + $(imgthumb[0]).attr("src");
+                var thumb = hostDomain(tablink) + $(imgthumb[0]).attr("src");
                 var image = thumb.substring(0, thumb.lastIndexOf("/")).replace("thumb/", "");
                 profiledata["thumb"] = thumb;
                 profiledata["image"] = image;
@@ -113,11 +113,11 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                 if (exists(imagedata[0])) {
                     var imgurl = $(imagedata[0]).attr("src");
                     if (exists(imgurl) && imgurl.startsWith("/photo")) {
-                        thumb = "http://www.wikitree.com" + imgurl;
+                        thumb = hostDomain(tablink) + imgurl;
                         if (imgurl.contains("/300px-")) {
                             imgurl = imgurl.substring(0, imgurl.lastIndexOf("/"));
                         }
-                        image = "http://www.wikitree.com" + imgurl.replace("thumb/", "");
+                        image = hostDomain(tablink) + imgurl.replace("thumb/", "");
                         profiledata["thumb"] = thumb;
                         profiledata["image"] = image;
                         break;
@@ -168,7 +168,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                 for (var i = 0; i < cells.length; i++) {
                     var urlset = $(cells[i]).find('a');
                     if (exists(urlset)) {
-                        var url = "http://www.wikitree.com" + $(urlset[0]).attr('href');
+                        var url = hostDomain(tablink) + $(urlset[0]).attr('href');
                         var title = $(urlset[0]).attr('title');
                         var name = $(urlset[0]).text();
                         if (exists(name)) {

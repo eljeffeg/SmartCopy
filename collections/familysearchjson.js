@@ -1,4 +1,85 @@
 // Parse FamilySearch Genealogies
+registerCollection({
+    "reload": false,
+    "recordtype": "FamilySearch Genealogy",
+    "prepareUrl": function(url) {
+        if (startsWithHTTP(url,"https://familysearch.org/pal:")) {
+            var urlparts= url.split('?');
+            focusURLid = urlparts[0].substring(url.lastIndexOf('/') + 1);
+            url = hostDomain(url) + "/tree-data/person/" + focusURLid + "/all?locale=en";
+            this.reload = true;
+        } else if (startsWithHTTP(url,"https://familysearch.org/tree/") && !startsWithHTTP(url, "https://familysearch.org/tree/find")) {
+            focusURLid = getParameterByName('person', url);
+            if (focusURLid === "") {
+                url = url.replace("/details", "").replace("/memories", "").replace("/landscape", "").replace("/portrait", "").replace("/fanchart", "").replace("/descendancy", "");
+                focusURLid = url.substring(url.lastIndexOf('/') + 1);
+                if (exists(focusURLid) && focusURLid.contains("?")) {
+                    focusURLid = focusURLid.substring(0, focusURLid.lastIndexOf('?'));
+                }
+            }
+            url = hostDomain(url) + "/tree-data/person/" + focusURLid + "/all?locale=en";
+            this.reload = true;
+        } else if (startsWithHTTP(url,"https://familysearch.org/ark:") && !url.contains("/1:1:")) {
+            var urlparts= url.split('?');
+            focusURLid = urlparts[0].substring(url.lastIndexOf(':') + 1);
+            url = hostDomain(url) + "/tree-data/person/" + focusURLid + "/all?locale=en";
+            this.reload = true;
+        } else if (startsWithHTTP(url,"https://familysearch.org/tree-data/")) {
+            var focussplit = url.split("/");
+            if (focussplit.length > 1) {
+                focusURLid = focussplit[focussplit.length - 2];
+            }
+        }
+        return url;
+    },
+    "collectionMatch": function(url) {
+        return (
+                startsWithHTTP(url,"https://familysearch.org/tree-data") ||
+                startsWithHTTP(url,"https://familysearch.org/tree/") ||
+                startsWithHTTP(url,"https://familysearch.org/pal:") ||
+                (startsWithHTTP(url,"https://familysearch.org/ark:") && !url.contains("/1:1:") && !url.contains("/2:2:"))
+            );
+    },
+    "parseData": function(url) {
+        if (startsWithHTTP(url, "https://familysearch.org/tree/find")) {
+            document.querySelector('#loginspinner').style.display = "none";
+            setMessage(warningmsg, 'SmartCopy does not work on Search pages.  Please select one of the Profile pages on this site.');
+        } else {
+            getPageCode();
+        }
+    },
+    "loadPage": function(request) {
+        var parsed = "";
+        try {
+            parsed = JSON.parse(request.source);
+        } catch(err) {
+            setMessage(warningmsg, "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
+                "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
+            document.getElementById("top-container").style.display = "block";
+            document.getElementById("submitbutton").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            return;
+        }
+        if (parsed["status"] !== "OK") {
+            setMessage(warningmsg, 'There was a problem reading this FamilySearch profile.<br>Unable to retrive the data via the id "' +
+                '<a href="' + tablink + '" target="_blank">' + focusURLid + '</a>".');
+            document.getElementById("top-container").style.display = "block";
+            document.getElementById("submitbutton").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            return;
+        }
+
+        var focusperson = parsed["data"]["name"];
+        if (focusperson.match(/\s\/\w+\//g, '')) {
+            focusperson = focusperson.replace(/\//g, "");
+        }
+        focusURLid = parsed["data"]["id"];  //In case it is merged with another profile - update
+        focusname = focusperson;
+        focusrange = parsed["data"]["lifeSpan"] || "";
+    },
+    "parseProfileData": parseFamilySearchJSON
+});
+
 function parseFamilySearchJSON(htmlstring, familymembers, relation) {
     relation = relation || "";
     var parsed = null;
@@ -106,15 +187,15 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
     }
 
     if (familymembers) {
-        profiledata["url"] = "https://familysearch.org/tree/#view=ancestor&person=" + focusURLid;
+        profiledata["url"] = hostDomain(tablink) + "/tree/#view=ancestor&person=" + focusURLid;
     } else {
-        profiledata["url"] = "https://familysearch.org/tree/#view=ancestor&person=" + relation.itemId;
+        profiledata["url"] = hostDomain(tablink) + "/tree/#view=ancestor&person=" + relation.itemId;
     }
 
     // ---------------------- Family Data --------------------
     if (familymembers) {
         familystatus.push(famid);
-        var url = "https://familysearch.org/tree-data/family-members/person/" + focusURLid + "?includePhotos=true&locale=en";
+        var url = hostDomain(tablink) + "/tree-data/family-members/person/" + focusURLid + "?includePhotos=true&locale=en";
         chrome.extension.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -212,7 +293,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         var spouse = fsspouselist[x];
                         familystatus.push(famid);
                         //https://familysearch.org/tree-data/family-members/couple/LKKN-H49_LH2H-51B/children?focusPersonId=LH2H-51B&includePhotos=true&locale=en
-                        var url = "https://familysearch.org/tree-data/family-members/couple/" + spouse + "_" + focusURLid + "/children?focusPersonId=" + focusURLid + "&includePhotos=true&locale=en"
+                        var url = hostDomain(tablink) + "/tree-data/family-members/couple/" + spouse + "_" + focusURLid + "/children?focusPersonId=" + focusURLid + "&includePhotos=true&locale=en"
                         var subdata = {spouse: spouse};
                         chrome.extension.sendMessage({
                             method: "GET",
@@ -389,7 +470,7 @@ function processFamilySearchJSON(itemid, title, famid, image, data) {
     if (itemid === focusURLid) {
         return false;
     }
-    var url = "https://familysearch.org/tree-data/person/" + itemid + "/all?locale=en";
+    var url = hostDomain(tablink) + "/tree-data/person/" + itemid + "/all?locale=en";
     if (!exists(alldata["family"][title])) {
         alldata["family"][title] = [];
     }

@@ -19,12 +19,20 @@ registerCollection({
         return url;
     },
     "collectionMatch": function(url) {
-        return (startsWithHTTP(url, "https://familysearch.org/platform") ||
+        return (
+            startsWithHTTP(url, "https://familysearch.org/platform") ||
+            startsWithHTTP(url,"https://familysearch.org/search/") ||
             (startsWithHTTP(url,"https://familysearch.org/ark:") && url.contains("/1:1:")) ||
-            (startsWithHTTP(url,"https://familysearch.org/ark:") && url.contains("/2:2:")));
+            (startsWithHTTP(url,"https://familysearch.org/ark:") && url.contains("/2:2:"))
+            );
     },
     "parseData": function(url) {
-        getPageCode();
+        if (startsWithHTTP(url,"https://familysearch.org/search/")) {
+            document.querySelector('#loginspinner').style.display = "none";
+            setMessage(warningmsg, 'SmartCopy does not work on Search pages.  Please open the <b>Details</b> page for a specific record.');
+        } else {
+            getPageCode();
+        }
     },
     "loadPage": function(request) {
         var parsed = "";

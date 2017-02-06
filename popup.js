@@ -658,7 +658,7 @@ function loadPage(request) {
                     focusid = geni_return.id; //In case there is a merge_into return
                    // $('#focusjsontable').json2html(response.source,focustransform);
                     genifocusdata = new GeniPerson(geni_return);
-                    if (genifocusdata.person.matches) {
+                    if (genifocusdata.person.matches.length > 0) {
                         $("#treematchurl").attr("href", "https://www.geni.com/search/matches?id=" + genifocusdata.get("guid") + "&src=smartcopy&cmp=btn");
                         $("#treematchcount").text(" " + "1" + " ");
                         $("#treematches").show();

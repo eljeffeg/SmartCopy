@@ -1756,7 +1756,7 @@ function cleanDate(dateval) {
 
 function loadGeniData() {
     familystatus.push("family");
-    var familyurl = "https://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + focusid;
+    var familyurl = smartcopyurl + "/smartsubmit?family=spouse&profile=" + focusid;
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -1766,7 +1766,7 @@ function loadGeniData() {
         familystatus.pop();
     });
     familystatus.push("about");
-    var abouturl = "https://historylink.herokuapp.com/smartsubmit?fields=about_me,nicknames&profile=" + focusid;
+    var abouturl = smartcopyurl + "/smartsubmit?fields=about_me,nicknames&profile=" + focusid;
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",

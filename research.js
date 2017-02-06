@@ -4,7 +4,7 @@ function buildResearch() {
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
-        url: "https://historylink.herokuapp.com/smartsubmit?profile=" + focusid + "&fields=" + fields,
+        url: smartcopyurl + "/smartsubmit?profile=" + focusid + "&fields=" + fields,
         variable: ""
     }, function (response) {
         var responsedata = JSON.parse(response.source);

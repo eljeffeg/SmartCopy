@@ -26,6 +26,7 @@ var genifamilydata = {};
 var genibuildaction = {};
 var errormsg = "#f9acac";
 var warningmsg = "#f8ff86";
+var smartcopyurl = "https://historylink.herokuapp.com";  //helpful for local testing to switch from https to http
 
 chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
@@ -248,12 +249,14 @@ $('#genislider').on('click', function () {
         $(".genisliderow").not(".genihidden").slideToggle();
         $("#controlimage").slideUp();
         $(this).find("img")[0].src = "images/openmenu.png";
+        $("#configtext").hide();
     } else {
        // $("body").animate({ 'max-width': "550px" }, 'slow');
         $("body").animate({ 'max-width': "500px" }, 'slow');
         $(".genisliderow").not(".genihidden").slideToggle();
         $("#controlimage").slideDown();
         $(this).find("img")[0].src = "images/closemenu.png";
+        $("#configtext").show();
     }
     slideopen = !slideopen;
 });
@@ -268,7 +271,7 @@ function userAccess() {
         chrome.extension.sendMessage({
             method: "GET",
             action: "xhttp",
-            url: "https://historylink.herokuapp.com/account?profile=" + focusid,
+            url: smartcopyurl + "/account?profile=" + focusid,
             variable: ""
         }, function (response) {
             document.querySelector('#loginspinner').style.display = "none";
@@ -314,7 +317,7 @@ function userAccess() {
 function userrestore() {
     document.querySelector('#useraccess').style.display = "none";
     document.querySelector('#loginspinner').style.display = "block";
-    var prefixurl = "https://historylink.herokuapp.com/account?profile=" + focusid;
+    var prefixurl = smartcopyurl + "/account?profile=" + focusid;
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -328,7 +331,7 @@ function userrestore() {
 function useradd() {
     document.querySelector('#useraccess').style.display = "none";
     document.querySelector('#loginspinner').style.display = "block";
-    var prefixurl = "https://historylink.herokuapp.com/account?profile=" + focusid;
+    var prefixurl = smartcopyurl + "/account?profile=" + focusid;
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -366,7 +369,7 @@ function useradd() {
 function userrevoke() {
     document.querySelector('#useraccess').style.display = "none";
     document.querySelector('#loginspinner').style.display = "block";
-    var prefixurl = "https://historylink.herokuapp.com/account?profile=" + focusid;
+    var prefixurl = smartcopyurl + "/account?profile=" + focusid;
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -653,7 +656,7 @@ function loadPage(request) {
                 accessdialog.style.backgroundColor = "#dfe6ed";
 
                 familystatus.push(1);
-                var descurl = "https://historylink.herokuapp.com/smartsubmit?family=self&profile=" + focusid;
+                var descurl = smartcopyurl + "/smartsubmit?family=self&profile=" + focusid;
                 chrome.extension.sendMessage({
                     method: "GET",
                     action: "xhttp",
@@ -663,7 +666,12 @@ function loadPage(request) {
                     focusid = geni_return.id; //In case there is a merge_into return
                    // $('#focusjsontable').json2html(response.source,focustransform);
                     genifocusdata = new GeniPerson(geni_return);
-                    var url = "https://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusid;
+                    if (genifocusdata.person.matches) {
+                        $("#treematchurl").attr("href", "https://www.geni.com/search/matches?id=" + genifocusdata.get("guid") + "&src=smartcopy&cmp=btn");
+                        $("#treematchcount").text(" " + "1" + " ");
+                        $("#treematches").show();
+                    };
+                    var url = smartcopyurl + "/smartsubmit?family=all&profile=" + focusid;
                     chrome.extension.sendMessage({
                         method: "GET",
                         action: "xhttp",
@@ -876,7 +884,7 @@ function loadSelectPage(request) {
     }
     if (exists(focusprofile)) {
         focusprofile = focusprofile.replace("http://www.geni.com/", "").replace("https://www.geni.com/", "").trim();
-        var url = "https://historylink.herokuapp.com/smartsubmit?family=all&profile=" + focusprofile;
+        var url = smartcopyurl + "/smartsubmit?family=all&profile=" + focusprofile;
         chrome.extension.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -1221,7 +1229,7 @@ var accountretry = 0;
 
 function checkAccount() {
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "https://historylink.herokuapp.com/account?version=" + chrome.runtime.getManifest().version, true);
+    xhr.open("GET", smartcopyurl + "/account?version=" + chrome.runtime.getManifest().version, true);
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
             try {
@@ -1253,7 +1261,7 @@ function loadLogin() {
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
-        url: "https://historylink.herokuapp.com/smartlogin?version=" + chrome.runtime.getManifest().version
+        url: smartcopyurl + "/smartlogin?version=" + chrome.runtime.getManifest().version
     }, function (responseText) {
         if (responseText.source === "<script>window.open('', '_self', ''); window.close();</script>") {
             console.log("Logged In...");
@@ -1264,9 +1272,11 @@ function loadLogin() {
                 if (!slideopen) {
                     $("body").animate({ 'max-width': "340px" }, 'slow');
                     $("body").animate({ 'width': "340px" }, 'slow');
+                    $("configtext").hide();
                 } else {
                     $("body").animate({ 'max-width': "500px" }, 'slow');
                     $("body").animate({ 'width': "500px" }, 'slow');
+                    $("configtext").show();
                 }
             }
             loginProcess();
@@ -1274,7 +1284,7 @@ function loadLogin() {
             console.log("Logged Out...");
             loginprocessing = false;
             var frame = $("#loginframe");
-            frame.attr('src', 'https://historylink.herokuapp.com/smartlogin');
+            frame.attr('src', smartcopyurl + '/smartlogin');
             $("body").css('max-width', "640px");
             $("body").animate({ 'width': "640px" }, 'slow');
             frame.load(function(){
@@ -1628,7 +1638,7 @@ var submitform = function () {
                             }
                         }
                         if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "")) {
-                            var abouturl = "https://historylink.herokuapp.com/smartsubmit?fields=about_me,nicknames&profile=" + pid;
+                            var abouturl = smartcopyurl + "/smartsubmit?fields=about_me,nicknames&profile=" + pid;
                             submitstatus.push(updatetotal);
                             chrome.extension.sendMessage({
                                 method: "GET",
@@ -1687,7 +1697,7 @@ function buildTree(data, action, sendid) {
         chrome.extension.sendMessage({
             method: "POST",
             action: "xhttp",
-            url: "https://historylink.herokuapp.com/smartsubmit?profile=" + sendid + "&action=" + action,
+            url: smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action,
             data: $.param(data),
             variable: {id: id, relation: action.replace("add-", ""), data: data}
         }, function (response) {
@@ -1729,7 +1739,7 @@ function buildTree(data, action, sendid) {
                             }
                             submitstatus.push(updatetotal);
                             var source = JSON.parse(response.source);
-                            var familyurl = "https://historylink.herokuapp.com/smartsubmit?family=spouse&profile=" + source.id;
+                            var familyurl = smartcopyurl + "/smartsubmit?family=spouse&profile=" + source.id;
                             chrome.extension.sendMessage({
                                 method: "GET",
                                 action: "xhttp",
@@ -1879,7 +1889,7 @@ function submitChildren() {
                     chrome.extension.sendMessage({
                         method: "POST",
                         action: "xhttp",
-                        url: "https://historylink.herokuapp.com/smartsubmit?profile=" + spouseinfo.union + "&action=update",
+                        url: smartcopyurl + "/smartsubmit?profile=" + spouseinfo.union + "&action=update",
                         data: $.param(marriageupdate),
                         variable: ""
                     }, function (response) {
@@ -1962,7 +1972,7 @@ function buildTempSpouse(parentid) {
         chrome.extension.sendMessage({
             method: "POST",
             action: "xhttp",
-            url: "https://historylink.herokuapp.com/smartsubmit?profile=" + focusid + "&action=add-partner",
+            url: smartcopyurl + "/smartsubmit?profile=" + focusid + "&action=add-partner",
             data: $.param({gender: tgender}),
             variable: {id: parentid}
         }, function (response) {
@@ -2706,6 +2716,7 @@ chrome.storage.local.get('genislideout', function (result) {
         $('body').css('max-width', '340px');
         $("#controlimage").slideUp();
         slideopen = false;
+        $("#configtext").hide();
         $("#genislider").find("img")[0].src = "images/openmenu.png";
     }
 

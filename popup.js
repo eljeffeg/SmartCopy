@@ -210,7 +210,7 @@ function loginProcess() {
             } else {
                 // TODO: migrate all this to parseData()
                 if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") ||
-                    startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
+                    startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") ||
                     (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
                     startsWithHTTP(tablink,"https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
                     getPageCode();
@@ -608,19 +608,6 @@ function loadPage(request) {
                     focusperson = focusperson.replace(/\//g, "");
                 }
                 focusname = focusperson;
-            } else if (startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person")) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-                var infotable = parsed.find(".wr-infotable").find("tr");
-                for (var i = 0; i < infotable.length; i++) {
-                    var cell = $(infotable[i]).find("td");
-                    var title = cleanHTML($(cell[0]).html());
-                    if (title.toLowerCase() === "name") {
-                        focusname = $(cell[1]).text();
-                        break;
-                    }
-                }
-                recordtype = "WeRelate Genealogy";
-                focusrange = "";
             }
 
             if (collection.loadPage) {
@@ -714,8 +701,6 @@ function loadPage(request) {
                     collection.parseProfileData(request.source, true);
                 } else if (tablink.contains("/collection-") || tablink.contains("/research/record-")) {
                     parseSmartMatch(request.source, true);
-                } else if (startsWithHTTP(tablink,"http://www.werelate.org")) {
-                    parseWeRelate(request.source, true);
                 } else if(validFamilyTree(tablink)) {
                     parseFamilyTreeMaker(request.source, true);
                 } else if (validMyHeritage(tablink)) {
@@ -754,9 +739,7 @@ function loadPage(request) {
         }
     } else {
         if (supportedCollection()) {
-            if (startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person")) {
-                focusURLid = decodeURIComponent(tablink.substring(tablink.lastIndexOf(':') + 1));
-            } else if (validFamilyTree(tablink)) {
+            if (validFamilyTree(tablink)) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace(".html", "");
                 if (focusURLid.startsWith("GENE")) {
                     document.getElementById("top-container").style.display = "block";
@@ -1072,7 +1055,6 @@ function getPageCode() {
             });
             */
         } else if (startsWithHTTP(tablink,"http://www.myheritage.com/") || startsWithHTTP(tablink,"https://www.myheritage.com/") ||
-            startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
             validFamilyTree(tablink) ||
             (startsWithHTTP(tablink,"http://records.ancestry.") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/")) ||
             (startsWithHTTP(tablink,"http://person.ancestry.") && (!tablink.endsWith("/story") && !tablink.endsWith("/gallery"))) ||
@@ -2244,7 +2226,7 @@ function supportedCollection() {
         return true;
     } else return tablink.contains("/collection-") || tablink.contains("research/record-") ||
         validAncestry(tablink) || (startsWithHTTP(tablink,"https://familysearch.org/pal:") || startsWithHTTP(tablink,"https://familysearch.org/tree") || startsWithHTTP(tablink,"https://familysearch.org/platform")) ||
-        startsWithHTTP(tablink,"http://www.werelate.org/") || validMyHeritage(tablink) || validFamilyTree(tablink);
+        validMyHeritage(tablink) || validFamilyTree(tablink);
 }
 
 function validAncestry(url) {

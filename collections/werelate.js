@@ -1,4 +1,38 @@
 // Parse WeRelate
+registerCollection({
+    "reload": false,
+    "recordtype": "WeRelate Genealogy",
+    "prepareUrl": function(url) {
+        return url;
+    },
+    "collectionMatch": function(url) {
+        return (startsWithHTTP(url, "https://www.werelate.org"));
+    },
+    "parseData": function(url) {
+        if (startsWithHTTP(url,"https://www.werelate.org/wiki/Person")) {
+            focusURLid = decodeURIComponent(tablink.substring(tablink.lastIndexOf(':') + 1));
+            getPageCode();
+        } else {
+            document.querySelector('#loginspinner').style.display = "none";
+            setMessage(warningmsg, 'Please select one of the Profile pages on this site.');
+        }
+    },
+    "loadPage": function(request) {
+        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        var infotable = parsed.find(".wr-infotable").find("tr");
+        for (var i = 0; i < infotable.length; i++) {
+            var cell = $(infotable[i]).find("td");
+            var title = cleanHTML($(cell[0]).html());
+            if (title.toLowerCase() === "name") {
+                focusname = $(cell[1]).text();
+                break;
+            }
+        }
+        focusrange = "";
+    },
+    "parseProfileData": parseWeRelate
+});
+
 function parseWeRelate(htmlstring, familymembers, relation) {
     relation = relation || "";
     var parsed = $(htmlstring.replace(/<img[^>]*>/ig, ""));

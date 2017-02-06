@@ -212,7 +212,7 @@ function loginProcess() {
                 if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") ||
                     startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") ||
                     (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
-                    startsWithHTTP(tablink,"https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
+                    startsWithHTTP(tablink,"https://familysearch.org/") || validMyHeritage(tablink)) {
                     getPageCode();
                 } else if (startsWithMH(tablink, "matchingresult")) {
                     document.querySelector('#loginspinner').style.display = "none";
@@ -493,24 +493,6 @@ function loadPage(request) {
                         return;
                     }
                 }
-            } else if (validFamilyTree(tablink)) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-                recordtype = "FamilyTreeMaker Genealogy";
-                var fperson = parsed.find("h3");
-                var title = $(fperson[0]).text();
-                if (title.contains("(")) {
-                    var splitrange = title.split("(");
-                    focusname = splitrange[0].trim();
-                    if (splitrange.length > 2) {
-                        focusname = focusname + " (" + splitrange[1].trim();
-                        focusrange = splitrange[2];
-                    } else {
-                        focusrange = splitrange[1];
-                    }
-                    focusrange = focusrange.replace(")", "").replace(", ", " - ").trim();
-                } else {
-                    focusname = title;
-                }
             } else if (startsWithHTTP(tablink,"http://records.ancestry.com/")) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 recordtype = "Ancestry Records";
@@ -701,8 +683,6 @@ function loadPage(request) {
                     collection.parseProfileData(request.source, true);
                 } else if (tablink.contains("/collection-") || tablink.contains("/research/record-")) {
                     parseSmartMatch(request.source, true);
-                } else if(validFamilyTree(tablink)) {
-                    parseFamilyTreeMaker(request.source, true);
                 } else if (validMyHeritage(tablink)) {
                     parseMyHeritage(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://records.ancestry.")) {
@@ -739,16 +719,7 @@ function loadPage(request) {
         }
     } else {
         if (supportedCollection()) {
-            if (validFamilyTree(tablink)) {
-                focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace(".html", "");
-                if (focusURLid.startsWith("GENE")) {
-                    document.getElementById("top-container").style.display = "block";
-                    document.getElementById("submitbutton").style.display = "none";
-                    document.getElementById("loading").style.display = "none";
-                    setMessage(warningmsg, 'FamilyTreeMaker "Descendants of" generation pages are not supported by SmartCopy.');
-                    return;
-                }
-            } else if (validMyHeritage(tablink)) {
+            if (validMyHeritage(tablink)) {
                 if (tablink.contains("rootIndivudalID=")) {
                     focusURLid = getParameterByName('rootIndivudalID', tablink);
                 } else {
@@ -1055,7 +1026,6 @@ function getPageCode() {
             });
             */
         } else if (startsWithHTTP(tablink,"http://www.myheritage.com/") || startsWithHTTP(tablink,"https://www.myheritage.com/") ||
-            validFamilyTree(tablink) ||
             (startsWithHTTP(tablink,"http://records.ancestry.") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/")) ||
             (startsWithHTTP(tablink,"http://person.ancestry.") && (!tablink.endsWith("/story") && !tablink.endsWith("/gallery"))) ||
             (startsWithHTTP(tablink,"http://trees.ancestry.") && !tablink.contains("family?cfpid=") && !isNaN(tablink.slice(-1))) ||
@@ -2226,7 +2196,7 @@ function supportedCollection() {
         return true;
     } else return tablink.contains("/collection-") || tablink.contains("research/record-") ||
         validAncestry(tablink) || (startsWithHTTP(tablink,"https://familysearch.org/pal:") || startsWithHTTP(tablink,"https://familysearch.org/tree") || startsWithHTTP(tablink,"https://familysearch.org/platform")) ||
-        validMyHeritage(tablink) || validFamilyTree(tablink);
+        validMyHeritage(tablink);
 }
 
 function validAncestry(url) {
@@ -2610,10 +2580,6 @@ function MHLanguageCheck(url) {
         }
     }
     return false;
-}
-
-function validFamilyTree(url) {
-    return (url.startsWith("http://familytreemaker.genealogy.com/") || url.startsWith("http://www.genealogy.com/"));
 }
 
 function hostDomain(url) {

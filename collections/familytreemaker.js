@@ -1,4 +1,45 @@
 // Parse FamilyTreeMaker from Genealogy.com
+registerCollection({
+    "reload": false,
+    "recordtype": "FamilyTreeMaker Genealogy",
+    "experimental": true,
+    "prepareUrl": function(url) {
+        return url;
+    },
+    "collectionMatch": function(url) {
+        return (startsWithHTTP(url, "http://familytreemaker.genealogy.com/") || startsWithHTTP(url, "http://www.genealogy.com/"));
+    },
+    "parseData": function(url) {
+        focusURLid = url.substring(url.lastIndexOf('/') + 1).replace(".html", "");
+        if (focusURLid.startsWith("GENE")) {
+            document.querySelector('#loginspinner').style.display = "none";
+            setMessage(warningmsg, 'FamilyTreeMaker "Descendants of" generation pages are not supported by SmartCopy.');
+            return;
+        } else {
+            getPageCode();
+        }
+    },
+    "loadPage": function(request) {
+        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        var fperson = parsed.find("h3");
+        var title = $(fperson[0]).text();
+        if (title.contains("(")) {
+            var splitrange = title.split("(");
+            focusname = splitrange[0].trim();
+            if (splitrange.length > 2) {
+                focusname = focusname + " (" + splitrange[1].trim();
+                focusrange = splitrange[2];
+            } else {
+                focusrange = splitrange[1];
+            }
+            focusrange = focusrange.replace(")", "").replace(", ", " - ").trim();
+        } else {
+            focusname = title;
+        }
+    },
+    "parseProfileData": parseFamilyTreeMaker
+});
+
 function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
     relation = relation || "";
     var parsed = $(htmlstring.replace(/<img/ig, "<gmi"));

@@ -1,4 +1,56 @@
 // Parse FamilySearch Records
+registerCollection({
+    "reload": false,
+    "recordtype": "FamilySearch Record",
+    "prepareUrl": function(url) {
+        if (startsWithHTTP(url,"https://familysearch.org/ark:") && url.contains("/1:1:")) {
+            var urlparts= url.split('?');
+            focusURLid = urlparts[0].substring(url.lastIndexOf(':') + 1);
+            url = hostDomain(url) + "/platform/records/personas/" + focusURLid + ".json";
+            this.reload = true;
+        } else if (startsWithHTTP(url,"https://familysearch.org/ark:") && url.contains("/2:2:")) {
+            var urlparts= url.split('?');
+            focusURLid = urlparts[0].substring(url.lastIndexOf('/') + 1);
+            url = hostDomain(url) + "/platform/genealogies/persons/" + focusURLid + ".json";
+            this.reload = true;
+        } else if (startsWithHTTP(url,"https://familysearch.org/platform/records/")) {
+            focusURLid = url.substring(url.lastIndexOf('/') + 1).replace(".json", "");
+        }
+        return url;
+    },
+    "collectionMatch": function(url) {
+        return (startsWithHTTP(url, "https://familysearch.org/platform") ||
+            (startsWithHTTP(url,"https://familysearch.org/ark:") && url.contains("/1:1:")) ||
+            (startsWithHTTP(url,"https://familysearch.org/ark:") && url.contains("/2:2:")));
+    },
+    "parseData": function(url) {
+        getPageCode();
+    },
+    "loadPage": function(request) {
+        var parsed = "";
+        try {
+            parsed = JSON.parse(request.source);
+        } catch(err) {
+            setMessage(warningmsg, "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
+                "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
+            document.getElementById("top-container").style.display = "block";
+            document.getElementById("submitbutton").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            return;
+        }
+
+        var focusperson = getFSRecordName(getFSFocus(parsed, focusURLid));
+        if (!focusperson) {
+            return;
+        }
+        if (focusperson.match(/\s\/\w+\//g, '')) {
+            focusperson = focusperson.replace(/\//g, "");
+        }
+        focusname = focusperson;
+    },
+    "parseProfileData": parseFamilySearchRecord
+});
+
 var siblinglist = [];
 var fsfamid = 0;
 function parseFamilySearchRecord(htmlstring, familymembers, relation) {

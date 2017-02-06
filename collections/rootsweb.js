@@ -1,4 +1,36 @@
 // Parse RootsWeb
+registerCollection({
+    "reload": false,
+    "recordtype": "RootsWeb's WorldConnect",
+    "experimental": true,
+    "prepareUrl": function(url) {
+        if (getParameterByName("op", url).toLowerCase() === "ped") {
+            url = url.replace(/op=PED/i, "op=GET");
+            reload = true;
+        }
+        return url;
+    },
+    "collectionMatch": function(url) {
+        return (startsWithHTTP(url, "http://worldconnect.rootsweb.ancestry.com/") || startsWithHTTP(url, "http://wc.rootsweb.ancestry.com/"));
+    },
+    "parseData": function(url) {
+        if (!url.toLowerCase().contains("op=") || !url.toLowerCase().contains("id=")) {
+            document.querySelector('#loginspinner').style.display = "none";
+            setMessage(warningmsg, 'Please select one of the Profile pages on this site.');
+        } else {
+            focusURLid = getParameterByName('id', url);
+            getPageCode();
+        }
+    },
+    "loadPage": function(request) {
+        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        var fperson = parsed.find("li");
+        focusname = parseRootsName(fperson);
+        focusrange = "";
+    },
+    "parseProfileData": parseRootsWeb
+});
+
 function parseRootsWeb(htmlstring, familymembers, relation) {
     relation = relation || "";
     var parseid = "";
@@ -113,7 +145,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
                         alldata["family"][title] = [];
                     }
                     var entry = $(parsed[i]).next("a");
-                    var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                    var url = hostDomain(tablink) + entry.attr("href");
                     var name = parseNameString(entry.text().trim());
                     var itemid = getParameterByName("id", url);
                     var subdata = {name: name, title: title};
@@ -131,7 +163,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
                     }
                     var entry = $(parsed[i]).next("a");
                     if (exists(entry) && entry.length > 0) {
-                        var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                        var url = hostDomain(tablink) + entry.attr("href");
                         var name = parseNameString(entry.text().trim());
                         var itemid = getParameterByName("id", url);
                         var subdata = {name: name, title: title};
@@ -158,7 +190,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
                     var children = $(parsed[i]).next("ol").find("a");
                     for (var c = 0; c < children.length; c++) {
                         var entry = $(children[c]);
-                        var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                        var url = hostDomain(tablink) + entry.attr("href");
                         var name = parseNameString(entry.text().trim());
                         var itemid = getParameterByName("id", url);
                         var subdata = {name: name, title: title};
@@ -180,7 +212,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
                 var ptext = $(parsed[i]).text().trim();
                 if (ptext !== "" && ptext.startsWith("Marriage")) {
                     var entry = $(parsed[i]).next("a");
-                    var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                    var url = hostDomain(tablink) + entry.attr("href");
                     var itemid = getParameterByName("id", url);
                     if (itemid === parentmarriageid) {
                         var daterow = parseRootsRow(entry.next("ul"));
@@ -200,7 +232,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
             if (ptext !== "") {
                 if (ptext.startsWith("Father") || ptext.startsWith("Mother")) {
                     var entry = $(parsed[i]).next("a");
-                    var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                    var url = hostDomain(tablink) + entry.attr("href");
                     var itemid = getParameterByName("id", url);
                     if (focusURLid !== itemid) {
                         childlist[relation.proid] = $.inArray(itemid, unionurls);
@@ -217,7 +249,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
             if (ptext !== "") {
                 if (ptext.startsWith("Father") || ptext.startsWith("Mother")) {
                     var entry = $(parsed[i]).next("a");
-                    var url = "http://wc.rootsweb.ancestry.com" + entry.attr("href");
+                    var url = hostDomain(tablink) + entry.attr("href");
                     var itemid = getParameterByName("id", url);
                     siblingparents.push(itemid);
                 }

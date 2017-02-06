@@ -1,7 +1,7 @@
 body {
     min-width: 340px;
     width: 500px;
-    max-width: 340px;  /* Yes, I know this looks strange given width - intentional */
+    max-width: 500px;  /* this was 340px to help the transition, but setting it to 500 since most people probably have it open */
     overflow-x: hidden;
     color: #3b5998;
     background-color: #eff3f7;

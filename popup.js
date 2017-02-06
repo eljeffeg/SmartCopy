@@ -211,15 +211,13 @@ function loginProcess() {
                 // TODO: migrate all this to parseData()
                 if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") ||
                     startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
-                    (validRootsWeb(tablink) && tablink.contains("id=")) || (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
+                    (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
                     startsWithHTTP(tablink,"https://familysearch.org/") || validMyHeritage(tablink) || validFamilyTree(tablink)) {
                     getPageCode();
-                } else if (startsWithMH(tablink, "matchingresult") ||
-                    (validRootsWeb(tablink) && tablink.endsWith("igm.cgi"))) {
+                } else if (startsWithMH(tablink, "matchingresult")) {
                     document.querySelector('#loginspinner').style.display = "none";
                     setMessage(warningmsg, 'Please select one of the Matches on this results page.');
-                } else if ((validRootsWeb(tablink) && tablink.toLowerCase().contains("igm.cgi")) ||
-                    tablink === "http://records.ancestry.com/Home/Results" ||
+                } else if (tablink === "http://records.ancestry.com/Home/Results" ||
                     startsWithHTTP(tablink,"https://familysearch.org/search/tree/")) {
                     document.querySelector('#loginspinner').style.display = "none";
                     setMessage(warningmsg, 'Please select one of the Profile pages on this site.');
@@ -495,12 +493,6 @@ function loadPage(request) {
                         return;
                     }
                 }
-            } else if (validRootsWeb(tablink)) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-                recordtype = "RootsWeb's WorldConnect";
-                var fperson = parsed.find("li");
-                focusname = parseRootsName(fperson);
-                focusrange = "";
             } else if (validFamilyTree(tablink)) {
                 var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
                 recordtype = "FamilyTreeMaker Genealogy";
@@ -724,8 +716,6 @@ function loadPage(request) {
                     parseSmartMatch(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://www.werelate.org")) {
                     parseWeRelate(request.source, true);
-                } else if (validRootsWeb(tablink)) {
-                    parseRootsWeb(request.source, true);
                 } else if(validFamilyTree(tablink)) {
                     parseFamilyTreeMaker(request.source, true);
                 } else if (validMyHeritage(tablink)) {
@@ -766,8 +756,6 @@ function loadPage(request) {
         if (supportedCollection()) {
             if (startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person")) {
                 focusURLid = decodeURIComponent(tablink.substring(tablink.lastIndexOf(':') + 1));
-            } else if (validRootsWeb(tablink)) {
-                focusURLid = getParameterByName('id', tablink);
             } else if (validFamilyTree(tablink)) {
                 focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1).replace(".html", "");
                 if (focusURLid.startsWith("GENE")) {
@@ -1086,7 +1074,6 @@ function getPageCode() {
         } else if (startsWithHTTP(tablink,"http://www.myheritage.com/") || startsWithHTTP(tablink,"https://www.myheritage.com/") ||
             startsWithHTTP(tablink,"http://www.werelate.org/wiki/Person") ||
             validFamilyTree(tablink) ||
-            (validRootsWeb(tablink) && getParameterByName("op", tablink).toLowerCase() === "get") ||
             (startsWithHTTP(tablink,"http://records.ancestry.") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/")) ||
             (startsWithHTTP(tablink,"http://person.ancestry.") && (!tablink.endsWith("/story") && !tablink.endsWith("/gallery"))) ||
             (startsWithHTTP(tablink,"http://trees.ancestry.") && !tablink.contains("family?cfpid=") && !isNaN(tablink.slice(-1))) ||
@@ -1126,15 +1113,6 @@ function getPageCode() {
         } else if (startsWithHTTP(tablink,"http://person.ancestry.")) {
             tablink = tablink.replace("/story", "/facts");
             tablink = tablink.replace("/gallery", "/facts");
-            chrome.extension.sendMessage({
-                method: "GET",
-                action: "xhttp",
-                url: tablink
-            }, function (response) {
-                loadPage(response);
-            });
-        } else if (validRootsWeb(tablink) && getParameterByName("op", tablink).toLowerCase() === "ped") {
-            tablink = tablink.replace(/op=PED/i, "op=GET");
             chrome.extension.sendMessage({
                 method: "GET",
                 action: "xhttp",
@@ -2264,7 +2242,7 @@ function supportedCollection() {
             $("#experimentalmessage").css("display", "block");
         }
         return true;
-    } else return tablink.contains("/collection-") || tablink.contains("research/record-") || validRootsWeb(tablink) ||
+    } else return tablink.contains("/collection-") || tablink.contains("research/record-") ||
         validAncestry(tablink) || (startsWithHTTP(tablink,"https://familysearch.org/pal:") || startsWithHTTP(tablink,"https://familysearch.org/tree") || startsWithHTTP(tablink,"https://familysearch.org/platform")) ||
         startsWithHTTP(tablink,"http://www.werelate.org/") || validMyHeritage(tablink) || validFamilyTree(tablink);
 }
@@ -2636,10 +2614,6 @@ function geoonoff(value) {
         }
         $(".geoicon").attr("src", "images/geooff.png");
     }
-}
-
-function validRootsWeb(url) {
-    return (url.startsWith("http://worldconnect.rootsweb.ancestry.com/") || url.startsWith("http://wc.rootsweb.ancestry.com/"));
 }
 
 function validMyHeritage(url) {

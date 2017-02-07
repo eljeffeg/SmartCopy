@@ -16,6 +16,12 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         return;
     }
     relation = relation || "";
+    if (htmlstring.contains("Please solve the Captcha to prove that you are not a bot")) {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("top-container").style.display = "none";
+        setMessage(warningmsg, 'MyHeritage is requesting that you solve a Captcha to continue.  Please got to <a href="https://www.myheritage.com/">www.myheritage.com</a>, solve the Captcha, and try again.');
+        return "";
+    }
     var parsed = $('<div>').html(htmlstring.replace(/<img[^>]*>/ig, ""));
 
     var focusperson = parsed.find(".recordTitle").text().trim();

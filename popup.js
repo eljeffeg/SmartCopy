@@ -196,13 +196,6 @@ function loginProcess() {
                 collection = {};
             }
 
-            // TODO: which collection is that?
-            if (startsWithHTTP(tablink,"http://www.ancestry.") && !startsWithHTTP(tablink,"http://www.ancestry.com") && tablink.contains("/genealogy/records/")) {
-                var ancestrystart = tablink.split("www.ancestry.");
-                //Replace domain for other countries, such as http://www.ancestry.ca/genealogy/records/abraham-knowlton_17477348
-                tablink = ancestrystart[0] + "www.ancestry.com" + ancestrystart[1].substring(ancestrystart[1].indexOf("/"));
-            }
-
             // Parse data
             if (collection.parseData) {
                 console.log("Going to parse data now");
@@ -210,15 +203,11 @@ function loginProcess() {
             } else {
                 // TODO: migrate all this to parseData()
                 if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") ||
-                    (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
                     validMyHeritage(tablink)) {
                     getPageCode();
                 } else if (startsWithMH(tablink, "matchingresult")) {
                     document.querySelector('#loginspinner').style.display = "none";
                     setMessage(warningmsg, 'Please select one of the Matches on this results page.');
-                } else if (tablink === "http://records.ancestry.com/Home/Results") {
-                    document.querySelector('#loginspinner').style.display = "none";
-                    setMessage(warningmsg, 'Please select one of the Profile pages on this site.');
                 } else if (isGeni()) {
                     document.querySelector('#message').style.display = "none";
                     var focusprofile = getProfile(tablink);
@@ -491,41 +480,6 @@ function loadPage(request) {
                         return;
                     }
                 }
-            } else if (startsWithHTTP(tablink,"http://records.ancestry.com/")) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-                recordtype = "Ancestry Records";
-                focusname = parsed.find(".personName").text();
-                if (focusname === "") {
-                    focusname = parsed.filter('title').text();
-                }
-
-                var frange = parsed.find(".pageCrumb");
-                for (var i = 0; i < frange.length; i++) {
-                    if ($(frange[i]).text().startsWith(focusname)) {
-                        var fsplit = $(frange[i]).text().split("(");
-                        if (fsplit.length > 1) {
-                            focusrange = fsplit[1].replace(")", "").trim();
-                        }
-                        break;
-                    }
-                }
-            } else if (startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/")) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-                recordtype = "Ancestry Records";
-                focusname = parsed.find(".personName").text();
-                if (focusname === "") {
-                    focusname = parsed.filter('title').text();
-                }
-                var frange = parsed.find(".pageCrumb");
-                for (var i = 0; i < frange.length; i++) {
-                    if ($(frange[i]).text().startsWith(focusname)) {
-                        var fsplit = $(frange[i]).text().split("(");
-                        if (fsplit.length > 1) {
-                            focusrange = fsplit[1].replace(")", "").trim();
-                        }
-                        break;
-                    }
-                }
             }
 
             if (collection.loadPage) {
@@ -622,10 +576,6 @@ function loadPage(request) {
                     parseSmartMatch(request.source, true);
                 } else if (validMyHeritage(tablink)) {
                     parseMyHeritage(request.source, true);
-                } else if (startsWithHTTP(tablink,"http://records.ancestry.")) {
-                    parseAncestryFree(request.source, true);
-                } else if (startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/")) {
-                    parseAncestryFree(request.source, true);
                 }
 
                 if (!accountinfo.pro) {
@@ -657,8 +607,6 @@ function loadPage(request) {
                 }
             } else if (startsWithMH(tablink, "")) {
                 focusURLid = getMHURLId(tablink);
-            } else if (startsWithHTTP(tablink,"http://records.ancestry.")) {
-                focusURLid = getParameterByName('pid', tablink);
             }
 
             if (focusURLid !== "") {
@@ -927,8 +875,7 @@ function getPageCode() {
                 loadPage(response);
             });
             */
-        } else if (startsWithHTTP(tablink,"http://www.myheritage.com/") || startsWithHTTP(tablink,"https://www.myheritage.com/") ||
-            (startsWithHTTP(tablink,"http://records.ancestry.") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/"))
+        } else if (startsWithHTTP(tablink,"http://www.myheritage.com/") || startsWithHTTP(tablink,"https://www.myheritage.com/")
             ) {
             chrome.tabs.executeScript(null, {
                 file: "getPagesSource.js"
@@ -1992,12 +1939,7 @@ function supportedCollection() {
             $("#experimentalmessage").css("display", "block");
         }
         return true;
-    } else return tablink.contains("/collection-") || tablink.contains("research/record-") ||
-        validAncestry(tablink) || validMyHeritage(tablink);
-}
-
-function validAncestry(url) {
-    return startsWithHTTP(url,"http://records.ancestry.com") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/");
+    } else return tablink.contains("/collection-") || tablink.contains("research/record-") || validMyHeritage(tablink);
 }
 
 function getParameterByName(name, url) {

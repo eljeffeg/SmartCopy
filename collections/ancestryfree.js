@@ -1,4 +1,50 @@
 // Parse Ancestry Free Records (records.ancestry.com or ancestry.com/genealogy/records)
+// Parse FamilySearch Records
+registerCollection({
+    "reload": false,
+    "recordtype": "Ancestry Records",
+    "prepareUrl": function(url) {
+        if (startsWithHTTP(url,"http://www.ancestry.") && !startsWithHTTP(url,"http://www.ancestry.com") && url.contains("/genealogy/records/")) {
+            var ancestrystart = tablink.split("www.ancestry.");
+            //Replace domain for other countries, such as http://www.ancestry.ca/genealogy/records/abraham-knowlton_17477348
+            url = ancestrystart[0] + "www.ancestry.com" + ancestrystart[1].substring(ancestrystart[1].indexOf("/"));
+            this.reload = true;
+        }
+        return url;
+    },
+    "collectionMatch": function(url) {
+        return (startsWithHTTP(url,"http://records.ancestry.") || (startsWithHTTP(url,"http://www.ancestry.") && url.contains("/genealogy/records/")));
+    },
+    "parseData": function(url) {
+        if (startsWithHTTP(url,"http://www.ancestry.com/genealogy/records/") ||
+            (startsWithHTTP(url,"http://records.ancestry.com") && url.contains("pid="))){
+            focusURLid = getParameterByName('pid', url);
+            getPageCode();
+        } else {
+            document.querySelector('#loginspinner').style.display = "none";
+            setMessage(warningmsg, 'Please select one of the Profile pages on this site.');
+        }
+    },
+    "loadPage": function(request) {
+        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        focusname = parsed.find(".personName").text();
+        if (focusname === "") {
+            focusname = parsed.filter('title').text();
+        }
+        var frange = parsed.find(".pageCrumb");
+        for (var i = 0; i < frange.length; i++) {
+            if ($(frange[i]).text().startsWith(focusname)) {
+                var fsplit = $(frange[i]).text().split("(");
+                if (fsplit.length > 1) {
+                    focusrange = fsplit[1].replace(")", "").trim();
+                }
+                break;
+            }
+        }
+    },
+    "parseProfileData": parseAncestryFree
+});
+
 function parseAncestryFree(htmlstring, familymembers, relation) {
     relation = relation || "";
 

@@ -210,7 +210,6 @@ function loginProcess() {
             } else {
                 // TODO: migrate all this to parseData()
                 if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") ||
-                    startsWithHTTP(tablink,"http://trees.ancestry.") || startsWithHTTP(tablink,"http://person.ancestry.") ||
                     (startsWithHTTP(tablink,"http://records.ancestry.com") && tablink.contains("pid=")) || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/") ||
                     validMyHeritage(tablink)) {
                     getPageCode();
@@ -527,17 +526,6 @@ function loadPage(request) {
                         break;
                     }
                 }
-            } else if (startsWithHTTP(tablink,"http://trees.ancestry.")) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-                recordtype = "Ancestry Genealogy";
-                focusname = parsed.find(".pageTitle").text();
-                focusrange = "";
-            }  else if (startsWithHTTP(tablink,"http://person.ancestry.")) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-                recordtype = "Ancestry Genealogy";
-                var par = parsed.find("#personCard");
-                focusname = par.find(".userCardTitle").text();
-                focusrange = par.find(".userCardSubTitle").text().replace("&ndash;", " - ");
             }
 
             if (collection.loadPage) {
@@ -638,10 +626,6 @@ function loadPage(request) {
                     parseAncestryFree(request.source, true);
                 } else if (startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/")) {
                     parseAncestryFree(request.source, true);
-                } else if (startsWithHTTP(tablink,"http://trees.ancestry.")) {
-                    parseAncestryTrees(request.source, true);
-                } else if (startsWithHTTP(tablink,"http://person.ancestry.")) {
-                    parseAncestryNew(request.source, true);
                 }
 
                 if (!accountinfo.pro) {
@@ -675,16 +659,6 @@ function loadPage(request) {
                 focusURLid = getMHURLId(tablink);
             } else if (startsWithHTTP(tablink,"http://records.ancestry.")) {
                 focusURLid = getParameterByName('pid', tablink);
-            } else if (startsWithHTTP(tablink,"http://trees.ancestry.")) {
-                if (tablink.contains("/fact/")) {
-                    tablink = tablink.substring(0, tablink.lastIndexOf("/fact/"));
-                }
-                focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1);
-            } else if (startsWithHTTP(tablink,"http://person.ancestry.")) {
-                if (tablink.contains("/fact")) {
-                    tablink = tablink.substring(0, tablink.lastIndexOf("/fact"));
-                }
-                focusURLid = tablink.substring(tablink.lastIndexOf('/') + 1);
             }
 
             if (focusURLid !== "") {
@@ -954,9 +928,7 @@ function getPageCode() {
             });
             */
         } else if (startsWithHTTP(tablink,"http://www.myheritage.com/") || startsWithHTTP(tablink,"https://www.myheritage.com/") ||
-            (startsWithHTTP(tablink,"http://records.ancestry.") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/")) ||
-            (startsWithHTTP(tablink,"http://person.ancestry.") && (!tablink.endsWith("/story") && !tablink.endsWith("/gallery"))) ||
-            (startsWithHTTP(tablink,"http://trees.ancestry.") && !tablink.contains("family?cfpid=") && !isNaN(tablink.slice(-1)))
+            (startsWithHTTP(tablink,"http://records.ancestry.") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/"))
             ) {
             chrome.tabs.executeScript(null, {
                 file: "getPagesSource.js"
@@ -966,45 +938,8 @@ function getPageCode() {
                     message.innerText = 'There was an error injecting script : \n' + chrome.extension.lastError.message;
                 }
             });
-        } else if (startsWithHTTP(tablink,"http://trees.ancestry.")) {
-            tablink = tablink.replace("family?cfpid=", "person/") + "/facts";
-            tablink = tablink.replace("trees.ancestry.", "person.ancestry.");
-            if (tablink.endsWith("/family")) {
-                setMessage(warningmsg, 'Unable to identify Ancestry focus profile.  Please select a focus profile in the tree.');
-                document.getElementById("smartcopy-container").style.display = "none";
-                document.getElementById("loading").style.display = "none";
-                return;
-            } else {
-                tablink = tablink.replace("&selnode=1", "");
-                tablink = tablink.replace("/community/potential", "");
-                if (isNaN(tablink.slice(-1))) {
-                    tablink = tablink.substring(0, tablink.lastIndexOf('/'));
-                }
-                chrome.extension.sendMessage({
-                    method: "GET",
-                    action: "xhttp",
-                    url: tablink
-                }, function (response) {
-                    loadPage(response);
-                });
-            }
-
-        } else if (startsWithHTTP(tablink,"http://person.ancestry.")) {
-            tablink = tablink.replace("/story", "/facts");
-            tablink = tablink.replace("/gallery", "/facts");
-            chrome.extension.sendMessage({
-                method: "GET",
-                action: "xhttp",
-                url: tablink
-            }, function (response) {
-                loadPage(response);
-            });
         } else {
             var url = tablink.replace(/https?:\/\/www\.myheritage\..*?\//i, "http://www.myheritage.com/") + "&lang=EN";
-            if (tablink.contains("trees.ancestry.")) {
-                url = tablink.replace(/trees\.ancestry\..*?\//i, "trees.ancestry.com/");
-                tablink = url;
-            }
             chrome.extension.sendMessage({
                 method: "GET",
                 action: "xhttp",
@@ -2062,7 +1997,7 @@ function supportedCollection() {
 }
 
 function validAncestry(url) {
-    return startsWithHTTP(url,"http://records.ancestry.com") || startsWithHTTP(url,"http://trees.ancestry.") || startsWithHTTP(url,"http://person.ancestry.") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/");
+    return startsWithHTTP(url,"http://records.ancestry.com") || startsWithHTTP(tablink,"http://www.ancestry.com/genealogy/records/");
 }
 
 function getParameterByName(name, url) {

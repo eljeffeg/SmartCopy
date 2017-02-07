@@ -1,4 +1,37 @@
 // Parse Ancestry (trees.ancestry.com)
+// I think this is an parser for Ancestry's "Classic Site", which I don't think is available anymore.  Disabling it - pending delete
+registerCollection({
+    "reload": false,
+    "recordtype": "Ancestry Genealogy",
+    "enabled": false,
+    "prepareUrl": function(url) {
+        if (!startsWithHTTP(url, "https://trees.ancestry.com")) {
+            url = url.replace(/trees\.ancestry\..*?\//i, "trees.ancestry.com/");
+            this.reload = true;
+        }
+        return url;
+    },
+    "collectionMatch": function(url) {
+        return (this.enabled && startsWithHTTP(url,"https://trees.ancestry.") &&
+            !(url.contains("family?cfpid=") || url.contains("pedigree?cfpid=")) &&
+            !isNaN(url.slice(-1))
+            );
+    },
+    "parseData": function(url) {
+        if (url.contains("/fact/")) {
+            url = url.substring(0, url.lastIndexOf("/fact/"));
+        }
+        focusURLid = url.substring(url.lastIndexOf('/') + 1);
+        getPageCode();
+    },
+    "loadPage": function(request) {
+        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        focusname = parsed.find(".pageTitle").text();
+        focusrange = "";
+    },
+    "parseProfileData": parseAncestryTrees
+});
+
 function parseAncestryTrees(htmlstring, familymembers, relation) {
     relation = relation || "";
 

@@ -23,21 +23,20 @@ registerCollection({
         getPageCode();
     },
     "loadPage": function(request) {
-        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        var parsed = $(request.source.replace(/<img /ig, "<gmi "));
         var nameTab = parsed.find(".with_tabs.name");
-        focusname = nameTab.find("a:not(:has(img))").first().text() + " " + nameTab.find("a:not(:has(img))").first().next().text();
+        focusname = nameTab.find("a:not(:has(gmi))").first().text() + " " + nameTab.find("a:not(:has(gmi))").first().next().text();
     },
     "parseProfileData": parseGeneanet
 });
 
 function parseGeneanet(htmlstring, familymembers, relation) {
   relation = relation || "";
-  //var parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));
-  var parsed = $(htmlstring);
+  var parsed = $(htmlstring.replace(/<img /ig,"<gmi "));
 
   var nameTab = parsed.find(".with_tabs.name")
   var genderval = "unknown";
-  var genderImg = nameTab.find("img").first();
+  var genderImg = nameTab.find("gmi").first();
   if (genderImg.attr("title") === "M") {
     genderval = "male";
   } else if (genderImg.attr("title") === "F") {
@@ -49,8 +48,8 @@ function parseGeneanet(htmlstring, familymembers, relation) {
     focusgender = genderval;
   }
 
-  givenName = nameTab.find("a:not(:has(img))").first().text();
-  familyName = nameTab.find("a:not(:has(img))").first().next().text();
+  givenName = nameTab.find("a:not(:has(gmi))").first().text();
+  familyName = nameTab.find("a:not(:has(gmi))").first().next().text();
   focusperson = givenName + " " + familyName;
   // hack required?
   focusname = focusperson;
@@ -129,7 +128,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
       } else if (relation.itemId !== parentmarriageid) {
           var spouses = $(parsed).find('h2:has(span:contains("Spouses")) + ul.fiche_union > li');
           for (i=0;i<spouses.length;i++) {
-              var url = $(spouses[i]).find("a:not(:has(img))").attr("href");
+              var url = $(spouses[i]).find("a:not(:has(gmi))").attr("href");
               if (exists(url)) {
                   var itemid = getGeneanetItemId(url);
                   if (itemid === parentmarriageid) {
@@ -142,7 +141,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
       var siblingparents = [];
       var parents = $(parsed).find('h2:has(span:contains("Parents")) + ul li');
       for (i=0;i<parents.length;i++) {
-          var url = $(parent[i]).find("a:not(:has(img))").attr("href");
+          var url = $(parent[i]).find("a:not(:has(gmi))").attr("href");
           if (exists(url)) {
               var itemid = getGeneanetItemId(url);
               siblingparents.push(itemid);
@@ -154,7 +153,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   } else if (isChild(relation.title)) {
       var parents = $(parsed).find('h2:has(span:contains("Parents")) + ul li');
       for (i=0;i<parents.length;i++) {
-          var url = $(parent[i]).find("a:not(:has(img))").attr("href");
+          var url = $(parent[i]).find("a:not(:has(gmi))").attr("href");
           if (exists(url)) {
               var itemid = getGeneanetItemId(url);
               if (focusURLid !== itemid) {
@@ -240,13 +239,13 @@ function parseGeneanetDate(vitalstring, type) {
 }
 
 function processGeneanetFamily(person, title, famid) {
-  var url = $(person).find("a:not(:has(img))").first().attr("href");
+  var url = $(person).find("a:not(:has(gmi))").first().attr("href");
   if (exists(url)) {
     if (!exists(alldata["family"][title])) {
       alldata["family"][title] = [];
     }
 
-    var name = $(person).find("a:not(:has(img))").first().text();
+    var name = $(person).find("a:not(:has(gmi))").first().text();
     var itemid = getGeneanetItemId(url);
     if (isParent(title)) {
       parentlist.push(itemid);

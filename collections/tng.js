@@ -59,7 +59,7 @@ function getTNGName(parsed) {
 
 function parseTNG(htmlstring, familymembers, relation) {
   relation = relation || "";
-  var parsed = $(htmlstring);
+  var parsed = $(htmlstring.replace(/<img[^>]*>/ig, ""));
 
   var focusperson = getTNGName(parsed);
   var genderval = getTNGFieldText(parsed, "Gender").toLowerCase();;

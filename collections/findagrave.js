@@ -415,7 +415,6 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 var row = rows[i];
                 var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
                 if (isPartner(title)) {
-                    //TODO Checking could be done if one profile is private and another not
                     pcount++;
                 }
             }

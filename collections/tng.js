@@ -2,11 +2,20 @@ registerCollection({
   "reload": false,
   "experimental": true,
   "recordtype": "TNG Genealogy",
-  "collectionMatch": function(url) {
-      return (startsWithHTTP(url, "http://www.farhi.org"));
-  },
   "prepareUrl": function(url) {
-    return url;
+      if (!url.contains("getperson.php")) {
+          url = hostDomain(url) + "/genealogy/getperson.php?" + getTNGItemId(url);
+          this.reload = true;
+      }
+      return url;
+  },
+  "collectionMatch": function(url) {
+      if (url.contains("/genealogy/") && url.contains(".php?personID=")) {
+          //TODO Look at source code for TNG
+          return true;
+      } else {
+          return false;
+      }
   },
   "parseData": function(url) {
     focusURLid = getTNGItemId(url);
@@ -41,7 +50,7 @@ function getTNGName(parsed) {
   if (elem.text() !== "") {
     var familyname = elem.find(".family-name").text();
     var givenname = elem.find(".given-name").text();
-    return givenname + " " + familyname;
+    return givenname.replace(",", "") + " " + familyname.replace(",", "");
   }
   // Less precise, but better than nothing
   console.log("Count not find name, using nameheader");
@@ -52,9 +61,8 @@ function parseTNG(htmlstring, familymembers, relation) {
   relation = relation || "";
   var parsed = $(htmlstring);
 
-  focusperson = getTNGName(parsed);
-  genderval = getTNGFieldText(parsed, "Gender").toLowerCase();;
-  focusname = focusperson;
+  var focusperson = getTNGName(parsed);
+  var genderval = getTNGFieldText(parsed, "Gender").toLowerCase();;
 
   document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
 
@@ -112,6 +120,10 @@ function parseTNG(htmlstring, familymembers, relation) {
 function parseTNGDate(parsed, name) {
   var data = [];
   var dateval = cleanDate(getTNGFieldText(parsed, name, 1));
+  if (dateval.contains("[")) {
+      var datesplit = dateval.split("[");
+      dateval = datesplit[0].trim();
+  }
   if (dateval !== "") {
     data.push({date: dateval});
   }

@@ -191,7 +191,6 @@ function loginProcess() {
               }
             }
             if (collection == undefined) {
-                // TODO: display error
                 console.log("Could not find new collection on " + tablink);
                 collection = {};
             }
@@ -628,32 +627,6 @@ function loadPage(request) {
             setMessage(warningmsg, 'This website is not yet supported by SmartCopy.');
         }
     }
-}
-
-function cleanJSONTable() {
-    $(".genicontainer div").each(function(){
-        var childs = $(this).children();
-        if($(childs[1]).is(":empty")){
-            $(this).hide();
-        } else if (exists($(childs[1]).html())) {
-            var value = $(childs[1]).html();
-            if (value.replace("<br>","").length === 0) {
-                $(this).hide();
-            } else if (value.startsWith("<br>")) {
-                $(childs[1]).html(value.replace("<br>",""));
-            } else if (value === "male" || value === "female" || value === "unknown") {
-                $(childs[1]).html(capFL(value));
-            } else if (value === "true" || value === "false") {
-                $(childs[1]).html(capFL(value));
-            }
-        }
-        if (exists($(childs[0]).html())) {
-            var value = $(childs[0]).html();
-            if (isParent(value) || isChild(value) || isSibling(value)) {
-                $(childs[0]).html(capFL(value));
-            }
-        }
-    });
 }
 
 function loadSelectPage(request) {

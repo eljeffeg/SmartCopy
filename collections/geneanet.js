@@ -48,11 +48,10 @@ function parseGeneanet(htmlstring, familymembers, relation) {
     focusgender = genderval;
   }
 
-  givenName = nameTab.find("a:not(:has(gmi))").first().text();
-  familyName = nameTab.find("a:not(:has(gmi))").first().next().text();
-  focusperson = givenName + " " + familyName;
-  // hack required?
-  focusname = focusperson;
+  var givenName = nameTab.find("a:not(:has(gmi))").first().text();
+  var familyName = nameTab.find("a:not(:has(gmi))").first().next().text();
+  var focusperson = givenName + " " + familyName;
+
   document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
 
   var profiledata = {name: focusperson, gender: genderval, status: relation.title};

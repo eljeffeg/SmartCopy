@@ -10,7 +10,7 @@ registerCollection({
       return url;
   },
   "collectionMatch": function(url) {
-      if (url.contains("/genealogy/") && url.contains(".php?personID=")) {
+      if (startsWithHTTP(url, hostDomain(url) + "/genealogy/") && url.contains(".php?personID=")) {
           //TODO Look at source code for TNG
           return true;
       } else {
@@ -23,6 +23,16 @@ registerCollection({
   },
   "loadPage": function(request) {
     var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+    var language = parsed.find("#newlanguage1 option:selected");
+    if (language.text() !== "English") {
+        document.getElementById("top-container").style.display = "block";
+        document.getElementById("submitbutton").style.display = "none";
+        document.getElementById("loading").style.display = "none";
+        document.querySelector('#loginspinner').style.display = "none";
+        document.querySelector('#experimentalmessage').style.display = "none";
+        setMessage(warningmsg, 'SmartCopy can only read the page in English.  Please change the language of the page.');
+        this.parseProfileData = "";
+    }
     focusname = getTNGName(parsed);
   },
   "parseProfileData": parseTNG

@@ -1,6 +1,94 @@
-var fsimage = {};
+// Parse MyHeritage Smart Match & Record Match
+registerCollection({
+    "reload": false,
+    "recordtype": "MyHeritage Match",
+    "prepareUrl": function(url) {
+        if (startsWithMH(url, "") && !startsWithHTTP(url, "https://www.myheritage.com/")) {
+            url = url.replace(/https?:\/\/www\.myheritage\..*?\//i, "https://www.myheritage.com/") + "&lang=EN";
+            this.reload = true;
+        }
+        return url;
+    },
+    "collectionMatch": function(url) {
+        return (
+            startsWithMH(url, "research/record-") || startsWithMH(url, "research/collection-") ||
+            startsWithMH(url, "matchingresult") || startsWithMH(url, "research?")
+            );
+    },
+    "parseData": function(url) {
+        if (startsWithMH(url, "matchingresult") || startsWithMH(url, "research\\?")) {
+            document.querySelector('#loginspinner').style.display = "none";
+            setMessage(warningmsg, 'Please select one of the Matches on this results page.');
+        } else {
+            focusURLid = getMHURLId(url);
+            getPageCode();
+        }
+    },
+    "loadPage": function(request) {
+        /*
+         Below checks to make sure the user has not clicked away from the matched profile
+         in order to prevent them from copying a family or data to the wrong destination.
+         Once you click off the initial match, MH adds a row of tabs - using that as indication.
+         */
+        if (request.source.indexOf('SearchPlansPageManager') !== -1) {
+            document.getElementById("smartcopy-container").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            setMessage(warningmsg, 'SmartCopy can work with the various language sites of MyHeritage, but you must have an authenticated session with the English website.<br/><a href="http://www.myheritage.com/">Please login to MyHeritage.com</a>');
+            this.parseProfileData = "";
+            return;
+        } else {
+            var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
+            focusname = parsed.find(".recordTitle").text().trim();
+            recordtype = parsed.find(".infoGroupTitle");
+            var shorturl = shorturlreader(tablink);
+            focusURLid = getMHURLId(shorturl);
+            if (focusURLid === "") {
+                focusURLid = getMHURLId(tablink);
+            }
+            smscorefactors = parsed.find(".value_add_score_factors_container").text().trim();
+            if (exists(recordtype[0])) {
+                recordtype = recordtype[0].innerText;
+            }
+            focusrange = parsed.find(".recordSubtitle").text().trim();
+            if (!profilechanged) {
+                var smartmatchpage = parsed.find("#nav_tab_901");
+                if (!exists(smartmatchpage[0])) {
+                    var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
+                    if (exists(focusprofile)) {
+                        focusid = focusprofile.trim().replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");
+                        if (exists(focusid) && focusid.contains("myheritage.com")) {
+                            if (focusURLid !== "") {
+                                for (var i = 0; i < buildhistory.length; i++) {
+                                    if (buildhistory[i].itemId === focusURLid) {
+                                        focusid = buildhistory[i].id;
+                                        profilechanged = true;
+                                        loadPage(request);
+                                        return;
+                                    }
+                                }
+                            }
+                            focusid = null;
+                        } else {
+                            updateLinks("?profile=" + focusid);
+                        }
+                    }
+                } else if (focusURLid !== "") {
+                    for (var i = 0; i < buildhistory.length; i++) {
+                        if (buildhistory[i].itemId === focusURLid) {
+                            focusid = buildhistory[i].id;
+                            profilechanged = true;
+                            loadPage(request);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "parseProfileData": parseSmartMatch
+});
 
-// Parse MyHeritage Tree from Smart Match
+var fsimage = {};
 function parseSmartMatch(htmlstring, familymembers, relation) {
     try{
         if ($(htmlstring).filter('title').text().contains("Marriages")) {

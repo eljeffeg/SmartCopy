@@ -1,4 +1,48 @@
 // Parse MyHeritage
+registerCollection({
+    "reload": false,
+    "recordtype": "MyHeritage Genealogy",
+    "prepareUrl": function(url) {
+        if (startsWithMH(url, "") && !startsWithHTTP(url, "https://www.myheritage.com/")) {
+            url = url.replace(/https?:\/\/www\.myheritage\..*?\//i, "https://www.myheritage.com/") + "&lang=EN";
+            this.reload = true;
+        }
+        return url;
+    },
+    "collectionMatch": function(url) {
+        return (startsWithMH(url,"person-") || startsWithMH(url,"member-") || startsWithMH(url,"site-family-tree-"));
+    },
+    "parseData": function(url) {
+        if (startsWithHTTP(url,"https://www.myheritage.com/site-family-tree-") && !url.endsWith("-info")) {
+            document.querySelector('#loginspinner').style.display = "none";
+            setMessage(warningmsg, 'Unable to read in tree view.  Please select the Profile page instead.');
+            return;
+        } else {
+            if (url.contains("rootIndivudalID=")) {
+                focusURLid = getParameterByName('rootIndivudalID', url);
+            } else {
+                focusURLid = url.substring(url.indexOf('-') + 1);
+                focusURLid = focusURLid.substring(0, focusURLid.indexOf('_'));
+            }
+            getPageCode();
+        }
+    },
+    "loadPage": function(request) {
+        if (request.source.indexOf('SearchPlansPageManager') !== -1) {
+            document.getElementById("smartcopy-container").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            setMessage(warningmsg, 'SmartCopy can work with the various language sites of MyHeritage, but you must have an authenticated session with the English website.<br/><a href="http://www.myheritage.com/">Please login to MyHeritage.com</a>');
+            this.parseProfileData = "";
+            return;
+        }
+        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        var fperson = parsed.find("span.FL_LabelxxLargeBold");
+        focusname = fperson.text();
+        focusrange = "";
+    },
+    "parseProfileData": parseMyHeritage
+});
+
 function parseMyHeritage(htmlstring, familymembers, relation) {
     relation = relation || "";
     var splitdata = htmlstring.replace(/<img/ig, "<gmi").split("Immediate family");

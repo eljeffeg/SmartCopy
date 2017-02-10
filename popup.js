@@ -5,6 +5,7 @@ var profilechanged = false;
 var focusid;
 var focusURLid = "";
 var focusname = "";
+var focusrange = "";
 var tablink;
 var submitcheck = true;
 var buildhistory = [];
@@ -180,46 +181,36 @@ function loginProcess() {
             var tab = tabs[0];
             tablink = tab.url;
 
-            // Select collection
-            for (var i=0; i<collections.length; i++) {
-              if (collections[i].collectionMatch(tablink)) {
-                collection = collections[i];
-                tablink = collection.prepareUrl(tablink);
-                recordtype = collection.recordtype;
-                console.log("Collection: " + recordtype);
-                break;
-              }
-            }
-            if (collection == undefined) {
-                console.log("Could not find new collection on " + tablink);
-                collection = {};
-            }
-
-            // Parse data
-            if (collection.parseData) {
-                console.log("Going to parse data now");
-                collection.parseData(tablink);
+            if (isGeni(tablink)) {
+                document.querySelector('#message').style.display = "none";
+                var focusprofile = getProfile(tablink);
+                focusid = focusprofile.replace("?profile=", "");
+                document.getElementById("addhistoryblock").style.display = "block";
+                updateLinks(focusprofile);
+                userAccess();
             } else {
-                // TODO: migrate all this to parseData()
-                if (startsWithMH(tablink, "research/collection") || startsWithMH(tablink, "research/record") ||
-                    validMyHeritage(tablink)) {
-                    getPageCode();
-                } else if (startsWithMH(tablink, "matchingresult")) {
-                    document.querySelector('#loginspinner').style.display = "none";
-                    setMessage(warningmsg, 'Please select one of the Matches on this results page.');
-                } else if (isGeni()) {
-                    document.querySelector('#message').style.display = "none";
-                    var focusprofile = getProfile(tablink);
-                    focusid = focusprofile.replace("?profile=", "");
-                    document.getElementById("addhistoryblock").style.display = "block";
-                    updateLinks(focusprofile);
-                    userAccess();
-                } else if (MHLanguageCheck(tablink)) {
-                    setMessage(warningmsg, 'SmartCopy will only parse MyHeritage when your language is defined as English. Retry using ".com": https://www.myheritage.com');
-                    document.querySelector('#loginspinner').style.display = "none";
+                // Select collection
+                for (var i=0; i<collections.length; i++) {
+                    if (collections[i].collectionMatch(tablink)) {
+                        collection = collections[i];
+                        tablink = collection.prepareUrl(tablink);
+                        recordtype = collection.recordtype;
+                        if (collection.experimental) {
+                            $("#experimentalmessage").css("display", "block");
+                        }
+                        console.log("Collection: " + recordtype);
+                        break;
+                    }
+                }
+
+                // Parse data
+                if (exists(collection) && collection.parseData) {
+                    console.log("Going to parse data now");
+                    collection.parseData(tablink);
                 } else {
-                    setMessage(errormsg, 'SmartCopy does not currently support parsing this page / site / collection.');
+                    console.log("Could not find collection on " + tablink);
                     document.querySelector('#loginspinner').style.display = "none";
+                    setMessage(errormsg, 'SmartCopy does not currently support parsing this page / site / collection.');
                 }
             }
         });
@@ -246,8 +237,8 @@ $('#genislider').on('click', function () {
 });
 
 
-function isGeni() {
-    return (startsWithHTTP(tablink,"http://www.geni.com/people") || startsWithHTTP(tablink,"http://www.geni.com/family-tree") || startsWithHTTP(tablink,"http://www.geni.com/profile"));
+function isGeni(url) {
+    return (startsWithHTTP(url,"http://www.geni.com/people") || startsWithHTTP(url,"http://www.geni.com/family-tree") || startsWithHTTP(url,"http://www.geni.com/profile"));
 }
 
 function userAccess() {
@@ -382,116 +373,40 @@ chrome.extension.onMessage.addListener(function (request, sender, callback) {
 });
 
 function loadPage(request) {
-    /*
-     Below checks to make sure the user has not clicked away from the matched profile
-     in order to prevent them from copying a family or data to the wrong destination.
-     Once you click off the initial match, MH adds a row of tabs - using that as indication.
-     */
-    if (request.source.indexOf('SearchPlansPageManager') !== -1) {
-        document.getElementById("smartcopy-container").style.display = "none";
-        document.getElementById("loading").style.display = "none";
-        setMessage(warningmsg, 'SmartCopy can work with the various language sites of MyHeritage, but you must have an authenticated session with the English website.<br/><a href="http://www.myheritage.com/">Please login to MyHeritage.com</a>');
-    }
-    else if ((tablink.contains("myheritage") && request.source.indexOf('pk_family_tabs') === -1) || profilechanged) {
-        if (supportedCollection()) {
-            document.getElementById("top-container").style.display = "block";
-            var focusrange = "";
-            if (validMyHeritage(tablink)) {
-                var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-                recordtype = "MyHeritage Genealogy";
-                var fperson = parsed.find("span.FL_LabelxxLargeBold");
-                focusname = fperson.text();
-                focusrange = "";
-            } else if (tablink.contains("myheritage")) {
-                var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
-                focusname = parsed.find(".recordTitle").text().trim();
-                recordtype = parsed.find(".infoGroupTitle");
-                var shorturl = shorturlreader(tablink);
-                focusURLid = getMHURLId(shorturl);
-                if (focusURLid === "") {
-                   focusURLid = getMHURLId(tablink);
-                }
-                smscorefactors = parsed.find(".value_add_score_factors_container").text().trim();
-                if (exists(recordtype[0])) {
-                    recordtype = recordtype[0].innerText;
-                }
-                focusrange = parsed.find(".recordSubtitle").text().trim();
-                if (!profilechanged) {
-                    var smartmatchpage = parsed.find("#nav_tab_901");
-                    if (!exists(smartmatchpage[0])) {
-                        var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
-                        if (exists(focusprofile)) {
-                            focusid = focusprofile.trim().replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");
-                            if (exists(focusid) && focusid.contains("myheritage.com")) {
-                                if (focusURLid !== "") {
-                                    for (var i = 0; i < buildhistory.length; i++) {
-                                        if (buildhistory[i].itemId === focusURLid) {
-                                            focusid = buildhistory[i].id;
-                                            profilechanged = true;
-                                            loadPage(request);
-                                            return;
-                                        }
-                                    }
-                                }
-                                focusid = null;
-                            } else {
-                                updateLinks("?profile=" + focusid);
-                            }
-                        }
-                    } else if (focusURLid !== "") {
-                        for (var i = 0; i < buildhistory.length; i++) {
-                            if (buildhistory[i].itemId === focusURLid) {
-                                focusid = buildhistory[i].id;
-                                profilechanged = true;
-                                loadPage(request);
-                                return;
-                            }
-                        }
-                    }
-                }
-                //MyHeritage SmartMatch Page - Redirect to primary website
-                if (recordtype === "Find a Grave") {
-                    var recordurl = request.source.match('http://www.findagrave.com/cgi-bin(.*?)"');
-                    if (exists(recordurl) && exists(recordurl[1])) {
-                        tablink = "https://www.findagrave.com/cgi-bin" + recordurl[1];
-                        profilechanged = true;
-                        chrome.extension.sendMessage({
-                            method: "GET",
-                            action: "xhttp",
-                            url: tablink
-                        }, function (response) {
-                            loadPage(response);
-                        });
-                        return;
-                    }
-                } else if (recordtype === "WikiTree") {
-                    var recordurl = request.source.match('http://www.wikitree.com/wiki/(.*?)"');
-                    if (exists(recordurl) && exists(recordurl[1])) {
-                        tablink = "https://www.wikitree.com/wiki/" + recordurl[1];
-                        profilechanged = true;
-                        chrome.extension.sendMessage({
-                            method: "GET",
-                            action: "xhttp",
-                            url: tablink
-                        }, function (response) {
-                            loadPage(response);
-                        });
-                        return;
-                    }
-                }
-            }
-
+    if (!profilechanged) {
+        if (collection.parseProfileData) {
             if (collection.loadPage) {
                 collection.loadPage(request);
             }
-
+            if (!exists(focusid) || focusid === "") {
+                for (var i = 0; i < buildhistory.length; i++) {
+                    if (buildhistory[i].itemId === focusURLid) {
+                        focusid = buildhistory[i].id;
+                        profilechanged = true;
+                        loadPage(request);
+                        return;
+                    }
+                }
+            } else {
+                profilechanged = true;
+                loadPage(request);
+                return;
+            }
+            loadSelectPage(request);
+        } else {
+            document.getElementById("top-container").style.display = "block";
+            document.getElementById("submitbutton").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            setMessage(warningmsg, 'This website is not yet supported by SmartCopy.');
+        }
+    } else {
+            document.getElementById("top-container").style.display = "block";
             if (focusid === "" || focusid === "Select from History") {
                 var accessdialog = document.querySelector('#useraccess');
                 accessdialog.style.marginBottom = "-2px";
                 accessdialog.innerText = "The URL or ID entered failed to resolve."
                 accessdialog.style.backgroundColor = errormsg;
                 accessdialog.style.display = "block";
-
                 focusid = null;
             }
             if (exists(focusid)) {
@@ -573,8 +488,6 @@ function loadPage(request) {
                     collection.parseProfileData(request.source, true);
                 } else if (tablink.contains("/collection-") || tablink.contains("/research/record-")) {
                     parseSmartMatch(request.source, true);
-                } else if (validMyHeritage(tablink)) {
-                    parseMyHeritage(request.source, true);
                 }
 
                 if (!accountinfo.pro) {
@@ -589,58 +502,21 @@ function loadPage(request) {
             } else {
                 loadSelectPage(request);
             }
-        } else {
-            document.getElementById("top-container").style.display = "block";
-            document.getElementById("submitbutton").style.display = "none";
-            document.getElementById("loading").style.display = "none";
-            setMessage(warningmsg, 'This MyHeritage collection is not yet fully supported by SmartCopy.');
-        }
-    } else {
-        if (supportedCollection()) {
-            if (validMyHeritage(tablink)) {
-                if (tablink.contains("rootIndivudalID=")) {
-                    focusURLid = getParameterByName('rootIndivudalID', tablink);
-                } else {
-                    focusURLid = tablink.substring(tablink.indexOf('-') + 1);
-                    focusURLid = focusURLid.substring(0, focusURLid.indexOf('_'));
-                }
-            } else if (startsWithMH(tablink, "")) {
-                focusURLid = getMHURLId(tablink);
-            }
 
-            if (focusURLid !== "") {
-                for (var i = 0; i < buildhistory.length; i++) {
-                    if (buildhistory[i].itemId === focusURLid) {
-                        focusid = buildhistory[i].id;
-                        profilechanged = true;
-                        loadPage(request);
-                        return;
-                    }
-                }
-            }
-
-            loadSelectPage(request);
-        } else {
-            document.getElementById("top-container").style.display = "block";
-            document.getElementById("submitbutton").style.display = "none";
-            document.getElementById("loading").style.display = "none";
-            setMessage(warningmsg, 'This website is not yet supported by SmartCopy.');
-        }
     }
 }
 
 function loadSelectPage(request) {
     document.getElementById("smartcopy-container").style.display = "none";
     document.getElementById("loading").style.display = "none";
-    setMessage(warningmsg, 'SmartCopy was unable to determine the matching Geni profile to use as a copy destination.<br/>' +
-        '<strong><span id="changetext">Set Geni Destination Profile</span></strong>' +
-        '<table style="width: 100%;"><tr class="optionrow" style="display: none;">' +
-        '<td id="focusoption" style="width: 100%; text-align: left;"></td></tr>' +
-        '<tr class="optionrow" style="display: none;"><td colspan="2">Or enter URL:</td></tr>' +
-        '<tr><td style="padding-right: 5px;">' +
-        '<input type="text" style="width: 100%;" id="changeprofile"></td>' +
-        '</tr><tr><td style="padding-top: 5px;"><button id="changefocus">Set Destination</button></td></tr></table>');
-
+    setMessage(warningmsg, 'SmartCopy was unable to determine the Geni profile to use as a copy destination.<br/><br/>' +
+        '<strong><span id="changetext" title="Select the profile on Geni that matches the focus person on this page.">Set Geni Destination Profile</span></strong>' +
+        '<table style="width: 100%;"><tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong><span id="optionrel" style="display: none;">Relatives &&nbsp;</span><span id="optionsc">SmartCopy&nbsp;</span>History:</strong></td></tr>' +
+        '<tr id="optionrowldr"><td colspan="2" style="width: 100%; text-align: left; font-size: 90%; padding-left: 20px;">Loading Geni Relatives <img src="images/spinnerlg.gif" style="height: 16px; margin-bottom: -4px;"></td></tr>' +
+        '<tr id="optionrow" style="display: none;"><td id="focusoption" style="width: 100%; text-align: left;"></td></tr>' +
+        '<tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong>Geni ID or URL:</strong></td></tr>' +
+        '<tr><td style="padding-right: 5px;"><input type="text" style="width: 100%;" id="changeprofile"></td></tr>' +
+        '<tr><td style="padding-top: 5px;"><button id="changefocus">Set Destination</button></td></tr></table>');
     var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
     var focusperson = parsed.find(".individualInformationName").text().trim();
     var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
@@ -648,6 +524,8 @@ function loadSelectPage(request) {
         focusprofile = null;
     }
     if (exists(focusprofile)) {
+        $('#optionrel').css("display", "inline-block");
+        $('#optionsc').css("display", "none");
         focusprofile = focusprofile.replace("http://www.geni.com/", "").replace("https://www.geni.com/", "").trim();
         var url = smartcopyurl + "/smartsubmit?family=all&profile=" + focusprofile;
         chrome.extension.sendMessage({
@@ -680,14 +558,16 @@ function loadSelectPage(request) {
             }
             selectsrt += buildHistorySelect();
             selectsrt += '</select>';
-            $('.optionrow').css("display", "table-row");
+            $('#optionrowldr').css("display", "none");
+            $('#optionrow').css("display", "table-row");
             $('#focusoption')[0].innerHTML = selectsrt;
         });
     } else {
         var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select from History</option>';
         selectsrt += buildHistorySelect();
         selectsrt += '</select>';
-        $('.optionrow').css("display", "table-row");
+        $('#optionrowldr').css("display", "none");
+        $('#optionrow').css("display", "table-row");
         $('#focusoption')[0].innerHTML = selectsrt;
     }
     $(function () {
@@ -829,43 +709,6 @@ function getPageCode() {
                 if (chrome.extension.lastError) {
                     setMessage(errormsg, 'There was an error injecting script : \n' + chrome.extension.lastError.message);
                 }
-            });
-        } else if ((startsWithHTTP(tablink,"http://www.myheritage.com/site-family-tree-") || startsWithHTTP(tablink,"https://www.myheritage.com/site-family-tree-")) && !tablink.endsWith("-info")) {
-            setMessage(warningmsg, 'Unable to read in tree view.  Please select the Profile page instead.');
-            document.getElementById("smartcopy-container").style.display = "none";
-            document.getElementById("loading").style.display = "none";
-            return;
-            /*
-            This stopped working due to MyHeritage formatting changes
-            var linkid = getParameterByName("rootIndivudalID", tablink);
-            var siteid = tablink.substring(tablink.lastIndexOf("-") + 1, tablink.lastIndexOf("/"));
-            tablink = tablink.replace("site-family-tree-", "person-" + linkid + "_" + siteid + "_");
-            chrome.extension.sendMessage({
-                method: "GET",
-                action: "xhttp",
-                url: tablink
-            }, function (response) {
-                loadPage(response);
-            });
-            */
-        } else if (startsWithHTTP(tablink,"http://www.myheritage.com/") || startsWithHTTP(tablink,"https://www.myheritage.com/")
-            ) {
-            chrome.tabs.executeScript(null, {
-                file: "getPagesSource.js"
-            }, function () {
-                // If you try and inject into an extensions page or the webstore/NTP you'll get an error
-                if (chrome.extension.lastError) {
-                    message.innerText = 'There was an error injecting script : \n' + chrome.extension.lastError.message;
-                }
-            });
-        } else {
-            var url = tablink.replace(/https?:\/\/www\.myheritage\..*?\//i, "http://www.myheritage.com/") + "&lang=EN";
-            chrome.extension.sendMessage({
-                method: "GET",
-                action: "xhttp",
-                url: url
-            }, function (response) {
-                loadPage(response);
             });
         }
     } else {
@@ -1906,15 +1749,6 @@ function addHistory(id, itemId, name, data) {
     }
 }
 
-function supportedCollection() {
-    if (collection.parseProfileData) {
-        if (collection.experimental) {
-            $("#experimentalmessage").css("display", "block");
-        }
-        return true;
-    } else return tablink.contains("/collection-") || tablink.contains("research/record-") || validMyHeritage(tablink);
-}
-
 function getParameterByName(name, url) {
     if (exists(url)) {
         url = url.replace("&amp;", "&");
@@ -2278,20 +2112,6 @@ function geoonoff(value) {
         }
         $(".geoicon").attr("src", "images/geooff.png");
     }
-}
-
-function validMyHeritage(url) {
-    return (url.startsWith("http://www.myheritage.com/person-") || url.startsWith("http://www.myheritage.com/member-") || url.startsWith("http://www.myheritage.com/site-family-tree-") ||
-        url.startsWith("https://www.myheritage.com/person-") || url.startsWith("https://www.myheritage.com/member-") || url.startsWith("https://www.myheritage.com/site-family-tree-"));
-}
-
-function MHLanguageCheck(url) {
-    if (startsWithMH(url, "person-") || startsWithMH(url, "member-") || startsWithMH(url, "site-family-tree-")) {
-        if (!validMyHeritage(url)) {
-            return true;
-        }
-    }
-    return false;
 }
 
 function hostDomain(url) {

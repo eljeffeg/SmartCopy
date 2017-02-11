@@ -1756,6 +1756,8 @@ function cleanDate(dateval) {
         dateval = dateval.replace(/ /g, "-");
     }
 
+    /*
+    TODO Trying to set the format to MMM D YYYY, can produce Jan 1 YYYY if no month or day is present
     var momentval = moment(dateval.replace("Circa ", ""), getDateFormat(dateval.replace("Circa ", "")), true);
     if (momentval.isValid()) {
         //Try to format this similar to Geni for easy comparision
@@ -1764,7 +1766,7 @@ function cleanDate(dateval) {
         } else {
             dateval = momentval.format("MMM D YYYY");
         }
-    }
+    }*/
 
     return dateval;
 }

@@ -56,6 +56,7 @@ registerCollection({
     "parseProfileData": parseAncestryNew
 });
 
+var ancestrymrglist = [];
 function parseAncestryNew(htmlstring, familymembers, relation) {
     relation = relation || "";
 
@@ -71,7 +72,6 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     var buriallcflag = false;
     var deathdtflag = false;
     var aboutdata = "";
-
     var usercard = parsed.find(".cardSubtitle");
 
     for (var i = 0; i < usercard.length; i++) {
@@ -116,6 +116,12 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
             if (isMale(gen) || isFemale(gen)) {
                 genderval = gen;
             }
+        } else if (familymembers && titlename === "Marriage") {
+            var data = parseAncestryNewDate(entry.next());
+            var mid = parseAncestryNewId(entry.next().next().find("a").attr("href"));
+            if (!$.isEmptyObject(data)) {
+                ancestrymrglist.push({"id": mid, "event": data});
+            }
         } else if (!familymembers && titlename === "Marriage" && exists(relation.title) && isPartner(relation.title)) {
             var url = entry.next().next().find("a").attr("href");
             if (exists(url)) {
@@ -144,6 +150,15 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
         }
     }
 
+    if (!familymembers && isPartner(relation.title) && !exists(profiledata["marriage"])) {
+        for (var i=0;i<ancestrymrglist.length;i++) {
+            if (ancestrymrglist[i].id === relation.itemId) {
+                console.log(ancestrymrglist[i].event);
+                profiledata["marriage"] = ancestrymrglist[i].event;
+                break;
+            }
+        }
+    }
     profiledata["name"] = focusperson;
     profiledata["gender"] = genderval;
     profiledata["status"] = relation.title;

@@ -989,9 +989,9 @@ var submitform = function () {
                 if (exists(alldata["profile"].url)) {
                     refurl = alldata["profile"].url;
                 }
-                if (!focusabout.contains("Updated from [" + refurl + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
-                    !focusabout.contains("Updated from [" + refurl + " " + recordtype + "] by [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
-                    !focusabout.contains("Reference: [" + refurl + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
+                if (!focusabout.contains("Updated from [" + encodeURI(refurl) + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
+                    !focusabout.contains("Updated from [" + encodeURI(refurl) + " " + recordtype + "] by [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
+                    !focusabout.contains("Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
                     if (focusabout !== "") {
                         about = focusabout + "\n" + about;
                     }
@@ -1004,7 +1004,7 @@ var submitform = function () {
                             about += "*";
                         }
                     }
-                    profileout["about_me"] = about + "* Reference: [" + refurl + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                    profileout["about_me"] = about + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                 } else {
                     if (about !== "") {
                         profileout["about_me"] = focusabout + "\n" + about;
@@ -1072,7 +1072,7 @@ var submitform = function () {
                             } else {
                                 focusprofileurl = "http://www.geni.com/" + focusid;
                             }
-                            about = about + "* Reference: [" + fdata.url + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                            about = about + "* Reference: [" + encodeURI(fdata.url) + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                         }
                         if (about !== "") {
                             familyout["about_me"] = about;
@@ -1185,6 +1185,17 @@ function buildTree(data, action, sendid) {
             id = data.profile_id;
             delete data.profile_id;
         }
+        if (action === "update") {
+            var permissions = [];
+            if (exists(genifamilydata[sendid])) {
+                permissions = genifamilydata[sendid].get("actions");
+            } else if (genifocusdata.get("id") === sendid) {
+                permissions = genifocusdata.get("actions");
+            }
+            if (permissions.indexOf("update") === -1 && permissions.indexOf("update-basics") !== -1) {
+                action = "update-basics";
+            }
+        }
         chrome.extension.sendMessage({
             method: "POST",
             action: "xhttp",
@@ -1266,6 +1277,17 @@ function buildTree(data, action, sendid) {
             submitstatus.pop();
         });
     } else if (!$.isEmptyObject(data) && exists(sendid) && devblocksend) {
+        if (action === "update") {
+            var permissions = [];
+            if (exists(genifamilydata[sendid])) {
+                permissions = genifamilydata[sendid].get("actions");
+            } else if (genifocusdata.get("id") === sendid) {
+                permissions = genifocusdata.get("actions");
+            }
+            if (permissions.indexOf("update") === -1 && permissions.indexOf("update-basics") !== -1) {
+                action = "update-basics";
+            }
+        }
         if (exists(data.profile_id)) {
             var id = data.profile_id;
             if (exists(databyid[id])) {
@@ -1292,6 +1314,7 @@ function buildTree(data, action, sendid) {
             delete data.profile_id;
         }
         console.log("-------------------");
+        console.log("Action: " + action + " on " + sendid);
         console.log(JSON.stringify(data));
     }
 }

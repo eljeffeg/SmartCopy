@@ -919,6 +919,7 @@ function buildForm() {
             genisearchurl += "/advanced";
         }
         $("#genisearch").attr("href", genisearchurl);
+        $("#parentsearch").show();
     }
 
     if (icount > 0 && accountinfo.pro && accountinfo.user) {
@@ -1730,7 +1731,6 @@ function cleanDate(dateval) {
     if (dateval.startsWith("To")) {
         dateval = dateval.replace(/^to/i, "Before");
     }
-    var dateformat = "";
     if (dateval.contains(" to ")) {
         dateval = dateval.replace(" to ", " and ");
         if (!dateval.startsWith("Between")) {
@@ -1738,13 +1738,10 @@ function cleanDate(dateval) {
         }
     } else if (dateval.search(/\d{4}-\d{4}/) === -1 && dateval.search(/\d{2}-\d{4}/) !== -1) {
         // Read as DD-MM-YYYY format
-        dateformat = "DD-MM-YYYY";
     } else if (dateval.search(/\d{4}-\d{4}/) === -1 && dateval.search(/\d{4}-\d{2}/) !== -1) {
         // Read as YYYY-MM-DD format
-        dateformat = "YYYY-MM-DD";
     } else if (dateval.search(/\D{3}-\d{4}/)) {
         // Read as MMM-YYYY format
-        dateformat = "MMM-YYYY";
     } else if (dateval.contains("-")) {
         dateval = dateval.replace("-", " and ");
         if (!dateval.startsWith("Between")) {
@@ -1758,10 +1755,8 @@ function cleanDate(dateval) {
     } else if (dateval.search(/\d{4} \d{1,2} \d{1,2}/) !== -1) {
         dateval = dateval.replace(/ /g, "-");
     }
-    if (dateformat === "") {
-        dateformat = getDateFormat(dateval.replace("Circa ", ""));
-    }
-    var momentval = moment(dateval.replace("Circa ", ""), dateformat, true);
+
+    var momentval = moment(dateval.replace("Circa ", ""), getDateFormat(dateval.replace("Circa ", "")), true);
     if (momentval.isValid()) {
         //Try to format this similar to Geni for easy comparision
         if (dateval.startsWith("Circa ")) {

@@ -1701,7 +1701,6 @@ function cleanDate(dateval) {
         dateval = "";
     }
     dateval = dateval.replace(/ - /g, "-");
-    dateval = dateval.replace(/\s?\/\s?/g, "-");
     dateval = dateval.replace(/\?/g, "");
     dateval = dateval.replace(/ABT\.? /i, "Circa ");
     dateval = dateval.replace(/EST\.? /i, "Circa ");
@@ -1713,9 +1712,26 @@ function cleanDate(dateval) {
     dateval = dateval.replace(/before/i, "Before");
     dateval = dateval.replace(/after/i, "After");
     dateval = dateval.replace(/from/i, "After");
+    dateval = dateval.replace(/^in /i, "");
+
+    if (dateval.search(/\d{4}\/\d{4}/) !== -1) {
+        dateval = "Between " + dateval.replace("/", " and ");
+    } else if (dateval.search(/\d{4}\-\d{4}/) !== -1) {
+        var andval = " and ";
+        if (dateval.contains("Circa")) {
+            andval = andval + "Circa ";
+        }
+        dateval = "Between " + dateval.replace("-", andval);
+    } else if (dateval.search(/\d{4}\/\d{2}/) !== -1) {
+        dateval = dateval.replace(/\d{2}\//,"");
+    }
+
+    dateval = dateval.replace(/\s?\/\s?/g, "-");
+
     if (dateval.startsWith("To")) {
         dateval = dateval.replace(/^to/i, "Before");
     }
+    var dateformat = "";
     if (dateval.contains(" to ")) {
         dateval = dateval.replace(" to ", " and ");
         if (!dateval.startsWith("Between")) {
@@ -1723,10 +1739,13 @@ function cleanDate(dateval) {
         }
     } else if (dateval.search(/\d{4}-\d{4}/) === -1 && dateval.search(/\d{2}-\d{4}/) !== -1) {
         // Read as DD-MM-YYYY format
+        dateformat = "DD-MM-YYYY";
     } else if (dateval.search(/\d{4}-\d{4}/) === -1 && dateval.search(/\d{4}-\d{2}/) !== -1) {
         // Read as YYYY-MM-DD format
+        dateformat = "YYYY-MM-DD";
     } else if (dateval.search(/\D{3}-\d{4}/)) {
         // Read as MMM-YYYY format
+        dateformat = "MMM-YYYY";
     } else if (dateval.contains("-")) {
         dateval = dateval.replace("-", " and ");
         if (!dateval.startsWith("Between")) {
@@ -1740,17 +1759,19 @@ function cleanDate(dateval) {
     } else if (dateval.search(/\d{4} \d{1,2} \d{1,2}/) !== -1) {
         dateval = dateval.replace(/ /g, "-");
     }
-    if (dateval.search(/\d{4}\/\d{4}/) !== -1) {
-        dateval = "Between " + dateval.replace("/", " and ");
-    } else if (dateval.search(/\d{4}\-\d{4}/) !== -1) {
-        var andval = " and ";
-        if (dateval.contains("Circa")) {
-            andval = andval + "Circa ";
-        }
-        dateval = "Between " + dateval.replace("-", andval);
-    } else if (dateval.search(/\d{4}\/\d{2}/) !== -1) {
-        dateval = dateval.replace(/\d{2}\//,"");
+    if (dateformat === "") {
+        dateformat = getDateFormat(dateval.replace("Circa ", ""));
     }
+    var momentval = moment(dateval.replace("Circa ", ""), dateformat, true);
+    if (momentval.isValid()) {
+        //Try to format this similar to Geni for easy comparision
+        if (dateval.startsWith("Circa ")) {
+            dateval = "Circa " + momentval.format("MMM D YYYY");
+        } else {
+            dateval = momentval.format("MMM D YYYY");
+        }
+    }
+
     return dateval;
 }
 

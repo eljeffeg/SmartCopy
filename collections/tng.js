@@ -143,6 +143,10 @@ function parseTNGDate(parsed, name) {
     data.push({date: dateval});
   }
   var eventlocation = getTNGFieldText(parsed, name, 2);
+  if (eventlocation.contains("[")) {
+      var eventsplit= eventlocation.split("[");
+      eventlocation = eventsplit[0].trim();
+  }
   if (eventlocation !== "") {
     data.push({id: geoid, location: eventlocation});
     geoid++;

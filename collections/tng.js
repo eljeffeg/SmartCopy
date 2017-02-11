@@ -90,11 +90,13 @@ function parseTNG(htmlstring, familymembers, relation) {
     var father = getTNGField(parsed, "Father");
     if (exists(father)) {
       processTNGFamily(father, "father", famid);
+      famid++;
     }
 
     var mother = getTNGField(parsed, "Mother");
     if (exists(mother)) {
       processTNGFamily(mother, "mother", famid);
+      famid++;
     }
 
     var spouses = getTNGField(parsed, "Family");

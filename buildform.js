@@ -399,7 +399,7 @@ function buildForm() {
         membersstring = div[0].innerHTML;
         var dateicon = genifocusdata.lockIcon(title, "date");
         var locationicon = genifocusdata.lockIcon(title, "location");
-        if (exists(obj)) {
+        if (exists(obj) && obj.length > 0) {
             if (x > 0) {
                 membersstring = membersstring + '<tr><td colspan="3" style="padding: 0;"><div class="separator"></div></td></tr>';
                 // $("#"+title+"separator")[0].style.display = "block";
@@ -751,9 +751,8 @@ function buildForm() {
                     continue;  //Skip marriage date fields if not partner
                 }
                 var memberobj = members[member][title];
-                if (exists(memberobj)) {
+                if (exists(memberobj) && memberobj.length > 0) {
                     membersstring = membersstring + '<tr><td colspan="3"><div class="separator"></div></td></tr>';
-
                     var dateadded = false;
                     var locationadded = false;
                     var locationval = "";

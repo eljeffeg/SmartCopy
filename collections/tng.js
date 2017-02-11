@@ -41,7 +41,7 @@ registerCollection({
 function getTNGField(parsed, name, position) {
   position = position || 1;
   var selector = "td:contains('"+name+"')";
-  for (i = 0; i<position; i++) {
+  for (var i = 0; i<position; i++) {
     selector += "+ td";
   }
   return parsed.find(selector);
@@ -81,7 +81,10 @@ function parseTNG(htmlstring, familymembers, relation) {
   profiledata["birth"] = parseTNGDate(parsed, "Born");
   profiledata["death"] = parseTNGDate(parsed, "Died");
 
-  profiledata["occupation"] = getTNGFieldText(parsed, "OCCU");
+  var occupation = getTNGFieldText(parsed, "OCCU");
+  if (occupation !== "") {
+      profiledata["occupation"] = occupation;
+  }
 
   if (familymembers) {
     loadGeniData();

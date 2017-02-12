@@ -153,7 +153,6 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     if (!familymembers && isPartner(relation.title) && !exists(profiledata["marriage"])) {
         for (var i=0;i<ancestrymrglist.length;i++) {
             if (ancestrymrglist[i].id === relation.itemId) {
-                console.log(ancestrymrglist[i].event);
                 profiledata["marriage"] = ancestrymrglist[i].event;
                 break;
             }

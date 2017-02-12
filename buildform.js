@@ -680,7 +680,7 @@ function buildForm() {
             if (halfsibling) {
                 membersstring += '<span style="float: right; margin-right: 3px; margin-left: -2px; margin-top: 3px; margin-bottom: -3px;"><img src="images/halfcircle.png" style="width: 14px; margin-top: -2px;" alt="half-sibling" title="half-sibling"></span>';
             }
-            membersstring += '<span style="float: right; padding-left: 8px;"><img class="geopin" id="' + i + 'gpin" src="images/clearpin.png" style="height: 14px; margin-bottom: -3px;"></span>'
+            membersstring += '<span style="float: right; padding-left: 8px;"><img class="geopin" id="' + i + 'gpin" src="images/clearpin.png" style="height: 14px; margin-bottom: -3px;"><img id="' + i + 'errordate" src="images/dateerror.png" style="display: none; height: 13px; margin-bottom: -3px; padding-right: 3px; margin-left: -3px;" title="Ambiguous Date"></span>'
             membersstring += '</td><td></td></tr></table></div>' +
                 '<div id="slide' + i + '-' + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table id="familytable_' + i + '" style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
                 '<tr><td colspan="3" style="padding: 0px;"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '"></td></tr>';
@@ -850,7 +850,7 @@ function buildForm() {
             membersstring = membersstring + '</table></div>';
             entry.innerHTML = membersstring;
             for (var i=0;i<ambigdatecheck.length;i++) {
-                $("#" + ambigdatecheck[i] + "gpin").attr("src", "images/dateerror.png");
+                $("#" + ambigdatecheck[i] + "errordate").show();
             }
             //log("  " + members[member].name);
             icount ++;
@@ -1016,12 +1016,12 @@ function updateClassResponse() {
             if (dateAmbigous(datefield.val())) {
                 $(this).css("color", "#ff0000");
                 if (exists(imgid)) {
-                    $("#" + imgid + "gpin").attr("src", "images/dateerror.png");
+                    $("#" + imgid + "errordate").show();
                 }
             } else {
                 $(this).css("color", "#000");
                 if (exists(imgid)) {
-                    $("#" + imgid + "gpin").attr("src", "images/clearpin.png");
+                    $("#" + imgid + "errordate").hide();
                 }
             }
         });

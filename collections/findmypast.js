@@ -42,7 +42,7 @@ registerCollection({
 
 function parseFindMyPast(htmlstring, familymembers, relation) {
     relation = relation || "";
-    var parsed = $($.parseHTML(htmlstring.replace(/<img /ig,"<gmi ")));
+    var parsed = $(htmlstring.replace(/<img /ig,"<gmi "));
 
     var title = parsed.filter('title').text();
     var treefocus = parsed.find(".tree-focus-nav").find("a");

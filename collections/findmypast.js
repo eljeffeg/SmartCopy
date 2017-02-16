@@ -50,9 +50,13 @@ function parseFindMyPast(htmlstring, familymembers, relation) {
         console.log(htmlstring);
     }
 
+
     var focusdaterange = $(treefocus[1]).find("span").text();
     var focusperson = $(treefocus[1]).text().replace(focusdaterange, "").trim();
-    console.log(focusperson);
+    if (focusperson === "" && relation !== "") {
+        focusperson = relation.name;
+    }
+
     var burialdtflag = false;
     var buriallcflag = false;
     var deathdtflag = false;
@@ -60,6 +64,18 @@ function parseFindMyPast(htmlstring, familymembers, relation) {
     var aboutdata = "";
     var profiledata = {};
     var imageflag = false;
+
+    if (relation !== "") {
+        if (isMale(relation.title)) {
+            genderval = "male";
+        } else if (isFemale(relation.title)) {
+            genderval = "female";
+        } else if (relation.gender !== "unknown") {
+            genderval = relation.gender;
+        } else if (isPartner(relation.title)) {
+            genderval = reverseGender(focusgender);
+        }
+    }
 
     document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
 
@@ -107,12 +123,20 @@ function parseFindMyPast(htmlstring, familymembers, relation) {
                     if (isParent(title) || isSibling(title) || isChild(title) || isPartner(title)) {
                         var itemid = $(fperson[i]).attr("data-pid");
                         var url = tablink.replace(focusURLid, itemid);
+                        var name = $(fperson[i]).find("h2").text();
+                        var genderval = "unknown";
+                        var genimg = $(fperson[i]).find("gmi").attr("src");
+                        if (genimg.endsWith("icon_male.png")) {
+                            genderval = "male";
+                        } else if (genimg.endsWith("icon_female.png")) {
+                            genderval = "female";
+                        }
                         console.log(url);
                         if (exists(url)) {
                             if (!exists(alldata["family"][title])) {
                                 alldata["family"][title] = [];
                             }
-                            var subdata = {title: title};
+                            var subdata = {name: name, title: title, gender: genderval};
                             subdata["url"] = url;
                             subdata["itemId"] = itemid;
                             subdata["profile_id"] = famid;
@@ -197,7 +221,7 @@ function getFMPFamily(famid, url, subdata) {
         variable: subdata
     }, function (response) {
         var arg = response.variable;
-        var person = parseFindMyPast(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+        var person = parseFindMyPast(response.source, false, {"name": arg.name, "title": arg.title, "gender": arg.gender, "proid": arg.profile_id, "itemId": arg.itemId});
         if (person === "") {
             familystatus.pop();
             return;

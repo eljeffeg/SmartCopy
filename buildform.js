@@ -927,7 +927,7 @@ function buildForm() {
         $("#parentsearch").show();
     }
 
-    if (icount > 0 && accountinfo.pro && accountinfo.user) {
+    if (icount > 0 && accountinfo.user) {
         document.getElementById("familydata").style.display = "block";
         document.getElementById("genislider").style.display = "block";
     }

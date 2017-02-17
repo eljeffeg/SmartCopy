@@ -257,25 +257,20 @@ function userAccess() {
                 accessdialog.style.marginBottom = "-2px";
             }
             if (accountinfo.curator && responsedata.claimed && !responsedata.curator) {
-                if (responsedata.pro) {
-                    if (!responsedata.user) {
-                        accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
-                            '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>';
-                        document.getElementById('grantbutton').addEventListener('click', useradd, false);
-                    } else {
-                        if (responsedata.user.revoked == null) {
-                            accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
-                                '<div>Tree-building rights were granted by <a href="http://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>';
-                            document.getElementById('revokebutton').addEventListener('click', userrevoke, false);
-                        } else {
-                            accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This Pro user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
-                                '<div>Tree-building rights were revoked by <a href="http://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>';
-                            document.getElementById('grantbutton').addEventListener('click', userrestore, false);
-                        }
-                    }
+                if (!responsedata.user) {
+                    accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
+                        '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>';
+                    document.getElementById('grantbutton').addEventListener('click', useradd, false);
                 } else {
-                    accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This basic user has limited access to SmartCopy.</strong></div>' +
-                        '<div>Non-Pro Geni users have the ability to update the focus profile but can not add family members.</div>';
+                    if (responsedata.user.revoked == null) {
+                        accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
+                            '<div>Tree-building rights were granted by <a href="http://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>';
+                        document.getElementById('revokebutton').addEventListener('click', userrevoke, false);
+                    } else {
+                        accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
+                            '<div>Tree-building rights were revoked by <a href="http://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>';
+                        document.getElementById('grantbutton').addEventListener('click', userrestore, false);
+                    }
                 }
             } else {
                 accessdialog.innerHTML = "<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...";
@@ -489,14 +484,10 @@ function loadPage(request) {
                     parseSmartMatch(request.source, true);
                 }
 
-                if (!accountinfo.pro) {
+                if (!accountinfo.user) {
                     //document.getElementById("loading").style.display = "none";
                     $("#familymembers").attr('disabled', 'disabled');
-                    setMessage(warningmsg, 'The copying of Family Members is only available to Geni Pro Members.');
-                } else if (!accountinfo.user) {
-                    //document.getElementById("loading").style.display = "none";
-                    $("#familymembers").attr('disabled', 'disabled');
-                    setMessage(warningmsg, 'Copying Family Members has been restricted to trusted Geni Pro users.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
+                    setMessage(warningmsg, 'Use of SmartCopy for copying Family Members to Geni is managed.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
                 }
             } else {
                 loadSelectPage(request);

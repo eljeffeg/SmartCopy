@@ -176,7 +176,6 @@ function loginProcess() {
     if (!loggedin) {
         loadLogin();
     } else {
-        checkAccount();
         chrome.tabs.query({"currentWindow": true, "status": "complete", "windowType": "normal", "active": true}, function (tabs) {
             var tab = tabs[0];
             tablink = tab.url;
@@ -716,80 +715,60 @@ function getPageCode() {
     }
 }
 
-var accountretry = 0;
-
-function checkAccount() {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", smartcopyurl + "/account?version=" + chrome.runtime.getManifest().version, true);
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState == 4) {
-            try {
-                var response = JSON.parse(xhr.responseText);
-            } catch(err) {
-                console.log('Problem getting account information - trying again.');
-            }
-            if (!exists(response)) {
-                setMessage(warningmsg, 'Problem getting account information - trying again.');
-                accountretry ++;
-                if (accountretry < 4) {
-                    checkAccount();
-                }
-                return;
-            }
-            accountinfo = response;
-            if (accountinfo.curator) {
-                //display leaderboard link if user is a curator - page itself still verifies
-                document.getElementById("curator").style.display = "inline-block";
-            }
-        }
-    };
-    xhr.send();
-}
-
 var loginprocessing = true;
 var logincount = 0;
 function loadLogin() {
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
-        url: smartcopyurl + "/smartlogin?version=" + chrome.runtime.getManifest().version
+        url: smartcopyurl + "/accountlogin?version=" + chrome.runtime.getManifest().version
     }, function (responseText) {
-        if (responseText.source === "<script>window.open('', '_self', ''); window.close();</script>") {
-            console.log("Logged In...");
-            loggedin = true;
-            if (!loginprocessing) {
-                $("#logindiv").slideUp();
-                document.getElementById("loginspinner").style.display = "block";
-                if (!slideopen) {
-                    $("body").animate({ 'max-width': "340px" }, 'slow');
-                    $("body").animate({ 'width': "340px" }, 'slow');
-                    $("configtext").hide();
-                } else {
-                    $("body").animate({ 'max-width': "500px" }, 'slow');
-                    $("body").animate({ 'width': "500px" }, 'slow');
-                    $("configtext").show();
-                }
+        try {
+            var response = JSON.parse(responseText.source);
+        } catch(err) {
+            console.log('Problem getting account information.');
+            if (loginprocessing) {
+                console.log("Logged Out...");
+                loginprocessing = false;
+                var frame = $("#loginframe");
+                frame.attr('src', smartcopyurl + '/smartlogin');
+                $("body").css('max-width', "640px");
+                $("body").animate({ 'width': "640px" }, 'slow');
+                frame.load(function(){
+                    if (logincount > 0) {
+                        loginProcess();
+                    } else if (logincount === 0) {
+                        $("#logindiv").slideDown();
+                        document.getElementById("loginspinner").style.display = "none";
+                    }
+                    logincount++;
+                });
             }
-            loginProcess();
-        } else if (loginprocessing) {
-            console.log("Logged Out...");
-            loginprocessing = false;
-            var frame = $("#loginframe");
-            frame.attr('src', smartcopyurl + '/smartlogin');
-            $("body").css('max-width', "640px");
-            $("body").animate({ 'width': "640px" }, 'slow');
-            frame.load(function(){
-                if (logincount > 0) {
-                    loginProcess();
-                } else if (logincount === 0) {
-                    $("#logindiv").slideDown();
-                    document.getElementById("loginspinner").style.display = "none";
-                }
-                logincount++;
-            });
+            return;
         }
-    });
 
+        console.log("Logged In...");
+        accountinfo = response;
+        if (accountinfo.curator) {
+            //display leaderboard link if user is a curator - page itself still verifies
+            document.getElementById("curator").style.display = "inline-block";
+        }
+        loggedin = true;
+        if (!loginprocessing) {
+            $("#logindiv").slideUp();
+            document.getElementById("loginspinner").style.display = "block";
+            if (!slideopen) {
+                $("body").animate({ 'max-width': "340px" }, 'slow');
+                $("body").animate({ 'width': "340px" }, 'slow');
+                $("configtext").hide();
+            } else {
+                $("body").animate({ 'max-width': "500px" }, 'slow');
+                $("body").animate({ 'width': "500px" }, 'slow');
+                $("configtext").show();
+            }
+        }
+        loginProcess();
+    });
 }
 
 function getProfile(profile_id) {

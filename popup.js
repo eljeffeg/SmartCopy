@@ -1161,7 +1161,7 @@ function buildTree(data, action, sendid) {
         var permissions = [];
         if (exists(genifamilydata[sendid])) {
             permissions = genifamilydata[sendid].get("actions");
-        } else if (genifocusdata.get("id") === sendid) {
+        } else if (genifocusdata.get("id") === sendid || sendid.startsWith("union")) {
             permissions = genifocusdata.get("actions");
         }
         if (action === "update") {
@@ -1170,6 +1170,7 @@ function buildTree(data, action, sendid) {
             }
         } else if (action.startsWith("add") && action !== "add-photo") {
             if (permissions.indexOf("add") === -1) {
+                setMessage(errormsg, "Permission denied - No add permission on: " + sendid);
                 console.log("Permission denied - No add permission on profile: " + sendid);
                 return;
             }
@@ -1258,7 +1259,7 @@ function buildTree(data, action, sendid) {
         var permissions = [];
         if (exists(genifamilydata[sendid])) {
             permissions = genifamilydata[sendid].get("actions");
-        } else if (genifocusdata.get("id") === sendid) {
+        } else if (genifocusdata.get("id") === sendid || sendid.startsWith("union")) {
             permissions = genifocusdata.get("actions");
         }
         if (action === "update") {
@@ -1267,6 +1268,7 @@ function buildTree(data, action, sendid) {
             }
         } else if (action.startsWith("add") && action !== "add-photo") {
             if (permissions.indexOf("add") === -1) {
+                setMessage(errormsg, "Permission denied - No add permission on: " + sendid);
                 console.log("Permission denied - No add permission on profile: " + sendid);
                 return;
             }

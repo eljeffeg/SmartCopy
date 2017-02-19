@@ -18,7 +18,10 @@ registerCollection({
             setMessage(warningmsg, 'Unable to read in tree view.  Please select the Profile page instead.');
             return;
         } else {
-            if (url.contains("rootIndivudalID=")) {
+            if (url.contains("#!profile-")) {
+                focusURLid = url.substring(url.indexOf('#!profile-') + 10);
+                focusURLid = focusURLid.substring(0, focusURLid.indexOf('-'));
+            } else if (url.contains("rootIndivudalID=")) {
                 focusURLid = getParameterByName('rootIndivudalID', url);
             } else {
                 focusURLid = url.substring(url.indexOf('-') + 1);
@@ -58,10 +61,10 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
         genderval = "female";
     } else if (htmlstring.contains("PK_Silhouette PK_SilhouetteSize192 PK_Silhouette_S_192_M_A_LTR")) {
         genderval = "male";
-    } else {
-        if (relation === "" && focusperson.contains("(born")) {
-            genderval = "female";
-        }
+    } else if (focusperson.contains("(born")) {
+        genderval = "female";
+    } else if (isPartner(relation.title)) {
+        genderval = reverseGender(focusgender);
     }
     var imagedata = parsed.find("#profilePhotoImg");
     if (exists(imagedata[0])) {
@@ -166,18 +169,20 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
         title = title.replace("His", "").replace("Her", "").trim();
         var url = member.attr("href");
         var itemid = "";
-        if (url.contains("rootIndivudalID=")) {
+        if (url.contains("#!profile-")) {
+            itemid = url.substring(url.indexOf('#!profile-') + 10);
+            itemid = itemid.substring(0, itemid.indexOf('-'));
+        } else if (url.contains("rootIndivudalID=")) {
             itemid = getParameterByName('rootIndivudalID', url);
         } else {
             itemid = decodeURIComponent(url.substring(url.indexOf('-') + 1));
             itemid = itemid.substring(0, itemid.indexOf('_'));
         }
-
+        
         if (exists(title)) {
             if (familymembers) {
                 if (isParent(title) || isSibling(title) || isChild(title) || isPartner(title)) {
                     var name = member.text().trim();
-
                     if (exists(url)) {
                         if (!exists(alldata["family"][title])) {
                             alldata["family"][title] = [];

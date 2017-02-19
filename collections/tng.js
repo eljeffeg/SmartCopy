@@ -67,6 +67,7 @@ function getTNGName(parsed) {
   return parsed.find("h1#nameheader").text();
 }
 
+var tngfamid = 0;
 function parseTNG(htmlstring, familymembers, relation) {
   relation = relation || "";
   var parsed = $(htmlstring.replace(/<img[^>]*>/ig, ""));
@@ -88,27 +89,24 @@ function parseTNG(htmlstring, familymembers, relation) {
 
   if (familymembers) {
     loadGeniData();
-    var famid = 0;
-
     var father = getTNGField(parsed, "Father");
     if (exists(father)) {
-      processTNGFamily(father, "father", famid);
-      famid++;
+      processTNGFamily(father, "father", tngfamid);
+      tngfamid++;
     }
 
     var mother = getTNGField(parsed, "Mother");
     if (exists(mother)) {
-      processTNGFamily(mother, "mother", famid);
-      famid++;
+      processTNGFamily(mother, "mother", tngfamid);
+      tngfamid++;
     }
 
     var spouses = getTNGField(parsed, "Family");
     if (exists(spouses[0])) {
       for (var i = 0; i < spouses.length; i++) {
         var spouse = spouses[i];
-        processTNGFamily(spouse, "spouse", famid);
-        myhspouse.push(famid);
-        famid++;
+        processTNGFamily(spouse, "spouse", tngfamid);
+        tngfamid++;
       }
     }
 
@@ -117,10 +115,25 @@ function parseTNG(htmlstring, familymembers, relation) {
       var children = childrensection.find("tr span");
       for (var i = 0; i < children.length; i++) {
         var child = children[i];
-        processTNGFamily(child, "child", famid);
-        famid++;
+        processTNGFamily(child, "child", tngfamid);
+        tngfamid++;
       }
     }
+  } else if (isParent(relation.title)) {
+      var childrensection = getTNGField(parsed, "Children");
+      if (exists(childrensection)) {
+          var children = childrensection.find("tr span");
+          for (var i = 0; i < children.length; i++) {
+              var child = children[i];
+              processTNGFamily(child, "sibling", tngfamid);
+              tngfamid++;
+          }
+      }
+      //TODO parent marriage
+  } else if (isChild(relation.title)) {
+      //TODO associate other parent in the case of multiple spouses
+  } else if (isSibling(relation.title)) {
+      //TODO check if half sibling by comparing parents
   }
 
   if (familymembers) {
@@ -160,9 +173,22 @@ function processTNGFamily(person, title, famid) {
     if (!exists(alldata["family"][title])) {
       alldata["family"][title] = [];
     }
+
     var gendersv = "unknown";
     var name = $(person).find("a").text();
     var itemid = getTNGItemId(url);
+    if (isSibling(title)) {
+        if (itemid !== focusURLid && siblinglist.indexOf(itemid) === -1) {
+            siblinglist.push(itemid);
+        } else {
+            return;
+        }
+    } else if (isPartner(title)) {
+        myhspouse.push(famid);
+        //TODO parse marriage data
+    } else if (isParent(title)) {
+        parentlist.push(itemid);
+    }
     // Get base path
     var basesplit = tablink.split("/");
     basesplit.pop();

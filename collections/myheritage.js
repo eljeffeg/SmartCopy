@@ -178,7 +178,7 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
             itemid = decodeURIComponent(url.substring(url.indexOf('-') + 1));
             itemid = itemid.substring(0, itemid.indexOf('_'));
         }
-        
+
         if (exists(title)) {
             if (familymembers) {
                 if (isParent(title) || isSibling(title) || isChild(title) || isPartner(title)) {

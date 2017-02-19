@@ -19,6 +19,7 @@ var genifamily;
 var parentblock = false;
 var parentspouseunion;
 var parentspouselist = [];
+var siblinglist = [];
 var genigender;
 var geniliving;
 var googlerequery = "";

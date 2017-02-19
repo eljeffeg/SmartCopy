@@ -59,7 +59,6 @@ registerCollection({
     "parseProfileData": parseFamilySearchRecord
 });
 
-var siblinglist = [];
 var fsfamid = 0;
 function parseFamilySearchRecord(htmlstring, familymembers, relation) {
     relation = relation || "";

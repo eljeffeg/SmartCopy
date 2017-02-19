@@ -430,6 +430,9 @@ function loadPage(request) {
                         $("#treematchurl").attr("href", "https://www.geni.com/search/matches?id=" + genifocusdata.get("guid") + "&src=smartcopy&cmp=btn");
                         $("#treematchcount").text(" " + matches.tree_match + " ");
                         $("#treematches").show();
+                        if (!accountinfo.pro) {
+                            $("#treematchtext").show();
+                        }
                     };
                     var url = smartcopyurl + "/smartsubmit?family=all&profile=" + focusid;
                     chrome.extension.sendMessage({
@@ -1155,15 +1158,20 @@ function buildTree(data, action, sendid) {
             id = data.profile_id;
             delete data.profile_id;
         }
+        var permissions = [];
+        if (exists(genifamilydata[sendid])) {
+            permissions = genifamilydata[sendid].get("actions");
+        } else if (genifocusdata.get("id") === sendid) {
+            permissions = genifocusdata.get("actions");
+        }
         if (action === "update") {
-            var permissions = [];
-            if (exists(genifamilydata[sendid])) {
-                permissions = genifamilydata[sendid].get("actions");
-            } else if (genifocusdata.get("id") === sendid) {
-                permissions = genifocusdata.get("actions");
-            }
             if (permissions.indexOf("update") === -1 && permissions.indexOf("update-basics") !== -1) {
                 action = "update-basics";
+            }
+        } else if (action.startsWith("add") && action !== "add-photo") {
+            if (permissions.indexOf("add") === -1) {
+                console.log("Permission denied - No add permission on profile: " + sendid);
+                return;
             }
         }
         chrome.extension.sendMessage({
@@ -1247,15 +1255,20 @@ function buildTree(data, action, sendid) {
             submitstatus.pop();
         });
     } else if (!$.isEmptyObject(data) && exists(sendid) && devblocksend) {
+        var permissions = [];
+        if (exists(genifamilydata[sendid])) {
+            permissions = genifamilydata[sendid].get("actions");
+        } else if (genifocusdata.get("id") === sendid) {
+            permissions = genifocusdata.get("actions");
+        }
         if (action === "update") {
-            var permissions = [];
-            if (exists(genifamilydata[sendid])) {
-                permissions = genifamilydata[sendid].get("actions");
-            } else if (genifocusdata.get("id") === sendid) {
-                permissions = genifocusdata.get("actions");
-            }
             if (permissions.indexOf("update") === -1 && permissions.indexOf("update-basics") !== -1) {
                 action = "update-basics";
+            }
+        } else if (action.startsWith("add") && action !== "add-photo") {
+            if (permissions.indexOf("add") === -1) {
+                console.log("Permission denied - No add permission on profile: " + sendid);
+                return;
             }
         }
         if (exists(data.profile_id)) {

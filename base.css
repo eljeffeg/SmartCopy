@@ -886,7 +886,7 @@ a.match-button:not(.full):hover,
   background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #2ea8ef), color-stop(100%, #1791d7));
   background-image: -moz-linear-gradient(top, #2ea8ef, #1791d7);
   background-image: -webkit-linear-gradient(top, #2ea8ef, #1791d7);
-  background-image: linear-gradient(to bottom, #2ea8ef, #1791d7)
+  background-image: linear-gradient(to bottom, #2ea8ef, #1791d7);
 }
 
 .match-buttons a.match-button.tree-match:hover,

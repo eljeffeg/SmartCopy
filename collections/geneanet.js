@@ -58,22 +58,22 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 
   fullBirth = parsed.find("ul li:contains('Born ')");
   if (exists(fullBirth)) {
-    profiledata["birth"] = parseGeneanetDate(fullBirth.text().replace('Born ', ''));
+    profiledata["birth"] = parseGeneanetDate($(fullBirth[0]).text().replace('Born ', ''));
   }
 
   fullBaptism = parsed.find("ul li:contains('Baptized ')");
   if (exists(fullBaptism)) {
-    profiledata["baptism"] = parseGeneanetDate(fullBaptism.text().replace('Baptized ', ''));
+    profiledata["baptism"] = parseGeneanetDate($(fullBaptism[0]).text().replace('Baptized ', ''));
   }
 
   fullDeath = parsed.find("ul li:contains('Deceased ')");
   if (exists(fullDeath)) {
-    profiledata["death"] = parseGeneanetDate(fullDeath.text().replace('Deceased ', '').replace(/ at age .*/, '').replace(/ age at .*/, ''));
+    profiledata["death"] = parseGeneanetDate($(fullDeath[0]).text().replace('Deceased ', '').replace(/ at age .*/, '').replace(/ age at .*/, ''));
   }
 
   fullBurial = parsed.find("ul li:contains('Buried ')");
   if (exists(fullBurial)) {
-    profiledata["burial"] = parseGeneanetDate(fullBurial.text().replace('Buried ', ''));
+    profiledata["burial"] = parseGeneanetDate($(fullBurial[0]).text().replace('Buried ', ''));
   }
 
   if (familymembers) {
@@ -268,7 +268,7 @@ function processGeneanetFamily(person, title, famid) {
 }
 
 function processMarriage(person, subdata) {
-    if ($(person).text().startsWith("Married")) {
+    if ($(person).text().startsWith("Married") && !$(person).text().startsWith("Married to")) {
         var marriageinfo = $(person).find("em").first();
         if (exists(marriageinfo)) {
             subdata["marriage"] = parseGeneanetDate(marriageinfo.text(), "marriage");

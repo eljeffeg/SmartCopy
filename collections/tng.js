@@ -11,7 +11,7 @@ registerCollection({
   },
   "collectionMatch": function(url) {
       if (startsWithHTTP(url, hostDomain(url) + "/genealogy/") && url.contains(".php?personID=")) {
-          //TODO Look at source code for TNG
+          //Checks could be added here to eval the source code
           return true;
       } else {
           return false;
@@ -44,7 +44,17 @@ function getTNGField(parsed, name, position) {
   for (var i = 0; i<position; i++) {
     selector += "+ td";
   }
-  return parsed.find(selector);
+  var fields = parsed.find(selector);
+  if (name === "Family") {
+      //Exclude rows that start with Family ID
+      for (var i = fields.length - 1; i >= 0; i--) {
+          var checkid = $(fields[i]).parent().text().trim();
+          if (checkid.startsWith("Family ID")) {
+              fields.splice(i, 1);
+          }
+      }
+  }
+  return fields;
 }
 
 function getTNGFieldText(parsed, name, position) {
@@ -129,11 +139,68 @@ function parseTNG(htmlstring, familymembers, relation) {
               tngfamid++;
           }
       }
-      //TODO parent marriage
+      if (parentmarriageid === "") {
+          parentmarriageid = relation.itemId;
+      } else if (relation.itemId !== parentmarriageid) {
+          var spouses = getTNGField(parsed, "Family");
+          if (exists(spouses[0])) {
+              for (var i = 0; i < spouses.length; i++) {
+                  var person = spouses[i];
+                  var url = parseTNGURL(person);
+                  if (exists(url)) {
+                      var pid = getTNGItemId(url);
+                      if (pid === parentmarriageid) {
+                          var marriageinfo = $(person).closest("tbody");
+                          profiledata["marriage"] = parseTNGDate(marriageinfo, "Married");
+                          break;
+                      }
+                  }
+              }
+          }
+      }
   } else if (isChild(relation.title)) {
-      //TODO associate other parent in the case of multiple spouses
+      var father = getTNGField(parsed, "Father");
+      var mother = getTNGField(parsed, "Mother");
+      var parents = [];
+      if (exists(father)) {
+          var parent = getTNGItemId(parseTNGURL(father));
+          if (parent !== "") {
+              parents.push(parent);
+          }
+      }
+      if (exists(mother)) {
+          var parent = getTNGItemId(parseTNGURL(mother));
+          if (parent !== "") {
+              parents.push(parent);
+          }
+      }
+      for (var i=0; i<parents.length; i++) {
+          var itemid = parents[i];
+          if (focusURLid !== itemid) {
+              childlist[relation.proid] = $.inArray(itemid, unionurls);
+              profiledata["parent_id"] = $.inArray(itemid, unionurls);
+              break;
+          }
+      }
   } else if (isSibling(relation.title)) {
-      //TODO check if half sibling by comparing parents
+      var siblingparents = [];
+      var father = getTNGField(parsed, "Father");
+      var mother = getTNGField(parsed, "Mother");
+      if (exists(father)) {
+          var parent = getTNGItemId(parseTNGURL(father));
+          if (parent !== "") {
+              siblingparents.push(parent);
+          }
+      }
+      if (exists(mother)) {
+          var parent = getTNGItemId(parseTNGURL(mother));
+          if (parent !== "") {
+            siblingparents.push(parent);
+          }
+      }
+      if (siblingparents.length > 0) {
+          profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
+      }
   }
 
   if (familymembers) {
@@ -143,6 +210,14 @@ function parseTNG(htmlstring, familymembers, relation) {
   }
 
   return profiledata;
+}
+
+function parseTNGURL(person) {
+    var url = $(person).find("a").first().attr("href");
+    if (exists(url)) {
+        return url;
+    }
+    return "";
 }
 
 function parseTNGDate(parsed, name) {
@@ -168,7 +243,7 @@ function parseTNGDate(parsed, name) {
 }
 
 function processTNGFamily(person, title, famid) {
-  var url = $(person).find("a").first().attr("href");
+  var url = parseTNGURL(person);
   if (exists(url)) {
     if (!exists(alldata["family"][title])) {
       alldata["family"][title] = [];
@@ -177,6 +252,11 @@ function processTNGFamily(person, title, famid) {
     var gendersv = "unknown";
     var name = $(person).find("a").text();
     var itemid = getTNGItemId(url);
+    // Get base path
+    var basesplit = tablink.split("/");
+    basesplit.pop();
+    var fullurl = basesplit.join("/") + "/" + url;
+    var subdata = {name: name, title: title, gender: gendersv, url: fullurl, itemId: itemid, profile_id: famid};
     if (isSibling(title)) {
         if (itemid !== focusURLid && siblinglist.indexOf(itemid) === -1) {
             siblinglist.push(itemid);
@@ -185,27 +265,13 @@ function processTNGFamily(person, title, famid) {
         }
     } else if (isPartner(title)) {
         myhspouse.push(famid);
-        //TODO parse marriage data
+        // Parse marriage data
+        var marriageinfo = $(person).closest("tbody");
+        subdata["marriage"] = parseTNGDate(marriageinfo, "Married");
     } else if (isParent(title)) {
         parentlist.push(itemid);
     }
-    // Get base path
-    var basesplit = tablink.split("/");
-    basesplit.pop();
-    var fullurl = basesplit.join("/") + "/" + url;
-    var text = $(person).text();
-    var subdata = {name: name, title: title, gender: gendersv, url: fullurl, itemId: itemid, profile_id: famid};
 
-    // Parse marriage data
-    /*
-    if ($(person).text().startsWith("Married")) {
-      var marriageinfo = $(person).find("em").first();
-      if (exists(marriageinfo)) {
-        subdata["marriage"] = parseGeneanetDate(marriageinfo.text());
-        console.log(subdata["marriage"]);
-      }
-    }
-    */
     unionurls[famid] = itemid;
     getTNGFamily(famid, fullurl, subdata);
   }
@@ -233,7 +299,7 @@ function getTNGFamily(famid, url, subdata) {
 }
 
 function getTNGItemId(url) {
-    if (exists(url)) {
+    if (exists(url) && url !== "") {
         var p = getParameterByName("personID", url);
         var t = getParameterByName("tree", url);
         return "personID="+p+"&tree="+t;

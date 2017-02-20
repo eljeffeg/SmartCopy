@@ -452,7 +452,9 @@ function loadPage(request) {
             });
             console.log("Parsing Family...");
             // generic call
-            collection.parseProfileData(request.source, true);
+            if (collection.parseProfileData) {
+                collection.parseProfileData(request.source, true);
+            }
 
             if (!accountinfo.user) {
                 //document.getElementById("loading").style.display = "none";

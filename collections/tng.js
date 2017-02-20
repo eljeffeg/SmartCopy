@@ -10,7 +10,7 @@ registerCollection({
       return url;
   },
   "collectionMatch": function(url) {
-      if (startsWithHTTP(url, hostDomain(url) + "/genealogy/") && url.contains(".php?personID=")) {
+      if (url.contains(".php?personID=")) {
           //Checks could be added here to eval the source code
           return true;
       } else {

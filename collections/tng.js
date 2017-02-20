@@ -4,7 +4,9 @@ registerCollection({
   "recordtype": "TNG Genealogy",
   "prepareUrl": function(url) {
       if (!url.contains("getperson.php")) {
-          url = hostDomain(url) + "/genealogy/getperson.php?" + getTNGItemId(url);
+          var prefix = url.substring(0, url.lastIndexOf("/"));
+          var suffix = url.replace(/.*(\/.*?\.php\?)/ig, "/getperson.php?");
+          url = prefix + suffix;
           this.reload = true;
       }
       return url;
@@ -22,60 +24,24 @@ registerCollection({
     getPageCode();
   },
   "loadPage": function(request) {
-    var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-    var language = parsed.find("#newlanguage1 option:selected");
-    if (language.text() !== "English") {
-        document.getElementById("top-container").style.display = "block";
-        document.getElementById("submitbutton").style.display = "none";
-        document.getElementById("loading").style.display = "none";
-        document.querySelector('#loginspinner').style.display = "none";
-        document.querySelector('#experimentalmessage').style.display = "none";
-        setMessage(warningmsg, 'SmartCopy can only read the page in English.  Please change the language of the page.');
-        this.parseProfileData = "";
+      var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+      var language = parsed.find("#newlanguage1 option:selected");
+      if (language.length > 0) {
+        if (language.text() !== "English") {
+            document.getElementById("top-container").style.display = "block";
+            document.getElementById("submitbutton").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            document.querySelector('#loginspinner').style.display = "none";
+            document.querySelector('#experimentalmessage').style.display = "none";
+            setMessage(warningmsg, 'SmartCopy can only read the page in English.  Please change the language of the page.');
+            console.log("yeah");
+            this.parseProfileData = "";
+        }
     }
     focusname = getTNGName(parsed);
   },
   "parseProfileData": parseTNG
 });
-
-function getTNGField(parsed, name, position) {
-  position = position || 1;
-  var selector = "td:contains('"+name+"')";
-  for (var i = 0; i<position; i++) {
-    selector += "+ td";
-  }
-  var fields = parsed.find(selector);
-  if (name === "Family") {
-      //Exclude rows that start with Family ID
-      for (var i = fields.length - 1; i >= 0; i--) {
-          var checkid = $(fields[i]).parent().text().trim();
-          if (checkid.startsWith("Family ID")) {
-              fields.splice(i, 1);
-          }
-      }
-  }
-  return fields;
-}
-
-function getTNGFieldText(parsed, name, position) {
-  var elem = getTNGField(parsed, name, position);
-  if (exists(elem)) {
-    return elem.text().trim();
-  }
-  return "";
-}
-
-function getTNGName(parsed) {
-  var elem = getTNGField(parsed, "Name");
-  if (elem.text() !== "") {
-    var familyname = elem.find(".family-name").text();
-    var givenname = elem.find(".given-name").text();
-    return givenname.replace(",", "") + " " + familyname.replace(",", "");
-  }
-  // Less precise, but better than nothing
-  console.log("Count not find name, using nameheader");
-  return parsed.find("h1#nameheader").text();
-}
 
 var tngfamid = 0;
 function parseTNG(htmlstring, familymembers, relation) {
@@ -210,6 +176,46 @@ function parseTNG(htmlstring, familymembers, relation) {
   }
 
   return profiledata;
+}
+
+
+function getTNGField(parsed, name, position) {
+  position = position || 1;
+  var selector = "td:contains('"+name+"')";
+  for (var i = 0; i<position; i++) {
+    selector += "+ td";
+  }
+  var fields = parsed.find(selector);
+  if (name === "Family") {
+      //Exclude rows that start with Family ID
+      for (var i = fields.length - 1; i >= 0; i--) {
+          var checkid = $(fields[i]).parent().text().trim();
+          if (checkid.startsWith("Family ID")) {
+              fields.splice(i, 1);
+          }
+      }
+  }
+  return fields;
+}
+
+function getTNGFieldText(parsed, name, position) {
+  var elem = getTNGField(parsed, name, position);
+  if (exists(elem)) {
+    return elem.text().trim();
+  }
+  return "";
+}
+
+function getTNGName(parsed) {
+  var elem = getTNGField(parsed, "Name");
+  if (elem.text() !== "") {
+    var familyname = elem.find(".family-name").text();
+    var givenname = elem.find(".given-name").text();
+    return givenname.replace(",", "") + " " + familyname.replace(",", "");
+  }
+  // Less precise, but better than nothing
+  console.log("Count not find name, using nameheader");
+  return parsed.find("h1#nameheader").text();
 }
 
 function parseTNGURL(person) {

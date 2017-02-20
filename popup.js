@@ -355,7 +355,7 @@ function loadPage(request) {
             if (collection.loadPage) {
                 collection.loadPage(request);
             }
-            if (!profilechanged) {
+            if (collection.parseProfileData && !profilechanged) {
                 loadSelectPage(request);
             }
         } else {
@@ -454,6 +454,8 @@ function loadPage(request) {
             // generic call
             if (collection.parseProfileData) {
                 collection.parseProfileData(request.source, true);
+            } else {
+                setMessage(warningmsg, 'There was a problem with the collection - please report with link to page.');
             }
 
             if (!accountinfo.user) {

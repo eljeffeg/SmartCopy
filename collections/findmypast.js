@@ -27,7 +27,7 @@ registerCollection({
         return (startsWithHTTP(url,"http://tree.findmypast.com/"));
     },
     "parseData": function(url) {
-        var shorturl = url.replace("/profile", "")
+        var shorturl = url.replace("/profile", "");
         focusURLid = shorturl.substring(shorturl.lastIndexOf('/') + 1);
         getPageCode();
     },

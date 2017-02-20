@@ -35,7 +35,6 @@ registerCollection({
             document.getElementById("loading").style.display = "none";
             setMessage(warningmsg, 'SmartCopy can work with the various language sites of MyHeritage, but you must have an authenticated session with the English website.<br/><a href="http://www.myheritage.com/">Please login to MyHeritage.com</a>');
             this.parseProfileData = "";
-            return;
         } else {
             var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
             focusname = parsed.find(".recordTitle").text().trim();

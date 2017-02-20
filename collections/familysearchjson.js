@@ -293,7 +293,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         var spouse = fsspouselist[x];
                         familystatus.push(famid);
                         //https://familysearch.org/tree-data/family-members/couple/LKKN-H49_LH2H-51B/children?focusPersonId=LH2H-51B&includePhotos=true&locale=en
-                        var url = hostDomain(tablink) + "/tree-data/family-members/couple/" + spouse + "_" + focusURLid + "/children?focusPersonId=" + focusURLid + "&includePhotos=true&locale=en"
+                        var url = hostDomain(tablink) + "/tree-data/family-members/couple/" + spouse + "_" + focusURLid + "/children?focusPersonId=" + focusURLid + "&includePhotos=true&locale=en";
                         var subdata = {spouse: spouse};
                         chrome.extension.sendMessage({
                             method: "GET",

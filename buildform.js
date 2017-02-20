@@ -680,7 +680,7 @@ function buildForm() {
             if (halfsibling) {
                 membersstring += '<span style="float: right; margin-right: 3px; margin-left: -2px; margin-top: 3px; margin-bottom: -3px;"><img src="images/halfcircle.png" style="width: 14px; margin-top: -2px;" alt="half-sibling" title="half-sibling"></span>';
             }
-            membersstring += '<span style="float: right; padding-left: 8px;"><img class="geopin" id="' + i + 'gpin" src="images/clearpin.png" style="height: 14px; margin-bottom: -3px;"><img id="' + i + 'errordate" src="images/dateerror.png" style="display: none; height: 13px; margin-bottom: -3px; padding-right: 3px; margin-left: -3px;" title="Ambiguous Date"></span>'
+            membersstring += '<span style="float: right; padding-left: 8px;"><img class="geopin" id="' + i + 'gpin" src="images/clearpin.png" style="height: 14px; margin-bottom: -3px;"><img id="' + i + 'errordate" src="images/dateerror.png" style="display: none; height: 13px; margin-bottom: -3px; padding-right: 3px; margin-left: -3px;" title="Ambiguous Date"></span>';
             membersstring += '</td><td></td></tr></table></div>' +
                 '<div id="slide' + i + '-' + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table id="familytable_' + i + '" style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
                 '<tr><td colspan="3" style="padding: 0px;"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '"></td></tr>';
@@ -940,9 +940,12 @@ function isValue(object) {
     return (object !== "");
 }
 
+/**
+ * @return {string}
+ */
 function Abbr(title) {
     if (title === "Baptism") {
-        return "Bapt."
+        return "Bapt.";
     } else {
         return title;
     }
@@ -1270,7 +1273,7 @@ function placementUpdate() {
                 replacestring += section2[0].outerHTML;
                 replacestring = replacestring.replace(unkop, "");
                 replacestring = replacestring.replace(/-unknown/g, "-" + this.value);
-                replacestring = replacestring.replace('relationship="unknown"','relationship="' + this.value + '"')
+                replacestring = replacestring.replace('relationship="unknown"','relationship="' + this.value + '"');
                 section1[0].outerHTML = "";
                 section2[0].outerHTML = "";
                 var section3 = $("#" + this.value + "val");
@@ -1406,7 +1409,6 @@ function setBirthName(relation, lastname, mnameonoff) {
                         return false;
                     }
                 }
-                continue;
             }
         }
     } else if (isParent(relation)) {
@@ -1420,7 +1422,6 @@ function setBirthName(relation, lastname, mnameonoff) {
                         return false;
                     }
                 }
-                continue;
             }
         }
     } else if (isPartner(relation)) {
@@ -1434,7 +1435,6 @@ function setBirthName(relation, lastname, mnameonoff) {
                         return false;
                     }
                 }
-                continue;
             }
         }
     }
@@ -1988,14 +1988,14 @@ function GeniPerson(obj) {
             }
             return obj;
         }
-    }
+    };
     this.lockIcon = function(path, subpath) {
         if (this.isLocked(path, subpath)) {
             return "lock.png";
         } else {
             return "right.png";
         }
-    }
+    };
 }
 
 function geniPhoto(gender) {

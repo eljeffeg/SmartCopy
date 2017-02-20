@@ -484,6 +484,7 @@ function getFSFocus(personlist, focus) {
             }
         }
     }
+    return "";
 }
 
 

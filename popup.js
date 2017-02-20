@@ -1,34 +1,16 @@
-var devblocksend = false;
-var locationtest = false;
-var accountinfo;
-var profilechanged = false;
-var focusid;
-var focusURLid = "";
-var focusname = "";
-var focusrange = "";
-var tablink;
-var submitcheck = true;
-var buildhistory = [];
-var marriagedates = [];
-var loggedin = false;
-var updatecount = 1;
-var updatetotal = 0;
-var recordtype = "MyHeritage Match";
-var smscorefactors = "";
-var genifamily;
-var parentblock = false;
-var parentspouseunion;
-var parentspouselist = [];
-var siblinglist = [];
-var genigender;
-var geniliving;
-var googlerequery = "";
-var genifocusdata;
-var genifamilydata = {};
-var genibuildaction = {};
-var errormsg = "#f9acac";
-var warningmsg = "#f8ff86";
+//Development Global Variables
+var devblocksend = false; //Blocks the sending data to Geni, prints output to console instead
+var locationtest = false; //Verbose parsing of location data
 var smartcopyurl = "https://historylink.herokuapp.com";  //helpful for local testing to switch from https to http
+
+//Common Global Variables
+var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true;
+var accountinfo, focusid, tablink, genifamily, parentspouseunion, genigender, geniliving, genifocusdata;
+var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefactors = "", googlerequery = "";
+var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [];
+var genifamilydata = {}, genibuildaction = {}, updatecount = 1, updatetotal = 0;
+var errormsg = "#f9acac", warningmsg = "#f8ff86";
+
 
 chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
@@ -330,7 +312,7 @@ function useradd() {
                         window.close();
                     })
                 }
-            }
+            };
             chrome.tabs.onUpdated.addListener(listener);
         });
     });
@@ -387,7 +369,7 @@ function loadPage(request) {
         if (focusid === "" || focusid === "Select from History") {
             var accessdialog = document.querySelector('#useraccess');
             accessdialog.style.marginBottom = "-2px";
-            accessdialog.innerText = "The URL or ID entered failed to resolve."
+            accessdialog.innerText = "The URL or ID entered failed to resolve.";
             accessdialog.style.backgroundColor = errormsg;
             accessdialog.style.display = "block";
             focusid = null;
@@ -2025,7 +2007,7 @@ $(function () {
         if (event.target == modal2) {
             modal2.style.display = "none";
         }
-    }
+    };
     $(function () {
         $('.aboutdev').on('click', function () {
             var modal2 = document.getElementById('AboutModal');

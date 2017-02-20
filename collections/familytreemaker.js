@@ -14,7 +14,6 @@ registerCollection({
         if (focusURLid.startsWith("GENE")) {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage(warningmsg, 'FamilyTreeMaker "Descendants of" generation pages are not supported by SmartCopy.');
-            return;
         } else {
             getPageCode();
         }

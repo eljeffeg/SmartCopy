@@ -16,7 +16,6 @@ registerCollection({
         if (startsWithHTTP(url,"https://www.myheritage.com/site-family-tree-") && !url.endsWith("-info")) {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage(warningmsg, 'Unable to read in tree view.  Please select the Profile page instead.');
-            return;
         } else {
             if (url.contains("#!profile-")) {
                 focusURLid = url.substring(url.indexOf('#!profile-') + 10);

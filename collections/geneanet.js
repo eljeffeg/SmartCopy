@@ -34,7 +34,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   relation = relation || "";
   var parsed = $(htmlstring.replace(/<img /ig,"<gmi "));
 
-  var nameTab = parsed.find(".with_tabs.name")
+  var nameTab = parsed.find(".with_tabs.name");
   var genderval = "unknown";
   var genderImg = nameTab.find("gmi").first();
   if (genderImg.attr("title") === "M") {

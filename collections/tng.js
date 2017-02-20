@@ -214,8 +214,18 @@ function getTNGName(parsed) {
     return givenname.replace(",", "") + " " + familyname.replace(",", "");
   }
   // Less precise, but better than nothing
-  console.log("Count not find name, using nameheader");
-  return parsed.find("h1#nameheader").text();
+  var nameheader = parsed.find("h1#nameheader").text();
+  if (nameheader !== "") {
+      return nameheader;
+  } else {
+      //having problems just grabbing h1.header with find
+      for (var i=0;i<parsed.length;i++) {
+          if ($(parsed[i]).hasClass("header")) {
+            return $(parsed[i]).text();
+          }
+      }
+  }
+  return "";
 }
 
 function parseTNGURL(person) {

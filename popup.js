@@ -373,21 +373,9 @@ function loadPage(request) {
             if (collection.loadPage) {
                 collection.loadPage(request);
             }
-            if (!exists(focusid) || focusid === "") {
-                for (var i = 0; i < buildhistory.length; i++) {
-                    if (buildhistory[i].itemId === focusURLid) {
-                        focusid = buildhistory[i].id;
-                        profilechanged = true;
-                        loadPage(request);
-                        return;
-                    }
-                }
-            } else {
-                profilechanged = true;
-                loadPage(request);
-                return;
+            if (!profilechanged) {
+                loadSelectPage(request);
             }
-            loadSelectPage(request);
         } else {
             document.getElementById("top-container").style.display = "block";
             document.getElementById("submitbutton").style.display = "none";
@@ -395,108 +383,103 @@ function loadPage(request) {
             setMessage(warningmsg, 'This website is not yet supported by SmartCopy.');
         }
     } else {
-            document.getElementById("top-container").style.display = "block";
-            if (focusid === "" || focusid === "Select from History") {
-                var accessdialog = document.querySelector('#useraccess');
-                accessdialog.style.marginBottom = "-2px";
-                accessdialog.innerText = "The URL or ID entered failed to resolve."
-                accessdialog.style.backgroundColor = errormsg;
-                accessdialog.style.display = "block";
-                focusid = null;
+        document.getElementById("top-container").style.display = "block";
+        if (focusid === "" || focusid === "Select from History") {
+            var accessdialog = document.querySelector('#useraccess');
+            accessdialog.style.marginBottom = "-2px";
+            accessdialog.innerText = "The URL or ID entered failed to resolve."
+            accessdialog.style.backgroundColor = errormsg;
+            accessdialog.style.display = "block";
+            focusid = null;
+        }
+        if (exists(focusid)) {
+            document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
+            if (focusrange !== "") {
+                document.getElementById("focusrange").innerText = focusrange;
             }
-            if (exists(focusid)) {
-                document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
-                if (focusrange !== "") {
-                    document.getElementById("focusrange").innerText = focusrange;
-                }
-                var accessdialog = document.querySelector('#useraccess');
-                accessdialog.style.display = "none";
-                accessdialog.style.marginBottom = "12px";
-                accessdialog.innerText = "";
-                accessdialog.style.backgroundColor = "#dfe6ed";
+            var accessdialog = document.querySelector('#useraccess');
+            accessdialog.style.display = "none";
+            accessdialog.style.marginBottom = "12px";
+            accessdialog.innerText = "";
+            accessdialog.style.backgroundColor = "#dfe6ed";
 
-                familystatus.push(1);
-                var descurl = smartcopyurl + "/smartsubmit?family=self&profile=" + focusid;
+            familystatus.push(1);
+            var descurl = smartcopyurl + "/smartsubmit?family=self&profile=" + focusid;
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: descurl
+            }, function (response) {
+                var geni_return = JSON.parse(response.source);
+                focusid = geni_return.id; //In case there is a merge_into return
+                // $('#focusjsontable').json2html(response.source,focustransform);
+                genifocusdata = new GeniPerson(geni_return);
+                var matches = genifocusdata.get("matches");
+                if (matches.tree_match > 0) {
+                    $("#treematchurl").attr("href", "https://www.geni.com/search/matches?id=" + genifocusdata.get("guid") + "&src=smartcopy&cmp=btn");
+                    $("#treematchcount").text(" " + matches.tree_match + " ");
+                    $("#treematches").show();
+                    if (!accountinfo.pro) {
+                        $("#treematchtext").show();
+                    }
+                };
+                var url = smartcopyurl + "/smartsubmit?family=all&profile=" + focusid;
                 chrome.extension.sendMessage({
                     method: "GET",
                     action: "xhttp",
-                    url: descurl
+                    url: url
                 }, function (response) {
-                    var geni_return = JSON.parse(response.source);
-                    focusid = geni_return.id; //In case there is a merge_into return
-                   // $('#focusjsontable').json2html(response.source,focustransform);
-                    genifocusdata = new GeniPerson(geni_return);
-                    var matches = genifocusdata.get("matches");
-                    if (matches.tree_match > 0) {
-                        $("#treematchurl").attr("href", "https://www.geni.com/search/matches?id=" + genifocusdata.get("guid") + "&src=smartcopy&cmp=btn");
-                        $("#treematchcount").text(" " + matches.tree_match + " ");
-                        $("#treematches").show();
-                        if (!accountinfo.pro) {
-                            $("#treematchtext").show();
-                        }
-                    };
-                    var url = smartcopyurl + "/smartsubmit?family=all&profile=" + focusid;
-                    chrome.extension.sendMessage({
-                        method: "GET",
-                        action: "xhttp",
-                        url: url
-                    }, function (response) {
-                        genifamily = JSON.parse(response.source);
-                        //$('#familyjsontable').json2html(response.source,familytransform);
-                        buildParentSpouse(true);
-                        familystatus.pop();
-                    });
-                    //Update focusname again in case there is a merge_into
-                    document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
-                    var byear;
-                    var dyear;
-                    var dateinfo = "";
-                    if (exists(geni_return["birth"]) && exists(geni_return["birth"]["date"])) {
-                        var matches = geni_return["birth"]["date"].match(/\d+$/);
-                        if (matches) {
-                            byear = matches[0];
-                        }
-                    }
-                    if (exists(geni_return["death"]) && exists(geni_return["death"]["date"])) {
-                        var matches = geni_return["death"]["date"].match(/\d+$/);
-                        if (matches) {
-                            dyear = matches[0];
-                        }
-                    }
-                    if (exists(byear) || exists(dyear)) {
-                        dateinfo = " (";
-                        if (exists(byear)) {
-                            dateinfo += "b." + byear;
-                            if (exists(dyear)) {
-                                dateinfo += "-";
-                            }
-                        }
-                        if (exists(dyear)) {
-                            dateinfo += "d." + dyear;
-                        }
-                        dateinfo += ")";
-                    }
-                    genigender = geni_return.gender;
-                    geniliving = geni_return.is_alive;
-                    $("#genilinkdesc").attr('title', "Geni: " + geni_return.name + dateinfo);
+                    genifamily = JSON.parse(response.source);
+                    //$('#familyjsontable').json2html(response.source,familytransform);
+                    buildParentSpouse(true);
+                    familystatus.pop();
                 });
-                console.log("Parsing Family...");
-                // generic call
-                if (collection.parseProfileData) {
-                    collection.parseProfileData(request.source, true);
-                } else if (tablink.contains("/collection-") || tablink.contains("/research/record-")) {
-                    parseSmartMatch(request.source, true);
+                //Update focusname again in case there is a merge_into
+                document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
+                var byear;
+                var dyear;
+                var dateinfo = "";
+                if (exists(geni_return["birth"]) && exists(geni_return["birth"]["date"])) {
+                    var matches = geni_return["birth"]["date"].match(/\d+$/);
+                    if (matches) {
+                        byear = matches[0];
+                    }
                 }
+                if (exists(geni_return["death"]) && exists(geni_return["death"]["date"])) {
+                    var matches = geni_return["death"]["date"].match(/\d+$/);
+                    if (matches) {
+                        dyear = matches[0];
+                    }
+                }
+                if (exists(byear) || exists(dyear)) {
+                    dateinfo = " (";
+                    if (exists(byear)) {
+                        dateinfo += "b." + byear;
+                        if (exists(dyear)) {
+                            dateinfo += "-";
+                        }
+                    }
+                    if (exists(dyear)) {
+                        dateinfo += "d." + dyear;
+                    }
+                    dateinfo += ")";
+                }
+                genigender = geni_return.gender;
+                geniliving = geni_return.is_alive;
+                $("#genilinkdesc").attr('title', "Geni: " + geni_return.name + dateinfo);
+            });
+            console.log("Parsing Family...");
+            // generic call
+            collection.parseProfileData(request.source, true);
 
-                if (!accountinfo.user) {
-                    //document.getElementById("loading").style.display = "none";
-                    $("#familymembers").attr('disabled', 'disabled');
-                    setMessage(warningmsg, 'Use of SmartCopy for copying Family Members to Geni is managed.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
-                }
-            } else {
-                loadSelectPage(request);
+            if (!accountinfo.user) {
+                //document.getElementById("loading").style.display = "none";
+                $("#familymembers").attr('disabled', 'disabled');
+                setMessage(warningmsg, 'Use of SmartCopy for copying Family Members to Geni is managed.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
             }
-
+        } else {
+            loadSelectPage(request);
+        }
     }
 }
 

@@ -66,13 +66,13 @@ function parseTNG(htmlstring, familymembers, relation) {
   if (familymembers) {
     loadGeniData();
     var father = getTNGField(parsed, "Father");
-    if (exists(father)) {
+    if (exists(father[0])) {
       processTNGFamily(father, "father", tngfamid);
       tngfamid++;
     }
 
     var mother = getTNGField(parsed, "Mother");
-    if (exists(mother)) {
+    if (exists(mother[0])) {
       processTNGFamily(mother, "mother", tngfamid);
       tngfamid++;
     }
@@ -128,13 +128,13 @@ function parseTNG(htmlstring, familymembers, relation) {
       var father = getTNGField(parsed, "Father");
       var mother = getTNGField(parsed, "Mother");
       var parents = [];
-      if (exists(father)) {
+      if (exists(father[0])) {
           var parent = getTNGItemId(parseTNGURL(father));
           if (parent !== "") {
               parents.push(parent);
           }
       }
-      if (exists(mother)) {
+      if (exists(mother[0])) {
           var parent = getTNGItemId(parseTNGURL(mother));
           if (parent !== "") {
               parents.push(parent);
@@ -152,13 +152,13 @@ function parseTNG(htmlstring, familymembers, relation) {
       var siblingparents = [];
       var father = getTNGField(parsed, "Father");
       var mother = getTNGField(parsed, "Mother");
-      if (exists(father)) {
+      if (exists(father[0])) {
           var parent = getTNGItemId(parseTNGURL(father));
           if (parent !== "") {
               siblingparents.push(parent);
           }
       }
-      if (exists(mother)) {
+      if (exists(mother[0])) {
           var parent = getTNGItemId(parseTNGURL(mother));
           if (parent !== "") {
             siblingparents.push(parent);

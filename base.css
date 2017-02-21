@@ -756,8 +756,7 @@ textarea:disabled {
 
 @font-face {
   font-family: 'genicons';
-  src: url("genicons.eot");
-  src: url("genicons.eot?#iefix") format("embedded-opentype"), url("genicons.woff") format("woff"), url("genicons.ttf") format("truetype"), url("genicons.svg#7fdbe7cb2c75998f22e595bc0a1d3c52") format("svg");
+  src: url("genicons.woff") format("woff");
   font-style: normal;
   font-weight: 400
 }

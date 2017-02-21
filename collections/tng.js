@@ -45,7 +45,7 @@ registerCollection({
 var tngfamid = 0;
 function parseTNG(htmlstring, familymembers, relation) {
     relation = relation || "";
-    var parsed = $(htmlstring.replace(/<img /ig, "<gmi "));
+    var parsed = $(htmlstring.replace(/<img /ig, "<track "));
 
     var focusperson = getTNGName(parsed);
     var genderval = getTNGFieldText(parsed, "Gender").toLowerCase();
@@ -55,7 +55,7 @@ function parseTNG(htmlstring, familymembers, relation) {
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     var header = parsed.find("h1.header");
     if (exists(header[0])) {
-        var img = $(header[0]).prev().find("gmi").attr("src");
+        var img = $(header[0]).prev().find("track").attr("src");
         if (img.startsWith("photo")) {
             var prefix = tablink.substring(0, tablink.lastIndexOf("/"));
             profiledata["thumb"] = prefix + "/" + img;

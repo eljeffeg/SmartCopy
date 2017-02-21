@@ -756,8 +756,8 @@ textarea:disabled {
 
 @font-face {
   font-family: 'genicons';
-  src: url("https://geni3-mhcache-com-myheritage.netdna-ssl.com/fonts/genicons/files/genicons.eot");
-  src: url("https://geni3-mhcache-com-myheritage.netdna-ssl.com/fonts/genicons/files/genicons.eot?#iefix") format("embedded-opentype"), url("https://geni3-mhcache-com-myheritage.netdna-ssl.com/fonts/genicons/files/genicons.woff") format("woff"), url("/fonts/genicons/files/genicons.ttf") format("truetype"), url("https://geni3-mhcache-com-myheritage.netdna-ssl.com/fonts/genicons/files/genicons.svg#7fdbe7cb2c75998f22e595bc0a1d3c52") format("svg");
+  src: url("genicons.eot");
+  src: url("genicons.eot?#iefix") format("embedded-opentype"), url("genicons.woff") format("woff"), url("genicons.ttf") format("truetype"), url("genicons.svg#7fdbe7cb2c75998f22e595bc0a1d3c52") format("svg");
   font-style: normal;
   font-weight: 400
 }

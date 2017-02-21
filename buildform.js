@@ -1734,6 +1734,7 @@ function cleanDate(dateval) {
     dateval = dateval.replace(/after/i, "After");
     dateval = dateval.replace(/from/i, "After");
     dateval = dateval.replace(/^in /i, "");
+    dateval = dateval.replace(/\./g,"-");
 
     if (dateval.search(/\d{4}\/\d{4}/) !== -1) {
         dateval = "Between " + dateval.replace("/", " and ");

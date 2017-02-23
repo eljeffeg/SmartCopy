@@ -231,17 +231,13 @@ function getTNGName(parsed) {
     // Less precise, but better than nothing
     var nameheader = parsed.find("h1#nameheader").text();
     var header = parsed.find("h1.header").text();
+    var headfilter = parsed.filter("h1.header").text();
     if (nameheader !== "") {
         return nameheader;
     } else if (header !== "") {
         return header;
-    } else {
-        //some problems just grabbing h1.header with find
-        for (var i=0;i<parsed.length;i++) {
-            if ($(parsed[i]).hasClass("header")) {
-                return $(parsed[i]).text();
-            }
-        }
+    } else if (headfilter !== "") {
+        return headfilter;
     }
     return "";
 }

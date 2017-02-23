@@ -56,6 +56,12 @@ function parseGeneanet(htmlstring, familymembers, relation) {
 
   var profiledata = {name: focusperson, gender: genderval, status: relation.title};
 
+  var img = $(nameTab).closest("table").prev().find("track").attr("src");
+  if (exists(img)) {
+      profiledata["thumb"] = img;
+      profiledata["image"] = img.replace("/medium", "/normal");
+  }
+
   fullBirth = parsed.find("ul li:contains('Born ')");
   if (exists(fullBirth)) {
     profiledata["birth"] = parseGeneanetDate($(fullBirth[0]).text().replace('Born ', ''));

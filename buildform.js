@@ -1584,7 +1584,9 @@ function updateInfoData(person, arg) {
         var mname = $('#mnameonoffswitch').prop('checked');
         var tempname = NameParse.parse(person.name, mname);
         var argname = NameParse.parse(arg.name, mname);
-        if (exists(person["death"]) || exists(person["burial"])) {
+        if (exists(person["alive"])) {
+            //leave alone - let parser define it
+        } else if (exists(person["death"]) || exists(person["burial"])) {
             person["alive"] = false;
         } else if (checkLiving(person.name) || checkLiving(arg.name)) {
             person["alive"] = true;

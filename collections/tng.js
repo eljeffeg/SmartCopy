@@ -74,6 +74,9 @@ function parseTNG(htmlstring, familymembers, relation) {
         profiledata["occupation"] = occupation;
     }
 
+    if (checkLiving(focusperson)) {
+        profiledata["alive"] = true;
+    }
     if (familymembers) {
         loadGeniData();
         var father = getTNGField(parsed, "Father");
@@ -262,6 +265,9 @@ function parseTNGURL(person) {
 function parseTNGDate(parsed, name) {
     var data = [];
     var dateval = cleanDate(getTNGFieldText(parsed, name, 1));
+    if (dateval.toLowerCase().startsWith("yes")) {
+        return data;
+    }
     if (dateval.contains("[")) {
         var datesplit = dateval.split("[");
         dateval = datesplit[0].trim();

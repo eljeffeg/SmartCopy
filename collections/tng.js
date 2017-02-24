@@ -26,14 +26,15 @@ registerCollection({
     "loadPage": function(request) {
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
         var language = parsed.find("#newlanguage1 option:selected");
-        if (language.length > 0) {
+        var tabcheck = parsed.find("#a0").text();
+        if (language.length > 0 || tabcheck !== "Individual") {
             if (language.text() !== "English") {
                 document.getElementById("top-container").style.display = "block";
                 document.getElementById("submitbutton").style.display = "none";
                 document.getElementById("loading").style.display = "none";
                 document.querySelector('#loginspinner').style.display = "none";
                 document.querySelector('#experimentalmessage').style.display = "none";
-                setMessage(warningmsg, 'SmartCopy can only read the page in English.  Please change the language of the page.');
+                setMessage(warningmsg, 'SmartCopy can only read the page in English.  If possible, please change the language of the page.');
                 this.parseProfileData = "";
             }
         }
@@ -56,7 +57,7 @@ function parseTNG(htmlstring, familymembers, relation) {
     var header = parsed.find("h1.header");
     if (exists(header[0])) {
         var img = $(header[0]).prev().find("track").attr("src");
-        if (img.startsWith("photo")) {
+        if (exists(img) && img.startsWith("photo")) {
             var prefix = tablink.substring(0, tablink.lastIndexOf("/"));
             profiledata["thumb"] = prefix + "/" + img;
             if (img.contains("thumb_")) {
@@ -229,9 +230,9 @@ function getTNGName(parsed) {
         return givenname.replace(",", "") + " " + familyname.replace(",", "");
     }
     // Less precise, but better than nothing
-    var nameheader = parsed.find("h1#nameheader").text();
-    var header = parsed.find("h1.header").text();
-    var headfilter = parsed.filter("h1.header").text();
+    var nameheader = removeSources(parsed.find("h1#nameheader").text());
+    var header = removeSources(parsed.find("h1.header").text());
+    var headfilter = removeSources(parsed.filter("h1.header").text());
     if (nameheader !== "") {
         return nameheader;
     } else if (header !== "") {
@@ -240,6 +241,14 @@ function getTNGName(parsed) {
         return headfilter;
     }
     return "";
+}
+
+function removeSources(parsed) {
+    if (exists(parsed) && parsed.contains("[")) {
+        var splitval = parsed.split("[");
+        return splitval[0];
+    }
+    return parsed;
 }
 
 function parseTNGURL(person) {

@@ -27,7 +27,8 @@ registerCollection({
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
         var language = parsed.find("#newlanguage1 option:selected");
         var tabcheck = parsed.find("#a0").text();
-        if (language.length > 0 || tabcheck !== "Individual") {
+        var tabcheck2 = parsed.find("#a1").text();
+        if (language.length > 0 || (tabcheck !== "Individual" && tabcheck2 !== "Ancestors")) {
             if (language.text() !== "English") {
                 document.getElementById("top-container").style.display = "block";
                 document.getElementById("submitbutton").style.display = "none";

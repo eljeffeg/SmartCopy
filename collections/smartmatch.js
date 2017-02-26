@@ -69,6 +69,8 @@ registerCollection({
                             focusid = null;
                         } else {
                             updateLinks("?profile=" + focusid);
+                            profilechanged = true;
+                            loadPage(request);
                         }
                     }
                 } else if (focusURLid !== "") {

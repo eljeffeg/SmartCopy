@@ -7,6 +7,7 @@
  *  variable : pass private variable into the callback
  *
  * The callback function is called upon completion of the request
+ * http://stackoverflow.com/questions/7699615/cross-domain-xmlhttprequest-using-background-pages
  *
  * Call to verify HistoryLink authentication to Geni & query Family Data
  * */
@@ -17,6 +18,11 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
         xhttp.onload = function() {
             var valrtn = {source: xhttp.responseText, variable: request.variable};
             callback(valrtn);
+        };
+        xhttp.onerror = function() {
+            // Do whatever you want on error. Don't forget to invoke the
+            // callback to clean up the communication port.
+            callback();
         };
         xhttp.open(method, request.url, true);
         if (method == 'POST') {

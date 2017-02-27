@@ -9,7 +9,7 @@ var accountinfo, focusid, tablink, genifamily, parentspouseunion, genigender, ge
 var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefactors = "", googlerequery = "";
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [];
 var genifamilydata = {}, genibuildaction = {}, updatecount = 1, updatetotal = 0;
-var errormsg = "#f9acac", warningmsg = "#f8ff86";
+var errormsg = "#f9acac", warningmsg = "#f8ff86", infomsg = "#afd2ff";
 
 
 chrome.storage.local.get('buildhistory', function (result) {
@@ -236,7 +236,7 @@ function userAccess() {
             var accessdialog = document.querySelector('#useraccess');
             accessdialog.style.display = "block";
             if (!responsedata.big_tree) {
-                setMessage("#AFC8FF", '<strong>This profile is not in the World Family Tree.</strong>');
+                setMessage(infomsg, '<strong>This profile is not in the World Family Tree.</strong>');
                 accessdialog.style.marginBottom = "-2px";
             }
             if (accountinfo.curator && responsedata.claimed && !responsedata.curator) {
@@ -472,7 +472,7 @@ function loadPage(request) {
 function loadSelectPage(request) {
     document.getElementById("smartcopy-container").style.display = "none";
     document.getElementById("loading").style.display = "none";
-    setMessage(warningmsg, 'SmartCopy was unable to determine the Geni profile to use as a copy destination.<br/><br/>' +
+    setMessage(infomsg, 'SmartCopy was unable to determine the Geni profile to use as a copy destination.<br/><br/>' +
         '<strong><span id="changetext" title="Select the profile on Geni that matches the focus person on this page.">Set Geni Destination Profile</span></strong>' +
         '<table style="width: 100%;"><tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong><span id="optionrel" style="display: none;">Relatives &&nbsp;</span><span id="optionsc">SmartCopy&nbsp;</span>History:</strong></td></tr>' +
         '<tr id="optionrowldr"><td colspan="2" style="width: 100%; text-align: left; font-size: 90%; padding-left: 20px;">Loading Geni Relatives <img src="images/spinnerlg.gif" style="height: 16px; margin-bottom: -4px;"></td></tr>' +

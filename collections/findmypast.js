@@ -125,11 +125,13 @@ function parseFindMyPast(htmlstring, familymembers, relation) {
                         var url = tablink.replace(focusURLid, itemid);
                         var name = $(fperson[i]).find("h2").text();
                         var genderval = "unknown";
-                        var genimg = $(fperson[i]).find("gmi").attr("src");
-                        if (genimg.endsWith("icon_male.png")) {
+                        var genimg = $(fperson[i]).find("track").attr("src");
+                        if (exists(genimg)) {
+                            if (genimg.endsWith("icon_male.png")) {
                             genderval = "male";
-                        } else if (genimg.endsWith("icon_female.png")) {
-                            genderval = "female";
+                            } else if (genimg.endsWith("icon_female.png")) {
+                                genderval = "female";
+                            }
                         }
                         console.log(url);
                         if (exists(url)) {

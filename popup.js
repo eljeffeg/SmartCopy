@@ -458,7 +458,7 @@ function loadPage(request) {
                 setMessage(warningmsg, 'There was a problem with the collection - please report with link to page.');
             }
 
-            if (!accountinfo.user) {
+            if (!accountinfo.user || accountinfo.user.revoked !== null) {
                 //document.getElementById("loading").style.display = "none";
                 $("#familymembers").attr('disabled', 'disabled');
                 setMessage(warningmsg, 'Use of SmartCopy for copying Family Members to Geni is managed.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');

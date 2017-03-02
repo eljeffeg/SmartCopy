@@ -225,42 +225,45 @@ function isGeni(url) {
 
 function userAccess() {
     if (loggedin && exists(accountinfo)) {
-        chrome.extension.sendMessage({
-            method: "GET",
-            action: "xhttp",
-            url: smartcopyurl + "/account?profile=" + focusid,
-            variable: ""
-        }, function (response) {
-            document.querySelector('#loginspinner').style.display = "none";
-            var responsedata = JSON.parse(response.source);
-            var accessdialog = document.querySelector('#useraccess');
-            accessdialog.style.display = "block";
-            if (!responsedata.big_tree) {
-                setMessage(infomsg, '<strong>This profile is not in the World Family Tree.</strong>');
-                accessdialog.style.marginBottom = "-2px";
-            }
-            if (accountinfo.curator && responsedata.claimed && !responsedata.curator) {
-                if (!responsedata.user) {
-                    accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
-                        '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>';
-                    document.getElementById('grantbutton').addEventListener('click', useradd, false);
-                } else {
-                    if (responsedata.user.revoked == null) {
-                        accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
-                            '<div>Tree-building rights were granted by <a href="http://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>';
-                        document.getElementById('revokebutton').addEventListener('click', userrevoke, false);
-                    } else {
-                        accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
-                            '<div>Tree-building rights were revoked by <a href="http://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>';
-                        document.getElementById('grantbutton').addEventListener('click', userrestore, false);
-                    }
+        if (focusid !== "") {
+            chrome.extension.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: smartcopyurl + "/account?profile=" + focusid,
+                variable: ""
+            }, function (response) {
+                document.querySelector('#loginspinner').style.display = "none";
+                var responsedata = JSON.parse(response.source);
+                var accessdialog = document.querySelector('#useraccess');
+                accessdialog.style.display = "block";
+                if (!responsedata.big_tree) {
+                    setMessage(infomsg, '<strong>This profile is not in the World Family Tree.</strong>');
+                    accessdialog.style.marginBottom = "-2px";
                 }
-            } else {
-                accessdialog.innerHTML = "<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...";
-                buildResearch();
-            }
-        });
-
+                if (accountinfo.curator && responsedata.claimed && !responsedata.curator) {
+                    if (!responsedata.user) {
+                        accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
+                            '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>';
+                        document.getElementById('grantbutton').addEventListener('click', useradd, false);
+                    } else {
+                        if (responsedata.user.revoked == null) {
+                            accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
+                                '<div>Tree-building rights were granted by <a href="http://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>';
+                            document.getElementById('revokebutton').addEventListener('click', userrevoke, false);
+                        } else {
+                            accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
+                                '<div>Tree-building rights were revoked by <a href="http://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>';
+                            document.getElementById('grantbutton').addEventListener('click', userrestore, false);
+                        }
+                    }
+                } else {
+                    accessdialog.innerHTML = "<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...";
+                    buildResearch();
+                }
+            });
+        } else {
+            setMessage(warningmsg, "Invalid Profile Id - Try Again");
+        }
     } else {
         setTimeout(userAccess, 200);
     }
@@ -354,6 +357,16 @@ function loadPage(request) {
         if (collection.parseProfileData) {
             if (collection.loadPage) {
                 collection.loadPage(request);
+            }
+            if (!profilechanged && focusURLid !== "") {
+                for (var i = 0; i < buildhistory.length; i++) {
+                    if (buildhistory[i].itemId === focusURLid) {
+                        focusid = buildhistory[i].id;
+                        profilechanged = true;
+                        loadPage(request);
+                        return;
+                    }
+                }
             }
             if (collection.parseProfileData && !profilechanged) {
                 loadSelectPage(request);
@@ -457,8 +470,7 @@ function loadPage(request) {
             } else {
                 setMessage(warningmsg, 'There was a problem with the collection - please report with link to page.');
             }
-
-            if (!accountinfo.user || accountinfo.user.revoked !== null) {
+            if (!accountinfo.user || (exists(accountinfo.user.revoked) && accountinfo.user.revoked !== null)) {
                 //document.getElementById("loading").style.display = "none";
                 $("#familymembers").attr('disabled', 'disabled');
                 setMessage(warningmsg, 'Use of SmartCopy for copying Family Members to Geni is managed.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
@@ -470,7 +482,7 @@ function loadPage(request) {
 }
 
 function loadSelectPage(request) {
-    document.getElementById("smartcopy-container").style.display = "none";
+    //document.getElementById("smartcopy-container").style.display = "none";
     document.getElementById("loading").style.display = "none";
     setMessage(infomsg, 'SmartCopy was unable to determine the Geni profile to use as a copy destination.<br/><br/>' +
         '<strong><span id="changetext" title="Select the profile on Geni that matches the focus person on this page.">Set Geni Destination Profile</span></strong>' +
@@ -781,6 +793,10 @@ function getProfile(profile_id) {
             } else {
                 profile_id = "profile-" + profile_id;
             }
+        }
+        var validate = profile_id.replace("profile-g", "").replace("profile-", "");
+        if (isNaN(validate)) {
+            profile_id = "";
         }
         if (profile_id.indexOf("profile-") != -1 && profile_id !== "profile-g") {
             return "?profile=" + profile_id;

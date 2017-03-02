@@ -1919,6 +1919,9 @@ function emptyEvent(data) {
             var eventdate = data.date;
             for (var key in eventdate){
                 var value = eventdate[key];
+                if (key === "year" && isNaN(value)) {
+                    value = "";
+                }
                 if (key !== "circa" && value !== "") {
                     return false;
                 }

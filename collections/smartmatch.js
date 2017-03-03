@@ -24,6 +24,36 @@ registerCollection({
             getPageCode();
         }
     },
+    "redirect": function(request) {
+        if (tablink.contains("myheritage.com") && recordtype === "WikiTree") {
+            var recordurl = request.source.match('www.wikitree.com/wiki/(.*?)"');
+            if (exists(recordurl) && exists(recordurl[1])) {
+                tablink = "https://www.wikitree.com/wiki/" + recordurl[1];
+                for (var i=0; i<collections.length; i++) {
+                    if (collections[i].collectionMatch(tablink)) {
+                        collection = collections[i];
+                        tablink = collection.prepareUrl(tablink);
+                        recordtype = collection.recordtype;
+                        if (collection.experimental) {
+                            $("#experimentalmessage").css("display", "block");
+                        }
+                        console.log("Collection: " + recordtype);
+                        break;
+                    }
+                }
+                profilechanged = true;
+                chrome.extension.sendMessage({
+                    method: "GET",
+                    action: "xhttp",
+                    url: tablink
+                }, function (response) {
+                    loadPage(response);
+                });
+                return true;
+            }
+        }
+        return false;
+    },
     "loadPage": function(request) {
         /*
          Below checks to make sure the user has not clicked away from the matched profile

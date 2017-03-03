@@ -101,7 +101,7 @@ function buildHistorySelect() {
     return historytext;
 }
 
-var dateformatter = ["MMM YYYY", "MMM D YYYY", "YYYY", "MM/ /YYYY", "D MMM YYYY"];
+var dateformatter = ["MMM YYYY", "MMM D YYYY", "MMMM D YYYY", "YYYY", "MM/ /YYYY", "D MMM YYYY"];
 //noinspection JSUnusedGlobalSymbols
 var expandparent = true; //used in expandAll function window[...] var call
 //noinspection JSUnusedGlobalSymbols
@@ -388,6 +388,12 @@ function loadPage(request) {
             focusid = null;
         }
         if (exists(focusid)) {
+            if (collection.redirect) {
+                var redirect = collection.redirect(request);
+                if (redirect) {
+                    return;
+                }
+            }
             document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
             if (focusrange !== "") {
                 document.getElementById("focusrange").innerText = focusrange;

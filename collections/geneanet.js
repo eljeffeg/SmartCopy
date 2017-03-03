@@ -51,6 +51,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   var familyName = nameTab.find("a:not(:has(track))").first().next().text();
   var focusperson = givenName + " " + familyName;
   if (focusperson.trim() === "") {
+      $(nameTab).html($(nameTab).html().replace("<em>", '"').replace("<\/em>", '"'));
       focusperson = $(nameTab).text().trim();
   }
 
@@ -251,8 +252,9 @@ function processGeneanetFamily(person, title, famid) {
     if (!exists(alldata["family"][title])) {
       alldata["family"][title] = [];
     }
-
-    var name = $(person).find("a:not(:has(track))").first().text();
+    var nameTab = $(person).find("a:not(:has(track))").first();
+    $(nameTab).html($(nameTab).html().replace("<em>", '"').replace("<\/em>", '"'));
+    var name =  $(nameTab).text();
     var itemid = getGeneanetItemId(url);
     if (isParent(title)) {
       parentlist.push(itemid);

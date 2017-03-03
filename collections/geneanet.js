@@ -47,10 +47,12 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   if (relation === "") {
     focusgender = genderval;
   }
-
   var givenName = nameTab.find("a:not(:has(track))").first().text();
   var familyName = nameTab.find("a:not(:has(track))").first().next().text();
   var focusperson = givenName + " " + familyName;
+  if (focusperson.trim() === "") {
+      focusperson = $(nameTab).text().trim();
+  }
 
   document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
 
@@ -265,7 +267,6 @@ function processGeneanetFamily(person, title, famid) {
     }
     var fullurl = "http://gw.geneanet.org/"+url;
     var subdata = {name: name, title: title, url: fullurl, gender: gendersv, itemId: itemid, profile_id: famid};
-
     // Parse marriage data
     subdata = processMarriage(person, subdata);
     unionurls[famid] = itemid;

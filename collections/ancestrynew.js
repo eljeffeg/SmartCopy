@@ -119,7 +119,7 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
         } else if (familymembers && titlename === "Marriage") {
             var data = parseAncestryNewDate(entry.next());
             var mid = parseAncestryNewId(entry.next().next().find("a").attr("href"));
-            if (!$.isEmptyObject(data)) {
+            if (!$.isEmptyObject(data) && exists(mid)) {
                 ancestrymrglist.push({"id": mid, "event": data});
             }
         } else if (!familymembers && titlename === "Marriage" && exists(relation.title) && isPartner(relation.title)) {
@@ -285,6 +285,9 @@ function parseAncestryNewDate(vitalinfo) {
 }
 
 function parseAncestryNewId(url) {
+    if (!exists(url)) {
+        return null;
+    }
     return url.substring(url.lastIndexOf('/') + 1);
 }
 

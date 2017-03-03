@@ -1582,6 +1582,9 @@ function updateInfoData(person, arg) {
         //This compares the data on the focus profile to the linked profile and uses most complete
         //Sometimes more information is shown on the SM, but when you click the link it goes <Private>
         var mname = $('#mnameonoffswitch').prop('checked');
+        if (exists(person.name) && person.name.trim() === "" && arg.name !== "") {
+            person.name = arg.name;
+        }
         var tempname = NameParse.parse(person.name, mname);
         var argname = NameParse.parse(arg.name, mname);
         if (exists(person["alive"])) {

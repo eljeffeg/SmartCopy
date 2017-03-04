@@ -1574,6 +1574,9 @@ function buildParentSelect(id) {
 
 
 function updateInfoData(person, arg) {
+    if (!exists(person) || person  === "") {
+        return arg;
+    }
     person["url"] = arg["url"];
     person["itemId"] = arg["itemId"];
     person["profile_id"] = arg["profile_id"];

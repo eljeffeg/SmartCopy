@@ -322,10 +322,11 @@ function getGeneanetFamily(famid, url, subdata) {
     }, function (response) {
         if (exists(response)) {
             var arg = response.variable;
-            var person = parseGeneanet(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
-            if (person === "") {
-                familystatus.pop();
-                return;
+            if (exists(response.error)) {
+                console.log(response.error);
+                var person = "";
+            } else {
+                var person = parseGeneanet(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
             }
             person = updateInfoData(person, arg);
             databyid[arg.profile_id] = person;

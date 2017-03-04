@@ -19,10 +19,11 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
             var valrtn = {source: xhttp.responseText, variable: request.variable};
             callback(valrtn);
         };
-        xhttp.onerror = function() {
+        xhttp.onerror = function(error) {
             // Do whatever you want on error. Don't forget to invoke the
             // callback to clean up the communication port.
-            callback();
+            var valrtn = {error: error, variable: request.variable};
+            callback(valrtn);
         };
         xhttp.open(method, request.url, true);
         if (method == 'POST') {
@@ -33,4 +34,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
         return true; // prevents the callback from being called too early on return
     }
 });
+
+function exists(object) {
+    return (typeof object !== "undefined" && object !== null);
+}
 

@@ -807,7 +807,7 @@ function getProfile(profile_id) {
         if (profile_id.indexOf("profile-") != -1 && profile_id !== "profile-g") {
             return "?profile=" + profile_id;
         } else {
-            console.log("Profile ID not detected: " + profile_id);
+            console.log("Profile ID not detected: " + startid);
             console.log("URL: " + tablink);
             return "";
         }

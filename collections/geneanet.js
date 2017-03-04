@@ -47,6 +47,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   if (relation === "") {
     focusgender = genderval;
   }
+  var aboutdata = "";
   var givenName = nameTab.find("a:not(:has(track))").first().text();
   var familyName = nameTab.find("a:not(:has(track))").first().next().text();
   var focusperson = givenName + " " + familyName;
@@ -83,6 +84,29 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   fullBurial = parsed.find("ul li:contains('Buried ')");
   if (exists(fullBurial)) {
     profiledata["burial"] = parseGeneanetDate($(fullBurial[0]).text().replace('Buried ', ''));
+  }
+
+  individualNote = parsed.find(".fiche-note-ind");
+  if (exists(individualNote)) {
+      var notes = $(individualNote).text().trim();
+      if (notes !== "") {
+            aboutdata += "===Individual Note===\n" + notes;
+      }
+  }
+
+  familyNote = parsed.find("h3:contains('Family Note')");
+  if (exists(familyNote)) {
+      var notes = $(familyNote).nextUntil("div").text().trim();
+      if (notes !== "") {
+          if (aboutdata !== "") {
+              aboutdata += "\n";
+          }
+          aboutdata += "===Family Note===\n" + notes;
+      }
+  }
+
+  if (aboutdata.trim() !== "") {
+      profiledata["about"] = aboutdata;
   }
 
   if (familymembers) {

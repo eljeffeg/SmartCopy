@@ -808,6 +808,7 @@ function getProfile(profile_id) {
             return "?profile=" + profile_id;
         } else {
             console.log("Profile ID not detected: " + profile_id);
+            console.log("URL: " + tablink);
             return "";
         }
     }

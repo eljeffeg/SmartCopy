@@ -312,21 +312,27 @@ function processMarriage(person, subdata) {
 
 function getGeneanetFamily(famid, url, subdata) {
     familystatus.push(famid);
+    console.log(subdata);
+    console.log("Reading: " + url);
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",
         variable: subdata,
         url: url
     }, function (response) {
-        var arg = response.variable;
-        var person = parseGeneanet(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
-        if (person === "") {
-            familystatus.pop();
-            return;
+        if (exists(response)) {
+            var arg = response.variable;
+            var person = parseGeneanet(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+            if (person === "") {
+                familystatus.pop();
+                return;
+            }
+            person = updateInfoData(person, arg);
+            databyid[arg.profile_id] = person;
+            alldata["family"][arg.title].push(person);
+        } else {
+            console.log("*** Reading Failed ***");
         }
-        person = updateInfoData(person, arg);
-        databyid[arg.profile_id] = person;
-        alldata["family"][arg.title].push(person);
         familystatus.pop();
     });
 }

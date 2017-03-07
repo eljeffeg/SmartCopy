@@ -304,12 +304,14 @@ function useradd() {
                     chrome.tabs.executeScript(tab1.id, {
                         code: "document.getElementById('thread_subject').value='SmartCopy Invite';" +
                             "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, " +
-                            "which is a Google Chrome extension that allows advanced Geni users to copy information and profiles from various sources into Geni.\\n\\n" +
+                            "which is a Google Chrome extension that allows Geni users to copy information and profiles from various sources into Geni.\\n\\n" +
                             "The extension can be downloaded here: https://historylink.herokuapp.com/smartcopy\\n" +
                             "More information and discussion can be found in the Geni project: http://www.geni.com/projects/SmartCopy/18783\\n\\n" +
-                            "Before using SmartCopy, please read the cautionary notes and feedback request in the Project Description.\\n\\n" +
-                            "SmartCopy can be a powerful tool to help us build the world tree, but it could also quickly create duplication and introduce bad data. " +
-                            "Users granted rights to SmartCopy are expected to be responsible with using this tool, attempt to merge any duplicates that arise, and work through relationship conflicts (get curator assistance if necessary)." +
+                            "Before using SmartCopy, please read the cautionary notes in the Project Description. " +
+                            "SmartCopy can be a powerful tool to help us build the world tree, but it could also quickly create duplication and introduce bad data - be responsible.\\n\\n" +
+                            "*********************************************************\\n" +
+                            "Users granted rights to SmartCopy are expected to review for and avoid creating duplicates, merge or delete profiles when duplicates are created, and attempt to work through relationship conflicts that may arise (get curator assistance if necessary).\\n" +
+                            "*********************************************************" +
                             "';"
                     }, function () {
                         window.close();

@@ -291,7 +291,7 @@ function processGeneanetFamily(person, title, famid) {
     } else if (isPartner(title)) {
       gendersv = reverseGender(focusgender);
     }
-    var fullurl = "http://gw.geneanet.org/"+url;
+    var fullurl = hostDomain(tablink) + "/" + url;
     var subdata = {name: name, title: title, url: fullurl, gender: gendersv, itemId: itemid, profile_id: famid};
     // Parse marriage data
     subdata = processMarriage(person, subdata);
@@ -312,8 +312,6 @@ function processMarriage(person, subdata) {
 
 function getGeneanetFamily(famid, url, subdata) {
     familystatus.push(famid);
-    console.log(subdata);
-    console.log("Reading: " + url);
     chrome.extension.sendMessage({
         method: "GET",
         action: "xhttp",

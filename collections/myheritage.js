@@ -157,12 +157,12 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
         var famid = 0;
     }
 
+    var siblingparents = [];
     if (exists(splitdata[1])) {
         splitdata = splitdata[1].split("FirstColumn");
         parsed = $(splitdata[0]);
         // ---------------------- Family Data --------------------
         fperson = parsed.find('a.FL_LinkBold');
-        var siblingparents = [];
         for (var i = 0; i < fperson.length; i++) {
             var member = $(fperson[i]);
             var title = member.next('br').next('span.FL_LabelDimmed').text().trim();

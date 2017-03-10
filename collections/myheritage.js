@@ -157,65 +157,67 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
         var famid = 0;
     }
 
-    splitdata = splitdata[1].split("FirstColumn");
-    parsed = $(splitdata[0]);
-    // ---------------------- Family Data --------------------
-    fperson = parsed.find('a.FL_LinkBold');
-    var siblingparents = [];
-    for (var i = 0; i < fperson.length; i++) {
-        var member = $(fperson[i]);
-        var title = member.next('br').next('span.FL_LabelDimmed').text().trim();
-        title = title.replace("His", "").replace("Her", "").trim();
-        var url = member.attr("href");
-        var itemid = "";
-        if (url.contains("#!profile-")) {
-            itemid = url.substring(url.indexOf('#!profile-') + 10);
-            itemid = itemid.substring(0, itemid.indexOf('-'));
-        } else if (url.contains("rootIndivudalID=")) {
-            itemid = getParameterByName('rootIndivudalID', url);
-        } else {
-            itemid = decodeURIComponent(url.substring(url.indexOf('-') + 1));
-            itemid = itemid.substring(0, itemid.indexOf('_'));
-        }
+    if (exists(splitdata[1])) {
+        splitdata = splitdata[1].split("FirstColumn");
+        parsed = $(splitdata[0]);
+        // ---------------------- Family Data --------------------
+        fperson = parsed.find('a.FL_LinkBold');
+        var siblingparents = [];
+        for (var i = 0; i < fperson.length; i++) {
+            var member = $(fperson[i]);
+            var title = member.next('br').next('span.FL_LabelDimmed').text().trim();
+            title = title.replace("His", "").replace("Her", "").trim();
+            var url = member.attr("href");
+            var itemid = "";
+            if (url.contains("#!profile-")) {
+                itemid = url.substring(url.indexOf('#!profile-') + 10);
+                itemid = itemid.substring(0, itemid.indexOf('-'));
+            } else if (url.contains("rootIndivudalID=")) {
+                itemid = getParameterByName('rootIndivudalID', url);
+            } else {
+                itemid = decodeURIComponent(url.substring(url.indexOf('-') + 1));
+                itemid = itemid.substring(0, itemid.indexOf('_'));
+            }
 
-        if (exists(title)) {
-            if (familymembers) {
-                if (isParent(title) || isSibling(title) || isChild(title) || isPartner(title)) {
-                    var name = member.text().trim();
-                    if (exists(url)) {
-                        if (!exists(alldata["family"][title])) {
-                            alldata["family"][title] = [];
+            if (exists(title)) {
+                if (familymembers) {
+                    if (isParent(title) || isSibling(title) || isChild(title) || isPartner(title)) {
+                        var name = member.text().trim();
+                        if (exists(url)) {
+                            if (!exists(alldata["family"][title])) {
+                                alldata["family"][title] = [];
+                            }
+                            var subdata = {name: name, title: title};
+                            subdata["url"] = url;
+                            subdata["itemId"] = itemid;
+                            subdata["profile_id"] = famid;
+                            if (isParent(title)) {
+                                parentlist.push(itemid);
+                            } else if (isPartner(title)) {
+                                myhspouse.push(famid);
+                            }
+                            unionurls[famid] = itemid;
+                            getMyHeritageFamily(famid, url, subdata);
+                            famid++;
                         }
-                        var subdata = {name: name, title: title};
-                        subdata["url"] = url;
-                        subdata["itemId"] = itemid;
-                        subdata["profile_id"] = famid;
-                        if (isParent(title)) {
-                            parentlist.push(itemid);
-                        } else if (isPartner(title)) {
-                            myhspouse.push(famid);
+                    }
+                } else if (isChild(relation.title)) {
+                    if (isParent(title)) {
+                        if (focusURLid !== itemid) {
+                            childlist[relation.proid] = $.inArray(itemid, unionurls);
+                            profiledata["parent_id"] = $.inArray(itemid, unionurls);
+                            break;
                         }
-                        unionurls[famid] = itemid;
-                        getMyHeritageFamily(famid, url, subdata);
-                        famid++;
                     }
-                }
-            } else if (isChild(relation.title)) {
-                if (isParent(title)) {
-                    if (focusURLid !== itemid) {
-                        childlist[relation.proid] = $.inArray(itemid, unionurls);
-                        profiledata["parent_id"] = $.inArray(itemid, unionurls);
-                        break;
+                } else if (isSibling(relation.title)) {
+                    if (isParent(title)) {
+                        siblingparents.push(itemid);
                     }
+                } else if (isPartner(relation.title)) {
+                    //marriage data - parse event tab
+                } else if (isParent(relation.title)) {
+                    //marriage data - parse event tab
                 }
-            } else if (isSibling(relation.title)) {
-                if (isParent(title)) {
-                    siblingparents.push(itemid);
-                }
-            } else if (isPartner(relation.title)) {
-                //marriage data - parse event tab
-            } else if (isParent(relation.title)) {
-                //marriage data - parse event tab
             }
         }
     }

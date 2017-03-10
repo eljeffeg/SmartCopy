@@ -3,18 +3,20 @@ registerCollection({
     "reload": false,
     "recordtype": "Ancestry Genealogy",
     "prepareUrl": function(url) {
-        if (startsWithHTTP(url,"http://trees.ancestry.")) {
+        if (startsWithHTTP(url,"http://trees.ancestry.") || url.contains("/family-tree/tree/")) {
             if (url.endsWith("/family") || url.endsWith("/family/familyview") || url.endsWith("/family/pedigree")) {
                 document.querySelector('#loginspinner').style.display = "none";
                 setMessage(warningmsg, 'SmartCopy was unable to identify the Ancestry focus profile.  Please select a focus profile in the tree.');
                 return;
             } else {
-                if (startsWithHTTP(url, "http://trees.ancestry.") && !startsWithHTTP(url, "http://trees.ancestry.com")) {
-                    url = url.replace(/trees\.ancestry\..*?\//i, "trees.ancestry.com/");
-                }
                 url = url.replace("/family/", "/");
-                url = url.replace("family?cfpid=", "person/") + "/facts";
-                url = url.replace("pedigree?cfpid=", "person/") + "/facts";
+                url = url.replace("family?fpid=", "person/");
+                url = url.replace("family?cfpid=", "person/");
+                url = url.replace("pedigree?fpid=", "person/");
+                url = url.replace("pedigree?cfpid=", "person/");
+                if (!url.endsWith("/facts")) {
+                     url += "/facts";
+                }
                 url = url.replace("trees.ancestry.", "person.ancestry.");
                 url = url.replace("&selnode=1", "");
                 url = url.replace("/community/potential", "");
@@ -23,11 +25,7 @@ registerCollection({
                 }
                 this.reload = true;
             }
-        } else if (startsWithHTTP(url,"http://person.ancestry.")) {
-            if (startsWithHTTP(url, "http://person.ancestry.") && !startsWithHTTP(url, "http://person.ancestry.com")) {
-                url = url.replace(/person\.ancestry\..*?\//i, "person.ancestry.com/");
-                this.reload = true;
-            }
+        } else if (startsWithHTTP(url,"http://person.ancestry.") || url.contains("/family-tree/person/")) {
             if (!url.contains("/facts")) {
                 url = url.replace("/story", "/facts");
                 url = url.replace("/gallery", "/facts");
@@ -35,10 +33,22 @@ registerCollection({
                 this.reload = true;
             }
         }
+        if (startsWithHTTP(url, "http://person.ancestry.") && !startsWithHTTP(url, "http://person.ancestry.com")) {
+            url = url.replace(/person\.ancestry\..*?\//i, "person.ancestry.com/");
+            this.reload = true;
+        }
+        if (startsWithHTTP(url, "http://www.ancestry.") && !startsWithHTTP(url, "http://www.ancestry.com")) {
+            url = url.replace(/www\.ancestry\..*?\//i, "www.ancestry.com/");
+            this.reload = true;
+        }
+        if (startsWithHTTP(url, "http://trees.ancestry.") && !startsWithHTTP(url, "http://trees.ancestry.com")) {
+            url = url.replace(/trees\.ancestry\..*?\//i, "trees.ancestry.com/");
+            this.reload = true;
+        }
         return url;
     },
     "collectionMatch": function(url) {
-        return (startsWithHTTP(url,"http://person.ancestry.") || startsWithHTTP(url,"http://trees.ancestry."));
+        return (startsWithHTTP(url,"http://person.ancestry.") || startsWithHTTP(url,"http://trees.ancestry.") || (startsWithHTTP(url,"http://www.ancestry.") && url.contains("/family-tree/")));
     },
     "parseData": function(url) {
         if (url.contains("/fact")) {

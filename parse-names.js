@@ -256,7 +256,7 @@ var NameParse = (function(){
             var tempword2 = NameParse.removeIgnoredChars(word[0]).toLocaleLowerCase() + " ";
             // these are some common suffixes - what am I missing?
             var prefixArray = [
-                'dr', 'rev', 'fr', 'bro', 'chap', 'jud', 'prof', "rabbi", "sr", 'sen', 'the hon',
+                'dr', 'rev', 'fr', 'bro', 'chap', 'jud', 'prof', 'sr', 'sen', 'the hon',
                 'hon', 'amd', 'bg', 'bgen', 'brig gen', 'cpt', 'capt', 'cwo', 'lord', 'lady', 'dea',
                 'col', 'cdr', 'cpl', 'ens', '1lt', '1st lt', 'ltjg', '2lt', '2nd lt', 'lieut',
                 'lt', 'gen', 'ltc', 'lt col', 'lcdr', 'ltg', 'lt gen', 'maj gen', 'mg',
@@ -273,7 +273,7 @@ var NameParse = (function(){
                 'shayk','shaykh','shekh','cheikh','prince','princess','elector', 'arch duke', 'duchess',
                 'marquis', 'marquess', 'marquise', 'marchioness', 'viscount', 'viscountess',
                 'count','countess','baron','baroness','sir','pope','cardinal','archbishop','bishop', 'cantor', 'hon cantor',
-                'patriarch','abbot','vicar','father','rabbi','caliph','imam','ayatollah','chancellor','commissioner'
+                'patriarch','abbot','vicar','rabbi','caliph','imam','ayatollah','chancellor','commissioner'
             ];
             for (var i=0; i < prefixArray.length; i++) {
                 if (tempword1.startsWith(prefixArray[i] + " ")) {

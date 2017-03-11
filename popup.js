@@ -417,6 +417,22 @@ function loadPage(request) {
                 focusid = geni_return.id; //In case there is a merge_into return
                 // $('#focusjsontable').json2html(response.source,focustransform);
                 genifocusdata = new GeniPerson(geni_return);
+                var permissions = genifocusdata.get("actions");
+                if (!exists(permissions)) {
+                    document.getElementById("top-container").style.display = "block";
+                    document.getElementById("submitbutton").style.display = "none";
+                    document.getElementById("loading").style.display = "none";
+                    setMessage(errormsg, 'SmartCopy was unable to retrieve the focus profile data from Geni.');
+                    console.log(geni_return);
+                    return
+                } else if (permissions.length === 0) {
+                    document.getElementById("top-container").style.display = "block";
+                    document.getElementById("submitbutton").style.display = "none";
+                    document.getElementById("loading").style.display = "none";
+                    setMessage(warningmsg, 'Geni replies that you have no permissions on the focus profile.  The profile may be private and inaccessible or you may need to reauthenticate SmartCopy on Geni. ' +
+                        'You can reauthenticate by <a href="' + smartcopyurl + '/logout" target="_blank">clicking here</a> and rerunning SmartCopy.');
+                    return
+                }
                 var matches = genifocusdata.get("matches");
                 if (matches.tree_match > 0) {
                     $("#treematchurl").attr("href", "https://www.geni.com/search/matches?id=" + genifocusdata.get("guid") + "&src=smartcopy&cmp=btn");

@@ -358,7 +358,25 @@ function loadPage(request) {
     if (!profilechanged) {
         if (collection.parseProfileData) {
             if (collection.loadPage) {
-                collection.loadPage(request);
+                if (exists(request.source)) {
+                    collection.loadPage(request);
+                } else {
+                    document.getElementById("top-container").style.display = "block";
+                    document.getElementById("submitbutton").style.display = "none";
+                    document.getElementById("loading").style.display = "none";
+                    console.log("Error trying to read: " + tablink);
+                    var error = "";
+                    if (exists(request.error)) {
+                        if (typeof request.error === 'string' && request.error !== "") {
+                            error = " Error: " + request.error;
+                            console.log(error);
+                        } else if (typeof request.error === 'object' && !$.isEmptyObject(request.error)) {
+                            error = " Error: " + JSON.stringify(request.error);
+                            console.log(error);
+                        }
+                    }
+                    setMessage(warningmsg, 'SmartCopy is having difficulty reading the page.  Try refreshing the page.' + error);
+                }
             }
             if (!profilechanged && focusURLid !== "") {
                 for (var i = 0; i < buildhistory.length; i++) {

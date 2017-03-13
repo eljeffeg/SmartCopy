@@ -140,7 +140,7 @@ var NameParse = (function(){
                 // we do not check earlier to allow for rare cases where an indicator is actually the first name (like "Von Fabella")
                 if (this.is_compound_lastName(word)) {
                     if (!(this.is_initial(word) && word === word.toUpperCase())) {
-                        //If it's one letter and capitalized, consider it an middle initial
+                        //If it's one letter and capitalized, consider it a middle initial
                         break;
                     }
                 }

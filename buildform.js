@@ -1815,7 +1815,9 @@ function loadGeniData() {
         action: "xhttp",
         url: familyurl
     }, function (response) {
-        genispouse = JSON.parse(response.source);
+        if (exists(response) && response.source !== "") {
+            genispouse = JSON.parse(response.source);
+        }
         familystatus.pop();
     });
     familystatus.push("about");
@@ -1825,13 +1827,15 @@ function loadGeniData() {
         action: "xhttp",
         url: abouturl
     }, function (response) {
-        var geni_return = JSON.parse(response.source);
-        if (!$.isEmptyObject(geni_return)) {
-            if (exists(geni_return.about_me)) {
-                focusabout = geni_return.about_me;
-            }
-            if (exists(geni_return.nicknames)) {
-                focusnicknames = geni_return.nicknames;
+        if (exists(response) && response.source !== "") {
+            var geni_return = JSON.parse(response.source);
+            if (!$.isEmptyObject(geni_return)) {
+                if (exists(geni_return.about_me)) {
+                    focusabout = geni_return.about_me;
+                }
+                if (exists(geni_return.nicknames)) {
+                    focusnicknames = geni_return.nicknames;
+                }
             }
         }
         familystatus.pop();

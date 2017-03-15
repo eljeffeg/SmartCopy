@@ -746,7 +746,7 @@ function loadLogin() {
         } catch(err) {
             console.log('Problem getting account information.');
             if (loginprocessing) {
-                console.log("Logged Out...");
+                console.log("Logged Out... Redirecting to Geni for authorization.");
                 loginprocessing = false;
                 var frame = $("#loginframe");
                 frame.attr('src', smartcopyurl + '/smartlogin');

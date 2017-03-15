@@ -33,15 +33,16 @@ registerCollection({
                 this.reload = true;
             }
         }
-        if (startsWithHTTP(url, "http://person.ancestry.") && !startsWithHTTP(url, "http://person.ancestry.com")) {
+        if (startsWithHTTP(url, "http://person.ancestry.") && !startsWithHTTP(url, "http://person.ancestry.com/")) {
             url = url.replace(/person\.ancestry\..*?\//i, "person.ancestry.com/");
             this.reload = true;
         }
-        if (startsWithHTTP(url, "http://www.ancestry.") && !startsWithHTTP(url, "http://www.ancestry.com")) {
+        if (startsWithHTTP(url, "http://www.ancestry.") && !startsWithHTTP(url, "http://www.ancestry.com/")) {
+
             url = url.replace(/www\.ancestry\..*?\//i, "www.ancestry.com/");
             this.reload = true;
         }
-        if (startsWithHTTP(url, "http://trees.ancestry.") && !startsWithHTTP(url, "http://trees.ancestry.com")) {
+        if (startsWithHTTP(url, "http://trees.ancestry.") && !startsWithHTTP(url, "http://trees.ancestry.com/")) {
             url = url.replace(/trees\.ancestry\..*?\//i, "trees.ancestry.com/");
             this.reload = true;
         }

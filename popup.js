@@ -4,7 +4,7 @@ var locationtest = false; //Verbose parsing of location data
 var smartcopyurl = "https://historylink.herokuapp.com";  //helpful for local testing to switch from https to http
 
 //Common Global Variables
-var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true;
+var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true, captcha = false;
 var accountinfo, focusid, tablink, genifamily, parentspouseunion, genigender, geniliving, genifocusdata;
 var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefactors = "", googlerequery = "";
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [];
@@ -101,7 +101,7 @@ function buildHistorySelect() {
     return historytext;
 }
 
-var dateformatter = ["MMM YYYY", "MMM D YYYY", "MMMM D YYYY", "YYYY", "MM/ /YYYY", "D MMM YYYY"];
+var dateformatter = ["MMM YYYY", "MMMM YYYY", "MMM D YYYY", "MMMM D YYYY", "YYYY", "MM/ /YYYY", "D MMM YYYY"];
 //noinspection JSUnusedGlobalSymbols
 var expandparent = true; //used in expandAll function window[...] var call
 //noinspection JSUnusedGlobalSymbols

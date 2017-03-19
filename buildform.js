@@ -24,7 +24,7 @@ alldata["family"] = {};
 function updateGeo() {
     if (familystatus.length > 0) {
         setTimeout(updateGeo, 50);
-    } else {
+    } else if (!captcha) {
         console.log("Family Processed...");
         document.getElementById("readstatus").innerHTML = "Determining Locations";
         var listvalues = ["birth", "baptism", "marriage", "divorce", "death", "burial"];
@@ -1894,13 +1894,9 @@ function checkBurial(profiledata){
     } else if (dd.startsWith("Before")) {
         dd = dd.replace("Before", "Before Circa");
     } else if (dd.startsWith("Circa")) {
+        dd = dd;
+    } else if (!dd.startsWith("Between") && isNaN(dd)) {
         dd = "After " + dd;
-    } else if (!dd.startsWith("Between")) {
-        if (isNaN(dd)) {
-            dd = "After " + dd;
-        } else {
-            dd = "After Circa " + dd;
-        }
     }
     if (!dd.startsWith("Between")) {
         data.push({date: dd});

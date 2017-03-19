@@ -136,10 +136,17 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     }
     relation = relation || "";
     if (htmlstring.contains("Please solve the Captcha to prove that you are not a bot")) {
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("top-container").style.display = "none";
-        setMessage(warningmsg, 'MyHeritage is requesting that you solve a Captcha to continue.  Please go to <a href="https://www.myheritage.com/FP/captcha.php">www.myheritage.com</a>, solve the Captcha, and try again.');
-        return "";
+        if (!captcha) {
+            captcha = true;
+            var url = tablink;
+            if (relation !== "") {
+                url = relation.url;
+            }
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("top-container").style.display = "none";
+            setMessage(warningmsg, 'MyHeritage is requesting that you solve a Captcha to continue.  Please click this <a href="' + url + '">www.myheritage.com</a> link, solve the Captcha, and try again.');
+        }
+        return;
     }
     var parsed = $('<div>').html(htmlstring.replace(/<img[^>]*>/ig, ""));
 
@@ -362,7 +369,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                         variable: subdata
                                     }, function (response) {
                                         var arg = response.variable;
-                                        var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
+                                        var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id, "url": arg.url});
                                         person = updateInfoData(person, arg);
                                         databyid[arg.profile_id] = person;
                                         alldata["family"][arg.title].push(person);
@@ -798,7 +805,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     }, function (response) {
                         var arg = response.variable;
 
-                        var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
+                        var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id, "url": arg.url});
                         person = updateInfoData(person, arg);
                         if (person.name === "") {
                             console.log(response.source);
@@ -857,7 +864,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     variable: subdata
                 }, function (response) {
                     var arg = response.variable;
-                    var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id});
+                    var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id, "url": arg.url});
                     person = updateInfoData(person, arg);
                     databyid[arg.profile_id] = person;
                     if (!exists(alldata["family"][arg.title])) {

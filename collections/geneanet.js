@@ -56,7 +56,7 @@ function parseGeneanet(htmlstring, familymembers, relation) {
       focusperson = $(nameTab).text().trim();
   }
 
-  document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+  $("#readstatus").html(escapeHtml(focusperson));
 
   var profiledata = {name: focusperson, gender: genderval, status: relation.title};
 
@@ -312,7 +312,7 @@ function processMarriage(person, subdata) {
 
 function getGeneanetFamily(famid, url, subdata) {
     familystatus.push(famid);
-    chrome.extension.sendMessage({
+    chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         variable: subdata,

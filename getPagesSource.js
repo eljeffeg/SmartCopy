@@ -28,7 +28,7 @@ function DOMtoString(document_root) {
     return html;
 }
 
-chrome.extension.sendMessage({
+chrome.runtime.sendMessage({
     action: "getSource",
     source: DOMtoString(document)
 });

@@ -20,7 +20,7 @@ registerCollection({
     "loadPage": function(request) {
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
         var fperson = parsed.find(".plus2").find("b");
-        focusname = getPersonName(fperson[0].innerHTML);
+        focusname = getPersonName($(fperson[0]).html());
         var title = parsed.filter('title').text().replace(" - Find A Grave Memorial", "");
         if (title.contains("(")) {
             splitrange = title.split("(");
@@ -47,14 +47,14 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     if (!exists(fperson[0])) {
         //In case the Memorial has been merged
         fperson = parsed.find(".plus2");
-        if (exists(fperson[0]) && fperson[0].innerHTML === "Memorial has been merged.") {
+        if (exists(fperson[0]) && $(fperson[0]).html() === "Memorial has been merged.") {
             var click = $(fperson[0]).next('table').find('a');
             var urlset = click[0].outerHTML.match('href="(.*)"');
             var url = "";
             if (exists(urlset) && exists(urlset[1])) {
                 url = hostDomain(tablink) + urlset[1];
                 familystatus.push(familystatus.length);
-                chrome.extension.sendMessage({
+                chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",
                     url: url,
@@ -71,9 +71,9 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             return "";
         }
     }
-    var focusperson = getPersonName(fperson[0].innerHTML);
+    var focusperson = getPersonName($(fperson[0]).html());
 
-    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+    $("#readstatus").html(escapeHtml(focusperson));
     var genderval = "unknown";
 
     if (relation === "") {
@@ -212,7 +212,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                                     parentlist.push(itemid);
                                 }
                                 famid++;
-                                chrome.extension.sendMessage({
+                                chrome.runtime.sendMessage({
                                     method: "GET",
                                     action: "xhttp",
                                     url: url,

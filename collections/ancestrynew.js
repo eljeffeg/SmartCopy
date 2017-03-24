@@ -38,7 +38,6 @@ registerCollection({
             this.reload = true;
         }
         if (startsWithHTTP(url, "http://www.ancestry.") && !startsWithHTTP(url, "http://www.ancestry.com/")) {
-
             url = url.replace(/www\.ancestry\..*?\//i, "www.ancestry.com/");
             this.reload = true;
         }
@@ -46,6 +45,7 @@ registerCollection({
             url = url.replace(/trees\.ancestry\..*?\//i, "trees.ancestry.com/");
             this.reload = true;
         }
+        console.log(url);
         return url;
     },
     "collectionMatch": function(url) {
@@ -60,6 +60,13 @@ registerCollection({
     },
     "loadPage": function(request) {
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        if (parsed.text().contains("Please sign in for secure access to your Ancestry account")) {
+            document.getElementById("smartcopy-container").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            setMessage(warningmsg, 'SmartCopy can work with the various country-based sites of Ancestry, but you must first sign into the main english website.<br/><a href="http://www.ancestry.com/" target="_blank">Please login to Ancestry.com</a>');
+            this.parseProfileData = "";
+            return;
+        }
         var par = parsed.find("#personCard");
         focusname = par.find(".userCardTitle").text();
         focusrange = par.find(".userCardSubTitle").text().replace("&ndash;", " - ");
@@ -76,7 +83,7 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     var focusperson = par.find(".userCardTitle").text();
     var focusdaterange = par.find(".userCardSubTitle").text().replace("&ndash;", " - ");
 
-    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+    $("#readstatus").html(escapeHtml(focusperson));
     var profiledata = {};
     var genderval = "unknown";
     var burialdtflag = false;
@@ -199,7 +206,7 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     var memberfam = familydata.find(".factsSubtitle");
     var memberfam2 = familydata.find(".toggleSiblings");
     if (memberfam2.length > 0) {
-        memberfam2[0].innerHTML = "siblings " + memberfam2[0].innerHTML;
+        $(memberfam2[0]).html("siblings " + $(memberfam2[0]).html());
         memberfam.push.apply(memberfam, memberfam2);
     }
 
@@ -321,7 +328,7 @@ function getAncestryNewTreeFamily(famid, itemid, name, title, url) {
         myhspouse.push(famid);
     }
     familystatus.push(famid);
-    chrome.extension.sendMessage({
+    chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: url,

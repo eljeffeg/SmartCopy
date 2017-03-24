@@ -47,7 +47,7 @@ function buildHistoryBox() {
             }
         }
     }
-    document.getElementById("historytext").innerHTML = historytext;
+    $("#historytext").html(historytext);
     $(function () {
         $('.expandhistory').on('click', function () {
             expandFamily($(this).attr("name"));
@@ -135,9 +135,9 @@ if (!String.prototype.contains) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log(chrome.app.getDetails().name + " v" + chrome.runtime.getManifest().version);
-    document.getElementById("versionbox").innerHTML = "SmartCopy v" + chrome.runtime.getManifest().version;
-    document.getElementById("versionbox2").innerHTML = "SmartCopy v" + chrome.runtime.getManifest().version;
+    console.log(chrome.runtime.getManifest().name + " v" + chrome.runtime.getManifest().version);
+    $("#versionbox").html("SmartCopy v" + chrome.runtime.getManifest().version);
+    $("#versionbox2").html("SmartCopy v" + chrome.runtime.getManifest().version);
     loginProcess();
 });
 
@@ -226,7 +226,7 @@ function isGeni(url) {
 function userAccess() {
     if (loggedin && exists(accountinfo)) {
         if (focusid !== "") {
-            chrome.extension.sendMessage({
+            chrome.runtime.sendMessage({
                 method: "GET",
                 action: "xhttp",
                 url: smartcopyurl + "/account?profile=" + focusid,
@@ -242,22 +242,22 @@ function userAccess() {
                 }
                 if (accountinfo.curator && responsedata.claimed && !responsedata.curator) {
                     if (!responsedata.user) {
-                        accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
-                            '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>';
+                        $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
+                            '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>');
                         document.getElementById('grantbutton').addEventListener('click', useradd, false);
                     } else {
                         if (responsedata.user.revoked == null) {
-                            accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
-                                '<div>Tree-building rights were granted by <a href="http://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>';
+                            $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
+                                '<div>Tree-building rights were granted by <a href="http://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>');
                             document.getElementById('revokebutton').addEventListener('click', userrevoke, false);
                         } else {
-                            accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
-                                '<div>Tree-building rights were revoked by <a href="http://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>';
+                            $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
+                                '<div>Tree-building rights were revoked by <a href="http://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>');
                             document.getElementById('grantbutton').addEventListener('click', userrestore, false);
                         }
                     }
                 } else {
-                    accessdialog.innerHTML = "<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...";
+                    $(accessdialog).html("<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...");
                     buildResearch();
                 }
             });
@@ -273,7 +273,7 @@ function userrestore() {
     document.querySelector('#useraccess').style.display = "none";
     document.querySelector('#loginspinner').style.display = "block";
     var prefixurl = smartcopyurl + "/account?profile=" + focusid;
-    chrome.extension.sendMessage({
+    chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: prefixurl + "&action=add_user",
@@ -287,7 +287,7 @@ function useradd() {
     document.querySelector('#useraccess').style.display = "none";
     document.querySelector('#loginspinner').style.display = "block";
     var prefixurl = smartcopyurl + "/account?profile=" + focusid;
-    chrome.extension.sendMessage({
+    chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: prefixurl + "&action=add_user",
@@ -327,7 +327,7 @@ function userrevoke() {
     document.querySelector('#useraccess').style.display = "none";
     document.querySelector('#loginspinner').style.display = "block";
     var prefixurl = smartcopyurl + "/account?profile=" + focusid;
-    chrome.extension.sendMessage({
+    chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: prefixurl + "&action=revoke_user",
@@ -348,7 +348,7 @@ function updateLinks(focusprofile) {
     $("#descendanturl").attr("href", "https://historylinktools.herokuapp.com/graph" + focusprofile + "&type=descendant&color=gender");
 }
 
-chrome.extension.onMessage.addListener(function (request, sender, callback) {
+chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     if (request.action == "getSource") {
         loadPage(request);
     }
@@ -414,7 +414,7 @@ function loadPage(request) {
                     return;
                 }
             }
-            document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
+            $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>");
             if (focusrange !== "") {
                 document.getElementById("focusrange").innerText = focusrange;
             }
@@ -426,7 +426,7 @@ function loadPage(request) {
 
             familystatus.push(1);
             var descurl = smartcopyurl + "/smartsubmit?family=self&profile=" + focusid;
-            chrome.extension.sendMessage({
+            chrome.runtime.sendMessage({
                 method: "GET",
                 action: "xhttp",
                 url: descurl
@@ -461,7 +461,7 @@ function loadPage(request) {
                     }
                 };
                 var url = smartcopyurl + "/smartsubmit?family=all&profile=" + focusid;
-                chrome.extension.sendMessage({
+                chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",
                     url: url
@@ -472,7 +472,7 @@ function loadPage(request) {
                     familystatus.pop();
                 });
                 //Update focusname again in case there is a merge_into
-                document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
+                $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>");
                 var byear;
                 var dyear;
                 var dateinfo = "";
@@ -540,12 +540,45 @@ function loadSelectPage(request) {
     if (exists(focusprofile) && focusprofile.contains("myheritage.com")) {
         focusprofile = null;
     }
+    $('#changefocus').off();
+    $('#changefocus').on('click', function () {
+        changepersonevent();
+    });
+    $('#changeprofile').off();
+    $('#changeprofile').keyup( function(e) {
+        var key=e.keyCode || e.which;
+        if (key==13){
+            changepersonevent();
+        }
+    });
+    function changepersonevent() {
+        var profilelink = getProfile($('#changeprofile')[0].value);
+        if (profilelink === "") {
+            var focusselect = $('#focusselect')[0];
+            if (exists(focusselect)) {
+                profilelink = "?profile=" + focusselect.options[focusselect.selectedIndex].value;
+            }
+        }
+        if (profilelink !== "" || devblocksend) {
+            updateLinks(profilelink);
+            focusid = profilelink.replace("?profile=", "");
+            document.querySelector('#message').style.display = "none";
+            document.getElementById("smartcopy-container").style.display = "block";
+            document.getElementById("loading").style.display = "block";
+            profilechanged = true;
+            loadPage(request);
+        } else {
+            var invalidtext = $("#changetext")[0];
+            invalidtext.innerText = "Invalid Profile Id - Try Again";
+            invalidtext.style.color = 'red';
+        }
+    }
     if (exists(focusprofile)) {
         $('#optionrel').css("display", "inline-block");
         $('#optionsc').css("display", "none");
         focusprofile = focusprofile.replace("http://www.geni.com/", "").replace("https://www.geni.com/", "").trim();
         var url = smartcopyurl + "/smartsubmit?family=all&profile=" + focusprofile;
-        chrome.extension.sendMessage({
+        chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
             url: url
@@ -577,7 +610,7 @@ function loadSelectPage(request) {
             selectsrt += '</select>';
             $('#optionrowldr').css("display", "none");
             $('#optionrow').css("display", "table-row");
-            $('#focusoption')[0].innerHTML = selectsrt;
+            $('#focusoption').html(selectsrt);
         });
     } else {
         var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select from History</option>';
@@ -585,32 +618,8 @@ function loadSelectPage(request) {
         selectsrt += '</select>';
         $('#optionrowldr').css("display", "none");
         $('#optionrow').css("display", "table-row");
-        $('#focusoption')[0].innerHTML = selectsrt;
+        $('#focusoption').html(selectsrt);
     }
-    $(function () {
-        $('#changefocus').on('click', function () {
-            var profilelink = getProfile($('#changeprofile')[0].value);
-            if (profilelink === "") {
-                var focusselect = $('#focusselect')[0];
-                if (exists(focusselect)) {
-                    profilelink = "?profile=" + focusselect.options[focusselect.selectedIndex].value;
-                }
-            }
-            if (profilelink !== "" || devblocksend) {
-                updateLinks(profilelink);
-                focusid = profilelink.replace("?profile=", "");
-                document.querySelector('#message').style.display = "none";
-                document.getElementById("smartcopy-container").style.display = "block";
-                document.getElementById("loading").style.display = "block";
-                profilechanged = true;
-                loadPage(request);
-            } else {
-                var invalidtext = $("#changetext")[0];
-                invalidtext.innerText = "Invalid Profile Id - Try Again";
-                invalidtext.style.color = 'red';
-            }
-        });
-    });
 }
 
 function buildParentSpouse(finalid) {
@@ -692,16 +701,16 @@ function buildGeniCount(val, name) {
         }
         if (genifmcount.length > 0) {
             genifmcount = " &mdash; Geni has" + genifmcount;
-            document.getElementById(name).innerHTML = genifmcount;
+            $(name).html(genifmcount);
         }
     }
 }
 
 function setMessage(color, messagetext) {
-    var message = document.querySelector('#message');
-    message.style.backgroundColor = color;
-    message.style.display = "block";
-    message.innerHTML = messagetext;
+    var message = $('#message');
+    message.css("backgroundColor", color);
+    message.css("display", "block");
+    message.html(messagetext);
 }
 
 function getPageCode() {
@@ -712,7 +721,7 @@ function getPageCode() {
         document.getElementById("loading").style.display = "block";
 
         if (collection.reload) {
-            chrome.extension.sendMessage({
+            chrome.runtime.sendMessage({
                 method: "GET",
                 action: "xhttp",
                 url: tablink
@@ -723,8 +732,8 @@ function getPageCode() {
             chrome.tabs.executeScript(null, {
                 file: "getPagesSource.js"
             }, function () {
-                if (chrome.extension.lastError) {
-                    setMessage(errormsg, 'There was an error injecting script : \n' + chrome.extension.lastError.message);
+                if (chrome.runtime.lastError) {
+                    setMessage(errormsg, 'There was an error injecting script : \n' + chrome.runtime.lastError.message);
                 }
             });
         }
@@ -736,7 +745,7 @@ function getPageCode() {
 var loginprocessing = true;
 var logincount = 0;
 function loadLogin() {
-    chrome.extension.sendMessage({
+    chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: smartcopyurl + "/accountlogin?version=" + chrome.runtime.getManifest().version
@@ -1133,7 +1142,7 @@ var submitform = function () {
                         if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "")) {
                             var abouturl = smartcopyurl + "/smartsubmit?fields=about_me,nicknames&profile=" + pid;
                             submitstatus.push(updatetotal);
-                            chrome.extension.sendMessage({
+                            chrome.runtime.sendMessage({
                                 method: "GET",
                                 action: "xhttp",
                                 url: abouturl,
@@ -1204,7 +1213,7 @@ function buildTree(data, action, sendid) {
                 return;
             }
         }
-        chrome.extension.sendMessage({
+        chrome.runtime.sendMessage({
             method: "POST",
             action: "xhttp",
             url: smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action,
@@ -1250,7 +1259,7 @@ function buildTree(data, action, sendid) {
                             submitstatus.push(updatetotal);
                             var source = JSON.parse(response.source);
                             var familyurl = smartcopyurl + "/smartsubmit?family=spouse&profile=" + source.id;
-                            chrome.extension.sendMessage({
+                            chrome.runtime.sendMessage({
                                 method: "GET",
                                 action: "xhttp",
                                 variable: {id: pid},
@@ -1414,7 +1423,7 @@ function submitChildren() {
                     }
                 }
                 if (!$.isEmptyObject(marriageupdate) && !devblocksend) {
-                    chrome.extension.sendMessage({
+                    chrome.runtime.sendMessage({
                         method: "POST",
                         action: "xhttp",
                         url: smartcopyurl + "/smartsubmit?profile=" + spouseinfo.union + "&action=update",
@@ -1497,7 +1506,7 @@ function buildTempSpouse(parentid) {
     var tgender = reverseGender(focusgender);
     if (!devblocksend) {
         submitstatus.push(submitstatus.length);
-        chrome.extension.sendMessage({
+        chrome.runtime.sendMessage({
             method: "POST",
             action: "xhttp",
             url: smartcopyurl + "/smartsubmit?profile=" + focusid + "&action=add-partner",
@@ -1532,11 +1541,11 @@ function submitWait() {
         } else {
             focusprofileurl = "http://www.geni.com/" + focusid;
         }
-        document.getElementById("updating").innerHTML = '<div style="text-align: center; font-size: 110%;"><strong>Geni Tree Updated</strong></div>' +
+        $("#updating").html('<div style="text-align: center; font-size: 110%;"><strong>Geni Tree Updated</strong></div>' +
             '<div style="text-align: center; padding:5px; color: #a75ccd">Reminder: Please review for duplicates<br>and merge when able.</div>' +
             '<div style="text-align: center; padding:5px;"><b>View Profile:</b> ' +
             '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g", "") + '" target="_blank">tree view</a>, ' +
-            '<a href="' + focusprofileurl + '" target="_blank">profile view</a></div>';
+            '<a href="' + focusprofileurl + '" target="_blank">profile view</a></div>');
         if (noerror) {
             document.getElementById("message").style.display = "none";
             $('#updating').css('margin-bottom', "15px");
@@ -2059,10 +2068,11 @@ $(function () {
             geoonoff($('#geoonoffswitch').prop('checked'));
         }
     }
+
     var modal = document.getElementById('GeoUpdateModal');
     var modal2 = document.getElementById('AboutModal');
 
-// When the user clicks anywhere outside of the modal, close it
+    // When the user clicks anywhere outside of the modal, close it
     window.onclick = function(event) {
         if (event.target == modal) {
             modal.style.display = "none";
@@ -2071,6 +2081,31 @@ $(function () {
             modal2.style.display = "none";
         }
     };
+    var firefox = (navigator.userAgent.toLowerCase().indexOf('firefox') > -1);
+    var ffscrollcheck = null;
+    var isDragging = false;
+    if (firefox) {
+        //Firefox jump to top bug
+        $(window).mousedown(function(event) {
+            ffscrollcheck = $(window).scrollTop();
+            isDragging = false;
+        });
+        $(window).mousemove(function(event) {
+            isDragging = true;
+        });
+        $(window).mouseup(function(event) {
+            isDragging = false;
+        });
+        window.onwheel = function(event) {
+            ffscrollcheck = null;
+        }
+        $(window).scroll(function() {
+            if(ffscrollcheck && !isDragging && $(window).scrollTop() === 0) {
+                $(window).scrollTop(ffscrollcheck);
+            }
+        });
+    }
+
     $(function () {
         $('.aboutdev').on('click', function () {
             var modal2 = document.getElementById('AboutModal');

@@ -46,7 +46,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
 
     var fperson = parsed.find("li");
     var focusperson = parseRootsName(fperson);
-    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+    $("#readstatus").html(escapeHtml(focusperson));
     var genderval = "unknown";
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     var burialdtflag = false;
@@ -285,7 +285,7 @@ function parseRootsWeb(htmlstring, familymembers, relation) {
 
 function getRootFamily(famid, url, subdata) {
     familystatus.push(famid);
-    chrome.extension.sendMessage({
+    chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: url,

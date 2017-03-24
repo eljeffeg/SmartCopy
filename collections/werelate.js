@@ -54,7 +54,7 @@ function parseWeRelate(htmlstring, familymembers, relation) {
         var title = cleanHTML($(cell[0]).html());
         if (title.toLowerCase() === "name") {
             focusperson = $(cell[1]).text();
-            document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+            $("#readstatus").html(escapeHtml(focusperson));
         } else if (title.toLowerCase().startsWith("gender")) {
             genderval = $(cell[1]).text().toLowerCase();
         } else if (title.toLowerCase().startsWith("birth")) {
@@ -178,7 +178,7 @@ function parseWeRelate(htmlstring, familymembers, relation) {
                         var url = $(cellsplit[1]).attr("href");
                         var itemid = decodeURIComponent(url.substring(url.lastIndexOf(':') + 1));
                         if (itemid === focusURLid) {
-                            cell[2].innerHTML = cellsplit[0];
+                            $(cell[2]).html(cellsplit[0]);
                             var data = parseRelateDate(cell);
                             if (!$.isEmptyObject(data)) {
                                 profiledata["marriage"] = data;
@@ -202,7 +202,7 @@ function parseWeRelate(htmlstring, familymembers, relation) {
                             var url = $(cellsplit[1]).attr("href");
                             var itemid = decodeURIComponent(url.substring(url.lastIndexOf(':') + 1));
                             if (itemid === parentmarriageid) {
-                                cell[2].innerHTML = cellsplit[0];
+                                $(cell[2]).html(cellsplit[0]);
                                 var data = parseRelateDate(cell);
                                 if (!$.isEmptyObject(data)) {
                                     profiledata["marriage"] = data;
@@ -261,7 +261,7 @@ function parseRelateDate(dmatch) {
 
 function getRelateFamily(famid, url, subdata) {
     familystatus.push(famid);
-    chrome.extension.sendMessage({
+    chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: url,

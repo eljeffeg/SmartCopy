@@ -225,13 +225,13 @@ function queryGeo(locationset, test) {
 
         geostatus.push(geostatus.length);
         var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&address=" + encodeURIComponent(location);
-        chrome.extension.sendMessage({
+        chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
             url: url,
             variable: {id: locationset.id, place: place, location: locationset.location, unittest: unittest}
         }, function (response) {
-            var result = jQuery.parseJSON(response.source);
+            var result = JSON.parse(response.source);
             var id = response.variable.id;
             var unittest = response.variable.unittest;
             var full_location = response.variable.location;
@@ -263,13 +263,13 @@ function queryGeo(locationset, test) {
             var short_location = location_split.join(",").trim();
             if (location_split.length > 0) {
                 var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&address=" + encodeURIComponent(short_location);
-                chrome.extension.sendMessage({
+                chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",
                     url: url,
                     variable: {id: id, location: short_location, unittest: unittest, place: response.variable.place, full: full_location}
                 }, function (response) {
-                    var result = jQuery.parseJSON(response.source);
+                    var result = JSON.parse(response.source);
                     var id = response.variable.id;
                     var short_location = response.variable.location;
                     var unittest = response.variable.unittest;

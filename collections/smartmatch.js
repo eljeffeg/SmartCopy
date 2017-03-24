@@ -42,7 +42,7 @@ registerCollection({
                     }
                 }
                 profilechanged = true;
-                chrome.extension.sendMessage({
+                chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",
                     url: tablink
@@ -151,7 +151,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     var parsed = $('<div>').html(htmlstring.replace(/<img[^>]*>/ig, ""));
 
     var focusperson = parsed.find(".recordTitle").text().trim();
-    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+    $("#readstatus").html(escapeHtml(focusperson));
     var focusdaterange = parsed.find(".recordSubtitle").text().trim();
     //console.log(focusperson);
     var genderdiv = parsed.find(".recordImage");
@@ -202,7 +202,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             } else if (thumb.contains("get-fs-image.php")) {
                 familystatus.push(familystatus.length);
                 var imgurl = smartcopyurl + "/smartredirect?url=" + encodeURIComponent(thumb).replace(/'/g,"%27").replace(/"/g,"%22");
-                chrome.extension.sendMessage({
+                chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",
                     url: imgurl,
@@ -362,7 +362,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                     }
                                     unionurls[famid] = itemid;
                                     famid++;
-                                    chrome.extension.sendMessage({
+                                    chrome.runtime.sendMessage({
                                         method: "GET",
                                         action: "xhttp",
                                         url: shorturl,
@@ -797,7 +797,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     unionurls[famid] = itemid;
                     famid ++;
                     //Grab data from the profile's page as it contains more detailed information
-                    chrome.extension.sendMessage({
+                    chrome.runtime.sendMessage({
                         method: "GET",
                         action: "xhttp",
                         url: urlval,
@@ -857,7 +857,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
                 unionurls[famid] = itemid;
                 famid++;
-                chrome.extension.sendMessage({
+                chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",
                     url: shorturl,
@@ -983,7 +983,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 //revisit - not sure when this would actually run as it's run above when familymembers is true
                 familystatus.push("about");
                 var abouturl = smartcopyurl + "/smartsubmit?fields=about_me&profile=" + focusid;
-                chrome.extension.sendMessage({
+                chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",
                     url: abouturl

@@ -246,7 +246,7 @@ function parseFamilySearchRecord(htmlstring, familymembers, relation) {
                                     subdata["profile_id"] = fsfamid;
                                     unionurls[fsfamid] = itemid;
                                     familystatus.push(fsfamid);
-                                    chrome.extension.sendMessage({
+                                    chrome.runtime.sendMessage({
                                         method: "GET",
                                         action: "xhttp",
                                         url: url,
@@ -342,7 +342,7 @@ function parseFamilySearchRecord(htmlstring, familymembers, relation) {
                                 subdata["profile_id"] = fsfamid;
                                 unionurls[fsfamid] = itemid;
                                 familystatus.push(fsfamid);
-                                chrome.extension.sendMessage({
+                                chrome.runtime.sendMessage({
                                     method: "GET",
                                     action: "xhttp",
                                     url: url,
@@ -551,7 +551,7 @@ function getFSProfileData(focusRecord, relation) {
     var genderval = getFSRecordGender(focusRecord) || "unknown";
     var focusdaterange = "";
 
-    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+    $("#readstatus").html(escapeHtml(focusperson));
 
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     var burialdtflag = false;

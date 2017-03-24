@@ -33,7 +33,7 @@ registerCollection({
         if (request.source.indexOf('SearchPlansPageManager') !== -1) {
             document.getElementById("smartcopy-container").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage(warningmsg, 'SmartCopy can work with the various language sites of MyHeritage, but you must have an authenticated session with the English website.<br/><a href="http://www.myheritage.com/">Please login to MyHeritage.com</a>');
+            setMessage(warningmsg, 'SmartCopy can work with the various country-based sites of MyHeritage, but you must first sign into the main english website.<br/><a href="http://www.myheritage.com/" target="_blank">Please login to MyHeritage.com</a>');
             this.parseProfileData = "";
             return;
         }
@@ -54,7 +54,7 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
     var focusdaterange = "";
     var fperson = parsed.find("span.FL_LabelxxLargeBold");
     var focusperson = fperson.text();
-    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+    $("#readstatus").html(escapeHtml(focusperson));
     var genderval = "unknown";
     if (htmlstring.contains("PK_Silhouette PK_SilhouetteSize192 PK_Silhouette_S_192_F_A_LTR")) {
         genderval = "female";
@@ -244,7 +244,7 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
 
 function getMyHeritageFamily(famid, url, subdata) {
     familystatus.push(famid);
-    chrome.extension.sendMessage({
+    chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: url,

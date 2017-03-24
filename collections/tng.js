@@ -52,7 +52,7 @@ function parseTNG(htmlstring, familymembers, relation) {
     var focusperson = getTNGName(parsed);
     var genderval = getTNGFieldText(parsed, "Gender").toLowerCase();
 
-    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+    $("#readstatus").html(escapeHtml(focusperson));
 
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
     var header = parsed.find("h1.header");
@@ -329,7 +329,7 @@ function processTNGFamily(person, title, famid) {
 
 function getTNGFamily(famid, url, subdata) {
     familystatus.push(famid);
-    chrome.extension.sendMessage({
+    chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         variable: subdata,

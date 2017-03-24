@@ -1,5 +1,4 @@
 // Parse Ancestry Free Records (records.ancestry.com or ancestry.com/genealogy/records)
-// Parse FamilySearch Records
 registerCollection({
     "reload": false,
     "recordtype": "Ancestry Records",
@@ -65,7 +64,7 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
         }
     }
 
-    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+    $("#readstatus").html(escapeHtml(focusperson));
 
     var genderval = "unknown";
     var photoclass = parsed.find(".personPhoto ");
@@ -311,7 +310,7 @@ function parseAncestryFreeDate(vitalstring) {
 
 function getAncestryFreeFamily(famid, url, subdata) {
     familystatus.push(famid);
-    chrome.extension.sendMessage({
+    chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: url,

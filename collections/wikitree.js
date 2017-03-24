@@ -63,7 +63,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
     var personinfo = parsed.find(".VITALS");
     var focusperson = "";
     if (exists(personinfo[0])) {
-        personinfo[0].innerHTML = personinfo[0].innerHTML.replace(/<strong>/gi, " ");
+        $(personinfo[0]).html($(personinfo[0]).html().replace(/<strong>/gi, " "));
         focusperson = personinfo[0].innerText.replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
         focusperson = focusperson.replace("[family name unknown]", "");
         if (focusperson.contains("formerly") && !focusperson.contains("[surname unknown]")) {
@@ -72,7 +72,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
             focusperson = focusperson.replace("formerly", "").replace("[surname unknown]", "").trim();
         }
     }
-    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+    $("#readstatus").html(escapeHtml(focusperson));
     var imageflag = false;
     var genderval = "unknown";
     if (htmlstring.contains("www.wikitree.com/images/icons/female.gif")) {
@@ -213,7 +213,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                                 parentlist.push(itemid);
                             }
                             familystatus.push(famid);
-                            chrome.extension.sendMessage({
+                            chrome.runtime.sendMessage({
                                 method: "GET",
                                 action: "xhttp",
                                 url: url,

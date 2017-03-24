@@ -95,7 +95,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
 
     var focusperson = parsed["data"]["name"];
     var focusdaterange = parsed["data"]["lifeSpan"] || "";
-    document.getElementById("readstatus").innerHTML = escapeHtml(focusperson);
+    $("#readstatus").html(escapeHtml(focusperson));
 
     var genderval = String(parsed["data"]["gender"] || "unknown").toLowerCase();
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
@@ -196,7 +196,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
     if (familymembers) {
         familystatus.push(famid);
         var url = hostDomain(tablink) + "/tree-data/family-members/person/" + focusURLid + "?includePhotos=true&locale=en";
-        chrome.extension.sendMessage({
+        chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
             url: url,
@@ -295,7 +295,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         //https://familysearch.org/tree-data/family-members/couple/LKKN-H49_LH2H-51B/children?focusPersonId=LH2H-51B&includePhotos=true&locale=en
                         var url = hostDomain(tablink) + "/tree-data/family-members/couple/" + spouse + "_" + focusURLid + "/children?focusPersonId=" + focusURLid + "&includePhotos=true&locale=en";
                         var subdata = {spouse: spouse};
-                        chrome.extension.sendMessage({
+                        chrome.runtime.sendMessage({
                             method: "GET",
                             action: "xhttp",
                             url: url,
@@ -432,7 +432,7 @@ function parseFSJSONDate(eventinfo) {
 
 function getFamilySearchJSON(famid, url, subdata) {
     familystatus.push(famid);
-    chrome.extension.sendMessage({
+    chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: url,

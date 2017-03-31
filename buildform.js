@@ -26,7 +26,7 @@ function updateGeo() {
         setTimeout(updateGeo, 50);
     } else if (!captcha) {
         console.log("Family Processed...");
-        $("#readstatus").html("Determining Locations");
+        document.getElementById("readstatus").innerHTML = "Determining Locations";
         var listvalues = ["birth", "baptism", "marriage", "divorce", "death", "burial"];
         for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
             var title = listvalues[list];
@@ -78,7 +78,7 @@ function updateFamily() {
         setTimeout(updateFamily, 50);
     } else {
         console.log("Geo Processed...");
-        $("#readstatus").html("");
+        document.getElementById("readstatus").innerHTML = "";
         updateGenders();
         buildForm();
         document.getElementById("loading").style.display = "none";

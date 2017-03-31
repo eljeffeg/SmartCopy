@@ -355,7 +355,11 @@ function parseRootsDate(vitalstring) {
     var datesplit = [];
     if (vitalstring.contains("\n")) {
         var splitvital = vitalstring.split("\n");
-        vitalstring = splitvital[0];
+        if (splitvital.length > 1 && splitvital[1].startsWith(" in ")) {
+            vitalstring = splitvital.join("");
+        } else {
+            vitalstring = splitvital[0];
+        }
     }
     var vitalinfo = vitalstring.replace(/Quality:.*/i, "").trim();
     if (vitalinfo.toLowerCase() === "y") {

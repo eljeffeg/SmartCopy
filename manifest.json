@@ -3,7 +3,7 @@
     "name": "SmartCopy",
     "short_name": "SmartCopy",
     "description": "Tool for copying genealogical data into Geni.",
-    "version": "3.1.5",
+    "version": "3.1.5.1",
     "applications": {
       "gecko": {
         "id": "smartcopy@historylink.herokuapp.com"

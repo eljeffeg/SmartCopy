@@ -356,7 +356,7 @@ function parseRootsDate(vitalstring) {
     if (vitalstring.contains("\n")) {
         var splitvital = vitalstring.split("\n");
         if (splitvital.length > 1 && splitvital[1].startsWith(" in ")) {
-            vitalstring = splitvital.join("");
+            vitalstring = splitvital[0] + splitvital [1];
         } else {
             vitalstring = splitvital[0];
         }

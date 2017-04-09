@@ -45,7 +45,6 @@ registerCollection({
             url = url.replace(/trees\.ancestry\..*?\//i, "trees.ancestry.com/");
             this.reload = true;
         }
-        console.log(url);
         return url;
     },
     "collectionMatch": function(url) {

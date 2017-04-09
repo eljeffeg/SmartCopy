@@ -545,7 +545,7 @@ function loadSelectPage(request) {
         changepersonevent();
     });
     $('#changeprofile').off();
-    $('#changeprofile').keyup( function(e) {
+    $('#changeprofile').on('keyup',  function(e) {
         var key=e.keyCode || e.which;
         if (key==13){
             changepersonevent();
@@ -761,7 +761,7 @@ function loadLogin() {
                 frame.attr('src', smartcopyurl + '/smartlogin');
                 $("body").css('max-width', "640px");
                 $("body").animate({ 'width': "640px" }, 'slow');
-                frame.load(function(){
+                frame.on("load", function(){
                     if (logincount > 0) {
                         loginProcess();
                     } else if (logincount === 0) {
@@ -2138,7 +2138,7 @@ $(function () {
             geoid++;
         });
     });
-    $("#geoupdatetext").keyup(function(event){
+    $("#geoupdatetext").on('keyup', function(event){
         if(event.keyCode == 13){
             $("#geolookupbtn").click();
         }

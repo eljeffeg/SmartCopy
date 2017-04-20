@@ -167,6 +167,10 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
         }
     }
 
+    if (!exists(profiledata["death"]) && parsed.find(".factDeath").text() === "Living") {
+        profiledata["alive"] = true;
+    }
+
     if (!familymembers && isPartner(relation.title) && !exists(profiledata["marriage"])) {
         for (var i=0;i<ancestrymrglist.length;i++) {
             if (ancestrymrglist[i].id === relation.itemId) {

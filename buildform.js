@@ -1843,7 +1843,7 @@ function loadGeniData() {
 }
 
 function checkLiving(name) {
-    return (name.startsWith("\<Private\>") || name.startsWith("Living"));
+    return (name.startsWith("\<Private\>") || name.startsWith("Private") || name.startsWith("Living"));
 }
 
 function recursiveCompare(obj, reference) {

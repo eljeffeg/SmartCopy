@@ -82,7 +82,7 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
     var header = fsplit[0];
     var imagetable = header.match(/<td><gmi src.*?<\/td>/i);
     if (exists(imagetable)) {
-        var div = $("div");
+        var div = $(document.createElement("div"));
         div.html(imagetable[0]);
         var imagedata = $(div).find("gmi");
         if (exists(imagedata[0])) {
@@ -103,7 +103,7 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
             pinfo = pinfo[1].match(/(.*)\)/);
         }
         if (exists(pinfo) && pinfo.length > 1) {
-            var div = $("div");
+            var div = $(document.createElement("div"));
             if (pinfo[1].contains("She married")) {
                 var pinfosp = pinfo[1].split("She married");
                 pinfo[1] = pinfosp[0];
@@ -158,7 +158,7 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
                 } else if (msplit[m].contains(", daughter of")) {
                     msplit[m] = msplit[m].substring(0, msplit[m].indexOf(", daughter of"));
                 }
-                var div = $("div");
+                var div = $(document.createElement("div"));
                 div.html(msplit[m]);
                 var spouses = div.find("a");
                 for (var i = 0; i < spouses.length; i++) {
@@ -247,7 +247,7 @@ function parseFamilyTreeMaker(htmlstring, familymembers, relation) {
 
     var hsplit = fhtml.split(/<BR>Children of/i);
     if (hsplit.length > 1) {
-        var div = $("div");
+        var div = $(document.createElement("div"));
         div.html(hsplit[1]);
         var children = div.find("li");
         for (var i = 0; i < children.length; i++) {

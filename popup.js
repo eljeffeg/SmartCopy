@@ -403,7 +403,7 @@ function loadPage(request) {
         if (focusid === "" || focusid === "Select from History") {
             var accessdialog = document.querySelector('#useraccess');
             accessdialog.style.marginBottom = "-2px";
-            accessdialog.innerText = "The URL or ID entered failed to resolve.";
+            $(accessdialog).text("The URL or ID entered failed to resolve.");
             accessdialog.style.backgroundColor = errormsg;
             accessdialog.style.display = "block";
             focusid = null;
@@ -417,12 +417,12 @@ function loadPage(request) {
             }
             $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>");
             if (focusrange !== "") {
-                document.getElementById("focusrange").innerText = focusrange;
+                $("#focusrange").text(focusrange);
             }
             var accessdialog = document.querySelector('#useraccess');
             accessdialog.style.display = "none";
             accessdialog.style.marginBottom = "12px";
-            accessdialog.innerText = "";
+            $(accessdialog).text("");
             accessdialog.style.backgroundColor = "#dfe6ed";
 
             familystatus.push(1);
@@ -570,7 +570,7 @@ function loadSelectPage(request) {
             loadPage(request);
         } else {
             var invalidtext = $("#changetext")[0];
-            invalidtext.innerText = "Invalid Profile Id - Try Again";
+            $(invalidtext).text("Invalid Profile Id - Try Again");
             invalidtext.style.color = 'red';
         }
     }
@@ -871,10 +871,10 @@ var expandAll = function () {
         }
         if (window[this.name]) {
             $(expandmembers[i]).slideDown();
-            this.innerText = "collapse all";
+            $(this).text("collapse all");
         } else {
             $(expandmembers[i]).slideUp();
-            this.innerText = "expand all";
+            $(this).text("expand all");
         }
     }
     window[this.name] = !window[this.name];
@@ -942,9 +942,9 @@ $(function () {
         $('#historybox').slideToggle();
         showhistorycheck = !showhistorycheck;
         if (showhistorycheck) {
-            document.getElementById('showhistory').innerText = "Show History";
+            $('#showhistory').text("Show History");
         } else {
-            document.getElementById('showhistory').innerText = "Hide History";
+            $('#showhistory').text("Hide History");
         }
     });
 });
@@ -989,7 +989,7 @@ var submitform = function () {
         var profileupdatestatus = "";
         // --------------------- Update Profile Data ---------------------
         if (!$.isEmptyObject(profileout)) {
-            document.getElementById("updatestatus").innerText = "Update: " + focusname;
+            $("#updatestatus").text("Update: " + focusname);
             if (exists(profileout["about_me"])) {
                 about = profileout["about_me"];
                 if (!about.endsWith("\n")) {
@@ -1043,7 +1043,7 @@ var submitform = function () {
                 delete profileout.author;
             }
             buildTree(profileout, "update", focusid);
-            document.getElementById("updatestatus").innerText = "Updating Profile";
+            $("#updatestatus").text("Updating Profile");
             profileupdatestatus = "Updating Profile & ";
         }
 
@@ -1111,7 +1111,7 @@ var submitform = function () {
                             if (statusaction === "sibling" || statusaction === "parent" || statusaction === "partner") {
                                 statusaction += "s";
                             }
-                            document.getElementById("updatestatus").innerText = profileupdatestatus + "Submitting Family (Siblings/Parents)";
+                            $("#updatestatus").text(profileupdatestatus + "Submitting Family (Siblings/Parents)");
                             if (parentblock && statusaction === "parents") {
                                 parentspouselist.push(familyout);
                             } else {
@@ -1124,7 +1124,7 @@ var submitform = function () {
                             addchildren[familyout.profile_id] = familyout;
                         }
                     } else {
-                        document.getElementById("updatestatus").innerText = profileupdatestatus + "Submitting Family (Siblings/Parents)";
+                        $("#updatestatus").text(profileupdatestatus + "Submitting Family (Siblings/Parents)");
                         var pid = familyout.action;
                         delete familyout.action;
                         if (exists(fdata)) {
@@ -1188,8 +1188,8 @@ function buildTree(data, action, sendid) {
     if (!$.isEmptyObject(data) && exists(sendid) && !devblocksend) {
         if (action !== "add-photo" && action !== "delete") {
             updatetotal += 1;
-            document.getElementById("updatetotal").innerText = updatetotal;
-            document.getElementById("updatecount").innerText = Math.min(updatecount, updatetotal).toString();
+            $("#updatetotal").text(updatetotal);
+            $("#updatecount").text(Math.min(updatecount, updatetotal).toString());
         }
         submitstatus.push(updatetotal);
         var id = "";
@@ -1255,7 +1255,7 @@ function buildTree(data, action, sendid) {
                             }
                             if (action !== "add-photo" && action !== "delete") {
                                 updatetotal += 1;
-                                document.getElementById("updatetotal").innerText = updatetotal;
+                                $("#updatetotal").text(updatetotal);
                             }
                             submitstatus.push(updatetotal);
                             var source = JSON.parse(response.source);
@@ -1277,7 +1277,7 @@ function buildTree(data, action, sendid) {
                                 }
                                 if (action !== "add-photo" && action !== "delete") {
                                     updatecount += 1;
-                                    document.getElementById("updatecount").innerText = Math.min(updatecount, updatetotal).toString();
+                                    $("#updatecount").text(Math.min(updatecount, updatetotal).toString());
                                 }
                                 submitstatus.pop();
                             });
@@ -1290,7 +1290,7 @@ function buildTree(data, action, sendid) {
             }
             if (action !== "add-photo" && action !== "delete") {
                 updatecount += 1;
-                document.getElementById("updatecount").innerText = Math.min(updatecount, updatetotal).toString();
+                $("#updatecount").text(Math.min(updatecount, updatetotal).toString());
             }
             submitstatus.pop();
         });
@@ -1365,7 +1365,7 @@ function submitChildren() {
         updatecount = 1;
         updatetotal = 0;
         if (spouselist.length > 0) {
-            document.getElementById("updatestatus").innerText = "Adding Spouse(s)";
+            $("#updatestatus").text("Adding Spouse(s)");
         }
         var tempadded = [];
         for (var i = 0; i < addchildren.length; i++) {
@@ -1444,7 +1444,7 @@ function submitChildren() {
         updatecount = 1;
         updatetotal = 0;
         if (addchildren.length > 0) {
-            document.getElementById("updatestatus").innerText = "Adding Children";
+            $("#updatestatus").text("Adding Children");
         }
         // --------------------- Add Child Data ---------------------
         for (var child in addchildren) if (addchildren.hasOwnProperty(child)) {
@@ -1480,9 +1480,9 @@ function submitChildren() {
         if (photototal > 1) {
             photodialog = photototal + " Photos";
         }
-        document.getElementById("updatestatus").innerText = "Queuing " + photodialog;
-        document.getElementById("updatetotal").innerText = photototal;
-        document.getElementById("updatecount").innerText = Math.min(photocount, photototal).toString();
+        $("#updatestatus").text("Queuing " + photodialog);
+        $("#updatetotal").text(photototal);
+        $("#updatecount").text(Math.min(photocount, photototal).toString());
         if (exists(focusphotoinfo)) {
             buildTree(focusphotoinfo, "add-photo", focusid);
             focusphotoinfo = null;

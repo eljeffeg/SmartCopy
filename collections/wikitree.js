@@ -21,7 +21,7 @@ registerCollection({
         var personinfo = parsed.find(".VITALS");
         var focusperson = "";
         if (exists(personinfo[0])) {
-            focusperson = personinfo[0].innerText.replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
+            focusperson = $(personinfo[0]).text().replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
             if (focusperson.contains("formerly")) {
                 focusperson = focusperson.replace("formerly", "(born") + ")";
             } else if (focusperson.contains("formerly") && focusperson.contains("[surname unknown]")) {
@@ -64,7 +64,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
     var focusperson = "";
     if (exists(personinfo[0])) {
         $(personinfo[0]).html($(personinfo[0]).html().replace(/<strong>/gi, " "));
-        focusperson = personinfo[0].innerText.replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
+        focusperson = $(personinfo[0]).text().replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
         focusperson = focusperson.replace("[family name unknown]", "");
         if (focusperson.contains("formerly") && !focusperson.contains("[surname unknown]")) {
             focusperson = focusperson.replace("formerly", "(born") + ")";

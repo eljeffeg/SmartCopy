@@ -76,7 +76,7 @@ registerCollection({
             }
             smscorefactors = parsed.find(".value_add_score_factors_container").text().trim();
             if (exists(recordtype[0])) {
-                recordtype = recordtype[0].innerText;
+                recordtype = $(recordtype[0]).text();
             }
             focusrange = parsed.find(".recordSubtitle").text().trim();
             if (!profilechanged) {

@@ -454,7 +454,7 @@ function parseFamilySearchRecord(htmlstring, familymembers, relation) {
         }
     }
 
-    document.getElementById("readstatus").innerText = "";
+    $("#readstatus").text("");
     if (familymembers) {
         alldata["profile"] = profiledata;
         alldata["scorefactors"] = smscorefactors;

@@ -47,7 +47,7 @@ function buildHistoryBox() {
             }
         }
     }
-    document.getElementById("historytext").innerHTML = historytext;
+    $("#historytext").html(historytext);
     $(function () {
         $('.expandhistory').on('click', function () {
             expandFamily($(this).attr("name"));
@@ -135,9 +135,10 @@ if (!String.prototype.contains) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    console.log(chrome.runtime.getManifest().name + " v" + chrome.runtime.getManifest().version);
-    document.getElementById("versionbox").innerHTML = "SmartCopy v" + chrome.runtime.getManifest().version;
-    document.getElementById("versionbox2").innerHTML = "SmartCopy v" + chrome.runtime.getManifest().version;
+    var version = chrome.runtime.getManifest().version;
+    console.log(chrome.runtime.getManifest().name + " v" + version);
+    $("#versionbox").html("SmartCopy v" + version);
+    $("#versionbox2").html("SmartCopy v" + version);
     loginProcess();
 });
 
@@ -242,22 +243,22 @@ function userAccess() {
                 }
                 if (accountinfo.curator && responsedata.claimed && !responsedata.curator) {
                     if (!responsedata.user) {
-                        accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
-                            '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>';
+                        $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
+                            '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>');
                         document.getElementById('grantbutton').addEventListener('click', useradd, false);
                     } else {
                         if (responsedata.user.revoked == null) {
-                            accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
-                                '<div>Tree-building rights were granted by <a href="http://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>';
+                            $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
+                                '<div>Tree-building rights were granted by <a href="http://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>');
                             document.getElementById('revokebutton').addEventListener('click', userrevoke, false);
                         } else {
-                            accessdialog.innerHTML = '<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
-                                '<div>Tree-building rights were revoked by <a href="http://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>';
+                            $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
+                                '<div>Tree-building rights were revoked by <a href="http://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>');
                             document.getElementById('grantbutton').addEventListener('click', userrestore, false);
                         }
                     }
                 } else {
-                    accessdialog.innerHTML = "<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...";
+                    $(accessdialog).html("<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...");
                     buildResearch();
                 }
             });
@@ -414,7 +415,7 @@ function loadPage(request) {
                     return;
                 }
             }
-            document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
+            $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>");
             if (focusrange !== "") {
                 document.getElementById("focusrange").innerText = focusrange;
             }
@@ -472,7 +473,7 @@ function loadPage(request) {
                     familystatus.pop();
                 });
                 //Update focusname again in case there is a merge_into
-                document.getElementById("focusname").innerHTML = '<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>";
+                $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>");
                 var byear;
                 var dyear;
                 var dateinfo = "";
@@ -610,7 +611,7 @@ function loadSelectPage(request) {
             selectsrt += '</select>';
             $('#optionrowldr').css("display", "none");
             $('#optionrow').css("display", "table-row");
-            $('#focusoption')[0].innerHTML = selectsrt;
+            $($('#focusoption')[0]).html(selectsrt);
         });
     } else {
         var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select from History</option>';
@@ -618,7 +619,7 @@ function loadSelectPage(request) {
         selectsrt += '</select>';
         $('#optionrowldr').css("display", "none");
         $('#optionrow').css("display", "table-row");
-        $('#focusoption')[0].innerHTML = selectsrt;
+        $($('#focusoption')[0]).html(selectsrt);
     }
 }
 
@@ -701,7 +702,7 @@ function buildGeniCount(val, name) {
         }
         if (genifmcount.length > 0) {
             genifmcount = " &mdash; Geni has" + genifmcount;
-            document.getElementById(name).innerHTML = genifmcount;
+            $("#" + name).html(genifmcount);
         }
     }
 }
@@ -710,7 +711,7 @@ function setMessage(color, messagetext) {
     var message = document.querySelector('#message');
     message.style.backgroundColor = color;
     message.style.display = "block";
-    message.innerHTML = messagetext;
+    $(message).html(messagetext);
 }
 
 function getPageCode() {
@@ -1541,11 +1542,11 @@ function submitWait() {
         } else {
             focusprofileurl = "http://www.geni.com/" + focusid;
         }
-        document.getElementById("updating").innerHTML = '<div style="text-align: center; font-size: 110%;"><strong>Geni Tree Updated</strong></div>' +
+        $("#updating").html('<div style="text-align: center; font-size: 110%;"><strong>Geni Tree Updated</strong></div>' +
             '<div style="text-align: center; padding:5px; color: #a75ccd">Reminder: Please review for duplicates<br>and merge when able.</div>' +
             '<div style="text-align: center; padding:5px;"><b>View Profile:</b> ' +
             '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g", "") + '" target="_blank">tree view</a>, ' +
-            '<a href="' + focusprofileurl + '" target="_blank">profile view</a></div>';
+            '<a href="' + focusprofileurl + '" target="_blank">profile view</a></div>');
         if (noerror) {
             document.getElementById("message").style.display = "none";
             $('#updating').css('margin-bottom', "15px");

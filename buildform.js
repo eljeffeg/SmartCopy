@@ -26,7 +26,7 @@ function updateGeo() {
         setTimeout(updateGeo, 50);
     } else if (!captcha) {
         console.log("Family Processed...");
-        document.getElementById("readstatus").innerHTML = "Determining Locations";
+        $("#readstatus").html("Determining Locations");
         var listvalues = ["birth", "baptism", "marriage", "divorce", "death", "burial"];
         for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
             var title = listvalues[list];
@@ -78,7 +78,7 @@ function updateFamily() {
         setTimeout(updateFamily, 50);
     } else {
         console.log("Geo Processed...");
-        document.getElementById("readstatus").innerHTML = "";
+        $("#readstatus").html("");
         updateGenders();
         buildForm();
         document.getElementById("loading").style.display = "none";
@@ -195,7 +195,7 @@ function buildForm() {
     var x = 0;
     var ck = 0;
     var div = $("#profiletable");
-    var membersstring = div[0].innerHTML;
+    var membersstring = $(div[0]).html();
     var mnameonoff = $('#mnameonoffswitch').prop('checked');
     var nameval = NameParse.parse(focusname, mnameonoff);
     if (focusgender === "unknown" && alldata["profile"].gender !== "unknown") {
@@ -245,9 +245,9 @@ function buildForm() {
                 '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("display_name") + '" disabled></td></tr>' +
                 '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" disabled><td class="genisliderow"><img src="images/append.png" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("nicknames") + '" disabled></td></td></tr>';
     }
-    div[0].innerHTML = membersstring;
+    $(div[0]).html(membersstring);
     if (exists(alldata["profile"]["thumb"])) {
-        membersstring = div[0].innerHTML;
+        membersstring = $(div[0]).html();
         if (x > 0) {
             membersstring = membersstring + '<tr><td colspan="3" style="padding: 0;"><div class="separator"></div></td></tr>';
         } else {
@@ -276,12 +276,12 @@ function buildForm() {
             '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext photocheck" ' + isChecked(thumbnail, scorephoto) + '>' +
             capFL(title) + ':</td><td style="padding: 0;"><div style="float: right;"><input type="hidden" class="photocheck" name="' + title + '" value="' + image + '" ' + isEnabled(thumbnail, scorephoto) + ' author="' + credit + '"><img style="max-width: 150px; max-height: 120px; object-fit: contain; padding: 0px;" src="' + thumbnail + '"></div></td><td class="genisliderow" style="vertical-align: middle; padding: 0;"><div style="display: inline-block; vertical-align: middle; padding: 0;"><img src="' + isAppend(genifocusdata.get("photo_urls")) + '" class="genislideimage" style="padding-left: 5px;"></div><div style="display: inline-block; vertical-align: middle; padding: 0;"><img align="right" style="max-width: 150px; max-height: 120px; object-fit: contain; padding: 0px;" src="' + genifocusdata.get("photo_urls") + '"></div></td></tr>';
         membersstring = membersstring + '<tr><td colspan="3" style="padding: 0;"><div class="separator"></div></td></tr>';
-        div[0].innerHTML = membersstring;
+        $(div[0]).html(membersstring);
     }
 
     var sepx = 0;
     if (exists(alldata["profile"]["occupation"])) {
-        membersstring = div[0].innerHTML;
+        membersstring = $(div[0]).html();
         sepx++;
         var title = "occupation";
         var scoreoccupation = false;
@@ -293,26 +293,26 @@ function buildForm() {
         membersstring = membersstring +
             '<tr id="occupation"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scoreoccupation) + '>' +
             capFL(title) + ': </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="' + title + '" value="' + occupation + '" ' + isEnabled(occupation, scoreoccupation) + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
-        div[0].innerHTML = membersstring;
+        $(div[0]).html(membersstring);
     } else {
-        membersstring = div[0].innerHTML;
+        membersstring = $(div[0]).html();
         membersstring = membersstring +
             '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
-        div[0].innerHTML = membersstring;
+        $(div[0]).html(membersstring);
     }
     if (genigender === "unknown" && focusgender !== "unknown") {
         var gender = focusgender;
         sepx++;
-        membersstring = div[0].innerHTML;
+        membersstring = $(div[0]).html();
         membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, true) + '>Gender: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, true) + '>' +
             '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + capFL(genifocusdata.get("gender")) + '" disabled></td></tr>';
-        div[0].innerHTML = membersstring;
+        $(div[0]).html(membersstring);
     } else {
         var gender = focusgender;
-        membersstring = div[0].innerHTML;
+        membersstring = $(div[0]).html();
         membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, false) + '>Gender: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, false) + '>' +
             '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + capFL(genifocusdata.get("gender")) + '" disabled></td></tr>';
-        div[0].innerHTML = membersstring;
+        $(div[0]).html(membersstring);
     }
     var living = false;
     if (exists(alldata["profile"].alive)) {
@@ -339,42 +339,42 @@ function buildForm() {
     }
     if (geniliving && !living) {
         sepx++;
-        membersstring = div[0].innerHTML;
+        membersstring = $(div[0]).html();
         membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, true) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, true) + '>' +
             '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
-        div[0].innerHTML = membersstring;
+        $(div[0]).html(membersstring);
     } else {
         if (!geniliving && living) {
             living = geniliving;
         }
-        membersstring = div[0].innerHTML;
+        membersstring = $(div[0]).html();
         membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, false) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, false) + '>' +
             '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
-        div[0].innerHTML = membersstring;
+        $(div[0]).html(membersstring);
     }
     if (exists(alldata["profile"].about)) {
         sepx++;
-        membersstring = div[0].innerHTML;
+        membersstring = $(div[0]).html();
         var scoreabout = false;
 //        if (focusabout.contains(alldata["profile"].about)) {
 //            scoreabout = false;
 //        }
         var about = alldata["profile"].about;
         membersstring = membersstring + '<tr><td colspan="3" style="padding: 0px;"><div class="profilediv" style="width: 100%;"><input type="checkbox" class="checknext" ' + isChecked(about, scoreabout) + '>About:<img class="genisliderow" src="images/append.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scoreabout) + '>' + about + '</textarea></div></td></tr>';
-        div[0].innerHTML = membersstring;
+        $(div[0]).html(membersstring);
     } else {
-        membersstring = div[0].innerHTML;
+        membersstring = $(div[0]).html();
         membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="3" style="padding: 0px;"><div class="profilediv" style="width: 100%;"><input type="checkbox" class="checknext">About:<img class="genisliderow" src="images/append.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
-        div[0].innerHTML = membersstring;
+        $(div[0]).html(membersstring);
     }
     if (sepx === 0) {
-        membersstring = div[0].innerHTML;
+        membersstring = $(div[0]).html();
         membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td colspan="3"><div class="separator"></div></td></tr>';
-        div[0].innerHTML = membersstring;
+        $(div[0]).html(membersstring);
     } else {
-        membersstring = div[0].innerHTML;
+        membersstring = $(div[0]).html();
         membersstring = membersstring + '<tr><td colspan="3" style="padding: 0;"><div class="separator"></div></td></tr>';
-        div[0].innerHTML = membersstring;
+        $(div[0]).html(membersstring);
     }
     sepx = x + sepx;
     x = 0;
@@ -396,7 +396,7 @@ function buildForm() {
     for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
         var title = listvalues[list];
         obj = alldata["profile"][title];
-        membersstring = div[0].innerHTML;
+        membersstring = $(div[0]).html();
         var dateicon = genifocusdata.lockIcon(title, "date");
         var locationicon = genifocusdata.lockIcon(title, "location");
         if (exists(obj) && obj.length > 0) {
@@ -511,7 +511,7 @@ function buildForm() {
                 '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Country: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:country" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.country") + '" disabled></td></tr>';
 
         }
-        div[0].innerHTML = membersstring;
+        $(div[0]).html(membersstring);
     }
     x = sepx + x;
     if (ck > 0) {
@@ -669,7 +669,7 @@ function buildForm() {
                 hideunknown = "none";
             }
 
-            var membersstring = entry.innerHTML;
+            var membersstring = $(entry).html();
             membersstring += '<div class="membertitle" style="background-color: ' + bgcolor + '"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
                 '<td><input type="checkbox" class="checkslide" name="checkbox' + i + '-' + relationship + '" ' + isChecked(fullname, scored) + checkunknown + '></td>' +
                 '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;">';
@@ -848,7 +848,7 @@ function buildForm() {
             }
 
             membersstring = membersstring + '</table></div>';
-            entry.innerHTML = membersstring;
+            $(entry).html(membersstring);
             for (var i=0;i<ambigdatecheck.length;i++) {
                 $("#" + ambigdatecheck[i] + "errordate").show();
             }
@@ -1246,7 +1246,7 @@ function placementUpdate() {
                 var section1 = $(this).closest("div").prev();
                 var section2 = $(this).closest("div");
                 var unkop = $(section2).find('[name="unk"]')[0].outerHTML;
-                $(section2).find('[name="buildactionspan"]')[0].innerHTML = buildAction(this.value, gender);
+                $($(section2).find('[name="buildactionspan"]')[0]).html(buildAction(this.value, gender));
                 $(section1.find("input")[0]).prop('disabled', false);
                 $(section2.find('[name="act"]')[0]).css('display', "table-row");
                 if (this.value === "child") {
@@ -1277,8 +1277,8 @@ function placementUpdate() {
                 section1[0].outerHTML = "";
                 section2[0].outerHTML = "";
                 var section3 = $("#" + this.value + "val");
-                replacestring = section3[0].innerHTML + replacestring;
-                section3[0].innerHTML = replacestring;
+                replacestring = $(section3[0]).html() + replacestring;
+                $(section3[0]).html(replacestring);
 
             }
             if ($("#unknownval").is(":empty")) {
@@ -1715,9 +1715,9 @@ function cleanHTML(html) {
         return "";
     }
     html = html.replace(/<sup.*?<\/sup>/ig, "");
-    var div = document.createElement("div");
-    div.innerHTML = html;
-    return div.textContent || div.innerText || "";
+    var div = $(document.createElement("div"));
+    div.html(html);
+    return div.text() || "";
 }
 
 function cleanDate(dateval) {

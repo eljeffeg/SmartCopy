@@ -158,6 +158,8 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                             break;
                         } else if (familymem[i].startsWith("Inscription")) {
                             break;
+                        } else if (familymem[i].contains("Calculated")) {
+                            break;
                         } else if (isParent(titlename) || isSibling(titlename) || isChild(titlename) || isPartner(titlename)) {
                             if (titlename === "spouses") {
                                 titlename = "spouse";

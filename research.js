@@ -78,7 +78,7 @@ function buildGenealogy(responsedata) {
 function buildGeni(responsedata) {
     var query = responsedata.name.replace(/ /g, "+");
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Geni</strong>';
-    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="http://www.geni.com/search?search_type=people&names=' + query + '">Geni Search (Genealogies)</a></li>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.geni.com/search?search_type=people&names=' + query + '">Geni Search (Genealogies)</a></li>';
     researchstring += '</div>';
     return researchstring;
 }

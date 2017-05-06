@@ -1,14 +1,13 @@
 //Development Global Variables
 var devblocksend = false; //Blocks the sending data to Geni, prints output to console instead
 var locationtest = false; //Verbose parsing of location data
-var smartcopyurl = "https://historylink.herokuapp.com";  //helpful for local testing to switch from https to http
 
 //Common Global Variables
 var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true, captcha = false;
-var accountinfo, focusid, tablink, genifamily, parentspouseunion, genigender, geniliving, genifocusdata;
+var accountinfo, parentspouseunion, genigender, geniliving, genifocusdata;
 var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefactors = "", googlerequery = "";
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [];
-var genifamilydata = {}, genibuildaction = {}, updatecount = 1, updatetotal = 0;
+var genibuildaction = {}, updatecount = 1, updatetotal = 0;
 var errormsg = "#f9acac", warningmsg = "#f8ff86", infomsg = "#afd2ff";
 
 
@@ -35,9 +34,9 @@ function buildHistoryBox() {
         var focusprofileurl = "";
         if (exists(buildhistory[i].id)) {
             if (buildhistory[i].id.startsWith("profile-g")) {
-                focusprofileurl = "http://www.geni.com/profile/index/" + buildhistory[i].id.replace("profile-g", "");
+                focusprofileurl = "https://www.geni.com/profile/index/" + buildhistory[i].id.replace("profile-g", "");
             } else {
-                focusprofileurl = "http://www.geni.com/" + buildhistory[i].id;
+                focusprofileurl = "https://www.geni.com/" + buildhistory[i].id;
             }
             if (exists(buildhistory[i].data)) {
                 historytext += '<span class="expandhistory" name="history' + buildhistory[i].id + '" style="font-size: large; cursor: pointer;"><img src="images/dropdown.png" style="width: 11px;"></span> ' + datetxt + '<a href="' + focusprofileurl + '" target="_blank">' + name + '</a><br/>';
@@ -111,29 +110,6 @@ var expandsibling = true; //same
 //noinspection JSUnusedGlobalSymbols
 var expandchild = true; //samet
 
-// Run script as soon as the document's DOM is ready.
-if (typeof String.prototype.startsWith != 'function') {
-    String.prototype.startsWith = function (str) {
-        if (typeof str === "undefined") {
-            return false;
-        }
-        return this.slice(0, str.length) == str;
-    }
-}
-if (typeof String.prototype.endsWith != 'function') {
-    String.prototype.endsWith = function (str) {
-        if (typeof str === "undefined") {
-            return false;
-        }
-        return this.substring(this.length - str.length, this.length) === str;
-    }
-}
-if (!String.prototype.contains) {
-    String.prototype.contains = function () {
-        return String.prototype.indexOf.apply(this, arguments) !== -1;
-    }
-}
-
 document.addEventListener('DOMContentLoaded', function () {
     var version = chrome.runtime.getManifest().version;
     console.log(chrome.runtime.getManifest().name + " v" + version);
@@ -141,13 +117,6 @@ document.addEventListener('DOMContentLoaded', function () {
     $("#versionbox2").html("SmartCopy v" + version);
     loginProcess();
 });
-
-function startsWithHTTP(url, match) {
-    //remove protocol and comapre
-    url = url.replace("https://", "").replace("http://", "");
-    match = match.replace("https://", "").replace("http://", "");
-    return url.startsWith(match);
-}
 
 var collections = new Array();
 var collection;
@@ -226,6 +195,9 @@ function isGeni(url) {
 
 function userAccess() {
     if (loggedin && exists(accountinfo)) {
+        if (focusid === "" && tablink === "https://www.geni.com/family-tree") {
+            focusid = accountinfo.id;
+        }
         if (focusid !== "") {
             chrome.runtime.sendMessage({
                 method: "GET",
@@ -249,11 +221,11 @@ function userAccess() {
                     } else {
                         if (responsedata.user.revoked == null) {
                             $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
-                                '<div>Tree-building rights were granted by <a href="http://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>');
+                                '<div>Tree-building rights were granted by <a href="https://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>');
                             document.getElementById('revokebutton').addEventListener('click', userrevoke, false);
                         } else {
                             $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
-                                '<div>Tree-building rights were revoked by <a href="http://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>');
+                                '<div>Tree-building rights were revoked by <a href="https://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>');
                             document.getElementById('grantbutton').addEventListener('click', userrestore, false);
                         }
                     }
@@ -297,7 +269,7 @@ function useradd() {
     });
     chrome.tabs.query({"currentWindow": true, "status": "complete", "windowType": "normal", "active": true}, function (tabs) {
         var tab = tabs[0];
-        chrome.tabs.update(tab.id, {url: "http://www.geni.com/threads/new/" + focusid.replace("profile-g", "") + "?return_here=true"}, function (tab1) {
+        chrome.tabs.update(tab.id, {url: "https://www.geni.com/threads/new/" + focusid.replace("profile-g", "") + "?return_here=true"}, function (tab1) {
             var listener = function(tabId, changeInfo, tab) {
                 if (tabId == tab1.id && changeInfo.status === 'complete') {
                     // remove listener, so only run once
@@ -307,7 +279,7 @@ function useradd() {
                             "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, " +
                             "which is a Google Chrome extension that allows Geni users to copy information and profiles from various sources into Geni.\\n\\n" +
                             "The extension can be downloaded here: https://historylink.herokuapp.com/smartcopy\\n" +
-                            "More information and discussion can be found in the Geni project: http://www.geni.com/projects/SmartCopy/18783\\n\\n" +
+                            "More information and discussion can be found in the Geni project: https://www.geni.com/projects/SmartCopy/18783\\n\\n" +
                             "Before using SmartCopy, please read the cautionary notes in the Project Description. " +
                             "SmartCopy can be a powerful tool to help us build the world tree, but it could also quickly create duplication and introduce bad data - be responsible.\\n\\n" +
                             "*********************************************************\\n" +
@@ -473,7 +445,7 @@ function loadPage(request) {
                     familystatus.pop();
                 });
                 //Update focusname again in case there is a merge_into
-                $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>");
+                $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>");
                 var byear;
                 var dyear;
                 var dateinfo = "";
@@ -756,6 +728,7 @@ function loadLogin() {
         } catch(err) {
             console.log('Problem getting account information.');
             if (loginprocessing) {
+                chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon_warn.png" });
                 console.log("Logged Out... Redirecting to Geni for authorization.");
                 loginprocessing = false;
                 var frame = $("#loginframe");
@@ -783,6 +756,7 @@ function loadLogin() {
         }
         loggedin = true;
         if (!loginprocessing) {
+            chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon.png" });
             $("#logindiv").slideUp();
             document.getElementById("loginspinner").style.display = "block";
             if (!slideopen) {
@@ -797,68 +771,6 @@ function loadLogin() {
         }
         loginProcess();
     });
-}
-
-function getProfile(profile_id) {
-    //Gets the profile id from the Geni URL
-    if (profile_id.length > 0) {
-        var startid = profile_id.toLowerCase();
-        profile_id = decodeURIComponent(profile_id).trim();
-        if (profile_id.indexOf("&resolve=") != -1) {
-            profile_id = profile_id.substring(profile_id.lastIndexOf('#') + 1);
-        }
-        if (profile_id.indexOf("profile-") != -1) {
-            profile_id = profile_id.substring(profile_id.lastIndexOf('/') + 1);
-        }
-        if (profile_id.indexOf("#/tab") != -1) {
-            profile_id = profile_id.substring(0, profile_id.lastIndexOf('#/tab'));
-        }
-        if (profile_id.indexOf("/") != -1) {
-            //Grab the GUID from a URL
-            profile_id = profile_id.substring(profile_id.lastIndexOf('/') + 1);
-        }
-        if (profile_id.indexOf("?through") != -1) {
-            //In case the copy the profile url by navigating through another 6000000002107278790?through=6000000010985379345
-            //But skip 6000000029660962822?highlight_id=6000000029660962822#6000000028974729472
-            profile_id = "profile-g" + profile_id.substring(0, profile_id.lastIndexOf('?'));
-        }
-        if (profile_id.indexOf("?from_flash") != -1) {
-            profile_id = "profile-g" + profile_id.substring(0, profile_id.lastIndexOf('?'));
-        }
-        if (profile_id.indexOf("?highlight_id") != -1) {
-            profile_id = "profile-g" + profile_id.substring(profile_id.lastIndexOf('=') + 1, profile_id.length);
-        }
-        if (profile_id.indexOf("#") != -1) {
-            //In case the copy the profile url by navigating in tree view 6000000001495436722#6000000010985379345
-            if (profile_id.contains("html5")) {
-                profile_id = "profile-" + profile_id.substring(profile_id.lastIndexOf('#') + 1, profile_id.length);
-            } else {
-                profile_id = "profile-g" + profile_id.substring(profile_id.lastIndexOf('#') + 1, profile_id.length);
-            }
-        }
-        var isnum = /^\d+$/.test(profile_id);
-        if (isnum) {
-            if (profile_id.length > 16) {
-                profile_id = "profile-g" + profile_id;
-            } else if (startid.contains("www.geni.com/people") || startid.contains("www.geni.com/family-tree")) {
-                profile_id = "profile-g" + profile_id;
-            } else {
-                profile_id = "profile-" + profile_id;
-            }
-        }
-        var validate = profile_id.replace("profile-g", "").replace("profile-", "");
-        if (isNaN(validate)) {
-            profile_id = "";
-        }
-        if (profile_id.indexOf("profile-") != -1 && profile_id !== "profile-g") {
-            return "?profile=" + profile_id;
-        } else {
-            console.log("Profile ID not detected: " + startid);
-            console.log("URL: " + tablink);
-            return "";
-        }
-    }
-    return "";
 }
 
 var exlinks = document.getElementsByClassName("expandlinks");
@@ -906,10 +818,6 @@ function escapeHtml(string) {
 
 function capFL(string) {   //Capitalize the first letter of the string
     return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-function exists(object) {
-    return (typeof object !== "undefined" && object !== null);
 }
 
 $(function () {
@@ -1080,11 +988,11 @@ var submitform = function () {
                         if (sourcecheck) {
                             var focusprofileurl = "";
                             if (focusid.startsWith("profile-g")) {
-                                focusprofileurl = "http://www.geni.com/profile/index/" + focusid.replace("profile-g", "");
+                                focusprofileurl = "https://www.geni.com/profile/index/" + focusid.replace("profile-g", "");
                             } else {
-                                focusprofileurl = "http://www.geni.com/" + focusid;
+                                focusprofileurl = "https://www.geni.com/" + focusid;
                             }
-                            about = about + "* Reference: [" + encodeURI(fdata.url) + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                            about = about + "* Reference: [" + encodeURI(fdata.url) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                         }
                         if (about !== "") {
                             familyout["about_me"] = about;
@@ -1538,14 +1446,14 @@ function submitWait() {
         }
         var focusprofileurl = "";
         if (focusid.startsWith("profile-g")) {
-            focusprofileurl = "http://www.geni.com/profile/index/" + focusid.replace("profile-g", "");
+            focusprofileurl = "https://www.geni.com/profile/index/" + focusid.replace("profile-g", "");
         } else {
-            focusprofileurl = "http://www.geni.com/" + focusid;
+            focusprofileurl = "https://www.geni.com/" + focusid;
         }
         $("#updating").html('<div style="text-align: center; font-size: 110%;"><strong>Geni Tree Updated</strong></div>' +
             '<div style="text-align: center; padding:5px; color: #a75ccd">Reminder: Please review for duplicates<br>and merge when able.</div>' +
             '<div style="text-align: center; padding:5px;"><b>View Profile:</b> ' +
-            '<a href="http://www.geni.com/family-tree/index/' + focusid.replace("profile-g", "") + '" target="_blank">tree view</a>, ' +
+            '<a href="https://www.geni.com/family-tree/index/' + focusid.replace("profile-g", "") + '" target="_blank">tree view</a>, ' +
             '<a href="' + focusprofileurl + '" target="_blank">profile view</a></div>');
         if (noerror) {
             document.getElementById("message").style.display = "none";
@@ -1871,48 +1779,6 @@ function relationshipToHead(focusrel, relationship) {
     return "unknown";
 }
 
-function reverseRelationship(relationship) {
-    if (relationship === "wife") {
-        return "husband";
-    } else if (relationship === "husband") {
-        return "wife";
-    } else if (relationship === "son" || relationship === "daughter" || relationship === "child" || relationship === "children") {
-        if (focusgender === "male") {
-            return "father";
-        } else if (focusgender === "female") {
-            return "mother";
-        } else {
-            return "parent";
-        }
-    } else if (relationship === "parents" || relationship === "parent" || relationship === "father" || relationship === "mother") {
-        if (focusgender === "male") {
-            return "son";
-        } else if (focusgender === "female") {
-            return "daughter";
-        } else {
-            return "child";
-        }
-    } else if (relationship === "siblings" || relationship === "sibling" || relationship === "sister" || relationship === "brother") {
-        if (focusgender === "male") {
-            return "brother";
-        } else if (focusgender === "female") {
-            return "sister";
-        } else {
-            return "sibling";
-        }
-    } else if (relationship === "partner") {
-        return "partner";
-    } else if (relationship === "ex-wife") {
-        return "ex-husband";
-    } else if (relationship === "ex-husband") {
-        return "ex-wife";
-    } else if (relationship === "ex-partner") {
-        return "ex-partner";
-    } else {
-        return "";
-    }
-}
-
 // ----- Persistent Options -----
 $(function () {
     $('#privateonoffswitch').on('click', function () {
@@ -1939,9 +1805,50 @@ $(function () {
         geoonoff(this.checked);
         hideempty($('#hideemptyonoffswitch').prop('checked'));
     });
+    $('#consistencyonoffswitch').on('click', function () {
+        chrome.storage.local.set({'geniconsistency': this.checked});
+        if (this.checked) {
+            $("#consistencyoptiontable").slideDown();
+        } else {
+            $("#consistencyoptiontable").slideUp();
+        }
+    });
     $('#forcegeoswitch').on('click', function () {
         chrome.storage.local.set({'forcegeo': this.checked});
         $("#forcegeochange").css("display", "block");
+    });
+    $('#namecheckonoffswitch').on('click', function () {
+        chrome.storage.local.set({'namecheck': this.checked});
+    });
+    $('#siblingonoffswitch').on('click', function () {
+        chrome.storage.local.set({'siblingcheck': this.checked});
+    });
+    $('#agelimiterror').on('change', function () {
+        chrome.storage.local.set({'agelimiterror': this.value});
+    });
+    $('#agelimitwarn').on('change', function () {
+        chrome.storage.local.set({'agelimitwarn': this.value});
+    });
+    $('#childyoungwarn').on('change', function () {
+        chrome.storage.local.set({'birthyoung': this.value});
+    });
+    $('#childoldwarn').on('change', function () {
+        chrome.storage.local.set({'birthold': this.value});
+    });
+    $('#marriedyoungwarn').on('change', function () {
+        chrome.storage.local.set({'marriageyoung': this.value});
+    });
+    $('#spouseagediff').on('change', function () {
+        chrome.storage.local.set({'marriagedif': this.value});
+    });
+    $('#childrenonoffswitch').on('click', function () {
+        chrome.storage.local.set({'childcheck': this.checked});
+    });
+    $('#ageonoffswitch').on('click', function () {
+        chrome.storage.local.set({'agecheck': this.checked});
+    });
+    $('#partneronoffswitch').on('click', function () {
+        chrome.storage.local.set({'partnercheck': this.checked});
     });
     $('#genislideonoffswitch').on('click', function () {
         chrome.storage.local.set({'genislideout': this.checked});
@@ -2193,10 +2100,136 @@ function hostDomain(url) {
     return a.protocol + "//" + a.host;
 };
 
+$(function () {
+    $('#logoutbutton').on('click', function () {
+        chrome.runtime.sendMessage({
+            method: "GET",
+            action: "xhttp",
+            url: smartcopyurl + "/logout",
+            variable: ""
+        }, function (response) {
+            chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon_warn.png" });
+            window.close();
+        });
+    });
+});
+
+$(function () {
+    $('.tablinks').on('click', function () {
+        // Declare all variables
+        var i, tabcontent, tablinks;
+        // Get all elements with class="tabcontent" and hide them
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+
+        // Get all elements with class="tablinks" and remove the class "active"
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+
+        // Show the current tab, and add an "active" class to the button that opened the tab
+        document.getElementById(this.value).style.display = "block";
+        this.className += " active";
+    });
+});
+
 chrome.storage.local.get('autogeo', function (result) {
     var geochecked = result.autogeo;
     if (exists(geochecked)) {
         $('#geoonoffswitch').prop('checked', geochecked);
+    }
+});
+
+chrome.storage.local.get('namecheck', function (result) {
+    var namecheck = result.namecheck;
+    if (exists(namecheck)) {
+        $('#namecheckonoffswitch').prop('checked', namecheck);
+    }
+});
+
+chrome.storage.local.get('siblingcheck', function (result) {
+    var siblingcheck = result.siblingcheck;
+    if (exists(siblingcheck)) {
+        $('#siblingonoffswitch').prop('checked', siblingcheck);
+    }
+});
+
+chrome.storage.local.get('agelimitwarn', function (result) {
+    var agelimitwarn = result.agelimitwarn;
+    if (exists(agelimitwarn)) {
+        $('#agelimitwarn').prop('value', agelimitwarn);
+    }
+});
+
+chrome.storage.local.get('agelimiterror', function (result) {
+    var agelimiterror = result.agelimiterror;
+    if (exists(agelimiterror)) {
+        $('#agelimiterror').prop('value', agelimiterror);
+    }
+});
+
+chrome.storage.local.get('birthyoung', function (result) {
+    var birthyoung = result.birthyoung;
+    if (exists(birthyoung)) {
+        $('#childyoungwarn').prop('value', birthyoung);
+    }
+});
+
+chrome.storage.local.get('birthold', function (result) {
+    var birthold = result.birthold;
+    if (exists(birthold)) {
+        $('#childoldwarn').prop('value', birthold);
+    }
+});
+
+chrome.storage.local.get('marriageyoung', function (result) {
+    var marriageyoung = result.marriageyoung;
+    if (exists(marriageyoung)) {
+        $('#marriedyoungwarn').prop('value', marriageyoung);
+    }
+});
+
+chrome.storage.local.get('marriagedif', function (result) {
+    var marriagedif = result.marriagedif;
+    if (exists(marriagedif)) {
+        $('#spouseagediff').prop('value', marriagedif);
+    }
+});
+
+chrome.storage.local.get('agecheck', function (result) {
+    var agecheck = result.agecheck;
+    if (exists(agecheck)) {
+        $('#ageonoffswitch').prop('checked', agecheck);
+    }
+});
+
+chrome.storage.local.get('partnercheck', function (result) {
+    var partnercheck = result.partnercheck;
+    if (exists(partnercheck)) {
+        $('#partneronoffswitch').prop('checked', partnercheck);
+    }
+});
+
+
+chrome.storage.local.get('childcheck', function (result) {
+    var childcheck = result.childcheck;
+    if (exists(childcheck)) {
+        $('#childrenonoffswitch').prop('checked', childcheck);
+    }
+});
+
+chrome.storage.local.get('geniconsistency', function (result) {
+    var consistencychecked = result.geniconsistency;
+    if (exists(consistencychecked)) {
+        $('#consistencyonoffswitch').prop('checked', consistencychecked);
+        if (consistencychecked) {
+            $("#consistencyoptiontable").slideDown();
+        } else {
+            $("#consistencyoptiontable").slideUp();
+        }
     }
 });
 

@@ -1,5 +1,4 @@
 var alldata = {};
-var familystatus = [];
 var geostatus = [];
 var geoid = 0;
 var geolocation = [];
@@ -15,7 +14,6 @@ var parentflag = false;
 var hideprofile = false;
 var genispouse = [];
 var myhspouse = [];
-var focusgender = "unknown";
 var focusabout = "";
 var focusnicknames = "";
 var parentmarriageid = "";
@@ -899,7 +897,7 @@ function buildForm() {
                 }
             }
         }
-        var genisearchurl = "http://www.geni.com/search";
+        var genisearchurl = "https://www.geni.com/search";
         if (exists(father) && exists(mother)) {
             var mname = "&partner_names=";
             if (mother.birthName !== "" && mother.birthName !== father.lastName) {
@@ -1299,42 +1297,6 @@ function isEnabled(value, score, force) {
     } else {
         return "disabled";
     }
-}
-
-function isFemale(title) {
-    if (!exists(title)) { return false; }
-    title = title.replace(" (implied)", "");
-    return (title === "wife" || title === "ex-wife" || title === "mother" || title === "sister" || title === "daughter" || title === "female");
-}
-
-function isMale(title) {
-    if (!exists(title)) { return false; }
-    title = title.replace(" (implied)", "");
-    return (title === "husband" || title === "ex-husband" || title === "father" || title === "brother" || title === "son" || title === "male");
-}
-
-function isSibling(relationship) {
-    if (!exists(relationship)) { return false; }
-    relationship = relationship.replace(" (implied)", "");
-    return (relationship === "siblings" || relationship === "sibling" || relationship === "brother" || relationship === "sister" || relationship === "bro" || relationship === "sis");
-}
-
-function isChild(relationship) {
-    if (!exists(relationship)) { return false; }
-    relationship = relationship.replace(" (implied)", "");
-    return (relationship === "children" || relationship === "child" || relationship === "son" || relationship === "daughter" || relationship === "dau");
-}
-
-function isParent(relationship) {
-    if (!exists(relationship)) { return false; }
-    relationship = relationship.replace(" (implied)", "");
-    return (relationship === "parents" || relationship === "father" || relationship === "mother" || relationship === "parent" || relationship === "moth" || relationship === "fath");
-}
-
-function isPartner(relationship) {
-    if (!exists(relationship)) { return false; }
-    relationship = relationship.replace(" (implied)", "");
-    return (relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner" || relationship === "spouse" || relationship === "spouses");
 }
 
 function isHidden(value, geo) {
@@ -1952,70 +1914,6 @@ function emptyEvent(data) {
     return true;
 }
 
-function GeniPerson(obj) {
-    this.person = obj;
-    this.get = function (path, subpath) {
-        var obj = this.person;
-        if (path == "photo_urls") {
-            if (checkNested(this.person,"photo_urls", "medium")) {
-                return this.person["photo_urls"].medium;
-            } else {
-                return geniPhoto(this.person.gender);
-            }
-        } else if (!obj.hasOwnProperty(path)) {
-            return "";
-        } else if (!exists(subpath)) {
-            if (typeof obj[path] === 'string' || obj[path] instanceof String) {
-                obj[path] = obj[path].replace(/"/g, "&quot;");
-            } else {
-                for (var i = 0; i < obj[path].length; i++) {
-                    obj[path][i] = obj[path][i].replace(/"/g, "&quot;");
-                }
-            }
-            return obj[path];
-        } else {
-            obj = obj[path];
-            var args = subpath.split(".");
-            for (var i = 0; i < args.length; i++) {
-                if (!obj || !obj.hasOwnProperty(args[i])) {
-                    return "";
-                }
-                obj = obj[args[i]];
-            }
-            return obj;
-        }
-    };
-    this.isLocked = function (path, subpath) {
-        var obj = this.person;
-        if (!obj.hasOwnProperty("locked_fields")) {
-            return false;
-        }
-        obj = obj["locked_fields"];
-        if (!obj.hasOwnProperty(path)) {
-            return false;
-        } else if (!exists(subpath)) {
-            return obj[path];
-        } else {
-            obj = obj[path];
-            var args = subpath.split(".");
-            for (var i = 0; i < args.length; i++) {
-                if (!obj || !obj.hasOwnProperty(args[i])) {
-                    return false;
-                }
-                obj = obj[args[i]];
-            }
-            return obj;
-        }
-    };
-    this.lockIcon = function(path, subpath) {
-        if (this.isLocked(path, subpath)) {
-            return "lock.png";
-        } else {
-            return "right.png";
-        }
-    };
-}
-
 function geniPhoto(gender) {
     if (isMale(gender)) {
         return "images/no_photo_m.gif";
@@ -2086,20 +1984,6 @@ function isAlive(alive) {
     } else {
         return "Deceased";
     }
-}
-
-function getGeniData(profile, value, subvalue) {
-    if (profile === "add") {
-        if (value === "photo_urls") {
-            return geniPhoto('unknown');
-        }
-        return "";
-    }
-    var person = genifamilydata[profile];
-    if (!exists(person)) {
-        return "";
-    }
-    return person.get(value, subvalue);
 }
 
 function getGeniLock(profile, value, subvalue) {

@@ -38,6 +38,10 @@ function startsWithHTTP(url, match) {
     return url.startsWith(match);
 }
 
+function isGeni(url) {
+    return (startsWithHTTP(url,"http://www.geni.com/people") || startsWithHTTP(url,"http://www.geni.com/family-tree") || startsWithHTTP(url,"http://www.geni.com/profile"));
+}
+
 function getProfile(profile_id) {
     //Gets the profile id from the Geni URL
     if (profile_id.length > 0) {

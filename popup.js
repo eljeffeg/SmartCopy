@@ -115,7 +115,11 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log(chrome.runtime.getManifest().name + " v" + version);
     $("#versionbox").html("SmartCopy v" + version);
     $("#versionbox2").html("SmartCopy v" + version);
-    loginProcess();
+    chrome.tabs.query({"currentWindow": true, "status": "complete", "windowType": "normal", "active": true}, function (tabs) {
+        var tab = tabs[0];
+        tablink = tab.url;
+        loginProcess();
+    });
 });
 
 var collections = new Array();
@@ -125,50 +129,44 @@ function registerCollection(collection) {
 }
 
 function loginProcess() {
-
-    if (!loggedin) {
+    if (startsWithHTTP(tablink, "https://www.geni.com") && !isGeni(tablink)) {
+        $('#loginspinner').hide();
+        $("#optionslide").show();
+    } else if (!loggedin) {
         loadLogin();
     } else {
-        chrome.tabs.query({"currentWindow": true, "status": "complete", "windowType": "normal", "active": true}, function (tabs) {
-            var tab = tabs[0];
-            tablink = tab.url;
-
-            if (isGeni(tablink)) {
-                document.querySelector('#message').style.display = "none";
-                var focusprofile = getProfile(tablink);
-                focusid = focusprofile.replace("?profile=", "");
-                document.getElementById("addhistoryblock").style.display = "block";
-                updateLinks(focusprofile);
-                userAccess();
-            } else {
-                // Select collection
-                for (var i=0; i<collections.length; i++) {
-                    if (collections[i].collectionMatch(tablink)) {
-                        collection = collections[i];
-                        tablink = collection.prepareUrl(tablink);
-                        recordtype = collection.recordtype;
-                        if (collection.experimental) {
-                            $("#experimentalmessage").css("display", "block");
-                        }
-                        console.log("Collection: " + recordtype);
-                        break;
+        if (isGeni(tablink)) {
+            document.querySelector('#message').style.display = "none";
+            var focusprofile = getProfile(tablink);
+            focusid = focusprofile.replace("?profile=", "");
+            document.getElementById("addhistoryblock").style.display = "block";
+            updateLinks(focusprofile);
+            userAccess();
+        } else {
+            // Select collection
+            for (var i=0; i<collections.length; i++) {
+                if (collections[i].collectionMatch(tablink)) {
+                    collection = collections[i];
+                    tablink = collection.prepareUrl(tablink);
+                    recordtype = collection.recordtype;
+                    if (collection.experimental) {
+                        $("#experimentalmessage").css("display", "block");
                     }
-                }
-
-                // Parse data
-                if (exists(collection) && collection.parseData) {
-                    console.log("Going to parse data now");
-                    collection.parseData(tablink);
-                } else if (startsWithHTTP(tablink, "https://www.geni.com")) {
-                    document.querySelector('#loginspinner').style.display = "none";
-                    $("#optionslide").slideDown();
-                } else {
-                    console.log("Could not find collection on " + tablink);
-                    document.querySelector('#loginspinner').style.display = "none";
-                    setMessage(errormsg, 'SmartCopy does not currently support parsing this page / site / collection.');
+                    console.log("Collection: " + recordtype);
+                    break;
                 }
             }
-        });
+
+            // Parse data
+            if (exists(collection) && collection.parseData) {
+                console.log("Going to parse data now");
+                collection.parseData(tablink);
+            } else {
+                console.log("Could not find collection on " + tablink);
+                document.querySelector('#loginspinner').style.display = "none";
+                setMessage(errormsg, 'SmartCopy does not currently support parsing this page / site / collection.');
+            }
+        }
     }
 }
 
@@ -194,10 +192,6 @@ $('#genislider').on('click', function () {
 $("#checkdetailsopen").on("click", function () {
     $("#checkdetails").slideToggle();
 });
-
-function isGeni(url) {
-    return (startsWithHTTP(url,"http://www.geni.com/people") || startsWithHTTP(url,"http://www.geni.com/family-tree") || startsWithHTTP(url,"http://www.geni.com/profile"));
-}
 
 function userAccess() {
     if (loggedin && exists(accountinfo)) {

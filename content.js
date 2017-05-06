@@ -19,7 +19,7 @@ var agecheckoption = true;
 var socialoption = false;
 
 function buildconsistencyDiv() {
-    if (startsWithHTTP(tablink, "https://www.geni.com/family-tree") || startsWithHTTP(tablink, "https://www.geni.com/people/")) {
+    if (isGeni(tablink)) {
         var consistencydiv = $(document.createElement('div'));
         consistencydiv.attr('id','consistencyck');
         consistencydiv.css({"display": "none", "position": "absolute", "background-color": "#fff", "z-index": "2", "width": "97%", "borderBottom":"solid 1px #cad3dd", "padding": "5px 20px 3px", "vertical-align": "middle", "line-height": "150%"});

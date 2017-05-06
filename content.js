@@ -157,7 +157,7 @@ function partnerCheck(partners) {
             consistencymessage = concat("warn") + "More than " + spouse_age_dif + " year age difference between " + buildEditLink(wife) + " and "
                 + getPronoun(getGeniData(wife, "gender")) + " " + getStatus(hstatus, getGeniData(husband, "gender")) + " " + buildEditLink(husband) + ".";
         }
-        if (getGeniData(wife, "maiden_name") !== "" && getGeniData(wife, "maiden_name") === getGeniData(husband, "last_name")) {
+        if (validName(getGeniData(wife, "maiden_name")) && getGeniData(wife, "maiden_name") === getGeniData(husband, "last_name")) {
             //Maiden name same as husband's last name
             //TODO if you get additional family members, compare this against her father's last name
             consistencymessage = concat("info") + "Birth Surname of " + buildEditLink(wife) + " is the same as the last name of "
@@ -298,13 +298,13 @@ function selfCheck(familyset) {
             }
 
             var first_name = getGeniData(person, "first_name").replace(".","");
-            if (getGeniData(person, "name") !== "" && getGeniData(person, "name").length > 2 && (getGeniData(person, "name") === getGeniData(person, "name").toUpperCase() || getGeniData(person, "name") === getGeniData(person, "name").toLowerCase())) {
+            if (validName(getGeniData(person, "name")) && getGeniData(person, "name").length > 2 && (getGeniData(person, "name") === getGeniData(person, "name").toUpperCase() || getGeniData(person, "name") === getGeniData(person, "name").toLowerCase())) {
                 //Name contains improper use of uppercase/lowercase
                 consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " name.";
-            } else if (getGeniData(person, "maiden_name") !== "" && (getGeniData(person, "maiden_name") === getGeniData(person, "maiden_name").toUpperCase() || getGeniData(person, "maiden_name") === getGeniData(person, "maiden_name").toLowerCase())) {
+            } else if (validName(getGeniData(person, "maiden_name")) && (getGeniData(person, "maiden_name") === getGeniData(person, "maiden_name").toUpperCase() || getGeniData(person, "maiden_name") === getGeniData(person, "maiden_name").toLowerCase())) {
                 //Maiden Name contains improper use of uppercase/lowercase
                 consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " birth surname.";
-            } else if (getGeniData(person, "last_name") !== "" && (getGeniData(person, "last_name") === getGeniData(person, "last_name").toUpperCase() || getGeniData(person, "last_name") === getGeniData(person, "last_name").toLowerCase())) {
+            } else if (validName(getGeniData(person, "last_name")) && (getGeniData(person, "last_name") === getGeniData(person, "last_name").toUpperCase() || getGeniData(person, "last_name") === getGeniData(person, "last_name").toLowerCase())) {
                 //Last Name contains improper use of uppercase/lowercase
                 consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " last name.";
             } else if (first_name === first_name.toLowerCase() && first_name.length > 1) {
@@ -327,6 +327,10 @@ function selfCheck(familyset) {
             }
         }
     }
+}
+
+function validName(name) {
+    return (name !== "" && name !== "." && name !== "?" && name !== "NN" && name !== "unknown");
 }
 
 function buildEditLink(person) {

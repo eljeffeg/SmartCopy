@@ -16,13 +16,16 @@ var siblingcheckoption = true;
 var childcheckoption = true;
 var partnercheckoption = true;
 var agecheckoption = true;
+var socialoption = false;
 
 function buildconsistencyDiv() {
-    var consistencydiv = $(document.createElement('div'));
-    consistencydiv.attr('id','consistencyck');
-    consistencydiv.css({"display": "none", "position": "absolute", "background-color": "#fff", "z-index": "2", "width": "97%", "borderBottom":"solid 1px #cad3dd", "padding": "5px 20px 3px", "vertical-align": "middle", "line-height": "150%"});
-    $("#header").after(consistencydiv);
-    queryGeni();
+    if (startsWithHTTP(tablink, "https://www.geni.com/family-tree") || startsWithHTTP(tablink, "https://www.geni.com/people/")) {
+        var consistencydiv = $(document.createElement('div'));
+        consistencydiv.attr('id','consistencyck');
+        consistencydiv.css({"display": "none", "position": "absolute", "background-color": "#fff", "z-index": "2", "width": "97%", "borderBottom":"solid 1px #cad3dd", "padding": "5px 20px 3px", "vertical-align": "middle", "line-height": "150%"});
+        $("#header").after(consistencydiv);
+        queryGeni();
+    }
 }
 
 function queryGeni() {
@@ -142,9 +145,7 @@ function partnerCheck(partners) {
             wstatus = reverseRelationship(hstatus);
         }
         var husband_bdate = moment(getGeniData(husband, "birth", "date", true), dateformat).unix();
-        var husband_bapdate = moment(getGeniData(husband, "baptism", "date", true), dateformat).unix();
         var wife_bdate = moment(getGeniData(wife, "birth", "date", true), dateformat).unix();
-        var wife_bapdate = moment(getGeniData(wife, "baptism", "date", true), dateformat).unix();
         var husband_ddate = moment(getGeniData(husband, "death", "date", true), dateformat).unix();
         var wife_ddate = moment(getGeniData(wife, "death", "date", true), dateformat).unix();
         var union_mdate = moment(getGeniData(husband, "marriage", "date", true), dateformat).unix();
@@ -163,24 +164,19 @@ function partnerCheck(partners) {
                 + getPronoun(getGeniData(wife, "gender")) + " " + getStatus(hstatus, getGeniData(husband, "gender")) + " " + buildEditLink(husband) + ".";
         }
         if (husband_ddate === wife_ddate) {
+            //Husband and wife death dates the same
             consistencymessage = concat("info") + "Death date of " + buildEditLink(husband) + " is the same as the death date of "
                 + getPronoun(getGeniData(husband, "gender")) + " " + getStatus(wstatus, getGeniData(wife, "gender")) + " " + buildEditLink(wife) + ".";
         }
         if (husband_ddate === union_mdate) {
+            //Husband death date same as marriage date
             consistencymessage = concat("info") + "Death date of " + buildEditLink(husband) + " is the same as " + getPronoun(getGeniData(husband, "gender"))
                 + " marriage date.";
         }
         if (wife_ddate === union_mdate) {
+            //Wife death date same as marriage date
             consistencymessage = concat("info") + "Death date of " + buildEditLink(wife) + " is the same as " + getPronoun(getGeniData(wife, "gender"))
                 + " marriage date.";
-        }
-        if (husband_ddate === husband_bapdate) {
-            consistencymessage = concat("info") + "Death date of " + buildEditLink(wife) + " is the same as " + getPronoun(getGeniData(wife, "gender"))
-                + " baptism date.";
-        }
-        if (wife_ddate === wife_bapdate) {
-            consistencymessage = concat("info") + "Death date of " + buildEditLink(wife) + " is the same as " + getPronoun(getGeniData(wife, "gender"))
-                + " baptism date.";
         }
 
         for (var i=0;i<partners.length; i++) {
@@ -215,6 +211,7 @@ function siblingCheck(siblings) {
                         (sib1_bdate > sib2_bdate && sib1_bdate - day < sib2_bdate)) {
                         //Exclude Twins
                     } else {
+                        //Siblings ages too close together
                         consistencymessage = concat("warn") + "Birth date of " + buildEditLink(siblings[i]) + " and " + getPronoun(getGeniData(siblings[i], "gender"))
                             + " " + siblingName(getGeniData(siblings[j], "gender")) + " " + buildEditLink(siblings[j]) + " are within 9 months.";
                     }
@@ -256,9 +253,9 @@ function childCheck(parents, children) {
                         + " child " + buildEditLink(children[x]) + ".";
                 }
                 if (i === 0 && sibling_bdate < parent_mdate && !getGeniData(children[x], "adopted")) {
-                    //Born after parent marriage
-                    consistencymessage = concat("info") + buildEditLink(children[x]) + " born after the marriage of "
-                        + getPronoun(getGeniData(children[x], "gender")) + " parents.";
+                    //Born before parent marriage
+                    consistencymessage = concat("info") + buildEditLink(children[x]) + " born before the marriage of "
+                        + getPronoun(getGeniData(children[x], "gender")) + " parents " + buildEditLink(parents[0]) + " and " + buildEditLink(parents[1]) + ".";
                 }
             }
         }
@@ -269,6 +266,7 @@ function selfCheck(familyset) {
     for (var x=0; x < familyset.length; x++) {
         var person = familyset[x];
         var person_bdate = moment(getGeniData(person, "birth", "date", true), dateformat).unix();
+        var person_bapdate = moment(getGeniData(person, "baptism", "date", true), dateformat).unix();
         var person_ddate = moment(getGeniData(person, "death", "date", true), dateformat).unix();
         if (agecheckoption) {
             if (person_bdate + longevity_error * year < person_ddate) {
@@ -281,6 +279,11 @@ function selfCheck(familyset) {
             if (person_bdate > person_ddate) {
                 //Born after death
                 consistencymessage = concat("error") + "Birth date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " death date.";
+            }
+            if (person_ddate === person_bapdate) {
+                //Death same as baptism
+                consistencymessage = concat("info") + "Death date of " + buildEditLink(person) + " is the same as " + getPronoun(getGeniData(person, "gender"))
+                    + " baptism date.";
             }
         }
 
@@ -305,7 +308,7 @@ function selfCheck(familyset) {
                 //Last Name contains improper use of uppercase/lowercase
                 consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " last name.";
             } else if (first_name === first_name.toLowerCase() && first_name.length > 1) {
-                //First Name contains improper use of lowercase - excluding one letter uppercase for situations like NN
+                //First Name contains improper use of lowercase - excluding one letter and uppercase for situations like NN
                 consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " last name.";
             }
 
@@ -478,5 +481,14 @@ chrome.storage.local.get('marriageyoung', function (result) {
 chrome.storage.local.get('marriagedif', function (result) {
     if (result.marriagedif !== undefined) {
         spouse_age_dif = result.marriagedif;
+    }
+});
+
+chrome.storage.local.get('socialcheck', function (result) {
+    if (result.socialcheck !== undefined) {
+        socialoption = result.socialcheck;
+        if (socialoption) {
+            $('#fb-sharing-wrapper').css('visibility', 'hidden');
+        }
     }
 });

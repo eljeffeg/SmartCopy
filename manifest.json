@@ -19,7 +19,7 @@
         "images/icon.png", "images/content_*.png"
     ],
     "content_scripts": [{
-        "matches": ["*://www.geni.com/people/*","*://www.geni.com/family-tree*"],
+        "matches": ["*://www.geni.com/*"],
         "js": ["jquery.js", "moment.js", "shared.js", "content.js"]
     }],
     "permissions": ["activeTab", "storage",

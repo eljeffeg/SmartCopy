@@ -159,6 +159,9 @@ function loginProcess() {
                 if (exists(collection) && collection.parseData) {
                     console.log("Going to parse data now");
                     collection.parseData(tablink);
+                } else if (startsWithHTTP(tablink, "https://www.geni.com")) {
+                    document.querySelector('#loginspinner').style.display = "none";
+                    $("#optionslide").slideDown();
                 } else {
                     console.log("Could not find collection on " + tablink);
                     document.querySelector('#loginspinner').style.display = "none";
@@ -188,6 +191,9 @@ $('#genislider').on('click', function () {
     slideopen = !slideopen;
 });
 
+$("#checkdetailsopen").on("click", function () {
+    $("#checkdetails").slideToggle();
+});
 
 function isGeni(url) {
     return (startsWithHTTP(url,"http://www.geni.com/people") || startsWithHTTP(url,"http://www.geni.com/family-tree") || startsWithHTTP(url,"http://www.geni.com/profile"));
@@ -1823,6 +1829,18 @@ $(function () {
     $('#siblingonoffswitch').on('click', function () {
         chrome.storage.local.set({'siblingcheck': this.checked});
     });
+    $('#socialonoffswitch').on('click', function () {
+        chrome.storage.local.set({'socialcheck': this.checked});
+        if (this.checked) {
+            chrome.tabs.executeScript(null, {
+                code: "document.getElementById('fb-sharing-wrapper').style.visibility = 'hidden';"
+            });
+        } else {
+            chrome.tabs.executeScript(null, {
+                code: "document.getElementById('fb-sharing-wrapper').style.visibility = 'visible';"
+            });
+        }
+    });
     $('#agelimiterror').on('change', function () {
         chrome.storage.local.set({'agelimiterror': this.value});
     });
@@ -2154,6 +2172,13 @@ chrome.storage.local.get('siblingcheck', function (result) {
     var siblingcheck = result.siblingcheck;
     if (exists(siblingcheck)) {
         $('#siblingonoffswitch').prop('checked', siblingcheck);
+    }
+});
+
+chrome.storage.local.get('socialcheck', function (result) {
+    var socialcheck = result.socialcheck;
+    if (exists(socialcheck)) {
+        $('#socialonoffswitch').prop('checked', socialcheck);
     }
 });
 

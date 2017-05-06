@@ -1203,3 +1203,39 @@ a.match-button:not(.full):hover,
 .matches-module ul li .match-button.all-matches .new-tag {
   display: none
 }
+
+/* Style the tab */
+div.tab {
+    overflow: hidden;
+    margin-top: 10px;
+
+    border: 1px solid #b6b6bc;
+    background-color: #f1f1f6;
+}
+
+/* Style the buttons inside the tab */
+div.tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 5px 20px;
+    transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+div.tab button:hover {
+    background-color: #dddde2;
+}
+
+/* Create an active/current tablink class */
+div.tab button.active {
+    background-color: #ccccd2;
+}
+
+/* Style the tab content */
+.tabcontent {
+    display: none;
+    padding: 3px 0px;
+}

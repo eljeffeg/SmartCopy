@@ -32,6 +32,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
         }
         xhttp.send(request.data);
         return true; // prevents the callback from being called too early on return
+    } else if (request.action == "icon") {
+        chrome.browserAction.setIcon({path: request.path});
+        return true;
     }
 });
 

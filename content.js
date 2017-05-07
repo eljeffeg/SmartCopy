@@ -307,9 +307,9 @@ function selfCheck(familyset) {
             } else if (validName(getGeniData(person, "last_name")) && (getGeniData(person, "last_name") === getGeniData(person, "last_name").toUpperCase() || getGeniData(person, "last_name") === getGeniData(person, "last_name").toLowerCase())) {
                 //Last Name contains improper use of uppercase/lowercase
                 consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " last name.";
-            } else if (first_name === first_name.toLowerCase() && first_name.length > 1) {
+            } else if (validName(first_name) && first_name === first_name.toLowerCase()) {
                 //First Name contains improper use of lowercase - excluding one letter and uppercase for situations like NN
-                consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " last name.";
+                consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " first name.";
             }
 
             first_name = first_name.toLowerCase();
@@ -330,7 +330,11 @@ function selfCheck(familyset) {
 }
 
 function validName(name) {
-    return (name !== "" && name !== "." && name !== "?" && name !== "NN" && name !== "unknown");
+    return (name.length > 1 && isASCII(name) && name !== "NN" && name !== "unknown");
+}
+
+function isASCII(str) {
+    return /^[\x00-\x7F]*$/.test(str);
 }
 
 function buildEditLink(person) {

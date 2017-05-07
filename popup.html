@@ -40,99 +40,10 @@
             <div id="copyopt" class="tabcontent" style="display: block;">
                 <table style="border-spacing: 0; border-collapse: collapse; white-space: nowrap; width: 100%;">
                     <tr><td><table>
+                        <tr style="padding-top: 5px;"></tr>
+                        <tr><td colspan="2"><table width="100%"><tr><td style="padding-left: 10px; padding-right: 10px; text-aling: left; font-size: small; float: left;"><strong>Selection</strong></td><td width="100%"><hr/></td></tr></table></tr></td>
                         <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
-                                <div class="onoffswitch">
-                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                           id="geoonoffswitch" checked>
-                                    <label class="onoffswitch-label" for="geoonoffswitch">
-                                        <span class="onoffswitch-inner"></span>
-                                        <span class="onoffswitch-switch"></span>
-                                    </label>
-                                </div>
-                            </td>
-                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Detect geolocation and populate fields</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
-                                <div class="onoffswitch">
-                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                           id="forcegeoswitch">
-                                    <label class="onoffswitch-label" for="forcegeoswitch">
-                                        <span class="onoffswitch-inner"></span>
-                                        <span class="onoffswitch-switch"></span>
-                                    </label>
-                                </div>
-                            </td>
-                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Location fields auto-select one, select all<div id="forcegeochange" style="display: none; color: red;">This change will take effect at next use.</div></td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
-                                <div class="onoffswitch">
-                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                           id="privateonoffswitch" checked>
-                                    <label class="onoffswitch-label" for="privateonoffswitch">
-                                        <span class="onoffswitch-inner"></span>
-                                        <span class="onoffswitch-switch"></span>
-                                    </label>
-                                </div>
-                            </td>
-                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Exclude &lt;private&gt; profile auto-select</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
-                                <div class="onoffswitch">
-                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                           id="birthonoffswitch" checked>
-                                    <label class="onoffswitch-label" for="birthonoffswitch">
-                                        <span class="onoffswitch-inner"></span>
-                                        <span class="onoffswitch-switch"></span>
-                                    </label>
-                                </div>
-                            </td>
-                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Auto-populate empty birth name fields</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
-                                <div class="onoffswitch">
-                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                           id="mnameonoffswitch" checked>
-                                    <label class="onoffswitch-label" for="mnameonoffswitch">
-                                        <span class="onoffswitch-inner"></span>
-                                        <span class="onoffswitch-switch"></span>
-                                    </label>
-                                </div>
-                            </td>
-                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Parse for middle names automatically</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
-                                <div class="onoffswitch" checked>
-                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                           id="adjustnameonoffswitch" checked>
-                                    <label class="onoffswitch-label" for="adjustnameonoffswitch">
-                                        <span class="onoffswitch-inner"></span>
-                                        <span class="onoffswitch-switch"></span>
-                                    </label>
-                                </div>
-                            </td>
-                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Auto-adjust the names for mixed-case<div id="casenamechange" style="display: none; color: red;">This change will take effect at next use.</div></td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
-                                <div class="onoffswitch">
-                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                           id="compountlastonoffswitch">
-                                    <label class="onoffswitch-label" for="compountlastonoffswitch">
-                                        <span class="onoffswitch-inner"></span>
-                                        <span class="onoffswitch-switch"></span>
-                                    </label>
-                                </div>
-                            </td>
-                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Force compound lastname to lowercase<div id="compoundlast" style="display: none; color: red;">This change will take effect at next use.</div></td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
                                 <div class="onoffswitch">
                                     <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                            id="hideemptyonoffswitch" checked>
@@ -145,7 +56,33 @@
                             <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Simplify form by hiding unused fields</td>
                         </tr>
                         <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
+                                <div class="onoffswitch">
+                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                           id="photoonoffswitch">
+                                    <label class="onoffswitch-label" for="photoonoffswitch">
+                                        <span class="onoffswitch-inner"></span>
+                                        <span class="onoffswitch-switch"></span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Enable photo checkbox auto-selection<div id="photochange" style="display: none; color: red;">Reminder: The user is responsible for<br>obtaining any required permission from<br>the photographer when copying images.</div></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
+                                <div class="onoffswitch">
+                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                           id="privateonoffswitch" checked>
+                                    <label class="onoffswitch-label" for="privateonoffswitch">
+                                        <span class="onoffswitch-inner"></span>
+                                        <span class="onoffswitch-switch"></span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Exclude &lt;private&gt; profile auto-select</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
                                 <div class="onoffswitch">
                                     <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                            id="burialonoffswitch" checked>
@@ -157,8 +94,89 @@
                             </td>
                             <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Est. burial date from death if location<div id="burialchange" style="display: none; color: red;">This change will take effect at next use.</div></td>
                         </tr>
+                        <tr><td colspan="2"><table width="100%"><tr><td style="padding-left: 10px; padding-right: 10px; text-aling: left; font-size: small; float: left;"><strong>Location</strong></td><td width="100%"><hr/></td></tr></table></tr></td>
                         <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
+                                <div class="onoffswitch">
+                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                           id="geoonoffswitch" checked>
+                                    <label class="onoffswitch-label" for="geoonoffswitch">
+                                        <span class="onoffswitch-inner"></span>
+                                        <span class="onoffswitch-switch"></span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Detect geolocation and populate fields</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
+                                <div class="onoffswitch">
+                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                           id="forcegeoswitch">
+                                    <label class="onoffswitch-label" for="forcegeoswitch">
+                                        <span class="onoffswitch-inner"></span>
+                                        <span class="onoffswitch-switch"></span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Location fields auto-select one, select all<div id="forcegeochange" style="display: none; color: red;">This change will take effect at next use.</div></td>
+                        </tr>
+                        <tr><td colspan="2"><table width="100%"><tr><td style="padding-left: 10px; padding-right: 10px; text-aling: left; font-size: small; float: left;"><strong>Naming</strong></td><td width="100%"><hr/></td></tr></table></tr></td>
+                        <tr>
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
+                                <div class="onoffswitch">
+                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                           id="birthonoffswitch" checked>
+                                    <label class="onoffswitch-label" for="birthonoffswitch">
+                                        <span class="onoffswitch-inner"></span>
+                                        <span class="onoffswitch-switch"></span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Auto-populate empty birth name fields</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
+                                <div class="onoffswitch">
+                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                           id="mnameonoffswitch" checked>
+                                    <label class="onoffswitch-label" for="mnameonoffswitch">
+                                        <span class="onoffswitch-inner"></span>
+                                        <span class="onoffswitch-switch"></span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Parse for middle names automatically</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
+                                <div class="onoffswitch" checked>
+                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                           id="adjustnameonoffswitch" checked>
+                                    <label class="onoffswitch-label" for="adjustnameonoffswitch">
+                                        <span class="onoffswitch-inner"></span>
+                                        <span class="onoffswitch-switch"></span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Auto-adjust the names for mixed-case<div id="casenamechange" style="display: none; color: red;">This change will take effect at next use.</div></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
+                                <div class="onoffswitch">
+                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                           id="compountlastonoffswitch">
+                                    <label class="onoffswitch-label" for="compountlastonoffswitch">
+                                        <span class="onoffswitch-inner"></span>
+                                        <span class="onoffswitch-switch"></span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Force compound lastname to lowercase<div id="compoundlast" style="display: none; color: red;">This change will take effect at next use.</div></td>
+                        </tr>
+                        <tr><td colspan="2"><table width="100%"><tr><td style="padding-left: 10px; padding-right: 10px; text-aling: left; font-size: small; float: left;"><strong>Geni</strong></td><td width="100%"><hr/></td></tr></table></tr></td>
+                        <tr>
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
                                 <div class="onoffswitch">
                                     <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                            id="geniparentonoffswitch" checked>
@@ -171,7 +189,7 @@
                             <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Default children to likely Geni parent<div id="gparentchange" style="display: none; color: red;">This change will take effect at next use.</div></td>
                         </tr>
                         <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
                                 <div class="onoffswitch">
                                     <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                            id="sourceonoffswitch"  checked>
@@ -184,7 +202,7 @@
                             <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Add reference to Geni's About section</td>
                         </tr>
                         <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
                                 <div class="onoffswitch">
                                     <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                            id="genislideonoffswitch" checked>
@@ -196,21 +214,8 @@
                             </td>
                             <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Display the Geni side data by default</td>
                         </tr>
-                        <tr>
-                            <td style="padding: 3px 6px 0; width: 58px;">
-                                <div class="onoffswitch">
-                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-                                           id="photoonoffswitch">
-                                    <label class="onoffswitch-label" for="photoonoffswitch">
-                                        <span class="onoffswitch-inner"></span>
-                                        <span class="onoffswitch-switch"></span>
-                                    </label>
-                                </div>
-                            </td>
-                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Enable photo checkbox auto-selection<div id="photochange" style="display: none; color: red;">Reminder: The user is responsible for<br>obtaining any required permission from<br>the photographer when copying images.</div></td>
-                        </tr>
                     </table>
-                    </td><td id="controlimage"><img style="margin-left: -10px; width: 170px;" src="images/control.png"></td>
+                    </td><td id="controlimage"><img style="margin-left: -10px; width: 140px;" src="images/control.png"></td>
                     </tr>
                 </table>
             </div>
@@ -218,7 +223,8 @@
                 <span style="font-size: x-small; text-align: left; float: left; padding-left: 5px; padding-right: 5px;"><strong>Note:</strong> Dates that contain Between, Before, and After are not compared in consistency checks.  Dates with Circa are considered as exact dates.</span>
                 <table style="border-spacing: 0; border-collapse: collapse; white-space: nowrap; width: 100%;vertical-align: top;">
                     <tr><td></td></tr>
-                    <tr><td><table style=" margin: 0px auto;">
+                    <tr><td>
+                        <table style=" margin: 0px auto;">
                         <tr>
                             <td style="padding: 3px 6px 0; width: 58px; vertical-align: top;">
                                 <div class="onoffswitch">
@@ -234,34 +240,34 @@
                                 <img id="checkdetailsopen" src='images/help.png' style='width: 16px; cursor: pointer; padding-left: 4px; padding-right: 8px; margin-bottom: -3px;' title="Consistency Check Information">
                             </td>
                         </tr>
-                    </table>
+                        </table>
                         <div id="checkdetails" class='colorbox' style="display: none; text-align: left; background-color: #f1f1f6; margin-bottom: 0px; margin-top: 12px; margin-right: 20px; margin-left: 20px;">
-                                <li>Age different between partners is significant</li>
-                                <li>Maiden name same as husband's last name</li>
-                                <li>Husband and wife death dates the same</li>
-                                <li>Husband death date same as marriage date</li>
-                                <li>Wife death date same as marriage date</li>
-                                <li>Born after marriage</li>
-                                <li>Died before marriage</li>
-                                <li>Implausible marriage age, too young</li>
-                                <li>Siblings ages too close together</li>
-                                <li>Born before parent birth</li>
-                                <li>Born after parent death</li>
-                                <li>Death date same as baptism date</li>
-                                <li>Parent too young for child's birth</li>
-                                <li>Mother too old for child's birth</li>
-                                <li>Born before parent marriage</li>
-                                <li>Excessive Age</li>
-                                <li>Born after death</li>
-                                <li>Name contains double space</li>
-                                <li>Name contains alias</li>
-                                <li>Name contains improper use of uppercase/lowercase</li>
-                                <li>Maiden Name contains improper use of uppercase/lowercase</li>
-                                <li>Last Name contains improper use of uppercase/lowercase</li>
-                                <li>First Name contains improper use of lowercase</li>
-                                <li>First Name ends in suffix (eg. 'i','ii','iii','iv','jr','sr')</li>
-                                <li>Salutation in title (eg. 'Mr', 'Mrs')</li>
-                            </div>
+                            <li>Age different between partners is significant</li>
+                            <li>Maiden name same as husband's last name</li>
+                            <li>Husband and wife death dates the same</li>
+                            <li>Husband death date same as marriage date</li>
+                            <li>Wife death date same as marriage date</li>
+                            <li>Born after marriage</li>
+                            <li>Died before marriage</li>
+                            <li>Implausible marriage age, too young</li>
+                            <li>Siblings ages too close together</li>
+                            <li>Born before parent birth</li>
+                            <li>Born after parent death</li>
+                            <li>Death date same as baptism date</li>
+                            <li>Parent too young for child's birth</li>
+                            <li>Mother too old for child's birth</li>
+                            <li>Born before parent marriage</li>
+                            <li>Excessive Age</li>
+                            <li>Born after death</li>
+                            <li>Name contains double space</li>
+                            <li>Name contains alias</li>
+                            <li>Name contains improper use of uppercase/lowercase</li>
+                            <li>Maiden Name contains improper use of uppercase/lowercase</li>
+                            <li>Last Name contains improper use of uppercase/lowercase</li>
+                            <li>First Name contains improper use of lowercase</li>
+                            <li>First Name ends in suffix (eg. 'i','ii','iii','iv','jr','sr')</li>
+                            <li>Salutation in title (eg. 'Mr', 'Mrs')</li>
+                        </div>
                     </td></tr>
                 </table>
                 <div id="consistencyoptiontable">

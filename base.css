@@ -1237,5 +1237,6 @@ div.tab button.active {
 /* Style the tab content */
 .tabcontent {
     display: none;
-    padding: 3px 0px;
+    padding-top: 3px;
+    padding-bottom: 5px;
 }

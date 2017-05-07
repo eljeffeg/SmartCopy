@@ -245,11 +245,11 @@ function childCheck(parents, children) {
                         + getPronoun(getGeniData(children[x], "gender")) + " " + parentName(getGeniData(parents[i], "gender")) + " " + buildEditLink(parents[i]) + ".";
                 } else if (sibling_bdate < parent_bdate + (birthage_young * year) + pregnancy) {
                     //Parent too young for child's birth
-                    consistencymessage = concat("warn") + buildEditLink(parents[i]) + " is under " + birthage_young + " years old for the birth of " + getPronoun(getGeniData(children[x], "gender"))
+                    consistencymessage = concat("warn") + buildEditLink(parents[i]) + " is under " + birthage_young + " years old for the birth of " + getPronoun(getGeniData(parents[i], "gender"))
                         + " child " + buildEditLink(children[x]) + ".";
                 } else if (isFemale(getGeniData(parents[i], "gender")) && sibling_bdate > parent_bdate + (birthage_old * year)) {
                     //Mother too old for child's birth
-                    consistencymessage = concat("warn") + buildEditLink(parents[i]) + " is over " + birthage_old + " years old for the birth of " + getPronoun(getGeniData(children[x], "gender"))
+                    consistencymessage = concat("warn") + buildEditLink(parents[i]) + " is over " + birthage_old + " years old for the birth of " + getPronoun(getGeniData(parents[i], "gender"))
                         + " child " + buildEditLink(children[x]) + ".";
                 }
                 if (i === 0 && sibling_bdate < parent_mdate && !getGeniData(children[x], "adopted")) {

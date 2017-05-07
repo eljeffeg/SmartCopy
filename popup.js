@@ -1823,6 +1823,9 @@ $(function () {
     $('#siblingonoffswitch').on('click', function () {
         chrome.storage.local.set({'siblingcheck': this.checked});
     });
+    $('#wedlockonoffswitch').on('click', function () {
+        chrome.storage.local.set({'wedlockcheck': this.checked});
+    });
     $('#socialonoffswitch').on('click', function () {
         chrome.storage.local.set({'socialcheck': this.checked});
         if (this.checked) {
@@ -2166,6 +2169,13 @@ chrome.storage.local.get('siblingcheck', function (result) {
     var siblingcheck = result.siblingcheck;
     if (exists(siblingcheck)) {
         $('#siblingonoffswitch').prop('checked', siblingcheck);
+    }
+});
+
+chrome.storage.local.get('wedlockcheck', function (result) {
+    var wedlockcheck = result.wedlockcheck;
+    if (exists(wedlockcheck)) {
+        $('#wedlockonoffswitch').prop('checked', wedlockcheck);
     }
 });
 

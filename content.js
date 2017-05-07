@@ -17,6 +17,7 @@ var childcheckoption = true;
 var partnercheckoption = true;
 var agecheckoption = true;
 var socialoption = false;
+var wedlock = false;
 
 function buildconsistencyDiv() {
     if (isGeni(tablink)) {
@@ -252,7 +253,7 @@ function childCheck(parents, children) {
                     consistencymessage = concat("warn") + buildEditLink(parents[i]) + " is over " + birthage_old + " years old for the birth of " + getPronoun(getGeniData(parents[i], "gender"))
                         + " child " + buildEditLink(children[x]) + ".";
                 }
-                if (i === 0 && sibling_bdate < parent_mdate && !getGeniData(children[x], "adopted")) {
+                if (wedlock && i === 0 && sibling_bdate < parent_mdate && !getGeniData(children[x], "adopted")) {
                     //Born before parent marriage
                     consistencymessage = concat("info") + buildEditLink(children[x]) + " born before the marriage of "
                         + getPronoun(getGeniData(children[x], "gender")) + " parents " + buildEditLink(parents[0]) + " and " + buildEditLink(parents[1]) + ".";
@@ -502,5 +503,11 @@ chrome.storage.local.get('socialcheck', function (result) {
         if (socialoption) {
             $('#fb-sharing-wrapper').css('visibility', 'hidden');
         }
+    }
+});
+
+chrome.storage.local.get('wedlockcheck', function (result) {
+    if (result.wedlockcheck !== undefined) {
+        wedlock = result.wedlockcheck;
     }
 });

@@ -7,9 +7,9 @@
 </head>
 <body>
 <a href=""></a><!-- For some reason, the first hyperlink adds a border - chrome extension feature? -->
-<div id="logo" style="background-color: #e5ebf0; margin: -2px -8px; padding:3px 8px 0; border-bottom: solid 1px #fff;"><a href="https://www.geni.com/projects/SmartCopy/18783" target="_blank"><img src="images/smartcopylg.png" style="width: 200px;"></a>
-    <span id="sclink" style="float: right;"><a href="https://www.geni.com/discussions?discussion_type=project-18783" target="_blank"><img src="/images/comment.png" title="Discussion" style="padding-top: 8px; padding-right: 4px; padding-left: 2px; width: 20px;"></a></span><span class="aboutdev" style="float: right; cursor: pointer;"><img src="/images/info.png" title="Information" style="padding-top: 8px; padding-right: 4px; padding-left: 2px; width: 20px;"></span>
-    <span id="curator" style="display: none; float: right;"><a href="https://historylinktools.herokuapp.com/leaderboard" target="_blank"><img src="/images/curator.png" title="Leaderboard" style="padding-top: 8px; padding-right: 5px; width: 20px;"></a></span>
+<div id="logo" style="background-color: #e5ebf0; margin: -2px -8px; padding:3px 8px 0; border-bottom: solid 1px #fff;"><a href="https://www.geni.com/projects/SmartCopy/18783" target="_blank"><img src="images/smartcopylg.png" alt="SmartCopy Logo" style="width: 200px;"></a>
+    <span id="sclink" style="float: right;"><a href="https://www.geni.com/discussions?discussion_type=project-18783" target="_blank"><img src="/images/comment.png" alt="Discussion" title="Discussion" style="padding-top: 8px; padding-right: 4px; padding-left: 2px; width: 20px;"></a></span><span class="aboutdev" style="float: right; cursor: pointer;"><img src="/images/info.png" alt="Information" title="Information" style="padding-top: 8px; padding-right: 4px; padding-left: 2px; width: 20px;"></span>
+    <span id="curator" style="display: none; float: right;"><a href="https://historylinktools.herokuapp.com/leaderboard" target="_blank"><img src="/images/curator.png" alt="Leaderboard" title="Leaderboard" style="padding-top: 8px; padding-right: 5px; width: 20px;"></a></span>
 
     <!-- <span style="display: inline-block; float: right; padding-top: 4px;"><img src="images/CuratorShield.png" width="22" align="right"></span> -->
 </div>
@@ -23,11 +23,11 @@
                 Graph</a> <span style="color:#000;">&nbsp;&bull;&nbsp;</span> <a
                     href="https://historylinktools.herokuapp.com/graph?type=descendant&color=gender" style="color:#000;" target="_blank"
                     id="descendanturl">Descendant Graph</a> <span style="color:#000;">&nbsp;&bull;&nbsp;</span> <a
-                    href="https://historylinktools.herokuapp.com/history" style="color:#000;"target="_blank" id="historyurl">History
+                    href="https://historylinktools.herokuapp.com/history" style="color:#000;" target="_blank" id="historyurl">History
                 Search</a></strong>
             </span>
             <span id="optionbutton" style="float: right; padding-right: 2px; padding-left:5px; cursor: pointer;">
-               <strong id="configtext">Configuration</strong><img src="/images/admin.png" style="width: 16px; vertical-align: middle; padding-left: 5px;">
+               <strong id="configtext">Configuration</strong><img src="/images/admin.png" alt="Administration" style="width: 16px; vertical-align: middle; padding-left: 5px;">
             </span>
         </div>
         <div id="optionslide" style="display: none; margin: 0 -8px; padding: 0 10px;">
@@ -40,8 +40,14 @@
             <div id="copyopt" class="tabcontent" style="display: block;">
                 <table style="border-spacing: 0; border-collapse: collapse; white-space: nowrap; width: 100%;">
                     <tr><td><table>
-                        <tr style="padding-top: 5px;"></tr>
-                        <tr><td colspan="2"><table width="100%"><tr><td style="padding-left: 10px; padding-right: 10px; text-aling: left; font-size: small; float: left;"><strong>Selection</strong></td><td width="100%"><hr/></td></tr></table></tr></td>
+                        <tr style="padding-top: 5px;"><td colspan="2"></td></tr>
+                        <tr>
+                            <td colspan="2">
+                                <table style="width: 100%;"><tr>
+                                    <td style="padding-left: 10px; padding-right: 10px; text-aling: left; font-size: small; float: left;"><strong>Selection</strong></td>
+                                    <td style="width: 100%"><hr/></td>
+                                </tr></table>
+                            </td>
                         <tr>
                             <td style="padding: 3px 6px 0 25px; width: 58px;">
                                 <div class="onoffswitch">
@@ -94,7 +100,13 @@
                             </td>
                             <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Est. burial date from death if location<div id="burialchange" style="display: none; color: red;">This change will take effect at next use.</div></td>
                         </tr>
-                        <tr><td colspan="2"><table width="100%"><tr><td style="padding-left: 10px; padding-right: 10px; text-aling: left; font-size: small; float: left;"><strong>Location</strong></td><td width="100%"><hr/></td></tr></table></tr></td>
+                        <tr>
+                            <td colspan="2">
+                                <table style="width: 100%;"><tr>
+                                    <td style="padding-left: 10px; padding-right: 10px; text-aling: left; font-size: small; float: left;"><strong>Location</strong></td>
+                                    <td style="width: 100%"><hr/></td>
+                                </tr></table>
+                            </td>
                         <tr>
                             <td style="padding: 3px 6px 0 25px; width: 58px;">
                                 <div class="onoffswitch">
@@ -121,7 +133,13 @@
                             </td>
                             <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Location fields auto-select one, select all<div id="forcegeochange" style="display: none; color: red;">This change will take effect at next use.</div></td>
                         </tr>
-                        <tr><td colspan="2"><table width="100%"><tr><td style="padding-left: 10px; padding-right: 10px; text-aling: left; font-size: small; float: left;"><strong>Naming</strong></td><td width="100%"><hr/></td></tr></table></tr></td>
+                        <tr>
+                            <td colspan="2">
+                                <table style="width: 100%;"><tr>
+                                    <td style="padding-left: 10px; padding-right: 10px; text-aling: left; font-size: small; float: left;"><strong>Naming</strong></td>
+                                    <td style="width: 100%"><hr/></td>
+                                </tr></table>
+                            </td>
                         <tr>
                             <td style="padding: 3px 6px 0 25px; width: 58px;">
                                 <div class="onoffswitch">
@@ -150,7 +168,7 @@
                         </tr>
                         <tr>
                             <td style="padding: 3px 6px 0 25px; width: 58px;">
-                                <div class="onoffswitch" checked>
+                                <div class="onoffswitch">
                                     <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                            id="adjustnameonoffswitch" checked>
                                     <label class="onoffswitch-label" for="adjustnameonoffswitch">
@@ -174,7 +192,13 @@
                             </td>
                             <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Force compound lastname to lowercase<div id="compoundlast" style="display: none; color: red;">This change will take effect at next use.</div></td>
                         </tr>
-                        <tr><td colspan="2"><table width="100%"><tr><td style="padding-left: 10px; padding-right: 10px; text-aling: left; font-size: small; float: left;"><strong>Geni</strong></td><td width="100%"><hr/></td></tr></table></tr></td>
+                        <tr>
+                            <td colspan="2">
+                                <table style="width: 100%;"><tr>
+                                    <td style="padding-left: 10px; padding-right: 10px; text-aling: left; font-size: small; float: left;"><strong>Geni</strong></td>
+                                    <td style="width: 100%"><hr/></td>
+                                </tr></table>
+                            </td>
                         <tr>
                             <td style="padding: 3px 6px 0 25px; width: 58px;">
                                 <div class="onoffswitch">
@@ -215,7 +239,7 @@
                             <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Display the Geni side data by default</td>
                         </tr>
                     </table>
-                    </td><td id="controlimage"><img style="margin-left: -10px; width: 140px;" src="images/control.png"></td>
+                    </td><td id="controlimage"><img style="margin-left: -10px; width: 140px;" src="images/control.png" alt="Control"></td>
                     </tr>
                 </table>
             </div>
@@ -237,11 +261,11 @@
                                 </div>
                             </td>
                             <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Run consistency checks when viewing Geni profiles.
-                                <img id="checkdetailsopen" src='images/help.png' style='width: 16px; cursor: pointer; padding-left: 4px; padding-right: 8px; margin-bottom: -3px;' title="Consistency Check Information">
+                                <img id="checkdetailsopen" alt="Consistency Check Help" src='images/help.png' style='width: 16px; cursor: pointer; padding-left: 4px; padding-right: 8px; margin-bottom: -3px;' title="Consistency Check Information">
                             </td>
                         </tr>
                         </table>
-                        <div id="checkdetails" class='colorbox' style="display: none; text-align: left; background-color: #f1f1f6; margin-bottom: 0px; margin-top: 12px; margin-right: 20px; margin-left: 20px;">
+                        <div id="checkdetails" class='colorbox' style="display: none; text-align: left; background-color: #f1f1f6; margin-bottom: 0px; margin-top: 12px; margin-right: 20px; margin-left: 20px;"><ul style="padding-left:15px;">
                             <li>Age different between partners is significant</li>
                             <li>Maiden name same as husband's last name</li>
                             <li>Husband and wife death dates the same</li>
@@ -267,7 +291,7 @@
                             <li>First Name contains improper use of lowercase</li>
                             <li>First Name ends in suffix (eg. 'i','ii','iii','iv','jr','sr')</li>
                             <li>Salutation in title (eg. 'Mr', 'Mrs')</li>
-                        </div>
+                        </ul></div>
                     </td></tr>
                 </table>
                 <div id="consistencyoptiontable">
@@ -302,7 +326,7 @@
                                 <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Check the dates of children against their parents.
                                     <div style="padding: 0px; margin: 0px;">
                                         <table style="padding-top: 2px;">
-                                            <tr><td><li>Check child is born after parent marriage</li></td><td><img src='images/content_info.png' style='float: left; width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'>
+                                            <tr><td><ul style="padding: 0 0 0 15px; margin: 0px;"><li>Check child is born after parent marriage</li></ul></td><td><img src='images/content_info.png' alt='Information' style='float: left; width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'>
                                                 <div class="onoffswitch" style="float: right;">
                                                         <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                                                id="wedlockonoffswitch">
@@ -312,8 +336,8 @@
                                                         </label>
                                                     </div>
                                             </td></tr>
-                                            <tr><td><li>Age the parent is too young to have a child</li></td><td><img src='images/content_warn.png' style='width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'> <input style="width: 44px;" type="number" name="childyoungwarnning" min="1" id="childyoungwarn" value="12"></td></tr>
-                                            <tr><td><li>Age the mother is too old to have a child</li></td><td><img src='images/content_warn.png' style='width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'> <input style="width: 44px;" type="number" name="childoldwarnning" min="1" id="childoldwarn" value="55"></td>
+                                            <tr><td><ul style="padding: 0 0 0 15px; margin: 0px;"><li>Age the parent is too young to have a child</li></ul></td><td><img src='images/content_warn.png' alt='Warning' style='width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'> <input style="width: 44px;" type="number" name="childyoungwarnning" min="1" id="childyoungwarn" value="12"></td></tr>
+                                            <tr><td><ul style="padding: 0 0 0 15px; margin: 0px;"><li>Age the mother is too old to have a child</li></ul></td><td><img src='images/content_warn.png' alt='Warning' style='width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'> <input style="width: 44px;" type="number" name="childoldwarnning" min="1" id="childoldwarn" value="55"></td>
                                         </tr>
                                         </table>
                                     </div>
@@ -332,9 +356,9 @@
                                 </td>
                                 <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Check the dates of partner/spouses against each other.
                                     <div style="padding: 0px; margin: 0px;">
-                                        <table>
-                                            <tr><td><li>Age the spouse is too young to be married</li></td><td><img src='images/content_warn.png' style='width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'> <input style="width: 44px;" type="number" name="marriedyoungwarnning" min="1" id="marriedyoungwarn" value="14"></td></tr>
-                                            <tr><td><li>Maximum age difference between spouses</li></td><td><img src='images/content_warn.png' style='width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'> <input style="width: 44px;" type="number" name="spouseagediff" min="1" id="spouseagediff" value="22"></td></tr>
+                                        <table style="padding-top: 2px;">
+                                            <tr><td><ul style="padding: 0 0 0 15px; margin: 0px;"><li>Age the spouse is too young to be married</li></ul></td><td><img src='images/content_warn.png' alt='Warning' style='width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'> <input style="width: 44px;" type="number" name="marriedyoungwarnning" min="1" id="marriedyoungwarn" value="14"></td></tr>
+                                            <tr><td><ul style="padding: 0 0 0 15px; margin: 0px;"><li>Maximum age difference between spouses</li></ul></td><td><img src='images/content_warn.png' alt='Warning' style='width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'> <input style="width: 44px;" type="number" name="spouseagediff" min="1" id="spouseagediff" value="22"></td></tr>
                                         </table>
                                     </div>
                                 </td>
@@ -365,8 +389,8 @@
                                     </div>
                                 </td>
                                 <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">
-                                    Maximum age in years: <img src='images/content_warn.png' style='width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'> <input style="width: 44px;" type="number" name="agelimitwarnning" min="1" id="agelimitwarn" value="105">
-                                <img src='images/content_error.png' style='width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'> <input style="width: 44px;" type="number" name="agelimiterror" min="1" id="agelimiterror" value="125"></td>
+                                    Maximum age in years: <img src='images/content_warn.png' alt='Warning' style='width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'> <input style="width: 44px;" type="number" name="agelimitwarnning" min="1" id="agelimitwarn" value="105">
+                                <img src='images/content_error.png' alt='Error' style='width: 16px; padding-left: 4px; padding-right: 2px; margin-bottom: -3px;'> <input style="width: 44px;" type="number" name="agelimiterror" min="1" id="agelimiterror" value="125"></td>
                             </tr>
                         </table>
                         </td>
@@ -390,7 +414,7 @@
                             </td>
                             <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Hide Geni's "Social Sharing" FaceBook button.</td>
                         </tr>
-                    </table></td><td><img style="margin-left: -10px; width: 100px;" src="images/control.png"></td>
+                    </table></td><td><img style="margin-left: -10px; width: 100px;" src="images/control.png" alt='Control Image'></td>
 
                     </tr>
                 </table>
@@ -404,11 +428,11 @@
     <div class="modal-content">
         <div class="shadoweffect" style="margin: 12px; padding-left: 10px; padding-right: 10px; padding-top: 0px;">
             <span id="modalclose2" class="close">&times;</span>
-            <center><img src="images/smartcopylg.png" style="width: 200px; padding-top: 20px; padding-left: 10px;">
+            <center><img src="images/smartcopylg.png" alt="SmartCopy Logo" style="width: 200px; padding-top: 20px; padding-left: 10px;">
                 <div id="versionbox2" style="font-size: x-small; margin-top: -10px; -webkit-user-select: none;"></div>
             </center>
 
-            <table width="100%"><tr><td>
+            <table style="width: 100%;"><tr><td>
                 <strong>Developed by Jeffrey Gentes</strong>
             </td><td><div style="float:right;">
                 <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
@@ -456,11 +480,11 @@
         <div class="modal-content">
             <div class="shadoweffect" style="margin: 12px; padding-left: 10px; padding-right: 10px; padding-top: 0px;">
                 <span id="modalclose1" class="close">&times;</span>
-                <table><tr><td><img src="images/redpin.png" align="left" style="width: 32px; margin-left: -5px;"></td><td><h2>Location Update</h2></td></tr></table>
+                <table><tr><td><img src="images/redpin.png" alt="Redpin" align="left" style="width: 32px; margin-left: -5px;"></td><td><h2>Location Update</h2></td></tr></table>
                 Update the location and resubmit it to Google for GeoLocation.
                 <div class="modal-body" style="height: 100%;">
                     <p><input id="geoupdatetext" type="text" style="width: 100%;"></p>
-                    <button type="button" id="georevertbtn" value="" class="cta cta-blue" title="Restore Original Location" style="float: left;"><img style="width: 22px; margin-top: 3px;" src="images/revert.png"></button><button type="button" id="geolookupbtn" class="cta cta-blue" style="float: right;">Update</button>
+                    <button type="button" id="georevertbtn" value="" class="cta cta-blue" title="Restore Original Location" style="float: left;"><img style="width: 22px; margin-top: 3px;" alt="Revert" src="images/revert.png"></button><button type="button" id="geolookupbtn" class="cta cta-blue" style="float: right;">Update</button>
                     <br><br>
                 </div>
             </div>
@@ -468,7 +492,7 @@
     </div>
 
     <form id="formdata">
-        <div id="genislider" title="Geni Data" class="ctx" style="display: none; z-index:99; cursor: pointer; position: fixed; top: 44%; left: -8px; height:70px; width: 0px;"><img src="images/openmenu.png" style="width: 10px; padding-top:22px; height: 25px; margin-left: -2px;"></div>
+        <div id="genislider" title="Geni Data" class="ctx" style="display: none; z-index:99; cursor: pointer; position: fixed; top: 44%; left: -8px; height:70px; width: 0px;"><img src="images/openmenu.png" alt="Open Menu" style="width: 10px; padding-top:22px; height: 25px; margin-left: -2px;"></div>
         <div class='colorbox' id='experimentalmessage' style="display: none; width: 93%; margin: 0 5px 10px; background-color:#f8ff86;">SmartCopy use on this website is experimental and may not be fully supported. Please be cautions and review the data thoroughly before submitting. Report issues in the <a href="https://www.geni.com/discussions?discussion_type=project-18783" target="_blank">SmartCopy discussion at Geni</a>.</div>
         <div class="shadoweffect" id="treematches" style="margin: 0 4px 6px; display: none;">
             <table><tr>
@@ -506,22 +530,22 @@
         </div>
         <div id="profiledata" style="display: none; text-align: center;">
             <table style="margin-bottom: 10px; width: 100%;">
-                <strong>Profile Data</strong>
-                <td >
-                    <div class="shadoweffect" style="padding-top: 12px; margin-right: 1px; margin-left: 1px; font-weight: bold;" id="profileshadowdiv"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall">Update Profile<img id="focusshowhide" src="images/show.png" class="showhide" title="Show All Fields" style="width: 24px; padding-left: 6px; margin-bottom: -8px; cursor: pointer;"><span id="updateslide" style="font-size: 130%; cursor: pointer; float: right; padding: 0px 4px;"><img src="images/dropdown.png" style="width: 11px;"></span><span class="genisliderow" style="float: right; font-size: 80%; font-weight: normal; margin-right: 100px; margin-top: 5px;">Geni Data</span>
+                <tr><td><strong>Profile Data</strong></td></tr>
+                <tr><td >
+                    <div class="shadoweffect" style="padding-top: 12px; margin-right: 1px; margin-left: 1px; font-weight: bold;" id="profileshadowdiv"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall">Update Profile<img id="focusshowhide" alt="Show" src="images/show.png" class="showhide" title="Show All Fields" style="width: 24px; padding-left: 6px; margin-bottom: -8px; cursor: pointer;"><span id="updateslide" style="font-size: 130%; cursor: pointer; float: right; padding: 0px 4px;"><img src="images/dropdown.png" alt="Dropdown" style="width: 11px;"></span><span class="genisliderow" style="float: right; font-size: 80%; font-weight: normal; margin-right: 100px; margin-top: 5px;">Geni Data</span>
                         <fieldset id="profilefield" class="fieldeffect">
                             <table style="width: 100%; border-spacing: 0; border-collapse: collapse;" id="profiletable">
                             </table>
                         </fieldset>
                     </div>
-                </td>
+                </td></tr>
             </table>
         </div>
 
         <div id="familydata" style="display: none; margin-top: 10px; text-align: center;">
             <table style="margin-bottom: 10px; width: 100%;">
-                <strong>Family Members</strong>
-                <td >
+                <tr><td><strong>Family Members</strong></td></tr>
+                <tr><td >
                     <div class="shadoweffect" style="padding-top: 4px; margin-right: 1px; margin-left: 1px;">
                         <div id="parent" style="display: none; margin-top: 8px;">
                             <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addparentck">Parents</span><span id="parentcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandparent" style="color: #000;">expand all</a>)</span><span id="parentsearch" style="float: right; padding-right: 5px;"><a href="http://www.geni.com/search/advanced" id="genisearch" target="_blank"><img src="images/search.png" alt="Search Geni for Parents" title="Search Geni for Parents" style="height: 16px; margin-bottom: -4px;" border="0"></a></span>
@@ -554,24 +578,24 @@
                             </fieldset>
                         </div>
                     </div>
-                </td>
+                </td></tr>
             </table>
         </div>
 
         <div id="bottomsubmit" style="display: none; padding-top: 10px; padding-bottom: 5px; text-align: center;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;">Submit</a></div>
 
         <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px; margin-bottom: 15px;">
-            <div style="text-align: center; padding-top: 2px;"><img src="images/spinnerlg.gif" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Reading Family Data...</strong><div id="readstatus"></div></div>
+            <div style="text-align: center; padding-top: 2px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Reading Family Data...</strong><div id="readstatus"></div></div>
         </div>
         <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
-            <div style="text-align: center; padding-top: 2px; padding-right: 10px; padding-left: 10px;"><img src="images/spinnerlg.gif" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Updating Geni (<span id="updatecount">1</span> of <span id="updatetotal">1</span>)</strong>
+            <div style="text-align: center; padding-top: 2px; padding-right: 10px; padding-left: 10px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Updating Geni (<span id="updatecount">1</span> of <span id="updatetotal">1</span>)</strong>
                 <div id="updatestatus"></div>
             </div>
         </div>
     </form>
 </div>
 <center>
-    <div id='loginspinner' style="padding-top: 11px; text-align: center;"><img src="images/spinnerlg.gif" style="height: 24px;"></div>
+    <div id='loginspinner' style="padding-top: 11px; text-align: center;"><img src="images/spinnerlg.gif" alt="Waiting" style="height: 24px;"></div>
     <div id='logindiv' style="padding-top: 11px; text-align: center; margin-left: -20px; margin-right: -20px; display: none;"><iframe id="loginframe" style="width: 100%; height: 460px; width: 650px;" frameborder="0" scrolling="no"></iframe></div>
     <div class='colorbox' id='useraccess' style="display:none; width: 88%; margin-bottom: 12px; margin-right: 9px; margin-left: 9px; background-color:#dfe6ed;"></div>
     <div class='colorbox' id='message' style="display:none; width: 88%; margin-bottom: 15px; margin-right: 9px; margin-left: 9px; background-color:#D3D3D3;"></div>

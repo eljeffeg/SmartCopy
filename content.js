@@ -280,7 +280,7 @@ function selfCheck(familyset) {
             if (person_bdate > person_ddate) {
                 var ddate = getGeniData(person, "death", "date", true);
                 var bdate = getGeniData(person, "birth", "date", true);
-                if (!(ddate.search(/^\d{4}$/) !== -1 && bdate.contains(ddate))) {
+                if (!(isYear(ddate) && bdate.contains(ddate))) {
                     //Born after death
                     consistencymessage = concat("error") + "Birth date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " death date.";
                 }
@@ -340,6 +340,10 @@ function validName(name) {
 
 function isASCII(str) {
     return /^[\x00-\x7F]*$/.test(str);
+}
+
+function isYear(date) {
+    return date.search(/^\d{4}$/) !== -1;
 }
 
 function buildEditLink(person) {

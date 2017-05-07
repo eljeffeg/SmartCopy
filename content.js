@@ -252,8 +252,7 @@ function childCheck(parents, children) {
                     //Mother too old for child's birth
                     consistencymessage = concat("warn") + buildEditLink(parents[i]) + " is over " + birthage_old + " years old for the birth of " + getPronoun(getGeniData(parents[i], "gender"))
                         + " child " + buildEditLink(children[x]) + ".";
-                }
-                if (wedlock && i === 0 && sibling_bdate < parent_mdate && !getGeniData(children[x], "adopted")) {
+                } else if (wedlock && i === 0 && sibling_bdate < parent_mdate && !getGeniData(children[x], "adopted")) {
                     //Born before parent marriage
                     consistencymessage = concat("info") + buildEditLink(children[x]) + " born before the marriage of "
                         + getPronoun(getGeniData(children[x], "gender")) + " parents " + buildEditLink(parents[0]) + " and " + buildEditLink(parents[1]) + ".";

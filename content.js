@@ -6,7 +6,7 @@ var pregnancy = 23667714;
 var longevity_error = 125;
 var longevity_warn = 105;
 var birthage_young = 12;
-var birthage_old = 45;
+var birthage_old = 55;
 var marriageage_young = 14;
 var spouse_age_dif = 22;
 var refreshtoken = false;
@@ -277,8 +277,12 @@ function selfCheck(familyset) {
                 consistencymessage = concat("warn") + "The age of " + buildEditLink(person) + " exceeds " + longevity_warn + " years.";
             }
             if (person_bdate > person_ddate) {
-                //Born after death
-                consistencymessage = concat("error") + "Birth date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " death date.";
+                var ddate = getGeniData(person, "death", "date", true);
+                var bdate = getGeniData(person, "birth", "date", true);
+                if (!(ddate.search(/^\d{4}$/) !== -1 && bdate.contains(ddate))) {
+                    //Born after death
+                    consistencymessage = concat("error") + "Birth date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " death date.";
+                }
             }
             if (person_ddate === person_bapdate) {
                 //Death same as baptism

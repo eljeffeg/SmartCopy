@@ -1,6 +1,5 @@
 tablink = window.location.href;
 var consistencymessage = "";
-var dateformat = ["YYYY", "MMM YYYY", "MMM D YYYY", "YYY"];
 var year = 31557600; //365.25
 var pregnancy = 23667714;
 var longevity_error = 125;
@@ -107,7 +106,21 @@ function checkConsistency() {
         selfCheck(partners);
         selfCheck(parents);
 
-        partnerCheck(parents);
+        if (parents.length > 2) {
+            var parentset = {};
+            for (var i=0; i < parents.length; i++) {
+                if (!exists(parentset[getGeniData(parents[i], "union")])) {
+                    parentset[getGeniData(parents[i], "union")] = [];
+                }
+                parentset[getGeniData(parents[i], "union")].push(parents[i]);
+            }
+            for (var union in parentset) {
+                if (!parentset.hasOwnProperty(union)) continue;
+                partnerCheck(parentset[union]);
+            }
+        } else {
+            partnerCheck(parents);
+        }
 
         siblingCheck(siblings);
         siblingCheck(children);
@@ -145,13 +158,13 @@ function partnerCheck(partners) {
         } else if (wstatus === "") {
             wstatus = reverseRelationship(hstatus);
         }
-        var husband_bdate = moment(getGeniData(husband, "birth", "date", true), dateformat).unix();
-        var wife_bdate = moment(getGeniData(wife, "birth", "date", true), dateformat).unix();
-        var husband_ddate = moment(getGeniData(husband, "death", "date", true), dateformat).unix();
-        var wife_ddate = moment(getGeniData(wife, "death", "date", true), dateformat).unix();
-        var union_mdate = moment(getGeniData(husband, "marriage", "date", true), dateformat).unix();
+        var husband_bdate = unixDate(getGeniData(husband, "birth", "date"));
+        var wife_bdate = unixDate(getGeniData(wife, "birth", "date"));
+        var husband_ddate = unixDate(getGeniData(husband, "death", "date"));
+        var wife_ddate = unixDate(getGeniData(wife, "death", "date"));
+        var union_mdate = unixDate(getGeniData(husband, "marriage", "date"));
         if (union_mdate === NaN) {
-            union_mdate = moment(getGeniData(wife, "marriage", "date", true), dateformat).unix();
+            union_mdate = unixDate(getGeniData(wife, "marriage", "date"));
         }
         if (husband_bdate + (spouse_age_dif * year) < wife_bdate || husband_bdate - (spouse_age_dif * year) > wife_bdate) {
             //Age different between partners is significant
@@ -159,32 +172,33 @@ function partnerCheck(partners) {
                 + getPronoun(getGeniData(wife, "gender")) + " " + getStatus(hstatus, getGeniData(husband, "gender")) + " " + buildEditLink(husband) + ".";
         }
         if (validName(getGeniData(wife, "maiden_name")) && getGeniData(wife, "maiden_name") === getGeniData(husband, "last_name")) {
-            //Maiden name same as husband's last name
-            //TODO if you get additional family members, compare this against her father's last name
-            consistencymessage = concat("info") + "Birth Surname of " + buildEditLink(wife) + " is the same as the last name of "
-                + getPronoun(getGeniData(wife, "gender")) + " " + getStatus(hstatus, getGeniData(husband, "gender")) + " " + buildEditLink(husband) + ".";
+            if (!(getGeniData(husband, "maiden_name") !== "" && getGeniData(husband, "last_name") !== getGeniData(husband, "maiden_name"))) {
+                //Maiden name same as husband's last name
+                //TODO if you get additional family members, compare this against her father's last name
+                consistencymessage = concat("info") + "Birth Surname of " + buildEditLink(wife) + " is the same as the last name of "
+                    + getPronoun(getGeniData(wife, "gender")) + " " + getStatus(hstatus, getGeniData(husband, "gender")) + " " + buildEditLink(husband) + ".";
+            }
         }
-        if (husband_ddate === wife_ddate) {
+        if (isNaN(husband_ddate) && husband_ddate === wife_ddate) {
             //Husband and wife death dates the same
             consistencymessage = concat("info") + "Death date of " + buildEditLink(husband) + " is the same as the death date of "
                 + getPronoun(getGeniData(husband, "gender")) + " " + getStatus(wstatus, getGeniData(wife, "gender")) + " " + buildEditLink(wife) + ".";
         }
-        if (husband_ddate === union_mdate) {
+        if (isNaN(husband_ddate) && husband_ddate === union_mdate) {
             //Husband death date same as marriage date
             consistencymessage = concat("info") + "Death date of " + buildEditLink(husband) + " is the same as " + getPronoun(getGeniData(husband, "gender"))
                 + " marriage date.";
         }
-        if (wife_ddate === union_mdate) {
+        if (isNaN(wife_ddate) && wife_ddate === union_mdate) {
             //Wife death date same as marriage date
             consistencymessage = concat("info") + "Death date of " + buildEditLink(wife) + " is the same as " + getPronoun(getGeniData(wife, "gender"))
                 + " marriage date.";
         }
 
         for (var i=0;i<partners.length; i++) {
-            var partner_bdate = moment(getGeniData(partners[i], "birth", "date", true), dateformat).unix();
-            var partner_ddate = moment(getGeniData(partners[i], "death", "date", true), dateformat).unix();
-            var partner_mdate = moment(getGeniData(partners[i], "marriage", "date", true), dateformat).unix();
-
+            var partner_bdate = unixDate(getGeniData(partners[i], "birth", "date"));
+            var partner_ddate = unixDate(getGeniData(partners[i], "death", "date"));
+            var partner_mdate = unixDate(getGeniData(partners[i], "marriage", "date"));
             if (partner_bdate > partner_mdate) {
                 //Born after marriage
                 consistencymessage = concat("error") + buildEditLink(partners[i]) + " born after " + getPronoun(getGeniData(partners[i], "gender")) + " marriage date.";
@@ -204,8 +218,8 @@ function siblingCheck(siblings) {
         var day = 86400;
         for (var i = 0; i < siblings.length; i++) {
             for (var j = i+1; j < siblings.length; j++) {
-                var sib1_bdate = moment(getGeniData(siblings[i], "birth", "date", true), dateformat).unix();
-                var sib2_bdate = moment(getGeniData(siblings[j], "birth", "date", true), dateformat).unix();
+                var sib1_bdate = unixDate(getGeniData(siblings[i], "birth", "date"));
+                var sib2_bdate = unixDate(getGeniData(siblings[j], "birth", "date"));
                 if ((sib1_bdate < sib2_bdate && sib1_bdate + pregnancy > sib2_bdate) ||
                     (sib1_bdate > sib2_bdate && sib1_bdate - pregnancy < sib2_bdate)) {
                     if ((sib1_bdate < sib2_bdate && sib1_bdate + day > sib2_bdate) ||
@@ -225,9 +239,9 @@ function siblingCheck(siblings) {
 
 function childCheck(parents, children) {
     for (var i=0; i < parents.length; i++) {
-        var parent_bdate = moment(getGeniData(parents[i], "birth", "date", true), dateformat).unix();
-        var parent_ddate = moment(getGeniData(parents[i], "death", "date", true), dateformat).unix();
-        var parent_mdate = moment(getGeniData(parents[i], "marriage", "date", true), dateformat).unix();
+        var parent_bdate = unixDate(getGeniData(parents[i], "birth", "date"));
+        var parent_ddate = unixDate(getGeniData(parents[i], "death", "date"));
+        var parent_mdate = unixDate(getGeniData(parents[i], "marriage", "date"));
         if (childcheckoption) {
             for (var x=0; x < children.length; x++) {
                 var adj_parent_ddate = parent_ddate;
@@ -235,7 +249,7 @@ function childCheck(parents, children) {
                     adj_parent_ddate = parent_ddate + pregnancy; //Add 9 months to compare conception
                 }
 
-                var sibling_bdate = moment(getGeniData(children[x], "birth", "date", true), dateformat).unix();
+                var sibling_bdate = unixDate(getGeniData(children[x], "birth", "date"));
                 if (sibling_bdate < parent_bdate) {
                     //Born before parent birth
                     consistencymessage = concat("error") + buildEditLink(children[x]) + " born before the birth of "
@@ -265,9 +279,9 @@ function childCheck(parents, children) {
 function selfCheck(familyset) {
     for (var x=0; x < familyset.length; x++) {
         var person = familyset[x];
-        var person_bdate = moment(getGeniData(person, "birth", "date", true), dateformat).unix();
-        var person_bapdate = moment(getGeniData(person, "baptism", "date", true), dateformat).unix();
-        var person_ddate = moment(getGeniData(person, "death", "date", true), dateformat).unix();
+        var person_bdate = unixDate(getGeniData(person, "birth", "date"));
+        var person_bapdate = unixDate(getGeniData(person, "baptism", "date"));
+        var person_ddate = unixDate(getGeniData(person, "death", "date"));
         if (agecheckoption) {
             if (person_bdate + longevity_error * year < person_ddate) {
                 //Excessive Age Error
@@ -277,8 +291,8 @@ function selfCheck(familyset) {
                 consistencymessage = concat("warn") + "The age of " + buildEditLink(person) + " exceeds " + longevity_warn + " years.";
             }
             if (person_bdate > person_ddate) {
-                var ddate = getGeniData(person, "death", "date", true);
-                var bdate = getGeniData(person, "birth", "date", true);
+                var ddate = getGeniData(person, "death", "date");
+                var bdate = getGeniData(person, "birth", "date");
                 if (!(isYear(ddate) && bdate.contains(ddate))) {
                     //Born after death
                     consistencymessage = concat("error") + "Birth date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " death date.";
@@ -341,8 +355,57 @@ function isASCII(str) {
     return /^[\x00-\x7F]*$/.test(str);
 }
 
+function unixDate(obj) {
+    //For consistency checks, include only exact and circa
+    if (obj === "" || obj.contains("Before") || obj.contains("After") || obj.contains("Between") || !hasYear(obj)) {
+        return NaN;
+    } else if (obj.contains("Circa")) {
+        obj = obj.replace("Circa", "");
+    }
+    obj = reformatYear(obj);
+    if (obj.contains("-")) {
+        //Moment doesn't recognize negative years
+        var edate = moment(obj.replace("-", ""), ["YYYY", "MMM YYYY", "MMM D YYYY"]).unix();
+        var dsplit = obj.split("-");
+        return edate - (parseInt(dsplit[dsplit.length -1]) * year * 2);
+    } else {
+        return moment(obj, ["YYYY", "MMM YYYY", "MMM D YYYY"]).unix();
+    }
+}
+
 function isYear(date) {
-    return date.search(/^\d{4}$/) !== -1;
+    return date.search(/^-?\d{3,4}$/) !== -1;
+}
+
+function hasYear(date) {
+    if (!isNaN(date)) {
+        return true;
+    }
+    var dsplit = date.split(" ");
+    if (dsplit.length > 2) {
+        //3 elements
+        return true;
+    } else if (date.contains(" -")) {
+        //BC year
+        return true;
+    } else if (dsplit.length > 1 && !isNaN(dsplit[1]) && parseInt(dsplit[1]) > 31) {
+       return true;
+    }
+    return false;
+}
+
+function reformatYear(date) {
+    var neg = "";
+    if (date.contains("-")) {
+        neg = "-";
+        date = date.replace("-", "");
+    }
+
+    var dsplit = date.split(" ");
+    if (!isNaN(dsplit[dsplit.length-1])) {
+        dsplit[dsplit.length-1] = neg + ("0000" + dsplit[dsplit.length-1]).substr(-4,4);
+    }
+    return dsplit.join(" ").trim();
 }
 
 function buildEditLink(person) {

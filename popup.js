@@ -1858,12 +1858,22 @@ $(function () {
     });
     $('#childrenonoffswitch').on('click', function () {
         chrome.storage.local.set({'childcheck': this.checked});
+        if (this.checked) {
+            $("#childoptions").slideDown();
+        } else {
+            $("#childoptions").slideUp();
+        }
     });
     $('#ageonoffswitch').on('click', function () {
         chrome.storage.local.set({'agecheck': this.checked});
     });
     $('#partneronoffswitch').on('click', function () {
         chrome.storage.local.set({'partnercheck': this.checked});
+        if (this.checked) {
+            $("#partneroptions").slideDown();
+        } else {
+            $("#partneroptions").slideUp();
+        }
     });
     $('#genislideonoffswitch').on('click', function () {
         chrome.storage.local.set({'genislideout': this.checked});
@@ -2239,6 +2249,11 @@ chrome.storage.local.get('partnercheck', function (result) {
     var partnercheck = result.partnercheck;
     if (exists(partnercheck)) {
         $('#partneronoffswitch').prop('checked', partnercheck);
+        if (partnercheck) {
+            $("#partneroptions").show();
+        } else {
+            $("#partneroptions").hide();
+        }
     }
 });
 
@@ -2247,6 +2262,11 @@ chrome.storage.local.get('childcheck', function (result) {
     var childcheck = result.childcheck;
     if (exists(childcheck)) {
         $('#childrenonoffswitch').prop('checked', childcheck);
+        if (childcheck) {
+            $("#childoptions").show();
+        } else {
+            $("#childoptions").hide();
+        }
     }
 });
 

@@ -107,7 +107,7 @@ function getProfile(profile_id) {
 
 function GeniPerson(obj) {
     this.person = obj;
-    this.get = function (path, subpath, exact) {
+    this.get = function (path, subpath) {
         var obj = this.person;
         if (path == "photo_urls") {
             if (checkNested(this.person,"photo_urls", "medium")) {
@@ -134,12 +134,6 @@ function GeniPerson(obj) {
                     return "";
                 }
                 obj = obj[args[i]];
-            }
-            //For consistency checks, include only exact and circa
-            if (exact && (obj.contains("Before") || obj.contains("After") || obj.contains("Between"))) {
-                return ""
-            } else if (exact && obj.contains("Circa")) {
-                obj = obj.replace("Circa", "");
             }
             return obj;
         }

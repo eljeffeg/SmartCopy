@@ -23,6 +23,8 @@ var NameParse = (function(){
             fullastName = fullastName.replace(/\//g, "");
         }
         fullastName = fullastName.replace(/\s*\/\s*/g,'/');
+        fullastName = fullastName.replace(/“/g, '"');
+        fullastName = fullastName.replace(/”/g, '"');
         var nickParts = [];
         var lastName = "";
         var firstName = "";

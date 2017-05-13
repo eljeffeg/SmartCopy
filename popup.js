@@ -129,6 +129,13 @@ function registerCollection(collection) {
 }
 
 function loginProcess() {
+    if (isGeni(tablink)) {
+        document.querySelector('#message').style.display = "none";
+        var focusprofile = getProfile(tablink);
+        focusid = focusprofile.replace("?profile=", "");
+        document.getElementById("addhistoryblock").style.display = "block";
+        updateLinks(focusprofile);
+    }
     if (startsWithHTTP(tablink, "https://www.geni.com") && !isGeni(tablink)) {
         $('#loginspinner').hide();
         $("#optionslide").show();
@@ -136,11 +143,6 @@ function loginProcess() {
         loadLogin();
     } else {
         if (isGeni(tablink)) {
-            document.querySelector('#message').style.display = "none";
-            var focusprofile = getProfile(tablink);
-            focusid = focusprofile.replace("?profile=", "");
-            document.getElementById("addhistoryblock").style.display = "block";
-            updateLinks(focusprofile);
             userAccess();
         } else {
             // Select collection

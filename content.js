@@ -39,9 +39,8 @@ function queryGeni() {
         return;
     }
     familystatus.push(1);
-    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,gender,deleted,birth,baptism,death,burial,is_alive,marriage,divorce,locked_fields,data_conflict";
+    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,gender,deleted,birth,baptism,death,burial,marriage,divorce,data_conflict";
     var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
-    //var url = smartcopyurl + "/smartsubmit?family=all&focusprofile=true&profile=" + focusid;
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -77,10 +76,9 @@ function queryGeni() {
                     if (!nodes.hasOwnProperty(node)) continue;
                     if (nodes[node].id.startsWith("union")) {
                         uniondata[nodes[node].id] = nodes[node];
-                    } else {
+                    } else if (!nodes[node].deleted) {
                         genifamilydata[nodes[node].id] = new GeniPerson(nodes[node]);
                     }
-
                 }
             }
         }

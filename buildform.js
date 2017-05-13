@@ -221,7 +221,7 @@ function buildForm() {
 
     var nameimage = genifocusdata.lockIcon("name");
     var namescore = scorefactors.contains("middle name");
-    if (namescore) {
+    if (namescore && mnameonoff) {
         membersstring +=
             '<tr><td class="profilediv"><input type="checkbox" class="checknext">Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("title") + '" disabled></td></tr>' +
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("first_name") + '" disabled></td></tr>' +

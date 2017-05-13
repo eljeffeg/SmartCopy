@@ -413,7 +413,7 @@ function checkDate(person, type) {
         if (exists(obj.year) && exists(obj.day) && !exists(obj.month)) {
             //Year and Day without Month
             consistencymessage = concat("info") + buildEditLink(person) + " contains an incomplete " + type + " date, missing month.";
-        } else if (exists(obj.month) || exists(obj.day)) {
+        } else if (!exists(obj.year) && (exists(obj.month) || exists(obj.day))) {
             //Month or Day without any year
             consistencymessage = concat("info") + buildEditLink(person) + " contains an incomplete " + type + " date, missing year.";
         }

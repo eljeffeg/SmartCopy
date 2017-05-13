@@ -1826,23 +1826,14 @@ $(function () {
     $('#wedlockonoffswitch').on('click', function () {
         chrome.storage.local.set({'wedlockcheck': this.checked});
     });
-    $('#socialonoffswitch').on('click', function () {
-        chrome.storage.local.set({'socialcheck': this.checked});
-        if (this.checked) {
-            chrome.tabs.executeScript(null, {
-                code: "document.getElementById('fb-sharing-wrapper').style.visibility = 'hidden';"
-            });
-        } else {
-            chrome.tabs.executeScript(null, {
-                code: "document.getElementById('fb-sharing-wrapper').style.visibility = 'visible';"
-            });
-        }
-    });
     $('#agelimiterror').on('change', function () {
         chrome.storage.local.set({'agelimiterror': this.value});
     });
     $('#agelimitwarn').on('change', function () {
         chrome.storage.local.set({'agelimitwarn': this.value});
+    });
+    $('#termlimit').on('change', function () {
+        chrome.storage.local.set({'termlimit': this.value});
     });
     $('#childyoungwarn').on('change', function () {
         chrome.storage.local.set({'birthyoung': this.value});
@@ -1864,8 +1855,25 @@ $(function () {
             $("#childoptions").slideUp();
         }
     });
+    $('#selfonoffswitch').on('click', function () {
+        chrome.storage.local.set({'selfcheck': this.checked});
+        if (this.checked) {
+            $("#selfoptions").slideDown();
+        } else {
+            $("#selfoptions").slideUp();
+        }
+    });
     $('#ageonoffswitch').on('click', function () {
         chrome.storage.local.set({'agecheck': this.checked});
+    });
+    $('#samenameonoffswitch').on('click', function () {
+        chrome.storage.local.set({'samenamecheck': this.checked});
+    });
+    $('#dataconflictonoffswitch').on('click', function () {
+        chrome.storage.local.set({'dataconflict': this.checked});
+    });
+    $('#datecheckonoffswitch').on('click', function () {
+        chrome.storage.local.set({'datecheck': this.checked});
     });
     $('#partneronoffswitch').on('click', function () {
         chrome.storage.local.set({'partnercheck': this.checked});
@@ -2189,13 +2197,6 @@ chrome.storage.local.get('wedlockcheck', function (result) {
     }
 });
 
-chrome.storage.local.get('socialcheck', function (result) {
-    var socialcheck = result.socialcheck;
-    if (exists(socialcheck)) {
-        $('#socialonoffswitch').prop('checked', socialcheck);
-    }
-});
-
 chrome.storage.local.get('agelimitwarn', function (result) {
     var agelimitwarn = result.agelimitwarn;
     if (exists(agelimitwarn)) {
@@ -2238,10 +2239,45 @@ chrome.storage.local.get('marriagedif', function (result) {
     }
 });
 
+chrome.storage.local.get('termlimit', function (result) {
+    var termlimit = result.termlimit;
+    if (exists(termlimit)) {
+        $('#termlimit').prop('value', termlimit);
+    }
+});
+
+chrome.storage.local.get('samenamecheck', function (result) {
+    var samenamecheck = result.samenamecheck;
+    if (exists(samenamecheck)) {
+        $('#samenameonoffswitch').prop('checked', samenamecheck);
+    }
+});
+
+chrome.storage.local.get('selfcheck', function (result) {
+    var selfcheck = result.selfcheck;
+    if (exists(selfcheck)) {
+        $('#selfonoffswitch').prop('checked', selfcheck);
+    }
+});
+
 chrome.storage.local.get('agecheck', function (result) {
     var agecheck = result.agecheck;
     if (exists(agecheck)) {
         $('#ageonoffswitch').prop('checked', agecheck);
+    }
+});
+
+chrome.storage.local.get('datecheck', function (result) {
+    var datecheck = result.datecheck;
+    if (exists(datecheck)) {
+        $('#datecheckonoffswitch').prop('checked', datecheck);
+    }
+});
+
+chrome.storage.local.get('dataconflict', function (result) {
+    var dataconflict = result.dataconflict;
+    if (exists(dataconflict)) {
+        $('#dataconflictonoffswitch').prop('checked', dataconflict);
     }
 });
 

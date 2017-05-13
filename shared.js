@@ -138,6 +138,9 @@ function GeniPerson(obj) {
             return obj;
         }
     };
+    this.set = function (path, data) {
+       this.person[path] = data;
+    };
     this.isLocked = function (path, subpath) {
         var obj = this.person;
         if (!obj.hasOwnProperty("locked_fields")) {
@@ -202,63 +205,7 @@ function isParent(relationship) {
 function isPartner(relationship) {
     if (!exists(relationship)) { return false; }
     relationship = relationship.replace(" (implied)", "");
-    return (relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner" || relationship === "spouse" || relationship === "spouses");
-}
-
-function getFocus() {
-    for (var i = 0; i < genifamily.length; i++) {
-        var familymem = genifamily[i];
-        if (familymem.relation.toLowerCase() === "focus") {
-            return familymem.id;
-        }
-    }
-}
-
-function getParents() {
-    var familyset = [];
-    for (var i = 0; i < genifamily.length; i++) {
-        var familymem = genifamily[i];
-        if (isParent(familymem.relation.toLowerCase()) && familyset.indexOf(familymem.id) === -1) {
-            familyset.push(familymem.id);
-        }
-    }
-    return familyset;
-}
-
-function getChildren(union) {
-    union = union || "";
-    var familyset = [];
-    for (var i = 0; i < genifamily.length; i++) {
-        var familymem = genifamily[i];
-        if (isChild(familymem.relation.toLowerCase()) && familyset.indexOf(familymem.id) === -1) {
-            if (union === "" || union === familymem.union) {
-                familyset.push(familymem.id);
-            }
-        }
-    }
-    return familyset;
-}
-
-function getSiblings() {
-    var familyset = [];
-    for (var i = 0; i < genifamily.length; i++) {
-        var familymem = genifamily[i];
-        if (isSibling(familymem.relation.toLowerCase()) && familyset.indexOf(familymem.id) === -1) {
-            familyset.push(familymem.id);
-        }
-    }
-    return familyset;
-}
-
-function getPartners() {
-    var familyset = [];
-    for (var i = 0; i < genifamily.length; i++) {
-        var familymem = genifamily[i];
-        if (isPartner(familymem.relation.toLowerCase()) && familyset.indexOf(familymem.id) === -1) {
-            familyset.push(familymem.id);
-        }
-    }
-    return familyset;
+    return (relationship === "spouse" || relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner" || relationship === "ex_husband" || relationship === "ex_wife" || relationship === "ex_partner" || relationship === "spouses");
 }
 
 function getGeniData(profile, value, subvalue, exact) {

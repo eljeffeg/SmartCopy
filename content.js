@@ -9,7 +9,6 @@ var birthage_young = 12;
 var birthage_old = 55;
 var marriageage_young = 14;
 var spouse_age_dif = 22;
-var refreshtoken = false;
 var suffixArray = ['i','ii','iii','iv','jr','sr'];
 var namecheckoption = true;
 var siblingcheckoption = true;
@@ -39,31 +38,19 @@ function queryGeni() {
         return;
     }
     familystatus.push(1);
-    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,gender,deleted,birth,baptism,death,burial,marriage,divorce,data_conflict";
+    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,gender,deleted,birth,baptism,death,burial,is_alive,marriage,divorce,data_conflict";
     var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: url
     }, function (response) {
-        if ((response.source === "[]" || response.source === "") && !refreshtoken) {
+        if (response.source === "[]" || response.source === "") {
             genifamily = [];
-            refreshtoken = true;
-            var refreshurl = smartcopyurl + "/accountlogin";
-            chrome.runtime.sendMessage({
-                method: "GET",
-                action: "xhttp",
-                url: refreshurl
-            }, function (response) {
-                console.log("Token Refresh...");
-                queryGeni();
-            });
         } else {
             try {
                 genifamily = JSON.parse(response.source);
-                chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon.png" });
             } catch (e) {
-                chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon_warn.png" });
                 genifamily = [];
             }
             if (!exists(genifamily)) {
@@ -427,11 +414,14 @@ function isASCII(str) {
 }
 
 function unixDate(person, type) {
-    obj = getGeniData(person, type, "date");
-    if (!exists(obj.formatted_date) || obj.formatted_date === "" || exists(obj.range)) {
-        return NaN;
-    }
+    var obj = getGeniData(person, type, "date");
     var date = new Date();
+    if (!exists(obj.formatted_date) || obj.formatted_date === "" || exists(obj.range)) {
+        if (!(type === "death" && getGeniData(person, "is_alive"))) {
+            //Skip if the person is alive - return current date
+            return NaN;
+        }
+    }
     if (exists(obj.year)) {
         date.setFullYear(obj.year);
         if (exists(obj.month)) {
@@ -463,12 +453,18 @@ function buildEditLink(person) {
 
 function updateQMessage() {
     if (consistencymessage !== "") {
-        $("#consistencyck").html("<span class='consistencyslide' style='cursor: pointer; float: right; margin-top: -1px; padding-left: 10px;'><img src='"+ chrome.extension.getURL("images/content_close.png") + "' style='width: 16px;'></span><a href='https://www.geni.com/projects/SmartCopy/18783' target='_blank'><img src='" + chrome.extension.getURL("images/icon.png") + "' style='width: 16px; margin-top: -3px; padding-right: 5px;' title='SmartCopy'></a></img><strong>Consistency Check:</strong>"
+        $("#consistencyck").html("<span style='float: right; margin-top: -1px; padding-left: 10px;'><img id='refreshcheck' src='"+ chrome.extension.getURL("images/content_update.png") + "' style='cursor: pointer; margin-right: 3px; width: 12px;'><img class='consistencyslide' src='"+ chrome.extension.getURL("images/content_close.png") + "' style='cursor: pointer; width: 18px;'></span><a href='https://www.geni.com/projects/SmartCopy/18783' target='_blank'><img src='" + chrome.extension.getURL("images/icon.png") + "' style='width: 16px; margin-top: -3px; padding-right: 5px;' title='SmartCopy'></a></img><strong>Consistency Check:</strong>"
             + consistencymessage);
         $('.consistencyslide').off();
         $('.consistencyslide').on('click', function () {
             $("#consistencyck").slideUp();
             $("#fb-sharing-wrapper").show();
+        });
+        $('#refreshcheck').off();
+        $('#refreshcheck').on('click', function () {
+            $("#consistencyck").slideUp();
+            $("#fb-sharing-wrapper").show();
+            queryGeni();
         });
         $("#fb-sharing-wrapper").hide();
         $("#consistencyck").slideDown();

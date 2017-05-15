@@ -9,7 +9,6 @@ var birthage_young = 12;
 var birthage_old = 55;
 var marriageage_young = 14;
 var spouse_age_dif = 22;
-var suffixArray = ['i','ii','iii','iv','jr','sr'];
 var namecheckoption = true;
 var siblingcheckoption = true;
 var childcheckoption = true;
@@ -356,24 +355,6 @@ function selfCheck(familyset) {
                     //Name contains improper use of uppercase/lowercase
                     consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ") + "' class='fixcase' href='javascript:void(0)' id='" + getGeniData(person, "id") + "' name='" + namecasecheck + "'>[fix case]</a></sup>";
                 }
-                /*
-                var first_name = getGeniData(person, "first_name").replace(".","");
-                if (validName(getGeniData(person, "name")) && getGeniData(person, "display_name") !== getGeniData(person, "name") && getGeniData(person, "name").length > 2 && (getGeniData(person, "name") === getGeniData(person, "name").toUpperCase() || getGeniData(person, "name") === getGeniData(person, "name").toLowerCase())) {
-                    //Name contains improper use of uppercase/lowercase
-                    consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " name.";
-                } else if (validName(getGeniData(person, "display_name")) && getGeniData(person, "display_name").length > 2 && (getGeniData(person, "display_name") === getGeniData(person, "display_name").toUpperCase() || getGeniData(person, "display_name") === getGeniData(person, "display_name").toLowerCase())) {
-                    //Display Name contains improper use of uppercase/lowercase
-                    consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " display name.<sup><a title='" + formatName(getGeniData(person, "display_name")) + "' class='fixcase' href='javascript:void(0)' id='" + getGeniData(person, "id") + "' name='display_name'>[fix case]</a></sup>";
-                } else if (validName(getGeniData(person, "maiden_name")) && (getGeniData(person, "maiden_name") === getGeniData(person, "maiden_name").toUpperCase() || getGeniData(person, "maiden_name") === getGeniData(person, "maiden_name").toLowerCase())) {
-                    //Maiden Name contains improper use of uppercase/lowercase
-                    consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " birth surname.<sup><a title='" + formatName(getGeniData(person, "maiden_name")) + "' class='fixcase' href='javascript:void(0)' id='" + getGeniData(person, "id") + "' name='maiden_name'>[fix case]</a></sup>";
-                } else if (validName(getGeniData(person, "last_name")) && (getGeniData(person, "last_name") === getGeniData(person, "last_name").toUpperCase() || getGeniData(person, "last_name") === getGeniData(person, "last_name").toLowerCase())) {
-                    //Last Name contains improper use of uppercase/lowercase
-                    consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " last name.<sup><a title='" + formatName(getGeniData(person, "last_name")) + "' class='fixcase' href='javascript:void(0)' id='" + getGeniData(person, "id") + "' name='last_name'>[fix case]</a></sup>";
-                } else if (validName(first_name) && first_name === first_name.toLowerCase()) {
-                    //First Name contains improper use of lowercase - excluding one letter and uppercase for situations like NN
-                    consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " first name.<sup><a title='" + formatName(getGeniData(person, "first_name")) + "' class='fixcase' href='javascript:void(0)' id='" + getGeniData(person, "id") + "' name='first_name'>[fix case]</a></sup>";
-                }*/
 
                 var fnamesplit = getGeniData(person, "first_name").split(" ");
                 if (fnamesplit.length > 1 && NameParse.is_suffix(fnamesplit[fnamesplit.length-1])) {

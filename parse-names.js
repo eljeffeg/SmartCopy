@@ -366,7 +366,7 @@ var NameParse = (function(){
     // ucfirst words split by dashes or periods
     // ucfirst all upper/lower strings, but leave camelcase words alone
     NameParse.fix_case = function (word) {
-        if (!$('#adjustnameonoffswitch').prop('checked')) {
+        if ($('#adjustnameonoffswitch').length > 0 && !$('#adjustnameonoffswitch').prop('checked')) {
             return word;
         } else if (word === "NN") {
             return word;

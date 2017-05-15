@@ -20,7 +20,7 @@
     ],
     "content_scripts": [{
         "matches": ["*://www.geni.com/*"],
-        "js": ["jquery.js", "moment.js", "shared.js", "content.js"]
+        "js": ["jquery.js", "moment.js", "parse-names.js", "shared.js", "content.js"]
     }],
     "permissions": ["activeTab", "storage",
         "*://*.geni.com/",

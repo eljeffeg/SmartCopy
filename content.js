@@ -25,7 +25,7 @@ function buildconsistencyDiv() {
     if (isGeni(tablink)) {
         var consistencydiv = $(document.createElement('div'));
         consistencydiv.attr('id','consistencyck');
-        consistencydiv.css({"display": "none", "position": "absolute", "background-color": "#fff", "z-index": "2", "width": "97%", "borderBottom":"solid 1px #cad3dd", "padding": "5px 20px 3px", "vertical-align": "middle", "line-height": "150%"});
+        consistencydiv.css({"display": "none", "position": "absolute", "background-color": "#fff", "z-index": "2", "width": "auto", "borderBottom":"solid 1px #cad3dd", "padding": "5px 20px 3px", "vertical-align": "middle", "line-height": "150%"});
         $("#header").after(consistencydiv);
         queryGeni();
     }

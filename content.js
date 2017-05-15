@@ -340,6 +340,23 @@ function selfCheck(familyset) {
                     consistencymessage = concat("info") + buildEditLink(person) + " contains an alias in " + getPronoun(getGeniData(person, "gender")) + " first name.";
                 }
 
+                var namecasecheck = [];
+                var namevalues = ["display_name", "first_name", "middle_name", "last_name", "maiden_name"];
+                for (var i=0; i < namevalues.length; i++) {
+                    var name = getGeniData(person, namevalues[i]);
+                    if (validName(name) && !NameParse.is_camel_case(name)) {
+                        namecasecheck.push(namevalues[i]);
+                    }
+                }
+                if (namecasecheck.length > 0) {
+                    var nameupdate = [];
+                    for (var i=0; i < namecasecheck.length; i++) {
+                        nameupdate[i] = formatName(getGeniData(person, namecasecheck[i]));
+                    }
+                    //Name contains improper use of uppercase/lowercase
+                    consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ") + "' class='fixcase' href='javascript:void(0)' id='" + getGeniData(person, "id") + "' name='" + namecasecheck + "'>[fix case]</a></sup>";
+                }
+                /*
                 var first_name = getGeniData(person, "first_name").replace(".","");
                 if (validName(getGeniData(person, "name")) && getGeniData(person, "display_name") !== getGeniData(person, "name") && getGeniData(person, "name").length > 2 && (getGeniData(person, "name") === getGeniData(person, "name").toUpperCase() || getGeniData(person, "name") === getGeniData(person, "name").toLowerCase())) {
                     //Name contains improper use of uppercase/lowercase
@@ -356,9 +373,9 @@ function selfCheck(familyset) {
                 } else if (validName(first_name) && first_name === first_name.toLowerCase()) {
                     //First Name contains improper use of lowercase - excluding one letter and uppercase for situations like NN
                     consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " first name.<sup><a title='" + formatName(getGeniData(person, "first_name")) + "' class='fixcase' href='javascript:void(0)' id='" + getGeniData(person, "id") + "' name='first_name'>[fix case]</a></sup>";
-                }
+                }*/
 
-                var fnamesplit = first_name.split(" ");
+                var fnamesplit = getGeniData(person, "first_name").split(" ");
                 if (fnamesplit.length > 1 && NameParse.is_suffix(fnamesplit[fnamesplit.length-1])) {
                     //First Name contain suffix
                     consistencymessage = concat("info") + buildEditLink(person) + " appears to contain a suffix in " + getPronoun(getGeniData(person, "gender")) + " first name.";
@@ -486,18 +503,20 @@ function updateQMessage() {
         });
         $('.fixcase').off();
         $('.fixcase').on('click', function(){
-            $("#consistencyck").slideUp();
-            $("#fb-sharing-wrapper").show();
-            var name = formatName(getGeniData($(this)[0].id, $(this)[0].name));
-            var args = $(this)[0].name + "=" + name;
-            var url = "https://www.geni.com/api/" + getGeniData($(this)[0].id, "id") + "/update-basics";
+            var id = $(this)[0].id;
+            var args = {};
+            var nameparts = $(this)[0].name.split(",");
+            for (var i=0;i < nameparts.length;i++) {
+                args[nameparts[i]] = formatName(getGeniData(id, nameparts[i]));
+            }
+            var url = "https://www.geni.com/api/" + id + "/update-basics";
+            $("#" + id).replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
                 url: url,
-                data: args
+                data: $.param(args)
             }, function (response) {
-                queryGeni();
             });
         });
         $('#refreshcheck').off();

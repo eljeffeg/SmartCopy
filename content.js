@@ -344,7 +344,7 @@ function selfCheck(familyset) {
                 var namevalues = ["display_name", "first_name", "middle_name", "last_name", "maiden_name"];
                 for (var i=0; i < namevalues.length; i++) {
                     var name = getGeniData(person, namevalues[i]);
-                    if (validName(name) && !NameParse.is_camel_case(name)) {
+                    if (validName(name) && !NameParse.is_camel_case(name) && name !== formatName(name)) {
                         namecasecheck.push(namevalues[i]);
                     }
                 }

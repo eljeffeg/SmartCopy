@@ -349,7 +349,7 @@ function selfCheck(familyset) {
                     consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " display name.<sup><a title='" + formatName(getGeniData(person, "display_name")) + "' class='fixcase' href='javascript:void(0)' id='" + getGeniData(person, "id") + "' name='display_name'>[fix case]</a></sup>";
                 } else if (validName(getGeniData(person, "maiden_name")) && (getGeniData(person, "maiden_name") === getGeniData(person, "maiden_name").toUpperCase() || getGeniData(person, "maiden_name") === getGeniData(person, "maiden_name").toLowerCase())) {
                     //Maiden Name contains improper use of uppercase/lowercase
-                    consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " birth surname.<sup><a title='" + formatName(getGeniData(person, "maiden_name")) + "' class='fixcase' href='javascript:void(0)' id='" + getGeniData(person, "id") + "' name='birth_surname'>[fix case]</a></sup>";
+                    consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " birth surname.<sup><a title='" + formatName(getGeniData(person, "maiden_name")) + "' class='fixcase' href='javascript:void(0)' id='" + getGeniData(person, "id") + "' name='maiden_name'>[fix case]</a></sup>";
                 } else if (validName(getGeniData(person, "last_name")) && (getGeniData(person, "last_name") === getGeniData(person, "last_name").toUpperCase() || getGeniData(person, "last_name") === getGeniData(person, "last_name").toLowerCase())) {
                     //Last Name contains improper use of uppercase/lowercase
                     consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " last name.<sup><a title='" + formatName(getGeniData(person, "last_name")) + "' class='fixcase' href='javascript:void(0)' id='" + getGeniData(person, "id") + "' name='last_name'>[fix case]</a></sup>";
@@ -358,12 +358,10 @@ function selfCheck(familyset) {
                     consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " first name.<sup><a title='" + formatName(getGeniData(person, "first_name")) + "' class='fixcase' href='javascript:void(0)' id='" + getGeniData(person, "id") + "' name='first_name'>[fix case]</a></sup>";
                 }
 
-                first_name = first_name.toLowerCase();
-                for (var i=0;i < suffixArray.length; i++) {
-                    if (first_name.endsWith(" " + suffixArray[i])) {
-                        //First Name contain suffix
-                        consistencymessage = concat("info") + buildEditLink(person) + " appears to contain a suffix in " + getPronoun(getGeniData(person, "gender")) + " first name.";
-                    }
+                var fnamesplit = first_name.split(" ");
+                if (fnamesplit.length > 1 && NameParse.is_suffix(fnamesplit[fnamesplit.length-1])) {
+                    //First Name contain suffix
+                    consistencymessage = concat("info") + buildEditLink(person) + " appears to contain a suffix in " + getPronoun(getGeniData(person, "gender")) + " first name.";
                 }
                 if (getGeniData(person, "title") !== "") {
                     var title = getGeniData(person, "title").toLowerCase().replace(".", "").replace("-","");
@@ -492,7 +490,7 @@ function updateQMessage() {
             $("#fb-sharing-wrapper").show();
             var name = formatName(getGeniData($(this)[0].id, $(this)[0].name));
             var args = $(this)[0].name + "=" + name;
-            var url = "https://www.geni.com/api/" + getGeniData($(this)[0].id, "id") + "/update";
+            var url = "https://www.geni.com/api/" + getGeniData($(this)[0].id, "id") + "/update-basics";
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",

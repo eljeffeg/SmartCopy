@@ -98,6 +98,7 @@ function checkConsistency() {
         var siblings = getSiblings();
         var children = getChildren();
         var partners = getPartners();
+        var parentset = getParentSets(focus, parents);
         siblings.unshift(focus); //treat the focus as a sibling
 
         //Compare profiles against themselves
@@ -111,20 +112,8 @@ function checkConsistency() {
         relationshipCheck(parents, children);
         relationshipCheck(siblings, children);
 
-        if (parents.length > 2) {
-            var parentset = {};
-            for (var i=0; i < parents.length; i++) {
-                if (!exists(parentset[getGeniData(parents[i], "union")])) {
-                    parentset[getGeniData(parents[i], "union")] = [];
-                }
-                parentset[getGeniData(parents[i], "union")].push(parents[i]);
-            }
-            for (var union in parentset) {
-                if (!parentset.hasOwnProperty(union)) continue;
-                partnerCheck(parentset[union]);
-            }
-        } else {
-            partnerCheck(parents);
+        for (var union in parentset) {
+            partnerCheck(parentset[union]);
         }
 
         siblingCheck(siblings);
@@ -543,6 +532,30 @@ function getParents() {
         }
     }
     return familyset;
+}
+
+function getParentSets(focus, parents) {
+    var focusedge = getGeniData(focus, "edges");
+    var parentset = {};
+    for (var union in focusedge) {
+        if (!focusedge.hasOwnProperty(union)) continue;
+        if (isChild(focusedge[union].rel)) {
+            if (!exists(parentset[getGeniData(parents[i], "union")])) {
+                parentset[union] = [];
+            }
+            for (var i=0; i < parents.length; i++) {
+                var parentedge = getGeniData(parents[i], "edges");
+                for (var punion in parentedge) {
+                    if (!parentedge.hasOwnProperty(punion)) continue;
+                    if (punion === union) {
+                        parentset[union].push(parents[i]);
+                    }
+                }
+            }
+        }
+
+    }
+    return parentset;
 }
 
 function getChildren(partner) {

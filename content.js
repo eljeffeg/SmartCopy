@@ -25,7 +25,7 @@ function buildconsistencyDiv() {
     if (isGeni(tablink)) {
         var consistencydiv = $(document.createElement('div'));
         consistencydiv.attr('id','consistencyck');
-        consistencydiv.css({"display": "none", "position": "absolute", "background-color": "#fff", "z-index": "2", "width": "auto", "borderBottom":"solid 1px #cad3dd", "padding": "5px 20px 3px", "vertical-align": "middle", "line-height": "150%"});
+        consistencydiv.css({"display": "none", "position": "absolute", "background-color": "#fff", "z-index": "2", "width": "97%", "borderBottom":"solid 1px #cad3dd", "padding": "5px 20px 3px", "vertical-align": "middle", "line-height": "150%"});
         $("#header").after(consistencydiv);
         queryGeni();
     }
@@ -334,7 +334,7 @@ function selfCheck(familyset) {
                     //Name contains double space
                     consistencymessage = concat("info") + buildEditLink(person) + " contains a double space in " + getPronoun(getGeniData(person, "gender")) + " name.";
                 }
-                if (getGeniData(person, "first_name").contains('&quot;') || getGeniData(person, "first_name").contains('"') || getGeniData(person, "first_name").split("'").length > 2) {
+                if (getGeniData(person, "first_name").contains('&quot;') || getGeniData(person, "first_name").contains('"') || (getGeniData(person, "first_name").contains('(') && getGeniData(person, "first_name").contains(')')) || getGeniData(person, "first_name").split("'").length > 2) {
                     //Name contains alias
                     consistencymessage = concat("info") + buildEditLink(person) + " contains an alias in " + getPronoun(getGeniData(person, "gender")) + " first name.";
                 }

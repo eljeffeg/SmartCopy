@@ -15,11 +15,17 @@ var childcheckoption = true;
 var partnercheckoption = true;
 var agecheckoption = true;
 var selfcheckoption = true;
-var dataconflictoption = true;
+var dataconflictoption = false;
 var datecheckoption = true;
 var samenameoption = true;
 var wedlock = false;
 var uniondata = [];
+
+chrome.storage.local.get('dataconflict', function (result) {
+    if (result.dataconflict !== undefined) {
+        dataconflictoption = result.dataconflict;
+    }
+});
 
 function buildconsistencyDiv() {
     if (isGeni(tablink)) {
@@ -37,7 +43,12 @@ function queryGeni() {
         return;
     }
     familystatus.push(1);
-    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,gender,deleted,birth,baptism,death,burial,is_alive,marriage,divorce,data_conflict";
+    var dconflict = "";
+    if (dataconflictoption) {
+        //This is an expensive query - exclude it if it's not enabled
+        dconflict = ",data_conflict";
+    }
+    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,gender,deleted,birth,baptism,death,burial,is_alive,marriage,divorce" + dconflict;
     var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
     chrome.runtime.sendMessage({
         method: "GET",
@@ -784,12 +795,6 @@ chrome.storage.local.get('selfcheck', function (result) {
 chrome.storage.local.get('datecheck', function (result) {
     if (result.datecheck !== undefined) {
         datecheckoption = result.datecheck;
-    }
-});
-
-chrome.storage.local.get('dataconflict', function (result) {
-    if (result.dataconflict !== undefined) {
-        dataconflictoption = result.dataconflict;
     }
 });
 

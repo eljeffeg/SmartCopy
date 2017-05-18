@@ -231,20 +231,31 @@ function getTNGName(parsed) {
     if (elem.text() !== "") {
         var familyname = elem.find(".family-name").text();
         var givenname = elem.find(".given-name").text();
-        return givenname.replace(",", "") + " " + familyname.replace(",", "");
+        return givenname.replace(",", "") + " (" + familyname.replace(",", "") + ")";
     }
     // Less precise, but better than nothing
     var nameheader = removeSources(parsed.find("h1#nameheader").text());
     var header = removeSources(parsed.find("h1.header").text());
     var headfilter = removeSources(parsed.filter("h1.header").text());
     if (nameheader !== "") {
-        return nameheader;
+        return tngLastCheck(nameheader);
     } else if (header !== "") {
-        return header;
+        return tngLastCheck(header);
     } else if (headfilter !== "") {
-        return headfilter;
+        return tngLastCheck(headfilter);
     }
     return "";
+}
+
+function tngLastCheck(name) {
+    if (name.contains("  ")) {
+        //Look for a double space that may separate a two world last name
+        var fnamesplit = name.split("  ");
+        if (fnamesplit.length === 2) {
+            name = fnamesplit[0] + " (" + fnamesplit[1] + ")";
+        }
+    }
+    return name;
 }
 
 function removeSources(parsed) {

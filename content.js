@@ -85,16 +85,14 @@ function queryGeni() {
 }
 
 $(window).bind('hashchange', function() {
-    $("#consistencyck").slideUp();
-    $("#fb-sharing-wrapper").show();
+    displayCheck(false);
     tablink = window.location.href;
     queryGeni();
 });
 
 $(window).mouseup(function(event) {
     if ($(event.target).attr('class') === "super blue button") {
-        $("#consistencyck").slideUp();
-        $("#fb-sharing-wrapper").show();
+        displayCheck(false);
         queryGeni();
     }
 });
@@ -479,8 +477,7 @@ function updateQMessage() {
             + consistencymessage);
         $('.consistencyslide').off();
         $('.consistencyslide').on('click', function () {
-            $("#consistencyck").slideUp();
-            $("#fb-sharing-wrapper").show();
+            displayCheck(false);
         });
         $('.fixcase').off();
         $('.fixcase').on('click', function(){
@@ -502,15 +499,23 @@ function updateQMessage() {
         });
         $('#refreshcheck').off();
         $('#refreshcheck').on('click', function () {
-            $("#consistencyck").slideUp();
-            $("#fb-sharing-wrapper").show();
+            displayCheck(false);
             queryGeni();
         });
-        $("#fb-sharing-wrapper").hide();
+        displayCheck(true);
+    } else {
+        displayCheck(false);
+    }
+}
+
+function displayCheck(visible) {
+    if (visible) {
+        $('#fb-sharing-wrapper').css({'visibility': 'hidden', 'opacity': 0, 'transition': 'visibility 0s, linear 300ms, opacity 300ms'});
         $("#consistencyck").slideDown();
     } else {
-        $("#consistencyck").slideUp();
-        $("#fb-sharing-wrapper").show();
+        $("#consistencyck").slideUp(function() {
+            $('#fb-sharing-wrapper').css({'visibility': 'visible', 'opacity': 1, 'transition': 'visibility 0s, linear 0s, opacity 300ms'});
+        });
     }
 }
 

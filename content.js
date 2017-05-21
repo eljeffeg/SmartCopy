@@ -304,25 +304,15 @@ function selfCheck(familyset) {
                     //Excessive Age Warning
                     consistencymessage = concat("warn") + "The age of " + buildEditLink(person) + " exceeds " + longevity_warn + " years.";
                 }
-                var ddate = getGeniData(person, "death", "date").formatted_date;
-                var bdate = getGeniData(person, "birth", "date").formatted_date;
-                var bapdate = getGeniData(person, "baptism", "date").formatted_date;
-                var burdate = getGeniData(person, "burial", "date").formatted_date;
-                if (person_bdate > person_ddate) {
-                    if (!(isYear(person, "death") && bdate.contains(ddate))) {
-                        //Born after death
-                        consistencymessage = concat("error") + "Birth date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " death date.";
-                    }
-                } else if (person_bapdate > person_ddate) {
-                    if (!(isYear(person, "death") && bapdate.contains(ddate))) {
-                        //Baptism after death
-                        consistencymessage = concat("error") + "Baptism date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " death date.";
-                    }
-                } else if (person_ddate > person_burial) {
-                    if (!(isYear(person, "burial") && ddate.contains(burdate))) {
-                        //Death is after Burial
-                        consistencymessage = concat("error") + "Death date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " burial date.";
-                    }
+                if (person_bdate > person_ddate && !containsRange(person, "birth", person, "death")) {
+                    //Born after death
+                    consistencymessage = concat("error") + "Birth date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " death date.";
+                } else if (person_bapdate > person_ddate && !containsRange(person, "baptism", person, "death")) {
+                    //Baptism after death
+                    consistencymessage = concat("error") + "Baptism date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " death date.";
+                } else if (person_ddate > person_burial && !containsRange(person, "death", person, "burial")) {
+                    //Death is after Burial
+                    consistencymessage = concat("error") + "Death date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " burial date.";
                 }
             }
 
@@ -417,6 +407,18 @@ function isASCII(str) {
     return /^[\x00-\x7F]*$/.test(str);
 }
 
+function containsRange(person1, type1, person2, type2) {
+    var d1 = getGeniData(person1, type1, "date");
+    var d2 = getGeniData(person2, type2, "date");
+    if (exists(d1.year) && exists(d2.year) && d1.year !== d2.year) {
+        return false;
+    }
+    if (exists(d1.month) && exists(d2.month) && d1.month !== d2.month) {
+        return false;
+    }
+    return true;
+}
+
 function unixDate(person, type) {
     var obj = getGeniData(person, type, "date");
     var date = new Date();
@@ -442,17 +444,6 @@ function unixDate(person, type) {
 
     var unixtime = parseInt(date.getTime() / 1000);
     return unixtime;
-}
-
-function isYear(person, type) {
-    var obj = getGeniData(person, type, "date");
-    if (!exists(obj.formatted_date) || obj.formatted_date === "" || exists(obj.range)) {
-        return false;
-    }
-    if (exists(obj.year) && !exists(obj.day) && !exists(obj.month)) {
-        return true;
-    }
-    return false;
 }
 
 function buildEditLink(person) {

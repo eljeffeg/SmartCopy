@@ -105,7 +105,7 @@ function checkConsistency() {
         var focus = getFocus();
         var parents = getParents();
         var siblings = getSiblings();
-        var children = getChildren();
+        var children = getChildren(focus);
         var partners = getPartners();
         var parentset = getParentSets(focus, parents);
         siblings.unshift(focus); //treat the focus as a sibling
@@ -119,24 +119,23 @@ function checkConsistency() {
         relationshipCheck(parents, siblings);
         relationshipCheck(parents, partners);
         relationshipCheck(parents, children);
+        relationshipCheck(partners, children);
         relationshipCheck(siblings, children);
 
+        //Compare Parent & Sibling relationships
         for (var union in parentset) {
+            siblings = getChildren(parentset[union][0],parentset[union][1]);
             partnerCheck(parentset[union]);
+            siblingCheck(siblings);
+            childCheck(parentset[union], siblings);
         }
-
-        siblingCheck(siblings);
-        siblingCheck(children);
-
-        //Compare Parent & Siblings (includes focus) relationships
-        childCheck(parents, siblings);
 
         //Compare Focus & Child relationships
         for (var i=0; i < partners.length; i++) {
             parents = [focus, partners[i]];
+            children = getChildren(focus, partners[i]);
             partnerCheck(parents);
-            relationshipCheck(parents, children);
-            children = getChildren(partners[i]);
+            siblingCheck(children);
             childCheck(parents, children);
         }
 
@@ -574,13 +573,15 @@ function getParentSets(focus, parents) {
     return parentset;
 }
 
-function getChildren(partner) {
+function getChildren(focusid, partner) {
     var familyset = [];
-    var focusid = getFocus();
     var focus = getGeniData(focusid, "edges");
     for (var union in focus) {
         if (!focus.hasOwnProperty(union)) continue;
         if (isPartner(focus[union].rel)) {
+            if (!exists(uniondata[union])) {
+                return familyset;
+            }
             var edges = uniondata[union]["edges"];
             var loopedges = false;
             if (exists(partner) && partner in edges) {

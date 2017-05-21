@@ -416,6 +416,9 @@ function containsRange(person1, type1, person2, type2) {
     if (exists(d1.month) && exists(d2.month) && d1.month !== d2.month) {
         return false;
     }
+    if (exists(d1.day) && exists(d2.day) && d1.day !== d2.day) {
+        return false;
+    }
     return true;
 }
 

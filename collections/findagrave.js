@@ -336,24 +336,30 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 var cells = $(row).find('td');
                 var eventinfo = $(cells[1]).html();
                 if (exists(eventinfo)) {
-                    if (eventinfo.contains("<br>") || (eventinfo.split(",").length - 1) > 1) {
-                        var eventsplit = [];
-                        if (eventinfo.contains("<br>")) {
-                            eventsplit = eventinfo.split("<br>");
-                        } else {
-                            eventsplit = eventinfo.split(",");
-                            eventsplit[0] = eventsplit[0] + eventsplit.splice(1, 1)[0];
-                        }
-
+                    if (eventinfo.contains("<br>")) {
+                        var eventsplit = eventinfo.split("<br>");
                         var dateval = eventsplit.shift().replace(".,", "").replace(/&nbsp;/g, " ").replace("  ", " ").trim();
                         dateval = cleanDate(dateval);
                         if (dateval !== "unknown" && dateval !== "") {
                             data.push({date: dateval});
                             deathdtflag = true;
                         }
-                        var eventlocation = eventsplit.join(", ").trim();
+                        var eventlocation = eventsplit.join(", ");
                         data.push({id: geoid, location: eventlocation});
                         geoid++;
+                    } else if(eventinfo.search(/\d{4}, /) !== -1) {
+                        var eventsplit = eventinfo.split(/\d{4}, /);
+                        dateval = eventinfo.replace(", " + eventsplit[1], "").replace(".,", "").replace(/&nbsp;/g, " ").replace("  ", " ").trim();
+                        var eventlocation = eventsplit[1];
+                        dateval = cleanDate(dateval);
+                        if (dateval !== "unknown" && dateval !== "") {
+                            data.push({date: dateval});
+                            deathdtflag = true;
+                        }
+                        if (exists(eventlocation) && eventlocation !== "") {
+                            data.push({id: geoid, location: eventlocation});
+                            geoid++;
+                        }
                     } else {
                         if (eventinfo !== "unknown") {
                             data.push({date: eventinfo});

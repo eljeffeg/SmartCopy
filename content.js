@@ -168,7 +168,7 @@ function partnerCheck(partners) {
         var wife_ddate = unixDate(wife, "death");
         var union_mdate = unixDate(husband, "marriage");
         checkDate(husband, "marriage");
-        if (union_mdate === NaN) {
+        if (isNaN(union_mdate)) {
             union_mdate = unixDate(wife, "marriage");
             checkDate(wife, "marriage");
         }
@@ -453,9 +453,7 @@ function unixDate(person, type) {
             date.setDate(1);
         }
     }
-
-    var unixtime = parseInt(date.getTime() / 1000);
-    return unixtime;
+    return parseInt(date.getTime() / 1000);
 }
 
 function buildEditLink(person) {

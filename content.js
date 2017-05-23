@@ -435,8 +435,10 @@ function unixDate(person, type) {
     var obj = getGeniData(person, type, "date");
     var date = new Date();
     if (!exists(obj.formatted_date) || obj.formatted_date === "" || exists(obj.range)) {
-        if (!(type === "death" && getGeniData(person, "is_alive"))) {
-            //Skip if the person is alive - return current date
+        if (type === "death" && getGeniData(person, "is_alive")) {
+            //If the person is alive, return current date
+            return parseInt(date.getTime() / 1000);
+        } else {
             return NaN;
         }
     }
@@ -452,8 +454,10 @@ function unixDate(person, type) {
         } else {
             date.setDate(1);
         }
+        return parseInt(date.getTime() / 1000);
+    } else {
+        return NaN;
     }
-    return parseInt(date.getTime() / 1000);
 }
 
 function buildEditLink(person) {

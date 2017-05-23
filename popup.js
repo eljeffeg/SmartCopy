@@ -754,7 +754,7 @@ function loadLogin() {
         accountinfo = response;
         if (accountinfo.curator) {
             //display leaderboard link if user is a curator - page itself still verifies
-            document.getElementById("curator").style.display = "inline-block";
+            //document.getElementById("curator").style.display = "inline-block";
         }
         loggedin = true;
         if (!loginprocessing) {

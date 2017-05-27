@@ -21,12 +21,6 @@ var samenameoption = true;
 var wedlock = false;
 var uniondata = [];
 
-chrome.storage.local.get('dataconflict', function (result) {
-    if (result.dataconflict !== undefined) {
-        dataconflictoption = result.dataconflict;
-    }
-});
-
 function buildconsistencyDiv() {
     if (isGeni(tablink)) {
         var consistencydiv = $(document.createElement('div'));
@@ -43,6 +37,7 @@ function queryGeni() {
         return;
     }
     familystatus.push(1);
+    getSettings();
     var dconflict = "";
     if (dataconflictoption) {
         //This is an expensive query - exclude it if it's not enabled
@@ -226,6 +221,10 @@ function siblingCheck(siblings) {
             for (var j = i+1; j < siblings.length; j++) {
                 var sib1_bdate = unixDate(siblings[i], "birth");
                 var sib2_bdate = unixDate(siblings[j], "birth");
+                if ((isYear(siblings[i], "birth") || isYear(siblings[j], "birth")) && !containsRange(siblings[i], "birth", siblings[j], "birth")) {
+                    //TODO This should be improved for years that are the same to check if the birth is in the middle of the year
+                    continue;
+                }
                 if ((sib1_bdate < sib2_bdate && sib1_bdate + pregnancy > sib2_bdate) ||
                     (sib1_bdate > sib2_bdate && sib1_bdate - pregnancy < sib2_bdate)) {
                     if ((sib1_bdate < sib2_bdate && sib1_bdate + day > sib2_bdate) ||
@@ -346,7 +345,7 @@ function selfCheck(familyset) {
                 if (namevaluecheck.length > 0) {
                     var nameupdate = [];
                     for (var i=0; i < namevaluecheck.length; i++) {
-                        nameupdate.push(formatName(getGeniData(person, namevaluecheck[i])));
+                        nameupdate.push(formatName(getGeniData(person, namevaluecheck[i])).replace(/'/g, "&#39;"));
                     }
                     //Name contains improper use of uppercase/lowercase
                     consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ") + "' class='fixcase' href='javascript:void(0)' id='case" + getGeniData(person, "id") + "' name='" + namevaluecheck + "'>[fix case]</a></sup>";
@@ -358,7 +357,7 @@ function selfCheck(familyset) {
                     consistencymessage = concat("info") + buildEditLink(person) + " appears to contain a suffix in " + getPronoun(getGeniData(person, "gender")) + " first name.<sup><a title='Move Suffix' class='fixsuffix' href='javascript:void(0)' id='fsuffix" + getGeniData(person, "id") + "'>[fix suffix]</a></sup>";
                 }
                 if (getGeniData(person, "title") !== "") {
-                    var title = getGeniData(person, "title").toLowerCase().replace(".", "").replace("-","");
+                    var title = getGeniData(person, "title").toLowerCase().replace(/./g, "").replace(/-/g,"");
                     if (title === "mr" || title === "mrs" || title === "miss" || title === "ms") {
                         //Salutation in title
                         consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in " + getPronoun(getGeniData(person, "gender")) + " title.<sup><a title='Remove salutation' class='fixtitle' href='javascript:void(0)' id='title" + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
@@ -368,7 +367,7 @@ function selfCheck(familyset) {
                     }
                 }
                 if (getGeniData(person, "suffix") !== "") {
-                    var suffix = getGeniData(person, "suffix").toLowerCase().replace(".", "").replace("-","");
+                    var suffix = getGeniData(person, "suffix").toLowerCase().replace(/./g, "").replace(/-/g,"");
                     if (suffix === "mr" || suffix === "mrs" || suffix === "miss" || title === "ms") {
                         //Salutation in suffix
                         consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in " + getPronoun(getGeniData(person, "gender")) + " suffix.<sup><a title='Remove salutation' class='fixtitle' href='javascript:void(0)' id='suffix" + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
@@ -381,6 +380,8 @@ function selfCheck(familyset) {
         }
     }
 }
+
+//TODO add check that if location data is there, but no country - warning
 
 function relationshipCheck(group1, group2) {
     if (selfcheckoption) {
@@ -414,6 +415,17 @@ function validName(name) {
 
 function isASCII(str) {
     return /^[\x00-\x7F]*$/.test(str);
+}
+
+function isYear(person, type) {
+    var obj = getGeniData(person, type, "date");
+    if (!exists(obj.formatted_date) || obj.formatted_date === "" || exists(obj.range)) {
+        return false;
+    }
+    if (exists(obj.year) && !exists(obj.day) && !exists(obj.month)) {
+        return true;
+    }
+    return false;
 }
 
 function containsRange(person1, type1, person2, type2) {
@@ -764,107 +776,115 @@ function concat(type) {
     return icon;
 }
 
-chrome.storage.local.get('geniconsistency', function (result) {
-    if (result.geniconsistency) {
-        buildconsistencyDiv();
-    } else if (result.geniconsistency === undefined) {
-        chrome.storage.local.set({'geniconsistency': true});
-        buildconsistencyDiv();
-    }
-});
+function getSettings() {
+    chrome.storage.local.get('dataconflict', function (result) {
+        if (result.dataconflict !== undefined) {
+            dataconflictoption = result.dataconflict;
+        }
+    });
 
-chrome.storage.local.get('namecheck', function (result) {
-    if (result.namecheck !== undefined) {
-        namecheckoption = result.namecheck;
-    }
-});
+    chrome.storage.local.get('geniconsistency', function (result) {
+        if (result.geniconsistency) {
+        } else if (result.geniconsistency === undefined) {
+            chrome.storage.local.set({'geniconsistency': true});
+        }
+    });
 
-chrome.storage.local.get('siblingcheck', function (result) {
-    if (result.siblingcheck !== undefined) {
-        siblingcheckoption = result.siblingcheck;
-    }
-});
+    chrome.storage.local.get('namecheck', function (result) {
+        if (result.namecheck !== undefined) {
+            namecheckoption = result.namecheck;
+        }
+    });
 
-chrome.storage.local.get('agelimitwarn', function (result) {
-    if (result.agelimitwarn !== undefined) {
-        longevity_warn = result.agelimitwarn;
-    }
-});
+    chrome.storage.local.get('siblingcheck', function (result) {
+        if (result.siblingcheck !== undefined) {
+            siblingcheckoption = result.siblingcheck;
+        }
+    });
 
-chrome.storage.local.get('agelimiterror', function (result) {
-    if (result.agelimiterror !== undefined) {
-        longevity_error = result.agelimiterror;
-    }
-});
+    chrome.storage.local.get('agelimitwarn', function (result) {
+        if (result.agelimitwarn !== undefined) {
+            longevity_warn = result.agelimitwarn;
+        }
+    });
 
-chrome.storage.local.get('childcheck', function (result) {
-    if (result.childcheck !== undefined) {
-        childcheckoption = result.childcheck;
-    }
-});
+    chrome.storage.local.get('agelimiterror', function (result) {
+        if (result.agelimiterror !== undefined) {
+            longevity_error = result.agelimiterror;
+        }
+    });
 
-chrome.storage.local.get('partnercheck', function (result) {
-    if (result.partnercheck !== undefined) {
-        partnercheckoption = result.partnercheck;
-    }
-});
+    chrome.storage.local.get('childcheck', function (result) {
+        if (result.childcheck !== undefined) {
+            childcheckoption = result.childcheck;
+        }
+    });
 
-chrome.storage.local.get('agecheck', function (result) {
-    if (result.agecheck !== undefined) {
-        agecheckoption = result.agecheck;
-    }
-});
+    chrome.storage.local.get('partnercheck', function (result) {
+        if (result.partnercheck !== undefined) {
+            partnercheckoption = result.partnercheck;
+        }
+    });
 
-chrome.storage.local.get('birthyoung', function (result) {
-    if (result.birthyoung !== undefined) {
-        birthage_young = result.birthyoung;
-    }
-});
+    chrome.storage.local.get('agecheck', function (result) {
+        if (result.agecheck !== undefined) {
+            agecheckoption = result.agecheck;
+        }
+    });
 
-chrome.storage.local.get('birthold', function (result) {
-    if (result.birthold !== undefined) {
-        birthage_old = result.birthold;
-    }
-});
+    chrome.storage.local.get('birthyoung', function (result) {
+        if (result.birthyoung !== undefined) {
+            birthage_young = result.birthyoung;
+        }
+    });
 
-chrome.storage.local.get('marriageyoung', function (result) {
-    if (result.marriageyoung !== undefined) {
-        marriageage_young = result.marriageyoung;
-    }
-});
+    chrome.storage.local.get('birthold', function (result) {
+        if (result.birthold !== undefined) {
+            birthage_old = result.birthold;
+        }
+    });
 
-chrome.storage.local.get('marriagedif', function (result) {
-    if (result.marriagedif !== undefined) {
-        spouse_age_dif = result.marriagedif;
-    }
-});
+    chrome.storage.local.get('marriageyoung', function (result) {
+        if (result.marriageyoung !== undefined) {
+            marriageage_young = result.marriageyoung;
+        }
+    });
 
-chrome.storage.local.get('wedlockcheck', function (result) {
-    if (result.wedlockcheck !== undefined) {
-        wedlock = result.wedlockcheck;
-    }
-});
+    chrome.storage.local.get('marriagedif', function (result) {
+        if (result.marriagedif !== undefined) {
+            spouse_age_dif = result.marriagedif;
+        }
+    });
 
-chrome.storage.local.get('termlimit', function (result) {
-    if (result.termlimit !== undefined) {
-        termlimit = result.termlimit;
-        pregnancy = termlimit * (year/12);
-    }
-});
+    chrome.storage.local.get('wedlockcheck', function (result) {
+        if (result.wedlockcheck !== undefined) {
+            wedlock = result.wedlockcheck;
+        }
+    });
 
-chrome.storage.local.get('selfcheck', function (result) {
-    if (result.selfcheck !== undefined) {
-        selfcheckoption = result.selfcheck;
-    }
-});
-chrome.storage.local.get('datecheck', function (result) {
-    if (result.datecheck !== undefined) {
-        datecheckoption = result.datecheck;
-    }
-});
+    chrome.storage.local.get('termlimit', function (result) {
+        if (result.termlimit !== undefined) {
+            termlimit = result.termlimit;
+            pregnancy = termlimit * (year/12);
+        }
+    });
 
-chrome.storage.local.get('samenamecheck', function (result) {
-    if (result.samenamecheck !== undefined) {
-        samenameoption = result.samenamecheck;
-    }
-});
+    chrome.storage.local.get('selfcheck', function (result) {
+        if (result.selfcheck !== undefined) {
+            selfcheckoption = result.selfcheck;
+        }
+    });
+    chrome.storage.local.get('datecheck', function (result) {
+        if (result.datecheck !== undefined) {
+            datecheckoption = result.datecheck;
+        }
+    });
+
+    chrome.storage.local.get('samenamecheck', function (result) {
+        if (result.samenamecheck !== undefined) {
+            samenameoption = result.samenamecheck;
+        }
+    });
+}
+
+buildconsistencyDiv();

@@ -414,7 +414,7 @@ function validName(name) {
 }
 
 function isASCII(str) {
-    return /^[\x00-\x7F]*$/.test(str);
+    return /^[A-zÀ-ÿ]*$/.test(str);
 }
 
 function isYear(person, type) {

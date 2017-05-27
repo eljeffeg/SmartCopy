@@ -358,8 +358,8 @@ var NameParse = (function(){
     // detect mixed case words like "McDonald"
     // returns false if the string is all one case
     NameParse.is_camel_case = function (word) {
-        var ucReg = /[A-Z]+/;
-        var lcReg = /[a-z]+/;
+        var ucReg = /[A-Z\u00C0-\u00DE]+/;
+        var lcReg = /[a-z\u00E0-\u00FF]+/;
         return (ucReg.exec(word) && lcReg.exec(word));
     };
 

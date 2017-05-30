@@ -221,7 +221,7 @@ function siblingCheck(siblings) {
             for (var j = i+1; j < siblings.length; j++) {
                 var sib1_bdate = unixDate(siblings[i], "birth");
                 var sib2_bdate = unixDate(siblings[j], "birth");
-                if ((isYear(siblings[i], "birth") || isYear(siblings[j], "birth")) && !containsRange(siblings[i], "birth", siblings[j], "birth")) {
+                if (isYear(siblings[i], "birth") || isYear(siblings[j], "birth")) {
                     //TODO This should be improved for years that are the same to check if the birth is in the middle of the year
                     continue;
                 }
@@ -410,11 +410,7 @@ function checkDate(person, type) {
 }
 
 function validName(name) {
-    return (name.length > 1 && isASCII(name) && name !== "NN" && name !== "unknown");
-}
-
-function isASCII(str) {
-    return /^[A-zÀ-ÿ]*$/.test(str);
+    return (name.length > 1 && isNaN(name) && name !== "NN" && name !== "unknown");
 }
 
 function isYear(person, type) {

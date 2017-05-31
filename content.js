@@ -667,7 +667,7 @@ function getChildren(focusid, partner) {
             if (loopedges) {
                 for (var profile in edges) {
                     if (!edges.hasOwnProperty(profile)) continue;
-                    if (isChild(edges[profile].rel)) {
+                    if (isChild(edges[profile].rel) && !exists(edges[profile].rel_modifier)) {
                         familyset.push(profile);
                     }
                 }

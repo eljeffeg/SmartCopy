@@ -134,14 +134,17 @@ function loginProcess() {
         var focusprofile = getProfile(tablink);
         focusid = focusprofile.replace("?profile=", "");
         document.getElementById("addhistoryblock").style.display = "block";
+        chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon.png" });
         updateLinks(focusprofile);
     }
     if (startsWithHTTP(tablink, "https://www.geni.com") && !isGeni(tablink)) {
+        chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon.png" });
         $('#loginspinner').hide();
         $("#optionslide").show();
     } else if (!loggedin) {
         loadLogin();
     } else {
+        chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon.png" });
         if (isGeni(tablink)) {
             userAccess();
         } else {
@@ -758,7 +761,6 @@ function loadLogin() {
         }
         loggedin = true;
         if (!loginprocessing) {
-            chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon.png" });
             $("#logindiv").slideUp();
             document.getElementById("loginspinner").style.display = "block";
             if (!slideopen) {
@@ -1124,10 +1126,11 @@ function buildTree(data, action, sendid) {
                 return;
             }
         }
+        var posturl = smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action;
         chrome.runtime.sendMessage({
             method: "POST",
             action: "xhttp",
-            url: smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action,
+            url: posturl,
             data: $.param(data),
             variable: {id: id, relation: action.replace("add-", ""), data: data}
         }, function (response) {

@@ -40,7 +40,7 @@ var GeoLocation = function (results, query) {
 function parseGoogle(result, query) {
     var location = {};
     location.query = query || "";
-    location.query = location.query.replace("<", "").replace(">", "");
+    location.query = location.query.replace(/</g, "").replace(/>/g, "");
     if (location.query.startsWith("of ")) {
         location.query = location.query.replace("of ", "");
     }

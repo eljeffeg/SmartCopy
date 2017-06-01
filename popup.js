@@ -402,24 +402,32 @@ function loadPage(request) {
             $(accessdialog).text("");
             accessdialog.style.backgroundColor = "#dfe6ed";
 
-            familystatus.push(1);
-            var descurl = smartcopyurl + "/smartsubmit?family=self&profile=" + focusid;
+            var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,nicknames,gender,deleted,merged_into,birth,baptism,death,burial,cause_of_death,is_alive,occupation,photo_urls,marriage,divorce,locked_fields,match_counts&actions=update,update-basics,add";
+            var descurl = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
             chrome.runtime.sendMessage({
                 method: "GET",
                 action: "xhttp",
                 url: descurl
             }, function (response) {
-                var geni_return = JSON.parse(response.source);
-                focusid = geni_return.id; //In case there is a merge_into return
-                // $('#focusjsontable').json2html(response.source,focustransform);
-                genifocusdata = new GeniPerson(geni_return);
+                genifamily = JSON.parse(response.source);
+                if (genifamily["focus"].merged_into) {
+                    focusid = genifamily["focus"].merged_into.replace("https://www.geni.com/api/", "").trim();
+                    loadPage(request);
+                    return;
+                } else if (genifamily["focus"].deleted){
+                    focusid = "";
+                    loadSelectPage(request);
+                    return;
+                }
+                focusid = getFocus();
+                buildParentSpouse(true);
+                genifocusdata = genifamilydata[focusid];
                 var permissions = genifocusdata.get("actions");
                 if (!exists(permissions)) {
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
                     document.getElementById("loading").style.display = "none";
                     setMessage(errormsg, 'SmartCopy was unable to retrieve the focus profile data from Geni.');
-                    console.log(geni_return);
                     return
                 } else if (permissions.length === 0) {
                     document.getElementById("top-container").style.display = "block";
@@ -429,7 +437,7 @@ function loadPage(request) {
                         'You can reauthenticate by <a href="' + smartcopyurl + '/logout" target="_blank">clicking here</a> and rerunning SmartCopy.');
                     return
                 }
-                var matches = genifocusdata.get("matches");
+                var matches = genifocusdata.get("match_counts");
                 if (matches.tree_match > 0) {
                     $("#treematchurl").attr("href", "https://www.geni.com/search/matches?id=" + genifocusdata.get("guid") + "&src=smartcopy&cmp=btn");
                     $("#treematchcount").text(" " + matches.tree_match + " ");
@@ -438,35 +446,14 @@ function loadPage(request) {
                         $("#treematchtext").show();
                     }
                 };
-                var url = smartcopyurl + "/smartsubmit?family=all&profile=" + focusid;
-                chrome.runtime.sendMessage({
-                    method: "GET",
-                    action: "xhttp",
-                    url: url
-                }, function (response) {
-                    genifamily = JSON.parse(response.source);
-                    //$('#familyjsontable').json2html(response.source,familytransform);
-                    buildParentSpouse(true);
-                    familystatus.pop();
-                });
                 //Update focusname again in case there is a merge_into
                 $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>");
-                var byear;
-                var dyear;
+
+                var byear = genifocusdata.get("birth", "date.year");
+                var dyear = genifocusdata.get("death", "date.year");
                 var dateinfo = "";
-                if (exists(geni_return["birth"]) && exists(geni_return["birth"]["date"])) {
-                    var matches = geni_return["birth"]["date"].match(/\d+$/);
-                    if (matches) {
-                        byear = matches[0];
-                    }
-                }
-                if (exists(geni_return["death"]) && exists(geni_return["death"]["date"])) {
-                    var matches = geni_return["death"]["date"].match(/\d+$/);
-                    if (matches) {
-                        dyear = matches[0];
-                    }
-                }
-                if (exists(byear) || exists(dyear)) {
+
+                if (byear !== "" || dyear !== "") {
                     dateinfo = " (";
                     if (exists(byear)) {
                         dateinfo += "b." + byear;
@@ -479,22 +466,23 @@ function loadPage(request) {
                     }
                     dateinfo += ")";
                 }
-                genigender = geni_return.gender;
-                geniliving = geni_return.is_alive;
-                $("#genilinkdesc").attr('title', "Geni: " + geni_return.name + dateinfo);
+                genigender = genifocusdata.get("gender");
+                geniliving = genifocusdata.get("is_alive");
+                $("#genilinkdesc").attr('title', "Geni: " + genifocusdata.get("name") + dateinfo);
+
+                console.log("Parsing Family...");
+                // generic call
+                if (collection.parseProfileData) {
+                    collection.parseProfileData(request.source, true);
+                } else {
+                    setMessage(warningmsg, 'There was a problem with the collection - please report with link to page.');
+                }
+                if (!accountinfo.user || (exists(accountinfo.user.revoked) && accountinfo.user.revoked !== null)) {
+                    //document.getElementById("loading").style.display = "none";
+                    $("#familymembers").attr('disabled', 'disabled');
+                    setMessage(warningmsg, 'Use of SmartCopy for copying Family Members to Geni is managed.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
+                }
             });
-            console.log("Parsing Family...");
-            // generic call
-            if (collection.parseProfileData) {
-                collection.parseProfileData(request.source, true);
-            } else {
-                setMessage(warningmsg, 'There was a problem with the collection - please report with link to page.');
-            }
-            if (!accountinfo.user || (exists(accountinfo.user.revoked) && accountinfo.user.revoked !== null)) {
-                //document.getElementById("loading").style.display = "none";
-                $("#familymembers").attr('disabled', 'disabled');
-                setMessage(warningmsg, 'Use of SmartCopy for copying Family Members to Geni is managed.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
-            }
         } else {
             loadSelectPage(request);
         }
@@ -555,7 +543,8 @@ function loadSelectPage(request) {
         $('#optionrel').css("display", "inline-block");
         $('#optionsc').css("display", "none");
         focusprofile = focusprofile.replace("http://www.geni.com/", "").replace("https://www.geni.com/", "").trim();
-        var url = smartcopyurl + "/smartsubmit?family=all&profile=" + focusprofile;
+        var args = "fields=id,guid,name,gender,deleted";
+        var url = "https://www.geni.com/api/" + focusprofile + "/immediate-family?" + args;
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -563,9 +552,9 @@ function loadSelectPage(request) {
         }, function (response) {
             genifamily = JSON.parse(response.source);
             buildParentSpouse(false);
-            var result = genifamily;
+            var result = genifamilydata;
             result.sort(function (a, b) {
-                var relA = a.relation.toLowerCase(), relB = b.relation.toLowerCase();
+                var relA = a.get("relation"), relB = b.get("relation");
                 if (relA < relB) //sort string ascending
                     return -1;
                 if (relA > relB)
@@ -576,8 +565,8 @@ function loadSelectPage(request) {
             if (exists(result)) {
                 for (var key in result) if (result.hasOwnProperty(key)) {
                     var person = result[key];
-                    if (exists(person.name)) {
-                        selectsrt += '<option value="' + person.id + '">' + capFL(person.relation) + ": " + person.name + '</option>';
+                    if (exists(person) && person.get("relation") !== "self") {
+                        selectsrt += '<option value="' + person.get("id") + '">' + capFL(person.get("relation")) + ": " + person.get("name") + '</option>';
                     }
                 }
                 if (buildhistory.length > 0) {
@@ -602,38 +591,59 @@ function loadSelectPage(request) {
 
 function buildParentSpouse(finalid) {
     if (exists(genifamily)) {
-        var siblings = false;
-        var parents = false;
+        uniondata = [];
+        genifamilydata = [];
+        genispouse = [];
+        var siblingsck = false;
+        var parentsck = false;
         var parval = {male: 0, female: 0, unknown: 0};
         var sibval = {male: 0, female: 0, unknown: 0};
         var chval = {male: 0, female: 0, unknown: 0};
         var spval = {male: 0, female: 0, unknown: 0};
-        for (var i = 0; i < genifamily.length; i++) {
-            var familymem = genifamily[i];
-            genifamilydata[familymem.id] = new GeniPerson(familymem);
-            familymem.relation = familymem.relation.toLowerCase();
-            if (isParent(familymem.relation)) {
-                parval = countGeniMem(parval, familymem.relation);
-                parents = true;
-                if (finalid) {
+        var nodes = genifamily["nodes"];
+        for (var node in nodes) {
+            if (!nodes.hasOwnProperty(node)) continue;
+            if (nodes[node].id.startsWith("union")) {
+                uniondata[nodes[node].id] = nodes[node];
+            } else if (!nodes[node].deleted) {
+                var familymem = nodes[node];
+                genifamilydata[familymem.id] = new GeniPerson(familymem);
+                if (familymem.id === getFocus()) {
+                    genifamilydata[familymem.id].set("relation", "self");
+                    genifamilydata[familymem.id].set("status", "");
+                    genifamilydata[familymem.id].set("union", "");
+                }
+            }
+        }
+        var parents = getParents();
+        var siblings = getSiblings();
+        var children = getChildren(getFocus());
+        var partners = getPartners();
+        genispouse = partners;
+        for (var i=0; i < parents.length; i++) {
+            parval = countGeniMem(parval, getGeniData(parents[i], "relation"));
+            parentsck = true;
+            if (finalid) {
                     document.getElementById("parentsearch").style.display = "none";
                 }
                 if (!parentblock) {
-                    parentspouseunion = familymem.union;
+                    parentspouseunion = getGeniData(parents[i], "union");
                     parentblock = true;
                 } else {
                     //If there are two parents - reset
                     parentspouselist = [];
                     parentblock = false;
                 }
-            } else if (isSibling(familymem.relation)) {
-                sibval = countGeniMem(sibval, familymem.relation);
-                siblings = true;
-            } else if (isChild(familymem.relation)) {
-                chval = countGeniMem(chval, familymem.relation);
-            } else if (isPartner(familymem.relation)) {
-                spval = countGeniMem(spval, familymem.relation);
-            }
+        }
+        for (var i=0; i < siblings.length; i++) {
+            sibval = countGeniMem(sibval, getGeniData(siblings[i], "relation"));
+            siblingsck = true;
+        }
+        for (var i=0; i < children.length; i++) {
+            chval = countGeniMem(chval, getGeniData(children[i], "relation"));
+        }
+        for (var i=0; i < partners.length; i++) {
+            spval = countGeniMem(spval, getGeniData(partners[i], "relation"));
         }
         if (finalid) {
             buildGeniCount(parval, "parentcount");
@@ -641,14 +651,11 @@ function buildParentSpouse(finalid) {
             buildGeniCount(spval, "partnercount");
             buildGeniCount(chval, "childcount");
         }
-        if (!parents && siblings) {
-            for (var i = 0; i < genifamily.length; i++) {
-                var familymem = genifamily[i];
-                if (isSibling(familymem.relation)) {
-                    parentspouseunion = familymem.union;
-                    parentblock = true;
-                    break;
-                }
+        if (!parentsck && siblingsck) {
+            for (var i=0; i < siblings.length; i++) {
+                parentspouseunion = getGeniData(siblings[i], "union");
+                parentblock = true;
+                break;
             }
         }
     }
@@ -1053,7 +1060,7 @@ var submitform = function () {
                             }
                         }
                         if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "")) {
-                            var abouturl = smartcopyurl + "/smartsubmit?fields=about_me,nicknames&profile=" + pid;
+                            var abouturl = "https://www.geni.com/api/" + pid + "?fields=about_me,nicknames";
                             submitstatus.push(updatetotal);
                             chrome.runtime.sendMessage({
                                 method: "GET",
@@ -1087,12 +1094,7 @@ var submitform = function () {
 };
 
 function getUnion(profileid) {
-    for (var i=0; i < genifamily.length; i++) {
-        if (genifamily[i].id === profileid) {
-            return genifamily[i].union;
-        }
-    }
-    return "";
+    return getGeniData(profileid, "union");
 }
 
 var noerror = true;
@@ -1115,6 +1117,8 @@ function buildTree(data, action, sendid) {
         } else if (genifocusdata.get("id") === sendid || sendid.startsWith("union")) {
             permissions = genifocusdata.get("actions");
         }
+
+        var posturl = "https://www.geni.com/api/" + sendid + "/" + action;
         if (action === "update") {
             if (permissions.indexOf("update") === -1 && permissions.indexOf("update-basics") !== -1) {
                 action = "update-basics";
@@ -1125,8 +1129,9 @@ function buildTree(data, action, sendid) {
                 console.log("Permission denied - No add permission on profile: " + sendid);
                 return;
             }
+        } else if (action === "add-photo") {
+            posturl = smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action;
         }
-        var posturl = smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action;
         chrome.runtime.sendMessage({
             method: "POST",
             action: "xhttp",
@@ -1154,49 +1159,19 @@ function buildTree(data, action, sendid) {
                 }
                 if (exists(genifamilydata[databyid[id]["geni_id"]])) {
                     genidata = genifamilydata[databyid[id]["geni_id"]];
+                } else {
+                    genidata = result;
                 }
-                if (response.variable.relation === "partner" && exists(result.unions)) {
+                if (isPartner(databyid[id].status) && exists(result.unions)) {
                     spouselist[id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: databyid[id].status, genidata: genidata};
-                } else if (response.variable.relation === "parent" && exists(result.unions)) {
+                } else if (isParent(databyid[id].status) && exists(result.unions)) {
                     parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
                     if (parentlist.length > 0) {
-                        if (exists(parentlist[0].id) && (exists(marriagedates[id]) || exists(marriagedates[parentlist[0].id]))) {
-                            if (exists(marriagedates[id])) {
-                                var pid = id;
-                            } else {
-                                var pid = parentlist[0].id;
-                            }
-                            if (action !== "add-photo" && action !== "delete") {
-                                updatetotal += 1;
-                                $("#updatetotal").text(updatetotal);
-                            }
-                            submitstatus.push(updatetotal);
-                            var source = JSON.parse(response.source);
-                            var familyurl = smartcopyurl + "/smartsubmit?family=spouse&profile=" + source.id;
-                            chrome.runtime.sendMessage({
-                                method: "GET",
-                                action: "xhttp",
-                                variable: {id: pid},
-                                url: familyurl
-                            }, function (response) {
-                                var source2 = JSON.parse(response.source);
-                                var rid = response.variable.id;
-                                var genidata;
-                                if (exists(genifamilydata[source2.id])) {
-                                    genidata = genifamilydata[source2.id];
-                                }
-                                if (exists(source2[0]) && exists(source2[0].union)) {
-                                    spouselist[rid] = {union: source2[0].union, status: databyid[rid].mstatus, genidata: genidata};
-                                }
-                                if (action !== "add-photo" && action !== "delete") {
-                                    updatecount += 1;
-                                    $("#updatecount").text(Math.min(updatecount, updatetotal).toString());
-                                }
-                                submitstatus.pop();
-                            });
+                        if (exists(marriagedates[id]) || exists(marriagedates[parentlist[0]])){
+                            spouselist[id] = {union: parentspouseunion, status: databyid[id].status, genidata: genidata};
                         }
                     } else {
-                        parentlist.push({id: id, status: databyid[id].mstatus});
+                        parentlist.push(id);
                     }
                 }
                 addHistory(result.id, databyid[id].itemId, databyid[id].name, JSON.stringify(response.variable.data));
@@ -1237,15 +1212,15 @@ function buildTree(data, action, sendid) {
                 if (parentlist.length > 0) {
                     if (exists(marriagedates[id])) {
                         spouselist[id] = {union: "union" + id, status: databyid[id].mstatus, genidata: genidata};
-                    } else if (exists(marriagedates[parentlist[0].id])) {
+                    } else if (exists(marriagedates[parentlist[0]])) {
                         var pid = parentlist[0];
-                        spouselist[pid.id] = {union: "union" + pid.id, status: pid.mstatus, genidata: genidata};
+                        spouselist[pid] = {union: "union" + pid, status: databyid[pid].mstatus, genidata: genidata};
                     } else {
                         console.log("No Parent");
                     }
                     console.log("Add Union: " + JSON.stringify(spouselist[id]));
                 } else {
-                    parentlist.push({id: id, status: databyid[id].mstatus});
+                    parentlist.push(id);
                 }
             }
             delete data.profile_id;
@@ -1340,7 +1315,7 @@ function submitChildren() {
                     chrome.runtime.sendMessage({
                         method: "POST",
                         action: "xhttp",
-                        url: smartcopyurl + "/smartsubmit?profile=" + spouseinfo.union + "&action=update",
+                        url: "https://www.geni.com/api/" + spouseinfo.union + "/update",
                         data: $.param(marriageupdate),
                         variable: ""
                     }, function (response) {
@@ -1423,7 +1398,7 @@ function buildTempSpouse(parentid) {
         chrome.runtime.sendMessage({
             method: "POST",
             action: "xhttp",
-            url: smartcopyurl + "/smartsubmit?profile=" + focusid + "&action=add-partner",
+            url: "https://www.geni.com/api/" + focusid + "/add-partner",
             data: $.param({gender: tgender}),
             variable: {id: parentid}
         }, function (response) {
@@ -1711,7 +1686,7 @@ function addHistory(id, itemId, name, data) {
 
 function getParameterByName(name, url) {
     if (exists(url)) {
-        url = url.replace("&amp;", "&");
+        url = url.replace(/&amp;/g, "&");
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
         var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
             results = regex.exec(url);

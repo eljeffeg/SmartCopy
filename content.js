@@ -19,7 +19,6 @@ var dataconflictoption = false;
 var datecheckoption = true;
 var samenameoption = true;
 var wedlock = false;
-var uniondata = [];
 
 function buildconsistencyDiv() {
     if (isGeni(tablink)) {
@@ -36,13 +35,13 @@ function queryGeni() {
     if (focusid === "" && tablink !== "https://www.geni.com/family-tree") {
         return;
     }
-    familystatus.push(1);
     getSettings();
     var dconflict = "";
     if (dataconflictoption) {
         //This is an expensive query - exclude it if it's not enabled
         dconflict = ",data_conflict";
     }
+    familystatus.push(1);
     var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,gender,deleted,birth,baptism,death,burial,is_alive,marriage,divorce" + dconflict;
     var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
     chrome.runtime.sendMessage({
@@ -62,7 +61,6 @@ function queryGeni() {
                 genifamily = [];
             } else {
                 focusid = genifamily["focus"].id;
-                genifamilydata[focusid] = new GeniPerson(genifamily["focus"]);
                 var nodes = genifamily["nodes"];
                 for (var node in nodes) {
                     if (!nodes.hasOwnProperty(node)) continue;
@@ -418,7 +416,8 @@ function checkDate(person, type) {
 }
 
 function validName(name) {
-    return (name.length > 1 && isNaN(name) && name !== "NN" && name !== "unknown" && name !== "UNKNOWN");
+    name = NameParse.removeIgnoredChars(name).toLowerCase();
+    return (name.length > 1 && isNaN(name) && name !== "nn" && name !== "unknown");
 }
 
 function isYear(person, type) {
@@ -543,7 +542,7 @@ function updateQMessage() {
             var args = {};
             var nameparts = $(this)[0].name.split(",");
             for (var i=0;i < nameparts.length;i++) {
-                args[nameparts[i]] = getGeniData(id, nameparts[i]).replace("  ", " ").trim();
+                args[nameparts[i]] = getGeniData(id, nameparts[i]).replace(/  /g, " ").trim();
             }
             var url = "https://www.geni.com/api/" + id + "/update-basics";
             $("#space" + id).replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
@@ -591,137 +590,6 @@ function displayCheck(visible) {
             $('#fb-sharing-wrapper').css({'visibility': 'visible', 'opacity': 1, 'transition': 'visibility 0s, linear 0s, opacity 300ms'});
         });
     }
-}
-
-function getFocus() {
-    return genifamily["focus"].id;
-}
-
-function getParents() {
-    var familyset = [];
-    var focusid = getFocus();
-    var focus = getGeniData(focusid, "edges");
-    for (var union in focus) {
-        if (!focus.hasOwnProperty(union)) continue;
-        if (isChild(focus[union].rel) && !exists(focus[union].rel_modifier)) {
-            var edges = uniondata[union]["edges"];
-            for (var profile in edges) {
-                if (!edges.hasOwnProperty(profile)) continue;
-                if (isPartner(edges[profile].rel)) {
-                    if ("marriage" in uniondata[union]) {
-                        var person = genifamilydata[profile];
-                        person.set("marriage", uniondata[union]["marriage"]);
-                    }
-                    if ("divorce" in uniondata[union]) {
-                        var person = genifamilydata[profile];
-                        person.set("divorce", uniondata[union]["divorce"]);
-                    }
-                    familyset.push(profile);
-                }
-            }
-        }
-    }
-    return familyset;
-}
-
-function getParentSets(focus, parents) {
-    var focusedge = getGeniData(focus, "edges");
-    var parentset = {};
-    for (var union in focusedge) {
-        if (!focusedge.hasOwnProperty(union)) continue;
-        if (isChild(focusedge[union].rel)) {
-            for (var i=0; i < parents.length; i++) {
-                var parentedge = getGeniData(parents[i], "edges");
-                for (var punion in parentedge) {
-                    if (!parentedge.hasOwnProperty(punion)) continue;
-                    if (punion === union) {
-                        if (!exists(parentset[union])) {
-                            parentset[union] = [];
-                        }
-                        parentset[union].push(parents[i]);
-                    }
-                }
-            }
-        }
-
-    }
-    return parentset;
-}
-
-function getChildren(focusid, partner) {
-    var familyset = [];
-    var focus = getGeniData(focusid, "edges");
-    for (var union in focus) {
-        if (!focus.hasOwnProperty(union)) continue;
-        if (isPartner(focus[union].rel)) {
-            if (!exists(uniondata[union])) {
-                return familyset;
-            }
-            var edges = uniondata[union]["edges"];
-            var loopedges = false;
-            if (exists(partner) && partner in edges) {
-                loopedges = true;
-            } else if (!exists(partner)) {
-                loopedges = true;
-            }
-            if (loopedges) {
-                for (var profile in edges) {
-                    if (!edges.hasOwnProperty(profile)) continue;
-                    if (isChild(edges[profile].rel) && !exists(edges[profile].rel_modifier)) {
-                        familyset.push(profile);
-                    }
-                }
-            }
-
-        }
-    }
-    return familyset;
-}
-
-function getSiblings() {
-    var familyset = [];
-    var focusid = getFocus();
-    var focus = getGeniData(focusid, "edges");
-    for (var union in focus) {
-        if (!focus.hasOwnProperty(union)) continue;
-        if (isChild(focus[union].rel) && !exists(focus[union].rel_modifier)) {
-            var edges = uniondata[union]["edges"];
-            for (var profile in edges) {
-                if (!edges.hasOwnProperty(profile)) continue;
-                if (isChild(edges[profile].rel) && profile !== focusid) {
-                    familyset.push(profile);
-                }
-            }
-        }
-    }
-    return familyset;
-}
-
-function getPartners() {
-    var familyset = [];
-    var focusid = getFocus();
-    var focus = getGeniData(focusid, "edges");
-    for (var union in focus) {
-        if (!focus.hasOwnProperty(union)) continue;
-        if (isPartner(focus[union].rel)) {
-            var edges = uniondata[union]["edges"];
-            for (var profile in edges) {
-                if (!edges.hasOwnProperty(profile)) continue;
-                if (isPartner(edges[profile].rel) && profile !== focusid) {
-                    if ("marriage" in uniondata[union]) {
-                        var person = genifamilydata[profile];
-                        person.set("marriage", uniondata[union]["marriage"]);
-                    }
-                    if ("divorce" in uniondata[union]) {
-                        var person = genifamilydata[profile];
-                        person.set("divorce", uniondata[union]["divorce"]);
-                    }
-                    familyset.push(profile);
-                }
-            }
-        }
-    }
-    return familyset;
 }
 
 function getPronoun(gender) {

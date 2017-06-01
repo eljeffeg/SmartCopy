@@ -3,6 +3,7 @@ var smartcopyurl = "https://historylink.herokuapp.com";  //helpful for local tes
 var genifamily, focusid, tablink;
 var familystatus = [], genifamilydata = {};
 var focusgender = "unknown";
+var uniondata = [];
 
 // Run script as soon as the document's DOM is ready.
 if (typeof String.prototype.startsWith != 'function') {
@@ -128,6 +129,12 @@ function GeniPerson(obj) {
             return obj[path];
         } else {
             obj = obj[path];
+            if (subpath === "location_string" && exists(obj.location) && exists(obj.location.formatted_location)) {
+                subpath = "location.formatted_location";
+            }
+            if (subpath === "date.formatted_date" && typeof obj["date"] === 'string') {
+                subpath = "date";
+            }
             var args = subpath.split(".");
             for (var i = 0; i < args.length; i++) {
                 if (!obj || !obj.hasOwnProperty(args[i])) {
@@ -208,7 +215,7 @@ function isPartner(relationship) {
     return (relationship === "spouse" || relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner" || relationship === "ex_husband" || relationship === "ex_wife" || relationship === "ex_partner" || relationship === "spouses");
 }
 
-function getGeniData(profile, value, subvalue, exact) {
+function getGeniData(profile, value, subvalue) {
     if (profile === "add") {
         if (value === "photo_urls") {
             return geniPhoto('unknown');
@@ -219,9 +226,196 @@ function getGeniData(profile, value, subvalue, exact) {
     if (!exists(person)) {
         return "";
     }
-    return person.get(value, subvalue, exact);
+    return person.get(value, subvalue);
 }
 
+function getUnionData(union, value) {
+    if (exists(union[value])) {
+        return union[value];
+    } else {
+        return "";
+    }
+}
+
+function getFocus() {
+    return genifamily["focus"].id;
+}
+
+function getParents() {
+    var familyset = [];
+    var focusid = getFocus();
+    var focus = getGeniData(focusid, "edges");
+    for (var union in focus) {
+        if (!focus.hasOwnProperty(union)) continue;
+        if (isChild(focus[union].rel) && !exists(focus[union].rel_modifier)) {
+            var edges = uniondata[union]["edges"];
+            for (var profile in edges) {
+                if (!edges.hasOwnProperty(profile)) continue;
+                if (isPartner(edges[profile].rel)) {
+                    var person = genifamilydata[profile];
+                    person.set("relation", getRelationship("parent", person.get("gender")));
+                    person.set("union", getUnionData(uniondata[union], "id"));
+                    person.set("status", getUnionData(uniondata[union], "status"));
+                    if ("marriage" in uniondata[union]) {
+                        person.set("marriage", uniondata[union]["marriage"]);
+                    }
+                    if ("divorce" in uniondata[union]) {
+                        person.set("divorce", uniondata[union]["divorce"]);
+                    }
+                    familyset.push(profile);
+                }
+            }
+        }
+    }
+    return familyset;
+}
+
+function getParentSets(focus, parents) {
+    var focusedge = getGeniData(focus, "edges");
+    var parentset = {};
+    for (var union in focusedge) {
+        if (!focusedge.hasOwnProperty(union)) continue;
+        if (isChild(focusedge[union].rel)) {
+            for (var i=0; i < parents.length; i++) {
+                var parentedge = getGeniData(parents[i], "edges");
+                for (var punion in parentedge) {
+                    if (!parentedge.hasOwnProperty(punion)) continue;
+                    if (punion === union) {
+                        if (!exists(parentset[union])) {
+                            parentset[union] = [];
+                        }
+                        parentset[union].push(parents[i]);
+                    }
+                }
+            }
+        }
+
+    }
+    return parentset;
+}
+
+function getChildren(focusid, partner) {
+    var familyset = [];
+    var focus = getGeniData(focusid, "edges");
+    for (var union in focus) {
+        if (!focus.hasOwnProperty(union)) continue;
+        if (isPartner(focus[union].rel)) {
+            if (!exists(uniondata[union])) {
+                return familyset;
+            }
+            var edges = uniondata[union]["edges"];
+            var loopedges = false;
+            if (exists(partner) && partner in edges) {
+                loopedges = true;
+            } else if (!exists(partner)) {
+                loopedges = true;
+            }
+            if (loopedges) {
+                for (var profile in edges) {
+                    if (!edges.hasOwnProperty(profile)) continue;
+                    if (isChild(edges[profile].rel) && !exists(edges[profile].rel_modifier)) {
+
+                        var person = genifamilydata[profile];
+                        person.set("relation", getRelationship("child", person.get("gender")));
+                        person.set("union", getUnionData(uniondata[union], "id"));
+                        person.set("status", "");
+                        familyset.push(profile);
+                    }
+                }
+            }
+
+        }
+    }
+    return familyset;
+}
+
+function getSiblings() {
+    var familyset = [];
+    var focusid = getFocus();
+    var focus = getGeniData(focusid, "edges");
+    for (var union in focus) {
+        if (!focus.hasOwnProperty(union)) continue;
+        if (isChild(focus[union].rel) && !exists(focus[union].rel_modifier)) {
+            var edges = uniondata[union]["edges"];
+            for (var profile in edges) {
+                if (!edges.hasOwnProperty(profile)) continue;
+                if (isChild(edges[profile].rel) && profile !== focusid) {
+                    var person = genifamilydata[profile];
+                    person.set("relation", getRelationship("sibling", person.get("gender")));
+                    person.set("union", getUnionData(uniondata[union], "id"));
+                    person.set("status", "");
+                    familyset.push(profile);
+                }
+            }
+        }
+    }
+    return familyset;
+}
+
+function getPartners() {
+    var familyset = [];
+    var focusid = getFocus();
+    var focus = getGeniData(focusid, "edges");
+    for (var union in focus) {
+        if (!focus.hasOwnProperty(union)) continue;
+        if (isPartner(focus[union].rel)) {
+            var edges = uniondata[union]["edges"];
+            for (var profile in edges) {
+                if (!edges.hasOwnProperty(profile)) continue;
+                if (isPartner(edges[profile].rel) && profile !== focusid) {
+                    var person = genifamilydata[profile];
+                    person.set("relation", getRelationship("partner", person.get("gender")));
+                    person.set("union", getUnionData(uniondata[union], "id"));
+                    person.set("status", getUnionData(uniondata[union], "status"));
+                    if ("marriage" in uniondata[union]) {
+                        person.set("marriage", uniondata[union]["marriage"]);
+                    }
+                    if ("divorce" in uniondata[union]) {
+                        person.set("divorce", uniondata[union]["divorce"]);
+                    }
+                    familyset.push(profile);
+                }
+            }
+        }
+    }
+    return familyset;
+}
+
+function getRelationship(relationship, gender) {
+    if (isParent(relationship)) {
+        if (isMale(gender)) {
+            return "father";
+        } else if (isFemale(gender)) {
+            return "mother";
+        } else {
+            return "parent";
+        }
+    } else if (isPartner(relationship)) {
+        if (isMale(gender)) {
+            return "husband";
+        } else if (isFemale(gender)) {
+            return "wife";
+        } else {
+            return "spouse";
+        }
+    } else if (isSibling(relationship)) {
+        if (isMale(gender)) {
+            return "brother";
+        } else if (isFemale(gender)) {
+            return "sister";
+        } else {
+            return "sibling";
+        }
+    } else if (isChild(relationship)) {
+        if (isMale(gender)) {
+            return "son";
+        } else if (isFemale(gender)) {
+            return "daughter";
+        } else {
+            return "child";
+        }
+    }
+}
 
 function reverseRelationship(relationship) {
     if (relationship === "wife") {

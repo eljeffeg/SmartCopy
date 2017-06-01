@@ -423,7 +423,7 @@ function buildForm() {
                         }
                     membersstring = membersstring +
                         '<tr id="' + title + 'date"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored) + '>' +
-                        capFL(title) + ' Date:</td><td style="float:right;padding: 0;"><input type="text" class="formtext dateform" ' + dateambig + 'name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored) + '></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "date") + '" disabled></td></tr>';
+                        capFL(title) + ' Date:</td><td style="float:right;padding: 0;"><input type="text" class="formtext dateform" ' + dateambig + 'name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored) + '></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "date.formatted_date") + '" disabled></td></tr>';
                     dateadded = true;
 
                     //div[0].style.display = "block";
@@ -458,7 +458,7 @@ function buildForm() {
                     locationval = locationval +
                         '<tr id="focus_'+title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                         '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + geoicon + '" height="14px"><img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">' +
-                        '<img class="geopin" title="' + pintitle + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;' + place.replace("<", "&lt;").replace(">", "&gt;") + '</div></td></tr>' +
+                        '<img class="geopin" title="' + pintitle + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                         '<tr class="geoplace' + geoplacehidden + '"style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place:</td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, scored) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location_string") + '" disabled></td></tr>' +
                         '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, scored, geoone) + '>Place: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, scored, geoone) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.place_name") + '" disabled></td></tr>' +
                         '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, scored, geoone) + '>City: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, scored, geoone) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.city") + '" disabled></td></tr>' +
@@ -471,7 +471,7 @@ function buildForm() {
             }
             if (!dateadded) {
                 membersstring = membersstring +
-                    '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "date") + '" disabled></td></tr>';
+                    '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "date.formatted_date") + '" disabled></td></tr>';
             }
             if (title === "death") {
                 membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
@@ -494,7 +494,7 @@ function buildForm() {
             }
 
             membersstring = membersstring +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "date") + '" disabled></td></tr>';
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "date.formatted_date") + '" disabled></td></tr>';
             if (title === "death") {
                 membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
             }
@@ -789,7 +789,7 @@ function buildForm() {
                             var geoone = ($('#forcegeoswitch').prop('checked') && (isValue(city) || isValue(county) || isValue(state) || isValue(country)));
                             locationval = locationval +
                                 '<tr id="'+ i + "_" +title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
-                                '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + geoicon + '" height="14px"><img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;"><img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + pintitle + '" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace("<", "&lt;").replace(">", "&gt;") + '</div></td></tr>' +
+                                '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + geoicon + '" height="14px"><img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;"><img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + pintitle + '" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                                 '<tr class="geoplace' +  geoplacehidden + '" style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + Abbr(capFL(title)) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                                 '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, scored, geoone) + '>Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, scored, geoone) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                                 '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, scored, geoone) + '>City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, scored, geoone) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_city" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -1455,32 +1455,33 @@ function buildAction(relationship, gender, id) {
                 relationship = "daughter";
             }
         }
-        for (var i = 0; i < genifamily.length; i++) {
-            var familymem = genifamily[i];
-            if (relationship === "father" && familymem.relation === "father") {
-                pselect += '<option value="' + familymem.id + '" selected>Update: ' + familymem.name + '</option>';
-                genibuildaction[familymem.id] = id;
+        for (var node in genifamilydata) {
+            if (!genifamilydata.hasOwnProperty(node)) continue;
+            var familymem = genifamilydata[node];
+            if (relationship === "father" && familymem.get("relation") === "father") {
+                pselect += '<option value="' + familymem.get("id") + '" selected>Update: ' + familymem.get("name") + '</option>';
+                genibuildaction[familymem.get("id")] = id;
                 selected = false;
-            } else if (relationship === "mother" && familymem.relation === "mother") {
-                pselect += '<option value="' + familymem.id + '" selected>Update: ' + familymem.name + '</option>';
-                genibuildaction[familymem.id] = id;
+            } else if (relationship === "mother" && familymem.get("relation") === "mother") {
+                pselect += '<option value="' + familymem.get("id") + '" selected>Update: ' + familymem.get("name") + '</option>';
+                genibuildaction[familymem.get("id")] = id;
                 selected = false;
-            } else if (relationship === "brother" && familymem.relation === "brother") {
-                pselect += '<option value="' + familymem.id + '">Update: ' + familymem.name + '</option>';
-            } else if (relationship === "sister" && familymem.relation === "sister") {
-                pselect += '<option value="' + familymem.id + '">Update: ' + familymem.name + '</option>';
-            } else if (relationship === "son" && familymem.relation === "son") {
-                pselect += '<option value="' + familymem.id + '">Update: ' + familymem.name + '</option>';
-            } else if (relationship === "daughter" && familymem.relation === "daughter") {
-                pselect += '<option value="' + familymem.id + '">Update: ' + familymem.name + '</option>';
-            } else if ((isPartner(familymem.relation) && isPartner(relationship)) ||
-                (isChild(familymem.relation) && relationship === "child") ||
-                (isSibling(familymem.relation) && relationship === "sibling") ||
-                (isParent(familymem.relation) && relationship === "parent") ||
-                (familymem.relation === "child" && isChild(relationship)) ||
-                (familymem.relation === "sibling" && isSibling(relationship)) ||
-                (familymem.relation  === "parent" && isParent(relationship))) {
-                pselect += '<option value="' + familymem.id + '">Update: ' + familymem.name + '</option>';
+            } else if (relationship === "brother" && familymem.get("relation") === "brother") {
+                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+            } else if (relationship === "sister" && familymem.get("relation") === "sister") {
+                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+            } else if (relationship === "son" && familymem.get("relation") === "son") {
+                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+            } else if (relationship === "daughter" && familymem.get("relation") === "daughter") {
+                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+            } else if ((isPartner(familymem.get("relation")) && isPartner(relationship)) ||
+                (isChild(familymem.get("relation")) && relationship === "child") ||
+                (isSibling(familymem.get("relation")) && relationship === "sibling") ||
+                (isParent(familymem.get("relation")) && relationship === "parent") ||
+                (familymem.get("relation") === "child" && isChild(relationship)) ||
+                (familymem.get("relation") === "sibling" && isSibling(relationship)) ||
+                (familymem.get("relation")  === "parent" && isParent(relationship))) {
+                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
             }
         }
     }
@@ -1496,9 +1497,10 @@ function buildAction(relationship, gender, id) {
 
 function geniHas(relationship) {
     if (exists(genifamily)) {
-        for (var i = 0; i < genifamily.length; i++) {
-            var familymem = genifamily[i];
-            if (familymem.relation === relationship) {
+        for (var node in genifamilydata) {
+            if (!genifamilydata.hasOwnProperty(node)) continue;
+            var familymem = genifamilydata[node];
+            if (familymem.get("relation") === relationship) {
                 return true;
             }
         }
@@ -1527,8 +1529,8 @@ function buildParentSelect(id) {
             pselect += '<option value="' + myhspouse[key] + '" ' + isSelected(id, myhspouse[key]) + '>' + databyid[myhspouse[key]].name.replace("born ", "") + '</option>';
         }
     }
-    for (var key in genispouse) if (genispouse.hasOwnProperty(key)) {
-        pselect += '<option value="' + genispouse[key].union + '"' + geniselect + '>Geni: ' + genispouse[key].name + '</option>';
+    for (var i = 0; i < genispouse.length; i++) {
+        pselect += '<option value="' + getGeniData(genispouse[i], "union") + '"' + geniselect + '>Geni: ' + getGeniData(genispouse[i], "name") + '</option>';
     }
     pselect += '</select>';
     return pselect;
@@ -1770,20 +1772,8 @@ function cleanDate(dateval) {
 }
 
 function loadGeniData() {
-    familystatus.push("family");
-    var familyurl = smartcopyurl + "/smartsubmit?family=spouse&profile=" + focusid;
-    chrome.runtime.sendMessage({
-        method: "GET",
-        action: "xhttp",
-        url: familyurl
-    }, function (response) {
-        if (exists(response) && response.source !== "") {
-            genispouse = JSON.parse(response.source);
-        }
-        familystatus.pop();
-    });
     familystatus.push("about");
-    var abouturl = smartcopyurl + "/smartsubmit?fields=about_me,nicknames&profile=" + focusid;
+    var abouturl = "https://www.geni.com/api/" + focusid + "?fields=about_me,nicknames";
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -1958,7 +1948,7 @@ function setGeniFamilyData(id, profile) {
     for (var i = 0; i < listvalues.length; i++) {
         var title = listvalues[i];
         var locationicon = getGeniLock(profile, title, "location");
-        $("#" + id + "_geni_" + title + "_date").val(getGeniData(profile, title, "date"));
+        $("#" + id + "_geni_" + title + "_date").val(getGeniData(profile, title, "date.formatted_date"));
         $("#" + id + "_geni_" + title + "_date").prev().attr('src', getGeniLock(profile, title, "date"));
         $("#" + id + "_geni_" + title + "_location_str").val(getGeniData(profile, title, "location_string"));
         $("#" + id + "_geni_" + title + "_location_str").prev().attr('src', locationicon);

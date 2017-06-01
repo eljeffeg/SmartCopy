@@ -4,7 +4,7 @@ function buildResearch() {
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
-        url: smartcopyurl + "/smartsubmit?profile=" + focusid + "&fields=" + fields,
+        url: "https://www.geni.com/api/" + focusid + "&fields=" + fields,
         variable: ""
     }, function (response) {
         var responsedata = JSON.parse(response.source);
@@ -87,9 +87,9 @@ function buildFamilySearch(responsedata) {
     var query = 'results?count=75&query=%2Bgivenname%3A%22' + wrapEncode(responsedata.first_name.replace("'","")).replace(/%22/g, "") + '%22';
     var lastname = wrapEncode(responsedata.last_name).replace(/%22/g, "");
     if (exists(responsedata.maiden_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
-        lastname = wrapEncode(responsedata.maiden_name.replace("'","")).replace(/%22/g, "");
+        lastname = wrapEncode(responsedata.maiden_name.replace(/'/g,"")).replace(/%22/g, "");
         if (exists(responsedata.last_name)) {
-            query += '~%20%2Bspouse_surname%3A%22' + wrapEncode(responsedata.last_name.replace("'","")).replace(/%22/g, "") + '%22';
+            query += '~%20%2Bspouse_surname%3A%22' + wrapEncode(responsedata.last_name.replace(/'/g,"")).replace(/%22/g, "") + '%22';
         }
     }
     query += '~%20%2Bsurname%3A%22' + wrapEncode(lastname).replace(/%22/g, "") + '%22';
@@ -122,12 +122,12 @@ function buildFindAGrave(responsedata) {
     var lastname = "";
     var firstname = "";
     if (responsedata.first_name) {
-        firstname = wrapEncode(responsedata.first_name.replace("'",""));
+        firstname = wrapEncode(responsedata.first_name.replace(/'/g,""));
     }
     if (exists(responsedata.last_name)) {
-        lastname = wrapEncode(responsedata.last_name.replace("'",""));
+        lastname = wrapEncode(responsedata.last_name.replace(/'/g,""));
     } else if (exists(responsedata.maiden_name)) {
-        lastname = wrapEncode(responsedata.maiden_name.replace("'",""));
+        lastname = wrapEncode(responsedata.maiden_name.replace(/'/g,""));
     }
     var query = 'http://www.findagrave.com/cgi-bin/fg.cgi?page=gsr&GSfn=' + firstname.replace(/%22/g, "") + '&GSmn=&GSln=' + lastname.replace(/%22/g, "") + '&GSiman=1&GScntry=0&GSst=0&GSgrid=&df=all&GSob=n';
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>FindAGrave</strong>';
@@ -322,13 +322,13 @@ function buildRootsWeb(responsedata) {
 function locationString(location) {
     var locationset = [];
     if (exists(location.county)) {
-        locationset.push(location.county.replace(" ", "%20"));
+        locationset.push(location.county.replace(/ /g, "%20"));
     }
     if (exists(location.state)) {
-        locationset.push(location.state.replace(" ", "%20"));
+        locationset.push(location.state.replace(/ /g, "%20"));
     }
     if (exists(location.country)) {
-        locationset.push(location.country.replace(" ", "%20"));
+        locationset.push(location.country.replace(/ /g, "%20"));
     }
     return locationset.join("%2C%20");
 }

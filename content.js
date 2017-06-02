@@ -9,6 +9,7 @@ var birthage_young = 12;
 var birthage_old = 55;
 var marriageage_young = 14;
 var spouse_age_dif = 22;
+var geniconsistency;
 var namecheckoption = true;
 var siblingcheckoption = true;
 var childcheckoption = true;
@@ -26,16 +27,22 @@ function buildconsistencyDiv() {
         consistencydiv.attr('id', 'consistencyck');
         consistencydiv.css({"display": "none", "position": "absolute", "background-color": "#fff", "box-sizing": "border-box", "z-index": "2", "width": "100%", "borderBottom":"solid 1px #cad3dd", "padding": "5px 20px 3px", "vertical-align": "middle", "line-height": "150%"});
         $("#header").after(consistencydiv);
+        getSettings();
         queryGeni();
     }
 }
 
 function queryGeni() {
+    if (!exists(geniconsistency)) {
+        setTimeout(queryGeni, 50);
+        return;
+    } else if (!geniconsistency) {
+        return;
+    }
     focusid = getProfile(tablink).replace("?profile=", "");
     if (focusid === "" && tablink !== "https://www.geni.com/family-tree") {
         return;
     }
-    getSettings();
     var dconflict = "";
     if (dataconflictoption) {
         //This is an expensive query - exclude it if it's not enabled
@@ -80,12 +87,14 @@ function queryGeni() {
 $(window).bind('hashchange', function() {
     displayCheck(false);
     tablink = window.location.href;
+    getSettings();
     queryGeni();
 });
 
 $(window).mouseup(function(event) {
     if ($(event.target).attr('class') === "super blue button") {
         displayCheck(false);
+        getSettings();
         queryGeni();
     }
 });
@@ -573,6 +582,7 @@ function updateQMessage() {
         $('#refreshcheck').off();
         $('#refreshcheck').on('click', function () {
             displayCheck(false);
+            getSettings();
             queryGeni();
         });
         displayCheck(true);
@@ -649,16 +659,10 @@ function concat(type) {
 }
 
 function getSettings() {
+    geniconsistency = undefined;
     chrome.storage.local.get('dataconflict', function (result) {
         if (result.dataconflict !== undefined) {
             dataconflictoption = result.dataconflict;
-        }
-    });
-
-    chrome.storage.local.get('geniconsistency', function (result) {
-        if (result.geniconsistency) {
-        } else if (result.geniconsistency === undefined) {
-            chrome.storage.local.set({'geniconsistency': true});
         }
     });
 
@@ -746,6 +750,7 @@ function getSettings() {
             selfcheckoption = result.selfcheck;
         }
     });
+
     chrome.storage.local.get('datecheck', function (result) {
         if (result.datecheck !== undefined) {
             datecheckoption = result.datecheck;
@@ -755,6 +760,16 @@ function getSettings() {
     chrome.storage.local.get('samenamecheck', function (result) {
         if (result.samenamecheck !== undefined) {
             samenameoption = result.samenamecheck;
+        }
+    });
+
+    chrome.storage.local.get('geniconsistency', function (result) {
+        //Save as last option setting as it delays content execution
+        if (result.geniconsistency !== undefined) {
+            geniconsistency = result.geniconsistency;
+        } else {
+            chrome.storage.local.set({'geniconsistency': true});
+            geniconsistency = true;
         }
     });
 }

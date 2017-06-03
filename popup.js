@@ -1025,7 +1025,7 @@ var submitform = function () {
                     }
                     if (familyout.action === "add") {
                         delete familyout.action;
-                        if (actionname[1] !== "child") {
+                        if (!isChild(actionname[1])) {
                             var statusaction = actionname[1];
                             if (statusaction === "sibling" || statusaction === "parent" || statusaction === "partner") {
                                 statusaction += "s";
@@ -1118,7 +1118,6 @@ function buildTree(data, action, sendid) {
             permissions = genifocusdata.get("actions");
         }
 
-        var posturl = "https://www.geni.com/api/" + sendid + "/" + action;
         if (action === "update") {
             if (permissions.indexOf("update") === -1 && permissions.indexOf("update-basics") !== -1) {
                 action = "update-basics";
@@ -1129,7 +1128,9 @@ function buildTree(data, action, sendid) {
                 console.log("Permission denied - No add permission on profile: " + sendid);
                 return;
             }
-        } else if (action === "add-photo") {
+        }
+        var posturl = "https://www.geni.com/api/" + sendid + "/" + action;
+        if (action === "add-photo") {
             posturl = smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action;
         }
         chrome.runtime.sendMessage({
@@ -1152,6 +1153,7 @@ function buildTree(data, action, sendid) {
                 console.log(response.source);
             }
             var id = response.variable.id;
+            var relation = response.variable.relation;
             if (exists(databyid[id])) {
                 var genidata;
                 if (exists(result.id)) {
@@ -1160,11 +1162,11 @@ function buildTree(data, action, sendid) {
                 if (exists(genifamilydata[databyid[id]["geni_id"]])) {
                     genidata = genifamilydata[databyid[id]["geni_id"]];
                 } else {
-                    genidata = result;
+                    genidata = new GeniPerson(result);
                 }
-                if (isPartner(databyid[id].status) && exists(result.unions)) {
+                if (isPartner(relation) && exists(result.unions)) {
                     spouselist[id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: databyid[id].status, genidata: genidata};
-                } else if (isParent(databyid[id].status) && exists(result.unions)) {
+                } else if (isParent(relation) && exists(result.unions)) {
                     parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
                     if (parentlist.length > 0) {
                         if (exists(marriagedates[id]) || exists(marriagedates[parentlist[0]])){

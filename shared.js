@@ -415,6 +415,7 @@ function getRelationship(relationship, gender) {
             return "child";
         }
     }
+    return "";
 }
 
 function reverseRelationship(relationship) {

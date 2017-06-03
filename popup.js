@@ -243,7 +243,7 @@ function userAccess() {
             setMessage(warningmsg, "Invalid Profile Id - Try Again");
         }
     } else {
-        setTimeout(userAccess, 200);
+        setTimeout(userAccess, 50);
     }
 }
 
@@ -723,7 +723,7 @@ function getPageCode() {
             });
         }
     } else {
-        setTimeout(getPageCode, 200);
+        setTimeout(getPageCode, 50);
     }
 }
 
@@ -1239,7 +1239,7 @@ var photototal = 0;
 var photoprogress = 0;
 function submitChildren() {
     if (submitstatus.length > 0) {
-        setTimeout(submitChildren, 200);
+        setTimeout(submitChildren, 50);
     } else if (!checkspouseunion) {
         checkspouseunion = true;
         if (parentspouselist.length > 0 && exists(parentspouseunion)) {
@@ -1417,7 +1417,7 @@ function buildTempSpouse(parentid) {
 
 function submitWait() {
     if (submitstatus.length > 0) {
-        setTimeout(submitWait, 200);
+        setTimeout(submitWait, 50);
     } else {
         for (var i = 0; i < tempspouse.length; i++) {
             if (exists(tempspouse[i])) {
@@ -1961,12 +1961,10 @@ $(function () {
     $('#geniparentonoffswitch').on('click', function () {
         chrome.storage.local.set({'geniparent': this.checked});
         $("#gparentchange").css("display", "block");
-        //TODO Make this a live change
     });
     $('#burialonoffswitch').on('click', function () {
         chrome.storage.local.set({'burialdate': this.checked});
         $("#burialchange").css("display", "block");
-        //TODO Make this a live change
     });
     $('#hideemptyonoffswitch').on('click', function () {
         chrome.storage.local.set({'hideempty': this.checked});

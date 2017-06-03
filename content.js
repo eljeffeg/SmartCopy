@@ -434,10 +434,7 @@ function isYear(person, type) {
     if (!exists(obj.formatted_date) || obj.formatted_date === "" || exists(obj.range)) {
         return false;
     }
-    if (exists(obj.year) && !exists(obj.day) && !exists(obj.month)) {
-        return true;
-    }
-    return false;
+    return exists(obj.year) && !exists(obj.day) && !exists(obj.month);
 }
 
 function containsRange(person1, type1, person2, type2) {
@@ -449,10 +446,7 @@ function containsRange(person1, type1, person2, type2) {
     if (exists(d1.month) && exists(d2.month) && d1.month !== d2.month) {
         return false;
     }
-    if (exists(d1.day) && exists(d2.day) && d1.day !== d2.day) {
-        return false;
-    }
-    return true;
+    return !(exists(d1.day) && exists(d2.day) && d1.day !== d2.day);
 }
 
 function unixDate(person, type) {

@@ -425,8 +425,8 @@ function checkDate(person, type) {
 }
 
 function validName(name) {
-    name = NameParse.removeIgnoredChars(name).toLowerCase();
-    return (name.length > 1 && isNaN(name) && name !== "nn" && name !== "unknown");
+    name = name.toLowerCase();
+    return (name.length > 1 && !name.contains(".") && isNaN(name) && name !== "nn" && name !== "unknown");
 }
 
 function isYear(person, type) {

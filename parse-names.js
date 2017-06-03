@@ -295,7 +295,7 @@ var NameParse = (function(){
             return "";
         }
         //ignore periods and commas
-        word = word.replace(/./g,"");
+        word = word.replace(/\./g,"");
         word = word.replace(/,/g,"");
         return word;
     };

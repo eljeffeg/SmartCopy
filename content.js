@@ -462,15 +462,19 @@ function unixDate(person, type) {
     }
     if (exists(obj.year)) {
         date.setFullYear(parseInt(obj.year));
+        if (exists(obj.month)) {
+            date.setMonth(parseInt(obj.month)-1);
+        } else {
+            date.setMonth(0);
+        }
         if (exists(obj.day)) {
             date.setDate(parseInt(obj.day));
         } else {
             date.setDate(1);
         }
-        if (exists(obj.month)) {
+        if (exists(obj.month) && date.getMonth() !== parseInt(obj.month)-1) {
+            //Fix weird bug - https://stackoverflow.com/questions/14680396/the-date-getmonth-method-has-bug/44286048#44286048
             date.setMonth(parseInt(obj.month)-1);
-        } else {
-            date.setMonth(0);
         }
         return parseInt(date.getTime() / 1000);
     } else {

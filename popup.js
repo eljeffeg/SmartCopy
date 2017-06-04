@@ -6,7 +6,7 @@ var locationtest = false; //Verbose parsing of location data
 var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true, captcha = false;
 var accountinfo, parentspouseunion, genigender, geniliving, genifocusdata;
 var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefactors = "", googlerequery = "";
-var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [];
+var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [], addsiblinglist = [];
 var genibuildaction = {}, updatecount = 1, updatetotal = 0;
 var errormsg = "#f9acac", warningmsg = "#f8ff86", infomsg = "#afd2ff";
 
@@ -1030,9 +1030,11 @@ var submitform = function () {
                             if (statusaction === "sibling" || statusaction === "parent" || statusaction === "partner") {
                                 statusaction += "s";
                             }
-                            $("#updatestatus").text(profileupdatestatus + "Submitting Family (Siblings/Parents)");
-                            if (parentblock && statusaction === "parents") {
+                            $("#updatestatus").text(profileupdatestatus + "Submitting Family");
+                            if (parentblock && isParent(statusaction)) {
                                 parentspouselist.push(familyout);
+                            } else if (isSibling(statusaction)) {
+                                addsiblinglist.push(familyout);
                             } else {
                                 buildTree(familyout, "add-" + actionname[1], focusid);
                                 if (statusaction === "parents") {
@@ -1043,7 +1045,7 @@ var submitform = function () {
                             addchildren[familyout.profile_id] = familyout;
                         }
                     } else {
-                        $("#updatestatus").text(profileupdatestatus + "Submitting Family (Siblings/Parents)");
+                        $("#updatestatus").text(profileupdatestatus + "Submitting Family");
                         var pid = familyout.action;
                         delete familyout.action;
                         if (exists(fdata)) {
@@ -1089,7 +1091,10 @@ var submitform = function () {
             }
         }
     }
-
+    if (!exists(parentspouseunion) && parentspouselist.length === 0 && addsiblinglist.length > 0) {
+        //This allows it to get the union in case no parents exists
+        buildTree(addsiblinglist.pop(), "add-sibling", focusid);
+    }
     submitChildren();
 };
 
@@ -1175,6 +1180,30 @@ function buildTree(data, action, sendid) {
                     } else {
                         parentlist.push(id);
                     }
+                } else if (isSibling(relation) && !exists(parentspouseunion)) {
+                    //TODO - API is not returning the Union: https://www.geni.com/threads/6000000059947099842
+                    //parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
+                    submitstatus.push(updatetotal);
+                    chrome.runtime.sendMessage({
+                        method: "GET",
+                        action: "xhttp",
+                        url: "https://www.geni.com/api/" + result.id + "/immediate-family?fields=id"
+                    }, function (response) {
+                        try {
+                            var result = JSON.parse(response.source);
+                            var nodes = result["nodes"];
+                            for (var node in nodes) {
+                                if (!nodes.hasOwnProperty(node)) continue;
+                                if (nodes[node].id.startsWith("union")) {
+                                    parentspouseunion = nodes[node].id;
+                                    console.log(parentspouseunion);
+                                    break;
+                                }
+                            }
+                        } catch (e) {
+                        }
+                        submitstatus.pop();
+                    });
                 }
                 addHistory(result.id, databyid[id].itemId, databyid[id].name, JSON.stringify(response.variable.data));
             }
@@ -1247,6 +1276,12 @@ function submitChildren() {
         if (parentspouselist.length > 0 && exists(parentspouseunion)) {
             for (var i = 0; parentspouselist.length > i; i++) {
                 buildTree(parentspouselist[i], "add-partner", parentspouseunion);
+            }
+
+        }
+        if (addsiblinglist.length > 0 && exists(parentspouseunion)) {
+            for (var i = 0; addsiblinglist.length > i; i++) {
+                buildTree(addsiblinglist[i], "add-child", parentspouseunion);
             }
         }
         submitChildren();

@@ -906,6 +906,16 @@ var submitform = function () {
         var fs = $('#profiletable');
         var profileout = parseForm(fs);
         var profileupdatestatus = "";
+        if (!$.isEmptyObject(profileout)) {
+            updatetotal += 1;
+        }
+        var privateprofiles = $('.checkslide');
+        for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
+            var entry = privateprofiles[profile];
+            if (exists(entry.name) && entry.name.startsWith("checkbox") && entry.checked) {
+                updatetotal += 1;
+            }
+        }
         // --------------------- Update Profile Data ---------------------
         if (!$.isEmptyObject(profileout)) {
             $("#updatestatus").text("Update: " + focusname);
@@ -967,7 +977,6 @@ var submitform = function () {
         }
 
         // --------------------- Add Family Data ---------------------
-        var privateprofiles = $('.checkslide');
         for (var profile in privateprofiles) if (privateprofiles.hasOwnProperty(profile)) {
             var entry = privateprofiles[profile];
             if (exists(entry.name) && entry.name.startsWith("checkbox") && entry.checked) {
@@ -1030,7 +1039,7 @@ var submitform = function () {
                             if (statusaction === "sibling" || statusaction === "parent" || statusaction === "partner") {
                                 statusaction += "s";
                             }
-                            $("#updatestatus").text(profileupdatestatus + "Submitting Family");
+                            $("#updatestatus").text(profileupdatestatus + "Updating Family");
                             if (parentblock && isParent(statusaction)) {
                                 parentspouselist.push(familyout);
                             } else if (isSibling(statusaction)) {
@@ -1045,7 +1054,7 @@ var submitform = function () {
                             addchildren[familyout.profile_id] = familyout;
                         }
                     } else {
-                        $("#updatestatus").text(profileupdatestatus + "Submitting Family");
+                        $("#updatestatus").text(profileupdatestatus + "Updating Family");
                         var pid = familyout.action;
                         delete familyout.action;
                         if (exists(fdata)) {
@@ -1106,7 +1115,6 @@ var noerror = true;
 function buildTree(data, action, sendid) {
     if (!$.isEmptyObject(data) && exists(sendid) && !devblocksend) {
         if (action !== "add-photo" && action !== "delete") {
-            updatetotal += 1;
             $("#updatetotal").text(updatetotal);
             $("#updatecount").text(Math.min(updatecount, updatetotal).toString());
         }
@@ -1265,8 +1273,6 @@ function submitChildren() {
         submitChildren();
     } else if (!checkchildren) {
         checkchildren = true;
-        updatecount = 1;
-        updatetotal = 0;
         if (spouselist.length > 0) {
             $("#updatestatus").text("Adding Spouse(s)");
         }
@@ -1344,8 +1350,6 @@ function submitChildren() {
         submitChildren();
     } else if (!checkpictures) {
         checkpictures = true;
-        updatecount = 1;
-        updatetotal = 0;
         if (addchildren.length > 0) {
             $("#updatestatus").text("Adding Children");
         }

@@ -265,7 +265,7 @@ function childCheck(parents, children) {
                     //Born before parent birth
                     consistencymessage = concat("error") + buildEditLink(children[x]) + " born before the birth of "
                         + getPronoun(getGeniData(children[x], "gender")) + " " + parentName(getGeniData(parents[i], "gender")) + " " + buildEditLink(parents[i]) + ".";
-                } else if (sibling_bdate > adj_parent_ddate) {
+                } else if (sibling_bdate > adj_parent_ddate && !containsRange(children[x], "birth", parents[i], "death")) {
                     //Born after parent death
                     consistencymessage = concat("error") + buildEditLink(children[x]) + " born after the death of "
                         + getPronoun(getGeniData(children[x], "gender")) + " " + parentName(getGeniData(parents[i], "gender")) + " " + buildEditLink(parents[i]) + ".";

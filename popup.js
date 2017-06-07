@@ -1091,7 +1091,7 @@ var submitform = function () {
             }
         }
     }
-    if (!exists(parentspouseunion) && parentspouselist.length === 0 && addsiblinglist.length > 0) {
+    if (!exists(parentspouseunion) && !parentblock && addsiblinglist.length > 0) {
         //This allows it to get the union in case no parents exists
         buildTree(addsiblinglist.pop(), "add-sibling", focusid);
     }
@@ -1134,7 +1134,7 @@ function buildTree(data, action, sendid) {
                 return;
             }
         }
-        var posturl = "https://www.geni.com/api/" + sendid + "/" + action;
+        var posturl = "https://www.geni.com/api/" + sendid + "/" + action +  "?fields=id,unions,name";
         if (action === "add-photo") {
             posturl = smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action;
         }
@@ -1181,29 +1181,7 @@ function buildTree(data, action, sendid) {
                         parentlist.push(id);
                     }
                 } else if (isSibling(relation) && !exists(parentspouseunion)) {
-                    //TODO - API is not returning the Union: https://www.geni.com/threads/6000000059947099842
-                    //parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
-                    submitstatus.push(updatetotal);
-                    chrome.runtime.sendMessage({
-                        method: "GET",
-                        action: "xhttp",
-                        url: "https://www.geni.com/api/" + result.id + "/immediate-family?fields=id"
-                    }, function (response) {
-                        try {
-                            var result = JSON.parse(response.source);
-                            var nodes = result["nodes"];
-                            for (var node in nodes) {
-                                if (!nodes.hasOwnProperty(node)) continue;
-                                if (nodes[node].id.startsWith("union")) {
-                                    parentspouseunion = nodes[node].id;
-                                    console.log(parentspouseunion);
-                                    break;
-                                }
-                            }
-                        } catch (e) {
-                        }
-                        submitstatus.pop();
-                    });
+                    parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
                 }
                 addHistory(result.id, databyid[id].itemId, databyid[id].name, JSON.stringify(response.variable.data));
             }

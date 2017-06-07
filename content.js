@@ -277,7 +277,7 @@ function childCheck(parents, children) {
                     //Mother too old for child's birth
                     consistencymessage = concat("warn") + buildEditLink(parents[i]) + " is over " + birthage_old + " years old for the birth of " + getPronoun(getGeniData(parents[i], "gender"))
                         + " child " + buildEditLink(children[x]) + ".";
-                } else if (wedlock && i === 0 && sibling_bdate < parent_mdate) {
+                } else if (wedlock && i === 0 && sibling_bdate < parent_mdate && !containsRange(parents[i], "marriage", children[x], "birth")) {
                     //Born before parent marriage
                     consistencymessage = concat("info") + buildEditLink(children[x]) + " born before the marriage of "
                         + getPronoun(getGeniData(children[x], "gender")) + " parents " + buildEditLink(parents[0]) + " and " + buildEditLink(parents[1]) + ".";
@@ -461,20 +461,12 @@ function unixDate(person, type) {
         }
     }
     if (exists(obj.year)) {
-        date.setFullYear(parseInt(obj.year));
+        date.setFullYear(parseInt(obj.year), 0, 1); //Reset date baseline to first of the year
         if (exists(obj.month)) {
             date.setMonth(parseInt(obj.month)-1);
-        } else {
-            date.setMonth(0);
         }
         if (exists(obj.day)) {
             date.setDate(parseInt(obj.day));
-        } else {
-            date.setDate(1);
-        }
-        if (exists(obj.month) && date.getMonth() !== parseInt(obj.month)-1) {
-            //Fix weird bug - https://stackoverflow.com/questions/14680396/the-date-getmonth-method-has-bug/44286048#44286048
-            date.setMonth(parseInt(obj.month)-1);
         }
         return parseInt(date.getTime() / 1000);
     } else {

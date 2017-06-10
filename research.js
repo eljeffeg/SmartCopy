@@ -20,10 +20,9 @@ function buildResearch() {
             researchstring += buildGeni(responsedata);
             researchstring += buildGoogle(responsedata);
             researchstring += buildLegacy(responsedata);
-            //researchstring += buildObitsforLive(responsedata);
             researchstring += buildRootsWeb(responsedata);
             researchstring += buildTributes(responsedata);
-            researchstring += "<div style='text-align: center; padding-top: 10px;'><strong>Other Resources</strong></div><div style='text-align: left; padding-left: 5px;'><li style='padding-left: 5px;'><a class='ctrllink' url='http://www.geni.com/projects/Genealogie-Zoekmachines-voor-de-Lage-Landen/24259'>Genealogy Search Engines for the Low Countries</a></li></div>";
+            researchstring += "<div style='text-align: center; padding-top: 10px;'><strong>Other Resources</strong></div><div style='text-align: left; padding-left: 5px;'><li style='padding-left: 5px;'><a class='ctrllink' url='https://www.geni.com/projects/Genealogie-Zoekmachines-voor-de-Lage-Landen/24259'>Genealogy Search Engines for the Low Countries</a></li></div>";
         } else {
             researchstring = "<div><strong>Unable to create research links on this profile.</strong>"
         }
@@ -129,7 +128,7 @@ function buildFindAGrave(responsedata) {
     } else if (exists(responsedata.maiden_name)) {
         lastname = wrapEncode(responsedata.maiden_name.replace(/'/g,""));
     }
-    var query = 'http://www.findagrave.com/cgi-bin/fg.cgi?page=gsr&GSfn=' + firstname.replace(/%22/g, "") + '&GSmn=&GSln=' + lastname.replace(/%22/g, "") + '&GSiman=1&GScntry=0&GSst=0&GSgrid=&df=all&GSob=n';
+    var query = 'https://www.findagrave.com/cgi-bin/fg.cgi?page=gsr&GSfn=' + firstname.replace(/%22/g, "") + '&GSmn=&GSln=' + lastname.replace(/%22/g, "") + '&GSiman=1&GScntry=0&GSst=0&GSgrid=&df=all&GSob=n';
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>FindAGrave</strong>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">FindAGrave (Gravestones)</a></li>';
     researchstring += '</div>';
@@ -177,25 +176,6 @@ function buildBillionGraves(responsedata) {
     return researchstring;
 }
 
-function buildObitsforLive(responsedata) {
-    var lastname = "";
-    var firstname = "";
-    if (responsedata.first_name) {
-        firstname = responsedata.first_name;
-    }
-    if (exists(responsedata.last_name)) {
-        lastname = responsedata.last_name;
-    } else if (exists(responsedata.maiden_name)) {
-        lastname = responsedata.maiden_name;
-    }
-    var query = 'http://www.obitsforlife.co.uk/records/list.php?filterChange=true&firstRequest=false&showTodays=false&firstname=' + firstname + '&lastname=' + lastname + '&speciesName=human&curPage=1&total=100000&rrp=10';
-
-    var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>ObitsforLife</strong>';
-    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">ObitsforLife (Obituaries)</a></li>';
-    researchstring += '</div>';
-    return researchstring;
-}
-
 function buildAncestry(responsedata) {
     var lastname = "";
     var firstname = "";
@@ -207,7 +187,7 @@ function buildAncestry(responsedata) {
     } else if (exists(responsedata.maiden_name)) {
         lastname = responsedata.maiden_name;
     }
-    var query = 'http://www.ancestry.com/genealogy/records/results?firstname=' + firstname + '&lastname=' + lastname;
+    var query = 'https://www.ancestry.com/genealogy/records/results?firstname=' + firstname + '&lastname=' + lastname;
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Ancestry</strong>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">Ancestry (Genealogies)</a></li>';
     researchstring += '</div>';
@@ -342,5 +322,3 @@ function wrapEncode(name) {
     name = encodeURI(name);
     return name;
 }
-
-//http://www.obitsforlife.co.uk/records/list.php?filterChange=true&firstRequest=false&showTodays=false&firstname=John&lastname=Smith&speciesName=human&curPage=1&total=100000&rrp=10

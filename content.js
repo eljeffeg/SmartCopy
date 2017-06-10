@@ -16,6 +16,7 @@ var childcheckoption = true;
 var partnercheckoption = true;
 var agecheckoption = true;
 var selfcheckoption = true;
+var locationcheckoption = false;
 var dataconflictoption = false;
 var datecheckoption = true;
 var samenameoption = true;
@@ -317,6 +318,9 @@ function selfCheck(familyset) {
                 } else if (person_bapdate > person_ddate && !containsRange(person, "baptism", person, "death")) {
                     //Baptism after death
                     consistencymessage = concat("error") + "Baptism date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " death date.";
+                } else if (person_bapdate < person_bdate && !containsRange(person, "birth", person, "baptism")) {
+                    //Baptism before birth
+                    consistencymessage = concat("error") + "Baptism date of " + buildEditLink(person) + " is before " + getPronoun(getGeniData(person, "gender")) + " birth date.";
                 } else if (person_ddate > person_burial && !containsRange(person, "death", person, "burial")) {
                     //Death is after Burial
                     consistencymessage = concat("error") + "Death date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " burial date.";
@@ -396,8 +400,6 @@ function selfCheck(familyset) {
     }
 }
 
-//TODO add check that if location data is there, but no country - warning
-
 function relationshipCheck(group1, group2) {
     if (selfcheckoption) {
         for (var i=0;i < group1.length; i++) {
@@ -420,6 +422,22 @@ function checkDate(person, type) {
         } else if (!exists(obj.year) && (exists(obj.month) || exists(obj.day))) {
             //Month or Day without any year
             consistencymessage = concat("info") + buildEditLink(person) + " contains an incomplete " + type + " date, missing year.";
+        } else if (exists(obj.month) && parseInt(obj.month) > 12) {
+            //Month greater than 12
+            consistencymessage = concat("info") + buildEditLink(person) + " contains an invalid " + type + " date, month greater than 12.";
+        } else if (exists(obj.day) && parseInt(obj.day) > 31) {
+            //Day greater than 31
+            consistencymessage = concat("info") + buildEditLink(person) + " contains an invalid " + type + " date, day greater than 31.";
+        } else if (exists(obj.formatted_date) && obj.formatted_date.contains("error")) {
+            //Geni error in Date
+            consistencymessage = concat("info") + buildEditLink(person) + " contains an invalid " + type + " date.";
+        }
+    }
+    if (selfcheckoption && locationcheckoption) {
+        var obj = getGeniData(person, type, "location");
+        if (obj !== "" && !exists(obj.place) && !exists(obj.country)) {
+            //Location with no country
+            consistencymessage = concat("info") + buildEditLink(person) + " contains a " + type + " location without a country.";
         }
     }
 }
@@ -744,6 +762,12 @@ function getSettings() {
     chrome.storage.local.get('datecheck', function (result) {
         if (result.datecheck !== undefined) {
             datecheckoption = result.datecheck;
+        }
+    });
+
+    chrome.storage.local.get('locationcheck', function (result) {
+        if (result.locationcheck !== undefined) {
+            locationcheckoption = result.locationcheck;
         }
     });
 

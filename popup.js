@@ -1874,6 +1874,9 @@ $(function () {
     $('#datecheckonoffswitch').on('click', function () {
         chrome.storage.local.set({'datecheck': this.checked});
     });
+    $('#locationcheckonoffswitch').on('click', function () {
+        chrome.storage.local.set({'locationcheck': this.checked});
+    });
     $('#partneronoffswitch').on('click', function () {
         chrome.storage.local.set({'partnercheck': this.checked});
         if (this.checked) {
@@ -2268,6 +2271,13 @@ chrome.storage.local.get('datecheck', function (result) {
     var datecheck = result.datecheck;
     if (exists(datecheck)) {
         $('#datecheckonoffswitch').prop('checked', datecheck);
+    }
+});
+
+chrome.storage.local.get('locationcheck', function (result) {
+    var locationcheck = result.locationcheck;
+    if (exists(locationcheck)) {
+        $('#locationcheckonoffswitch').prop('checked', locationcheck);
     }
 });
 

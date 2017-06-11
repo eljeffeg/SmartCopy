@@ -573,11 +573,13 @@ function getFSProfileData(focusRecord, relation) {
             if (type === "birth") {
                 var data = parseFSJSONDate(eventinfo);
                 if (!$.isEmptyObject(data)) {
+                    data = fsMerge(profiledata["birth"], data);
                     profiledata["birth"] = data;
                 }
             } else if (type === "christening") {
                 var data = parseFSJSONDate(eventinfo);
                 if (!$.isEmptyObject(data)) {
+                    data = fsMerge(profiledata["baptism"], data);
                     profiledata["baptism"] = data;
                 }
             } else if (type === "death") {
@@ -586,6 +588,7 @@ function getFSProfileData(focusRecord, relation) {
                     if (exists(getDate(data))) {
                         deathdtflag = true;
                     }
+                    data = fsMerge(profiledata["death"], data);
                     profiledata["death"] = data;
                 }
             } else if (type === "burial") {
@@ -597,6 +600,7 @@ function getFSProfileData(focusRecord, relation) {
                     if (exists(getLocation(data))) {
                         buriallcflag = true;
                     }
+                    data = fsMerge(profiledata["burial"], data);
                     profiledata["burial"] = data;
                 }
             } else if (type === "occupation") {
@@ -647,4 +651,21 @@ function getFSProfileData(focusRecord, relation) {
         // "\n--------------------\n"  Merge separator
     }
     return profiledata;
+}
+
+function fsMerge(data1, data2) {
+    //Sometimes the date and location are in separate entries - merge them
+    if (!exists(data1)) {
+        return data2;
+    } else if (!exists(data2)) {
+        return data1;
+    } else {
+        if (exists(data1[0].date) && !exists(data2[0].date)) {
+            data2[0]["date"] = data1[0].date;
+        }
+        if (exists(data1[0].place) && !exists(data2[0].place)) {
+            data2[0]["place"] = data1[0].place;
+        }
+        return data2;
+    }
 }

@@ -9,6 +9,9 @@ var birthage_young = 12;
 var birthage_old = 55;
 var marriageage_young = 14;
 var spouse_age_dif = 22;
+var publicyear = 1850;
+var publiclist = [];
+var privatecheck = true;
 var geniconsistency;
 var namecheckoption = true;
 var siblingcheckoption = true;
@@ -50,7 +53,7 @@ function queryGeni() {
         dconflict = ",data_conflict";
     }
     familystatus.push(1);
-    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,gender,deleted,birth,baptism,death,burial,is_alive,marriage,divorce" + dconflict;
+    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,gender,deleted,birth,baptism,death,burial,is_alive,marriage,divorce,public" + dconflict;
     var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
     chrome.runtime.sendMessage({
         method: "GET",
@@ -114,10 +117,24 @@ function checkConsistency() {
         siblings.unshift(focus); //treat the focus as a sibling
 
         //Compare profiles against themselves
+        publiclist = [];
         selfCheck(siblings);
         selfCheck(children);
         selfCheck(partners);
         selfCheck(parents);
+
+        if (publiclist.length > 0) {
+            var namelist = [];
+            for (var i=0;i<publiclist.length; i++) {
+                namelist.push(getGeniData(publiclist[i], "name"))
+            }
+            //Old private profiles
+            if (publiclist.length > 1) {
+                consistencymessage = concat("info") + publiclist.length + " family members born before " + publicyear + " are set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
+            } else {
+                consistencymessage = concat("info") + buildEditLink(publiclist[0]) + " was born before " + publicyear + " and is set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
+            }
+         }
 
         relationshipCheck(parents, siblings);
         relationshipCheck(parents, partners);
@@ -250,6 +267,10 @@ function siblingCheck(siblings) {
 }
 
 function childCheck(parents, children) {
+    var wedcheck = 0;
+    if (parents[0] === focusid) {
+        wedcheck = 1;
+    }
     for (var i=0; i < parents.length; i++) {
         var parent_bdate = unixDate(parents[i], "birth");
         var parent_ddate = unixDate(parents[i], "death");
@@ -260,7 +281,6 @@ function childCheck(parents, children) {
                 if (isMale(getGeniData(parents[i], "gender"))) {
                     adj_parent_ddate = parent_ddate + pregnancy; //Add 9 months to compare conception
                 }
-
                 var sibling_bdate = unixDate(children[x], "birth");
                 if (sibling_bdate < parent_bdate) {
                     //Born before parent birth
@@ -278,7 +298,7 @@ function childCheck(parents, children) {
                     //Mother too old for child's birth
                     consistencymessage = concat("warn") + buildEditLink(parents[i]) + " is over " + birthage_old + " years old for the birth of " + getPronoun(getGeniData(parents[i], "gender"))
                         + " child " + buildEditLink(children[x]) + ".";
-                } else if (wedlock && i === 0 && sibling_bdate < parent_mdate && !containsRange(parents[i], "marriage", children[x], "birth")) {
+                } else if (wedlock && i === wedcheck && sibling_bdate < parent_mdate && !containsRange(parents[i], "marriage", children[x], "birth")) {
                     //Born before parent marriage
                     consistencymessage = concat("info") + buildEditLink(children[x]) + " born before the marriage of "
                         + getPronoun(getGeniData(children[x], "gender")) + " parents " + buildEditLink(parents[0]) + " and " + buildEditLink(parents[1]) + ".";
@@ -290,6 +310,13 @@ function childCheck(parents, children) {
 
 function selfCheck(familyset) {
     if (selfcheckoption) {
+        if (privatecheck) {
+            var publicdate = new Date();
+            publicdate.setFullYear(publicyear, 0, 1);
+            var publicbottom = new Date();
+            publicbottom.setFullYear(100, 0, 1); //Prevent 2 digit year problems with living
+        }
+
         for (var x=0; x < familyset.length; x++) {
             var person = familyset[x];
             var person_bdate = unixDate(person, "birth");
@@ -299,6 +326,9 @@ function selfCheck(familyset) {
             var conflicts = getGeniData(person, "data_conflict");
             if (dataconflictoption && conflicts) {
                 consistencymessage = concat("info") + getGeniData(person, "name") + " has pending <a href='https://www.geni.com/merge/resolve/" + getGeniData(person, "guid") + "'>data conflicts</a>.";
+            }
+            if (privatecheck && !getGeniData(person, "public") && person_bdate < parseInt(publicdate.getTime() / 1000) && person_bdate > parseInt(publicbottom.getTime() / 1000)) {
+                publiclist.push(person);
             }
             checkDate(person, "birth");
             checkDate(person, "baptism");
@@ -416,21 +446,21 @@ function relationshipCheck(group1, group2) {
 function checkDate(person, type) {
     if (selfcheckoption && datecheckoption) {
         var obj = getGeniData(person, type, "date");
-        if (exists(obj.year) && exists(obj.day) && !exists(obj.month)) {
+        if (exists(obj.month) && parseInt(obj.month) > 12) {
+            //Month greater than 12
+            consistencymessage = concat("error") + buildEditLink(person) + " contains an invalid " + type + " date, month greater than 12.";
+        } else if (exists(obj.day) && parseInt(obj.day) > 31) {
+            //Day greater than 31
+            consistencymessage = concat("error") + buildEditLink(person) + " contains an invalid " + type + " date, day greater than 31.";
+        } else if (exists(obj.formatted_date) && obj.formatted_date.contains("error")) {
+            //Geni error in Date
+            consistencymessage = concat("error") + buildEditLink(person) + " contains an invalid " + type + " date.";
+        } else if (exists(obj.year) && exists(obj.day) && !exists(obj.month)) {
             //Year and Day without Month
             consistencymessage = concat("info") + buildEditLink(person) + " contains an incomplete " + type + " date, missing month.";
         } else if (!exists(obj.year) && (exists(obj.month) || exists(obj.day))) {
             //Month or Day without any year
             consistencymessage = concat("info") + buildEditLink(person) + " contains an incomplete " + type + " date, missing year.";
-        } else if (exists(obj.month) && parseInt(obj.month) > 12) {
-            //Month greater than 12
-            consistencymessage = concat("info") + buildEditLink(person) + " contains an invalid " + type + " date, month greater than 12.";
-        } else if (exists(obj.day) && parseInt(obj.day) > 31) {
-            //Day greater than 31
-            consistencymessage = concat("info") + buildEditLink(person) + " contains an invalid " + type + " date, day greater than 31.";
-        } else if (exists(obj.formatted_date) && obj.formatted_date.contains("error")) {
-            //Geni error in Date
-            consistencymessage = concat("info") + buildEditLink(person) + " contains an invalid " + type + " date.";
         }
     }
     if (selfcheckoption && locationcheckoption) {
@@ -536,6 +566,21 @@ function updateQMessage() {
                 data: $.param(args)
             }, function (response) {
             });
+        });
+        $('#makepublic').off();
+        $('#makepublic').on('click', function(){
+            $("#makepublic").replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+            var args = {"public": true, "is_alive": false};
+            for (var i=0; i < publiclist.length; i++) {
+                var url = "https://www.geni.com/api/" + publiclist[i] + "/update-basics";
+                chrome.runtime.sendMessage({
+                    method: "POST",
+                    action: "xhttp",
+                    url: url,
+                    data: $.param(args)
+                }, function (response) {
+                });
+            }
         });
         $('.fixsuffix').off();
         $('.fixsuffix').on('click', function(){
@@ -698,6 +743,12 @@ function getSettings() {
         }
     });
 
+    chrome.storage.local.get('publicyearval', function (result) {
+        if (result.publicyearval !== undefined) {
+            publicyear = result.publicyearval;
+        }
+    });
+
     chrome.storage.local.get('childcheck', function (result) {
         if (result.childcheck !== undefined) {
             childcheckoption = result.childcheck;
@@ -713,6 +764,12 @@ function getSettings() {
     chrome.storage.local.get('agecheck', function (result) {
         if (result.agecheck !== undefined) {
             agecheckoption = result.agecheck;
+        }
+    });
+
+    chrome.storage.local.get('privatecheck', function (result) {
+        if (result.privatecheck !== undefined) {
+            privatecheck = result.privatecheck;
         }
     });
 

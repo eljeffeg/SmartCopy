@@ -1831,6 +1831,9 @@ $(function () {
     $('#agelimitwarn').on('change', function () {
         chrome.storage.local.set({'agelimitwarn': this.value});
     });
+    $('#publicyearval').on('change', function () {
+        chrome.storage.local.set({'publicyearval': this.value});
+    });
     $('#termlimit').on('change', function () {
         chrome.storage.local.set({'termlimit': this.value});
     });
@@ -1864,6 +1867,9 @@ $(function () {
     });
     $('#ageonoffswitch').on('click', function () {
         chrome.storage.local.set({'agecheck': this.checked});
+    });
+    $('#publiconoffswitch').on('click', function () {
+        chrome.storage.local.set({'privatecheck': this.checked});
     });
     $('#samenameonoffswitch').on('click', function () {
         chrome.storage.local.set({'samenamecheck': this.checked});
@@ -2204,6 +2210,13 @@ chrome.storage.local.get('agelimitwarn', function (result) {
     }
 });
 
+chrome.storage.local.get('publicyearval', function (result) {
+    var publicyearval = result.publicyearval;
+    if (exists(publicyearval)) {
+        $('#publicyearval').prop('value', publicyearval);
+    }
+});
+
 chrome.storage.local.get('agelimiterror', function (result) {
     var agelimiterror = result.agelimiterror;
     if (exists(agelimiterror)) {
@@ -2264,6 +2277,13 @@ chrome.storage.local.get('agecheck', function (result) {
     var agecheck = result.agecheck;
     if (exists(agecheck)) {
         $('#ageonoffswitch').prop('checked', agecheck);
+    }
+});
+
+chrome.storage.local.get('privatecheck', function (result) {
+    var privatecheck = result.privatecheck;
+    if (exists(privatecheck)) {
+        $('#publiconoffswitch').prop('checked', privatecheck);
     }
 });
 

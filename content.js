@@ -465,7 +465,7 @@ function checkDate(person, type) {
     }
     if (selfcheckoption && locationcheckoption) {
         var obj = getGeniData(person, type, "location");
-        if (obj !== "" && !exists(obj.place) && !exists(obj.country)) {
+        if (obj !== "" && !exists(obj.place_name) && !exists(obj.country)) {
             //Location with no country
             consistencymessage = concat("info") + buildEditLink(person) + " contains a " + type + " location without a country.";
         }
@@ -474,7 +474,7 @@ function checkDate(person, type) {
 
 function validName(name) {
     name = name.toLowerCase();
-    return (name.length > 1 && !name.contains(".") && isNaN(name) && name !== "nn" && name !== "unknown");
+    return (name.length > 1 && !name.contains(".") && isNaN(name) && name !== "nn" && name !== "unknown" && name !== "hidden");
 }
 
 function isYear(person, type) {

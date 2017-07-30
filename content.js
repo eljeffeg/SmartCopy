@@ -425,6 +425,7 @@ function checkAlias(person) {
 
 function checkCase(person) {    
     
+    // checks for default language names (with fixes)
     var namevaluecheck = [];
     var namevalues = ["display_name", "first_name", "middle_name", "last_name", "maiden_name"];
     for (var i=0; i < namevalues.length; i++) {
@@ -444,6 +445,33 @@ function checkCase(person) {
             + "' class='fixcase' href='javascript:void(0)' id='case" + getGeniData(person, "id") + "' name='" + namevaluecheck
             + "'>[fix case]</a></sup>";
     }
+    // checks for other languages names (without fixes as Geni API does not support it)
+    var names = getGeniData(person, "names");
+    if (names !== "") {
+        var defaultLanguage = true;
+        for (var lang in names) {
+            if (names.hasOwnProperty(lang)) {
+                var nameFound = false;
+                for (var i=0; i < namevalues.length; i++) {
+                    if (names[lang].hasOwnProperty(namevalues[i])) {
+                        nameFound = true;
+                        if (!defaultLanguage) {
+                            // skip first found language with any names as these have been handled above in default language name checks
+                            var name = names[lang][namevalues[i]];
+                            if (validName(name) && !NameParse.is_camel_case(name) && name !== formatName(name)) {
+                                consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in "
+                                    + getPronoun(getGeniData(person, "gender")) + " names (" + lang + ").";
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (nameFound) {
+                    defaultLanguage = false;
+                }
+            }
+        }
+    }    
 }
 
 function checkSuffixInFirstName(person) {

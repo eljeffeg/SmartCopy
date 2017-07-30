@@ -543,7 +543,15 @@ function formatName(namepart) {
 
 function updateQMessage() {
     if (consistencymessage !== "") {
-        $("#consistencyck").html("<span style='float: right; margin-top: -1px; padding-left: 10px;'><img id='refreshcheck' src='"+ chrome.extension.getURL("images/content_update.png") + "' style='cursor: pointer; margin-right: 3px; width: 12px;'><img class='consistencyslide' src='"+ chrome.extension.getURL("images/content_close.png") + "' style='cursor: pointer; width: 18px;'></span><a href='https://www.geni.com/projects/SmartCopy/18783' target='_blank'><img src='" + chrome.extension.getURL("images/icon.png") + "' style='width: 16px; margin-top: -3px; padding-right: 5px;' title='SmartCopy'></a></img><strong>Consistency Check:</strong>"
+        $("#consistencyck").html("<span style='float: right; margin-top: -1px; padding-left: 10px;'><img id='refreshcheck' src='"
+            + chrome.extension.getURL("images/content_update.png")
+            + "' style='cursor: pointer; margin-right: 3px; width: 12px;'><img class='consistencyslide' src='"
+            + chrome.extension.getURL("images/content_close.png")
+            + "' style='cursor: pointer; width: 18px;'></span><a href='https://www.geni.com/projects/SmartCopy/18783' target='_blank'><img src='"
+            + chrome.extension.getURL("images/icon.png")
+            + "' style='width: 16px; margin-top: -3px; padding-right: 5px;' title='SmartCopy'></a></img><strong>"
+            + chrome.i18n.getMessage("consistencyCheck")
+            + ":</strong>"
             + consistencymessage);
         $('.consistencyslide').off();
         $('.consistencyslide').on('click', function () {

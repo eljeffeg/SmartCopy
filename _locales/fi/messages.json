@@ -1,0 +1,66 @@
+{
+    "appName": {
+        "message": "SmartCopy",
+        "description": "The title of the application, displayed in the web store."
+    },
+    "appShortName": {
+        "message": "SmartCopy",
+        "description": "The title of the application, displayed in the web store."
+    },
+    "appDesc": {
+        "message": "Työkalu sukututkimustietojen kopioimiseen Geniin sekä Genissä olevien tietojen tarkistamiseen.", 
+        "description": "The description of the application, displayed in the web store."
+    },
+    "consistencyCheck": {
+        "message": "Johdonmukaisuustarkistus", 
+        "description": "TODO"
+    },
+    "contains_patronym_in_first_name": {
+        "message": "$person$ sisältää patro/matronyymin etunimikentässään ($lang$).",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "lang": {
+                "content": "$3",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_patronym_in_first_name_default": {
+        "message": "$person$ sisältää patro/matronyymin etunimikentässään.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name": {
+        "message": "$person$ sisältää muuta kuin patro/matronyymin tälle tarkoitetussa kentässä ($lang$).",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "lang": {
+                "content": "$3",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name_default": {
+        "message": "$person$ sisältää muuta kuin patro/matronyymin tälle tarkoitetussa kentässä.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            }
+        }
+    }
+}

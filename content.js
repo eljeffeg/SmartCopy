@@ -53,7 +53,7 @@ function queryGeni() {
         dconflict = ",data_conflict";
     }
     familystatus.push(1);
-    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,gender,deleted,birth,baptism,death,burial,is_alive,marriage,divorce,public" + dconflict;
+    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,gender,deleted,birth,baptism,death,burial,is_alive,marriage,divorce,public" + dconflict;
     var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
     chrome.runtime.sendMessage({
         method: "GET",

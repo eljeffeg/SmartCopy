@@ -393,13 +393,33 @@ function checkSpace(person) {
 
 function checkAlias(person) {
 
-    if (getGeniData(person, "first_name").contains('&quot;') || getGeniData(person, "first_name").contains('"')
-        || (getGeniData(person, "first_name").contains('(') && getGeniData(person, "first_name").contains(')'))
-        || getGeniData(person, "first_name").split("'").length > 2) {
-    
-        //Name contains alias
-        consistencymessage = concat("info") + buildEditLink(person) + " contains an alias in " + getPronoun(getGeniData(person, "gender"))
-            + " first name.";
+
+    var names = getGeniData(person, "names");
+    if (names !== "") {
+        for (var lang in names) {
+            if (names.hasOwnProperty(lang)) {
+                if (names[lang].hasOwnProperty("first_name")) {
+                    var firstName = names[lang]["first_name"];
+                    if (firstName.contains('&quot;') || firstName.contains('"')
+                        || (firstName.contains('(') && firstName.contains(')'))
+                        || firstName.split("'").length > 2) {
+
+                        //Name contains alias
+                        consistencymessage = concat("info") + buildEditLink(person) + " contains an alias in "
+                            + getPronoun(getGeniData(person, "gender")) + " first name ("+ lang + ").";
+                    }
+                }
+            }
+        }
+    } else {
+        if (getGeniData(person, "first_name").contains('&quot;') || getGeniData(person, "first_name").contains('"')
+            || (getGeniData(person, "first_name").contains('(') && getGeniData(person, "first_name").contains(')'))
+            || getGeniData(person, "first_name").split("'").length > 2) {
+
+            //Name contains alias
+            consistencymessage = concat("info") + buildEditLink(person) + " contains an alias in " + getPronoun(getGeniData(person, "gender"))
+                + " first name.";
+        }
     }
 }
 

@@ -358,74 +358,142 @@ function selfCheck(familyset) {
             }
 
             if (namecheckoption) {
-                var namevaluecheck = [];
-                var namevalues = ["display_name", "first_name", "middle_name", "last_name", "maiden_name"];
-                if (improperSapce(getGeniData(person, "name"))) {
-                    var nameupdate = [];
-                    for (var i=0; i < namevalues.length; i++) {
-                        var name = getGeniData(person, namevalues[i]);
-                        if (improperSapce(name)) {
-                            namevaluecheck.push(namevalues[i]);
-                            nameupdate.push(name.replace("  ", " ").trim());
-                        }
-                    }
-                    //Name contains double space
-                    consistencymessage = concat("info") + buildEditLink(person) + " contains a double space in " + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ") + "' class='fixspace' href='javascript:void(0)' id='space" + getGeniData(person, "id") + "' name='" + namevaluecheck + "'>[fix space]</a></sup>";
-                }
-                if (getGeniData(person, "first_name").contains('&quot;') || getGeniData(person, "first_name").contains('"') || (getGeniData(person, "first_name").contains('(') && getGeniData(person, "first_name").contains(')')) || getGeniData(person, "first_name").split("'").length > 2) {
-                    //Name contains alias
-                    consistencymessage = concat("info") + buildEditLink(person) + " contains an alias in " + getPronoun(getGeniData(person, "gender")) + " first name.";
-                }
-                namevaluecheck = [];
-                for (var i=0; i < namevalues.length; i++) {
-                    var name = getGeniData(person, namevalues[i]);
-                    if (validName(name) && !NameParse.is_camel_case(name) && name !== formatName(name)) {
-                        namevaluecheck.push(namevalues[i]);
-                    }
-                }
-                if (namevaluecheck.length > 0) {
-                    var nameupdate = [];
-                    for (var i=0; i < namevaluecheck.length; i++) {
-                        nameupdate.push(formatName(getGeniData(person, namevaluecheck[i])).replace(/'/g, "&#39;"));
-                    }
-                    //Name contains improper use of uppercase/lowercase
-                    consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ") + "' class='fixcase' href='javascript:void(0)' id='case" + getGeniData(person, "id") + "' name='" + namevaluecheck + "'>[fix case]</a></sup>";
-                }
-
-                var fnamesplit = getGeniData(person, "first_name").split(" ");
-                if (fnamesplit.length > 1 && NameParse.is_suffix(fnamesplit[fnamesplit.length-1])) {
-                    //First Name contain suffix
-                    consistencymessage = concat("info") + buildEditLink(person) + " appears to contain a suffix in " + getPronoun(getGeniData(person, "gender")) + " first name.<sup><a title='Move Suffix' class='fixsuffix' href='javascript:void(0)' id='fsuffix" + getGeniData(person, "id") + "'>[fix suffix]</a></sup>";
-                }
-                if (getGeniData(person, "title") !== "") {
-                    var title = getGeniData(person, "title").toLowerCase().replace(/./g, "").replace(/-/g,"");
-                    if (title === "mr" || title === "mrs" || title === "miss" || title === "ms") {
-                        //Salutation in title
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in " + getPronoun(getGeniData(person, "gender")) + " title.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='cleartitle" + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
-                    } else if (isChild(title) || isPartner(title) || isParent(title) || title === "grandmother" || title === "grandfather") {
-                        //Relationship in title
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of relationship in " + getPronoun(getGeniData(person, "gender")) + " title.<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='cleartitle" + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
-                    }
-                }
-
-                if (getGeniData(person, "maiden_name").startsWith("#") || (!isNaN(getGeniData(person, "maiden_name")) && parseInt(getGeniData(person, "maiden_name")) > 5)) {
-                        //Numbering scheme
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of a numbering scheme in " + getPronoun(getGeniData(person, "gender")) + " birth surname.<sup><a title='Remove numeric' class='clearfield' href='javascript:void(0)' id='clearmaiden_name" + getGeniData(person, "id") + "' name='maiden_name'>[fix name]</a></sup>";
-                }
-                if (getGeniData(person, "suffix") !== "") {
-                    var suffix = getGeniData(person, "suffix").toLowerCase().replace(/./g, "").replace(/-/g,"");
-                    if (suffix === "mr" || suffix === "mrs" || suffix === "miss" || title === "ms") {
-                        //Salutation in suffix
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in " + getPronoun(getGeniData(person, "gender")) + " suffix.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix" + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
-                    } else if (suffix.startsWith("#") || (!isNaN(suffix) && suffix > 5)) {
-                        //Numbering scheme
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of a numbering scheme in " + getPronoun(getGeniData(person, "gender")) + " suffix.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix" + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
-                    } else if (isChild(suffix) || isPartner(suffix) || isParent(suffix) || suffix === "grandmother" || suffix === "grandfather") {
-                        //Relationship in suffix
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of relationship in " + getPronoun(getGeniData(person, "gender")) + " suffix.<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='clearsuffix" + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
-                    }
-                }
+                checkSpace(person);
+                checkAlias(person);
+                checkCase(person);
+                checkSuffixInFirstName(person);
+                checkTitle(person);
+                checkMaidenName(person);
+                checkSuffix(person);
             }
+        }
+    }
+}
+
+function checkSpace(person) {
+    
+    var namevaluecheck = [];
+    var namevalues = ["display_name", "first_name", "middle_name", "last_name", "maiden_name"];
+    if (improperSapce(getGeniData(person, "name"))) {
+        var nameupdate = [];
+        for (var i=0; i < namevalues.length; i++) {
+            var name = getGeniData(person, namevalues[i]);
+            if (improperSapce(name)) {
+                namevaluecheck.push(namevalues[i]);
+                nameupdate.push(name.replace("  ", " ").trim());
+            }
+        }
+        //Name contains double space
+        consistencymessage = concat("info") + buildEditLink(person) + " contains a double space in "
+            + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ")
+            + "' class='fixspace' href='javascript:void(0)' id='space" + getGeniData(person, "id") + "' name='" + namevaluecheck
+            + "'>[fix space]</a></sup>";
+    }
+}
+
+function checkAlias(person) {
+
+    if (getGeniData(person, "first_name").contains('&quot;') || getGeniData(person, "first_name").contains('"')
+        || (getGeniData(person, "first_name").contains('(') && getGeniData(person, "first_name").contains(')'))
+        || getGeniData(person, "first_name").split("'").length > 2) {
+    
+        //Name contains alias
+        consistencymessage = concat("info") + buildEditLink(person) + " contains an alias in " + getPronoun(getGeniData(person, "gender"))
+            + " first name.";
+    }
+}
+
+function checkCase(person) {    
+    
+    var namevaluecheck = [];
+    var namevalues = ["display_name", "first_name", "middle_name", "last_name", "maiden_name"];
+    for (var i=0; i < namevalues.length; i++) {
+        var name = getGeniData(person, namevalues[i]);
+        if (validName(name) && !NameParse.is_camel_case(name) && name !== formatName(name)) {
+            namevaluecheck.push(namevalues[i]);
+        }
+    }
+    if (namevaluecheck.length > 0) {
+        var nameupdate = [];
+        for (var i=0; i < namevaluecheck.length; i++) {
+            nameupdate.push(formatName(getGeniData(person, namevaluecheck[i])).replace(/'/g, "&#39;"));
+        }
+        //Name contains improper use of uppercase/lowercase
+        consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in "
+            + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ")
+            + "' class='fixcase' href='javascript:void(0)' id='case" + getGeniData(person, "id") + "' name='" + namevaluecheck
+            + "'>[fix case]</a></sup>";
+    }
+}
+
+function checkSuffixInFirstName(person) {
+    
+    var fnamesplit = getGeniData(person, "first_name").split(" ");
+    if (fnamesplit.length > 1 && NameParse.is_suffix(fnamesplit[fnamesplit.length-1])) {
+        //First Name contain suffix
+        consistencymessage = concat("info") + buildEditLink(person) + " appears to contain a suffix in "
+            + getPronoun(getGeniData(person, "gender"))
+            + " first name.<sup><a title='Move Suffix' class='fixsuffix' href='javascript:void(0)' id='fsuffix" + getGeniData(person, "id")
+            + "'>[fix suffix]</a></sup>";
+    }
+}
+
+function checkTitle(person) {
+    
+    if (getGeniData(person, "title") !== "") {
+        var title = getGeniData(person, "title").toLowerCase().replace(/./g, "").replace(/-/g,"");
+        if (title === "mr" || title === "mrs" || title === "miss" || title === "ms") {
+            //Salutation in title
+            consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in "
+                + getPronoun(getGeniData(person, "gender"))
+                + " title.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='cleartitle"
+                + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
+        } else if (isChild(title) || isPartner(title) || isParent(title) || title === "grandmother" || title === "grandfather") {
+            //Relationship in title
+            consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of relationship in "
+                + getPronoun(getGeniData(person, "gender"))
+                + " title.<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='cleartitle"
+                + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
+        }
+    }
+}
+
+function checkMaidenName(person) {
+    
+    if (getGeniData(person, "maiden_name").startsWith("#") || (!isNaN(getGeniData(person, "maiden_name"))
+        && parseInt(getGeniData(person, "maiden_name")) > 5)) {
+    
+        //Numbering scheme
+        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of a numbering scheme in "
+            + getPronoun(getGeniData(person, "gender"))
+            + " birth surname.<sup><a title='Remove numeric' class='clearfield' href='javascript:void(0)' id='clearmaiden_name"
+            + getGeniData(person, "id") + "' name='maiden_name'>[fix name]</a></sup>";
+    }
+}
+
+// Checks that suffix does not contain salutation, improper numbering or relationsship.
+function checkSuffix(person) {
+    
+    if (getGeniData(person, "suffix") !== "") {
+        var suffix = getGeniData(person, "suffix").toLowerCase().replace(/./g, "").replace(/-/g,"");
+        if (suffix === "mr" || suffix === "mrs" || suffix === "miss" || title === "ms") {
+            //Salutation in suffix
+            consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in "
+                + getPronoun(getGeniData(person, "gender"))
+                + " suffix.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix"
+                + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
+        } else if (suffix.startsWith("#") || (!isNaN(suffix) && suffix > 5)) {
+            //Numbering scheme
+            consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of a numbering scheme in "
+                + getPronoun(getGeniData(person, "gender"))
+                + " suffix.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix"
+                + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
+        } else if (isChild(suffix) || isPartner(suffix) || isParent(suffix) || suffix === "grandmother" || suffix === "grandfather") {
+            //Relationship in suffix
+            consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of relationship in "
+                + getPronoun(getGeniData(person, "gender"))
+                + " suffix.<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='clearsuffix"
+                + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
         }
     }
 }

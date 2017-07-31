@@ -15,14 +15,6 @@
         "message": "Consistency Check", 
         "description": "TODO"
     },
-    "fixSpace": {
-        "message": "fix space", 
-        "description": "TODO"
-    },
-    "fixCase": {
-        "message": "fix case", 
-        "description": "TODO"
-    },
     "contains_patronym_in_first_name": {
         "message": "$person$ contains a patro/matronym in $pronoun$ first name ($lang$).",
         "description": "TODO",
@@ -82,6 +74,50 @@
                 "example": "TODO"
             },
             "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "fixCase": {
+        "message": "fix case", 
+        "description": "TODO"
+    },
+    "fixed": {
+        "message": "fixed", 
+        "description": "TODO"
+    },
+    "fixSpace": {
+        "message": "fix space", 
+        "description": "TODO"
+    },
+    "makePublic": {
+        "message": "make public", 
+        "description": "TODO"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$ family members born before $year$ are set as private.",
+        "description": "TODO",
+        "placeholders": {
+            "count": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "year": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$ was born before $year$ and is set as private.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "year": {
                 "content": "$2",
                 "example": "TODO"
             }

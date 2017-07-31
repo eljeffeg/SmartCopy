@@ -15,14 +15,6 @@
         "message": "Johdonmukaisuustarkistus", 
         "description": "TODO"
     },
-    "fixSpace": {
-        "message": "korjaa", 
-        "description": "TODO"
-    },
-    "fixCase": {
-        "message": "korjaa", 
-        "description": "TODO"
-    },
     "contains_patronym_in_first_name": {
         "message": "$person$ sisältää patro/matronyymin etunimikentässään ($lang$).",
         "description": "TODO",
@@ -67,6 +59,50 @@
         "placeholders": {
             "person": {
                 "content": "$1",
+                "example": "TODO"
+            }
+        }
+    },
+    "fixCase": {
+        "message": "korjaa", 
+        "description": "TODO"
+    },
+    "fixed": {
+        "message": "korjattu", 
+        "description": "TODO"
+    },
+    "fixSpace": {
+        "message": "korjaa", 
+        "description": "TODO"
+    },
+    "makePublic": {
+        "message": "julkista", 
+        "description": "TODO"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$ ennen vuotta $year$ syntynyttä perheenjäsentä on asetettu yksityisiksi.",
+        "description": "TODO",
+        "placeholders": {
+            "count": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "year": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$ on syntynyt ennen vuotta $year$ ja on asetettu yksityiseksi.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "year": {
+                "content": "$2",
                 "example": "TODO"
             }
         }

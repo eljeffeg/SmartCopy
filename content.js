@@ -134,9 +134,11 @@ function checkConsistency() {
             }
             //Old private profiles
             if (publiclist.length > 1) {
-                consistencymessage = concat("info") + publiclist.length + " family members born before " + publicyear + " are set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
+                consistencymessage = concat("info") + _("numFamilyMembersBornBeforeYearAreSetAsPrivate", [publiclist.length , publicyear])
+                    + "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[" + _("makePublic") + "]</a></sup>";
             } else {
-                consistencymessage = concat("info") + buildEditLink(publiclist[0]) + " was born before " + publicyear + " and is set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
+                consistencymessage = concat("info") + _("personWasBornBeforeYearAndIsSetAsPrivate", [buildEditLink(publiclist[0]), publicyear])
+                    + "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[" + _("makePublic") + "]</a></sup>";
             }
          }
 
@@ -579,7 +581,9 @@ function updateQMessage() {
                 args[nameparts[i]] = formatName(getGeniData(id, nameparts[i]));
             }
             var url = "https://www.geni.com/api/" + id + "/update-basics";
-            $("#case" + id).replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+            $("#case" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed")
+                + " <img src='"+ chrome.extension.getURL("images/content_check.png")
+                + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -590,7 +594,8 @@ function updateQMessage() {
         });
         $('#makepublic').off();
         $('#makepublic').on('click', function(){
-            $("#makepublic").replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+            $("#makepublic").replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='"
+                + chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             var args = {"public": true, "is_alive": false};
             for (var i=0; i < publiclist.length; i++) {
                 var url = "https://www.geni.com/api/" + publiclist[i] + "/update-basics";
@@ -610,7 +615,8 @@ function updateQMessage() {
             var suffix = fnamesplit.pop();
             var args = {"suffix": suffix, "first_name": fnamesplit.join(" ")};
             var url = "https://www.geni.com/api/" + id + "/update-basics";
-            $("#fsuffix" + id).replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+            $("#fsuffix" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='"
+                + chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -628,7 +634,8 @@ function updateQMessage() {
                 args[nameparts[i]] = getGeniData(id, nameparts[i]).replace(/  /g, " ").trim();
             }
             var url = "https://www.geni.com/api/" + id + "/update-basics";
-            $("#space" + id).replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+            $("#space" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='"
+                + chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -644,7 +651,8 @@ function updateQMessage() {
             var id = $(this)[0].id.replace("clear" + name, "");
             args[name] = "";
             var url = "https://www.geni.com/api/" + id + "/update-basics";
-            $("#clear" + name + id).replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+            $("#clear" + name + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='"
+                + chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",

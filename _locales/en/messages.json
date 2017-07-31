@@ -15,6 +15,22 @@
         "message": "Consistency Check", 
         "description": "TODO"
     },
+    "warn": {
+        "message": "warn", 
+        "description": "TODO"
+    },
+    "info": {
+        "message": "info", 
+        "description": "TODO"
+    },
+    "fixSpace": {
+        "message": "fix space", 
+        "description": "TODO"
+    },
+    "fixCase": {
+        "message": "fix case", 
+        "description": "TODO"
+    },
     "contains_patronym_in_first_name": {
         "message": "$person$ contains a patro/matronym in $pronoun$ first name ($lang$).",
         "description": "TODO",

@@ -25,6 +25,10 @@ var datecheckoption = true;
 var samenameoption = true;
 var wedlock = false;
 
+var _ = function(string) {
+    return chrome.i18n.getMessage(string);
+};
+
 function buildconsistencyDiv() {
     if (isGeni(tablink)) {
         var consistencydiv = $(document.createElement('div'));
@@ -130,9 +134,9 @@ function checkConsistency() {
             }
             //Old private profiles
             if (publiclist.length > 1) {
-                consistencymessage = concat("info") + publiclist.length + " family members born before " + publicyear + " are set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
+                consistencymessage = concat(_("info")) + publiclist.length + " family members born before " + publicyear + " are set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
             } else {
-                consistencymessage = concat("info") + buildEditLink(publiclist[0]) + " was born before " + publicyear + " and is set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
+                consistencymessage = concat(_("info")) + buildEditLink(publiclist[0]) + " was born before " + publicyear + " and is set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
             }
          }
 
@@ -194,30 +198,30 @@ function partnerCheck(partners) {
         }
         if (husband_bdate + (spouse_age_dif * year) < wife_bdate || husband_bdate - (spouse_age_dif * year) > wife_bdate) {
             //Age different between partners is significant
-            consistencymessage = concat("warn") + "More than " + spouse_age_dif + " year age difference between " + buildEditLink(wife) + " and "
+            consistencymessage = concat(_("warn")) + "More than " + spouse_age_dif + " year age difference between " + buildEditLink(wife) + " and "
                 + getPronoun(getGeniData(wife, "gender")) + " " + getStatus(hstatus, getGeniData(husband, "gender")) + " " + buildEditLink(husband) + ".";
         }
         if (samenameoption && validName(getGeniData(wife, "maiden_name")) && getGeniData(wife, "maiden_name") === getGeniData(husband, "last_name")) {
             if (!(getGeniData(husband, "maiden_name") !== "" && getGeniData(husband, "last_name") !== getGeniData(husband, "maiden_name"))) {
                 //Maiden name same as husband's last name
                 //TODO if you get additional family members, compare this against her father's last name
-                consistencymessage = concat("info") + "Birth Surname of " + buildEditLink(wife) + " is the same as the last name of "
+                consistencymessage = concat(_("info")) + "Birth Surname of " + buildEditLink(wife) + " is the same as the last name of "
                     + getPronoun(getGeniData(wife, "gender")) + " " + getStatus(hstatus, getGeniData(husband, "gender")) + " " + buildEditLink(husband) + ".";
             }
         }
         if (isNaN(husband_ddate) && husband_ddate === wife_ddate) {
             //Husband and wife death dates the same
-            consistencymessage = concat("info") + "Death date of " + buildEditLink(husband) + " is the same as the death date of "
+            consistencymessage = concat(_("info")) + "Death date of " + buildEditLink(husband) + " is the same as the death date of "
                 + getPronoun(getGeniData(husband, "gender")) + " " + getStatus(wstatus, getGeniData(wife, "gender")) + " " + buildEditLink(wife) + ".";
         }
         if (isNaN(husband_ddate) && husband_ddate === union_mdate) {
             //Husband death date same as marriage date
-            consistencymessage = concat("info") + "Death date of " + buildEditLink(husband) + " is the same as " + getPronoun(getGeniData(husband, "gender"))
+            consistencymessage = concat(_("info")) + "Death date of " + buildEditLink(husband) + " is the same as " + getPronoun(getGeniData(husband, "gender"))
                 + " marriage date.";
         }
         if (isNaN(wife_ddate) && wife_ddate === union_mdate) {
             //Wife death date same as marriage date
-            consistencymessage = concat("info") + "Death date of " + buildEditLink(wife) + " is the same as " + getPronoun(getGeniData(wife, "gender"))
+            consistencymessage = concat(_("info")) + "Death date of " + buildEditLink(wife) + " is the same as " + getPronoun(getGeniData(wife, "gender"))
                 + " marriage date.";
         }
 
@@ -233,7 +237,7 @@ function partnerCheck(partners) {
                 consistencymessage = concat("error") + buildEditLink(partners[i]) + " died before " + getPronoun(getGeniData(partners[i], "gender")) + " marriage date.";
             } else if (partner_bdate + (marriageage_young * year) > partner_mdate) {
                 //Implausible marriage age, too young
-                consistencymessage = concat("warn") + buildEditLink(partners[i]) + " is under " + marriageage_young + " years old for " + getPronoun(getGeniData(partners[i], "gender")) + " marriage.";
+                consistencymessage = concat(_("warn")) + buildEditLink(partners[i]) + " is under " + marriageage_young + " years old for " + getPronoun(getGeniData(partners[i], "gender")) + " marriage.";
             }
         }
     }
@@ -257,7 +261,7 @@ function siblingCheck(siblings) {
                         //Exclude Twins
                     } else {
                         //Siblings ages too close together
-                        consistencymessage = concat("warn") + "Birth date of " + buildEditLink(siblings[i]) + " and " + getPronoun(getGeniData(siblings[i], "gender"))
+                        consistencymessage = concat(_("warn")) + "Birth date of " + buildEditLink(siblings[i]) + " and " + getPronoun(getGeniData(siblings[i], "gender"))
                             + " " + siblingName(getGeniData(siblings[j], "gender")) + " " + buildEditLink(siblings[j]) + " are within " + termlimit + " months.";
                     }
                 }
@@ -292,15 +296,15 @@ function childCheck(parents, children) {
                         + getPronoun(getGeniData(children[x], "gender")) + " " + parentName(getGeniData(parents[i], "gender")) + " " + buildEditLink(parents[i]) + ".";
                 } else if (sibling_bdate < parent_bdate + (birthage_young * year) + pregnancy) {
                     //Parent too young for child's birth
-                    consistencymessage = concat("warn") + buildEditLink(parents[i]) + " is under " + birthage_young + " years old for the birth of " + getPronoun(getGeniData(parents[i], "gender"))
+                    consistencymessage = concat(_("warn")) + buildEditLink(parents[i]) + " is under " + birthage_young + " years old for the birth of " + getPronoun(getGeniData(parents[i], "gender"))
                         + " child " + buildEditLink(children[x]) + ".";
                 } else if (isFemale(getGeniData(parents[i], "gender")) && sibling_bdate > parent_bdate + (birthage_old * year)) {
                     //Mother too old for child's birth
-                    consistencymessage = concat("warn") + buildEditLink(parents[i]) + " is over " + birthage_old + " years old for the birth of " + getPronoun(getGeniData(parents[i], "gender"))
+                    consistencymessage = concat(_("warn")) + buildEditLink(parents[i]) + " is over " + birthage_old + " years old for the birth of " + getPronoun(getGeniData(parents[i], "gender"))
                         + " child " + buildEditLink(children[x]) + ".";
                 } else if (wedlock && i === wedcheck && sibling_bdate < parent_mdate && !containsRange(parents[i], "marriage", children[x], "birth")) {
                     //Born before parent marriage
-                    consistencymessage = concat("info") + buildEditLink(children[x]) + " born before the marriage of "
+                    consistencymessage = concat(_("info")) + buildEditLink(children[x]) + " born before the marriage of "
                         + getPronoun(getGeniData(children[x], "gender")) + " parents " + buildEditLink(parents[0]) + " and " + buildEditLink(parents[1]) + ".";
                 }
             }
@@ -325,7 +329,7 @@ function selfCheck(familyset) {
             var person_burial = unixDate(person, "burial");
             var conflicts = getGeniData(person, "data_conflict");
             if (dataconflictoption && conflicts) {
-                consistencymessage = concat("info") + getGeniData(person, "name") + " has pending <a href='https://www.geni.com/merge/resolve/" + getGeniData(person, "guid") + "'>data conflicts</a>.";
+                consistencymessage = concat(_("info")) + getGeniData(person, "name") + " has pending <a href='https://www.geni.com/merge/resolve/" + getGeniData(person, "guid") + "'>data conflicts</a>.";
             }
             if (privatecheck && !getGeniData(person, "public") && person_bdate < parseInt(publicdate.getTime() / 1000) && person_bdate > parseInt(publicbottom.getTime() / 1000)) {
                 publiclist.push(person);
@@ -340,7 +344,7 @@ function selfCheck(familyset) {
                     consistencymessage = concat("error") + "The age of " + buildEditLink(person) + " exceeds " + longevity_error + " years.";
                 } else if (person_bdate + longevity_warn * year < person_ddate) {
                     //Excessive Age Warning
-                    consistencymessage = concat("warn") + "The age of " + buildEditLink(person) + " exceeds " + longevity_warn + " years.";
+                    consistencymessage = concat(_("warn")) + "The age of " + buildEditLink(person) + " exceeds " + longevity_warn + " years.";
                 }
                 if (person_bdate > person_ddate && !containsRange(person, "birth", person, "death")) {
                     //Born after death
@@ -370,11 +374,17 @@ function selfCheck(familyset) {
                         }
                     }
                     //Name contains double space
-                    consistencymessage = concat("info") + buildEditLink(person) + " contains a double space in " + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ") + "' class='fixspace' href='javascript:void(0)' id='space" + getGeniData(person, "id") + "' name='" + namevaluecheck + "'>[fix space]</a></sup>";
+                    consistencymessage = concat(_("info")) + buildEditLink(person) + " contains a double space in "
+                        + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ")
+                        + "' class='fixspace' href='javascript:void(0)' id='space" + getGeniData(person, "id") + "' name='" + namevaluecheck
+                        + "'>[" + _("fixSpace") + "]</a></sup>";
                 }
-                if (getGeniData(person, "first_name").contains('&quot;') || getGeniData(person, "first_name").contains('"') || (getGeniData(person, "first_name").contains('(') && getGeniData(person, "first_name").contains(')')) || getGeniData(person, "first_name").split("'").length > 2) {
+                if (getGeniData(person, "first_name").contains('&quot;') || getGeniData(person, "first_name").contains('"')
+                    || (getGeniData(person, "first_name").contains('(') && getGeniData(person, "first_name").contains(')'))
+                    || getGeniData(person, "first_name").split("'").length > 2) {
                     //Name contains alias
-                    consistencymessage = concat("info") + buildEditLink(person) + " contains an alias in " + getPronoun(getGeniData(person, "gender")) + " first name.";
+                    consistencymessage = concat(_("info")) + buildEditLink(person) + " contains an alias in "
+                        + getPronoun(getGeniData(person, "gender")) + " first name.";
                 }
                 namevaluecheck = [];
                 for (var i=0; i < namevalues.length; i++) {
@@ -389,40 +399,43 @@ function selfCheck(familyset) {
                         nameupdate.push(formatName(getGeniData(person, namevaluecheck[i])).replace(/'/g, "&#39;"));
                     }
                     //Name contains improper use of uppercase/lowercase
-                    consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in " + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ") + "' class='fixcase' href='javascript:void(0)' id='case" + getGeniData(person, "id") + "' name='" + namevaluecheck + "'>[fix case]</a></sup>";
+                    consistencymessage = concat(_("info")) + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in "
+                        + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ")
+                        + "' class='fixcase' href='javascript:void(0)' id='case" + getGeniData(person, "id") + "' name='" + namevaluecheck + "'>["
+                        + _("fixCase") + "]</a></sup>";
                 }
 
                 var fnamesplit = getGeniData(person, "first_name").split(" ");
                 if (fnamesplit.length > 1 && NameParse.is_suffix(fnamesplit[fnamesplit.length-1])) {
                     //First Name contain suffix
-                    consistencymessage = concat("info") + buildEditLink(person) + " appears to contain a suffix in " + getPronoun(getGeniData(person, "gender")) + " first name.<sup><a title='Move Suffix' class='fixsuffix' href='javascript:void(0)' id='fsuffix" + getGeniData(person, "id") + "'>[fix suffix]</a></sup>";
+                    consistencymessage = concat(_("info")) + buildEditLink(person) + " appears to contain a suffix in " + getPronoun(getGeniData(person, "gender")) + " first name.<sup><a title='Move Suffix' class='fixsuffix' href='javascript:void(0)' id='fsuffix" + getGeniData(person, "id") + "'>[fix suffix]</a></sup>";
                 }
                 if (getGeniData(person, "title") !== "") {
                     var title = getGeniData(person, "title").toLowerCase().replace(/./g, "").replace(/-/g,"");
                     if (title === "mr" || title === "mrs" || title === "miss" || title === "ms") {
                         //Salutation in title
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in " + getPronoun(getGeniData(person, "gender")) + " title.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='cleartitle" + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
+                        consistencymessage = concat(_("info")) + buildEditLink(person) + " contains improper use of salutation in " + getPronoun(getGeniData(person, "gender")) + " title.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='cleartitle" + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
                     } else if (isChild(title) || isPartner(title) || isParent(title) || title === "grandmother" || title === "grandfather") {
                         //Relationship in title
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of relationship in " + getPronoun(getGeniData(person, "gender")) + " title.<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='cleartitle" + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
+                        consistencymessage = concat(_("info")) + buildEditLink(person) + " contains improper use of relationship in " + getPronoun(getGeniData(person, "gender")) + " title.<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='cleartitle" + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
                     }
                 }
 
                 if (getGeniData(person, "maiden_name").startsWith("#") || (!isNaN(getGeniData(person, "maiden_name")) && parseInt(getGeniData(person, "maiden_name")) > 5)) {
                         //Numbering scheme
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of a numbering scheme in " + getPronoun(getGeniData(person, "gender")) + " birth surname.<sup><a title='Remove numeric' class='clearfield' href='javascript:void(0)' id='clearmaiden_name" + getGeniData(person, "id") + "' name='maiden_name'>[fix name]</a></sup>";
+                        consistencymessage = concat(_("info")) + buildEditLink(person) + " contains improper use of a numbering scheme in " + getPronoun(getGeniData(person, "gender")) + " birth surname.<sup><a title='Remove numeric' class='clearfield' href='javascript:void(0)' id='clearmaiden_name" + getGeniData(person, "id") + "' name='maiden_name'>[fix name]</a></sup>";
                 }
                 if (getGeniData(person, "suffix") !== "") {
                     var suffix = getGeniData(person, "suffix").toLowerCase().replace(/./g, "").replace(/-/g,"");
                     if (suffix === "mr" || suffix === "mrs" || suffix === "miss" || title === "ms") {
                         //Salutation in suffix
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in " + getPronoun(getGeniData(person, "gender")) + " suffix.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix" + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
+                        consistencymessage = concat(_("info")) + buildEditLink(person) + " contains improper use of salutation in " + getPronoun(getGeniData(person, "gender")) + " suffix.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix" + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
                     } else if (suffix.startsWith("#") || (!isNaN(suffix) && suffix > 5)) {
                         //Numbering scheme
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of a numbering scheme in " + getPronoun(getGeniData(person, "gender")) + " suffix.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix" + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
+                        consistencymessage = concat(_("info")) + buildEditLink(person) + " contains improper use of a numbering scheme in " + getPronoun(getGeniData(person, "gender")) + " suffix.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix" + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
                     } else if (isChild(suffix) || isPartner(suffix) || isParent(suffix) || suffix === "grandmother" || suffix === "grandfather") {
                         //Relationship in suffix
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of relationship in " + getPronoun(getGeniData(person, "gender")) + " suffix.<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='clearsuffix" + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
+                        consistencymessage = concat(_("info")) + buildEditLink(person) + " contains improper use of relationship in " + getPronoun(getGeniData(person, "gender")) + " suffix.<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='clearsuffix" + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
                     }
                 }
             }
@@ -436,7 +449,7 @@ function relationshipCheck(group1, group2) {
             for (var x=0;x < group2.length; x++) {
                 if (group1[i] === group2[x]) {
                     //relationship cycle within immediate family
-                    consistencymessage = concat("warn") + buildEditLink(group1[i]) + " is in a relationship cycle within the immediate family.";
+                    consistencymessage = concat(_("warn")) + buildEditLink(group1[i]) + " is in a relationship cycle within the immediate family.";
                 }
             }
         }
@@ -457,17 +470,17 @@ function checkDate(person, type) {
             consistencymessage = concat("error") + buildEditLink(person) + " contains an invalid " + type + " date.";
         } else if (exists(obj.year) && exists(obj.day) && !exists(obj.month)) {
             //Year and Day without Month
-            consistencymessage = concat("info") + buildEditLink(person) + " contains an incomplete " + type + " date, missing month.";
+            consistencymessage = concat(_("info")) + buildEditLink(person) + " contains an incomplete " + type + " date, missing month.";
         } else if (!exists(obj.year) && (exists(obj.month) || exists(obj.day))) {
             //Month or Day without any year
-            consistencymessage = concat("info") + buildEditLink(person) + " contains an incomplete " + type + " date, missing year.";
+            consistencymessage = concat(_("info")) + buildEditLink(person) + " contains an incomplete " + type + " date, missing year.";
         }
     }
     if (selfcheckoption && locationcheckoption) {
         var obj = getGeniData(person, type, "location");
         if (obj !== "" && !exists(obj.place_name) && !exists(obj.country)) {
             //Location with no country
-            consistencymessage = concat("info") + buildEditLink(person) + " contains a " + type + " location without a country.";
+            consistencymessage = concat(_("info")) + buildEditLink(person) + " contains a " + type + " location without a country.";
         }
     }
 }
@@ -550,7 +563,7 @@ function updateQMessage() {
             + "' style='cursor: pointer; width: 18px;'></span><a href='https://www.geni.com/projects/SmartCopy/18783' target='_blank'><img src='"
             + chrome.extension.getURL("images/icon.png")
             + "' style='width: 16px; margin-top: -3px; padding-right: 5px;' title='SmartCopy'></a></img><strong>"
-            + chrome.i18n.getMessage("consistencyCheck")
+            + _("consistencyCheck")
             + ":</strong>"
             + consistencymessage);
         $('.consistencyslide').off();

@@ -15,6 +15,22 @@
         "message": "Johdonmukaisuustarkistus", 
         "description": "TODO"
     },
+    "warn": {
+        "message": "varoitus", 
+        "description": "TODO"
+    },
+    "info": {
+        "message": "tiedoksi", 
+        "description": "TODO"
+    },
+    "fixSpace": {
+        "message": "korjaa", 
+        "description": "TODO"
+    },
+    "fixCase": {
+        "message": "korjaa", 
+        "description": "TODO"
+    },
     "contains_patronym_in_first_name": {
         "message": "$person$ sisältää patro/matronyymin etunimikentässään ($lang$).",
         "description": "TODO",

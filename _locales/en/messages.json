@@ -15,14 +15,6 @@
         "message": "Consistency Check", 
         "description": "TODO"
     },
-    "warn": {
-        "message": "warn", 
-        "description": "TODO"
-    },
-    "info": {
-        "message": "info", 
-        "description": "TODO"
-    },
     "fixSpace": {
         "message": "fix space", 
         "description": "TODO"

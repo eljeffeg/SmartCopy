@@ -15,14 +15,6 @@
         "message": "Johdonmukaisuustarkistus", 
         "description": "TODO"
     },
-    "warn": {
-        "message": "varoitus", 
-        "description": "TODO"
-    },
-    "info": {
-        "message": "tiedoksi", 
-        "description": "TODO"
-    },
     "fixSpace": {
         "message": "korjaa", 
         "description": "TODO"

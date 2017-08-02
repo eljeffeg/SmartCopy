@@ -541,7 +541,7 @@ function checkMaidenName(person) {
 function checkSuffix(person) {
     if (getGeniData(person, "suffix") !== "") {
         var suffix = getGeniData(person, "suffix").toLowerCase().replace(/./g, "").replace(/-/g,"");
-        if (suffix === "mr" || suffix === "mrs" || suffix === "miss" || title === "ms") {
+        if (suffix === "mr" || suffix === "mrs" || suffix === "miss" || suffix === "ms") {
             //Salutation in suffix
             consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in "
                 + getPronoun(getGeniData(person, "gender"))

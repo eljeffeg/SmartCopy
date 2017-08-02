@@ -15,6 +15,38 @@
         "message": "Johdonmukaisuustarkistus", 
         "description": "TODO"
     },
+    "contains_incorrect_uppercase_lowercase_in_name": {
+        "message": "$person$ nimi ei ole erisnimien kirjoitussäännön mukainen - iso alkukirjain, loput pienellä ($lang$).",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            },
+            "lang": {
+                "content": "$3",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_incorrect_uppercase_lowercase_in_name_default": {
+        "message": "$person$ nimi ei ole erisnimien kirjoitussäännön mukainen - iso alkukirjain, loput pienellä.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
     "contains_patronym_in_first_name": {
         "message": "$person$ sisältää patro/matronyymin etunimikentässään ($lang$).",
         "description": "TODO",

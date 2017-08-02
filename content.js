@@ -25,8 +25,8 @@ var datecheckoption = true;
 var samenameoption = true;
 var wedlock = false;
 
-var _ = function(string) {
-    return chrome.i18n.getMessage(string);
+var _ = function(messageName, substitutions) {
+    return chrome.i18n.getMessage(messageName, substitutions);
 };
 
 function buildconsistencyDiv() {
@@ -467,10 +467,10 @@ function checkCase(person) {
             nameupdate.push(formatName(getGeniData(person, namevaluecheck[i])).replace(/'/g, "&#39;"));
         }
         //Name contains improper use of uppercase/lowercase
-        consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in "
-            + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ")
-            + "' class='fixcase' href='javascript:void(0)' id='case" + getGeniData(person, "id") + "' name='" + namevaluecheck
-            + "'>[" + _("fixCase") + "]</a></sup>";
+        consistencymessage = concat("info")
+            + _("contains_incorrect_uppercase_lowercase_in_name_default", [buildEditLink(person), getPronoun(getGeniData(person, "gender"))])
+            + "<sup><a title='" + nameupdate.join("; ") + "' class='fixcase' href='javascript:void(0)' id='case" + getGeniData(person, "id")
+            + "' name='" + namevaluecheck + "'>[" + _("fixCase") + "]</a></sup>";
     }
     // checks for other languages names (without fixes as Geni API does not support it)
     var names = getGeniData(person, "names");
@@ -486,8 +486,8 @@ function checkCase(person) {
                             // skip first found language with any names as these have been handled above in default language name checks
                             var name = names[lang][namevalues[i]];
                             if (validName(name) && !NameParse.is_camel_case(name) && name !== formatName(name)) {
-                                consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in "
-                                    + getPronoun(getGeniData(person, "gender")) + " names (" + lang + ").";
+                                consistencymessage = concat("info") + _("contains_incorrect_uppercase_lowercase_in_name",
+                                  [buildEditLink(person), getPronoun(getGeniData(person, "gender")), lang]);
                                 break;
                             }
                         }

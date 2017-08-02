@@ -87,8 +87,20 @@
         "message": "fixed", 
         "description": "TODO"
     },
+    "fixName": {
+        "message": "fix name", 
+        "description": "TODO"
+    },
     "fixSpace": {
         "message": "fix space", 
+        "description": "TODO"
+    },
+    "fixSuffix": {
+        "message": "fix suffix", 
+        "description": "TODO"
+    },
+    "fixTitle": {
+        "message": "fix title", 
         "description": "TODO"
     },
     "makePublic": {

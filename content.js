@@ -508,7 +508,7 @@ function checkSuffixInFirstName(person) {
         consistencymessage = concat("info") + buildEditLink(person) + " appears to contain a suffix in "
             + getPronoun(getGeniData(person, "gender"))
             + " first name.<sup><a title='Move Suffix' class='fixsuffix' href='javascript:void(0)' id='fsuffix" + getGeniData(person, "id")
-            + "'>[fix suffix]</a></sup>";
+            + "'>" + _("fixSuffix") + "</a></sup>";
     }
 }
 
@@ -520,13 +520,13 @@ function checkTitle(person) {
             consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in "
                 + getPronoun(getGeniData(person, "gender"))
                 + " title.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='cleartitle"
-                + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
+                + getGeniData(person, "id") + "' name='title'>" + _("fixTitle") + "</a></sup>";
         } else if (isChild(title) || isPartner(title) || isParent(title) || title === "grandmother" || title === "grandfather") {
             // Relationship in title
             consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of relationship in "
                 + getPronoun(getGeniData(person, "gender"))
                 + " title.<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='cleartitle"
-                + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
+                + getGeniData(person, "id") + "' name='title'>" + _("fixTitle") + "</a></sup>";
         }
     }
 }
@@ -539,7 +539,7 @@ function checkMaidenName(person) {
         consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of a numbering scheme in "
             + getPronoun(getGeniData(person, "gender"))
             + " birth surname.<sup><a title='Remove numeric' class='clearfield' href='javascript:void(0)' id='clearmaiden_name"
-            + getGeniData(person, "id") + "' name='maiden_name'>[fix name]</a></sup>";
+            + getGeniData(person, "id") + "' name='maiden_name'>" + _("fixName") + "</a></sup>";
     }
 }
 
@@ -552,19 +552,19 @@ function checkSuffix(person) {
             consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in "
                 + getPronoun(getGeniData(person, "gender"))
                 + " suffix.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix"
-                + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
+                + getGeniData(person, "id") + "' name='suffix'>" + _("fixSuffix") + "</a></sup>";
         } else if (suffix.startsWith("#") || (!isNaN(suffix) && suffix > 5)) {
             //Numbering scheme
             consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of a numbering scheme in "
                 + getPronoun(getGeniData(person, "gender"))
                 + " suffix.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix"
-                + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
+                + getGeniData(person, "id") + "' name='suffix'>" + _("fixSuffix") + "</a></sup>";
         } else if (isChild(suffix) || isPartner(suffix) || isParent(suffix) || suffix === "grandmother" || suffix === "grandfather") {
             //Relationship in suffix
             consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of relationship in "
                 + getPronoun(getGeniData(person, "gender"))
                 + " suffix.<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='clearsuffix"
-                + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
+                + getGeniData(person, "id") + "' name='suffix'>" + _("fixSuffix") + "</a></sup>";
         }
     }
 }

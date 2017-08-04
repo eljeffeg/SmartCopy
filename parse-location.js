@@ -89,6 +89,18 @@ function parseGoogle(result, query) {
                         location.city = long_name;
                     }
                     break;
+                case 'administrative_area_level_4,political':
+                    if (location.city === "" && isNaN(long_name)) {
+                        //If the city is not in locality, use admin area 4
+                        location.city = long_name;
+                    }
+                    break;
+                case 'administrative_area_level_5,political':
+                    if (location.city === "" && isNaN(long_name)) {
+                        //If the city is not in locality, use admin area 5
+                        location.city = long_name;
+                    }
+                    break;
                 case 'administrative_area_level_2,political':
                     if (isNaN(long_name)) {
                         location.county = long_name;

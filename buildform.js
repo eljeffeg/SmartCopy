@@ -315,7 +315,7 @@ function buildForm() {
     var living = false;
     if (exists(alldata["profile"].alive)) {
         living = alldata["profile"].alive;
-    } else if (geniliving || !exists(geniliving)) {
+    } else if (!(alldata["profile"]["death"]) && !(alldata["profile"]["burial"]) && (geniliving || !exists(geniliving))) {
         living = true;
         //Focus Profile - If the older than 95, default to deceased
         if (alldata["profile"]["birth"]) {

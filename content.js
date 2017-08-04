@@ -119,7 +119,7 @@ function checkConsistency() {
         //Compare profiles against themselves
         publiclist = [];
         selfCheck(siblings);
-        selfCheck(children);
+        selfCheck(children, true);
         selfCheck(partners);
         selfCheck(parents);
 
@@ -130,9 +130,9 @@ function checkConsistency() {
             }
             //Old private profiles
             if (publiclist.length > 1) {
-                consistencymessage = concat("info") + publiclist.length + " family members born before " + publicyear + " are set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
+                consistencymessage = concat("info") + publiclist.length + " family members born before c." + publicyear + " are set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
             } else {
-                consistencymessage = concat("info") + buildEditLink(publiclist[0]) + " was born before " + publicyear + " and is set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
+                consistencymessage = concat("info") + buildEditLink(publiclist[0]) + " was born before c." + publicyear + " and is set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
             }
          }
 
@@ -308,7 +308,8 @@ function childCheck(parents, children) {
     }
 }
 
-function selfCheck(familyset) {
+function selfCheck(familyset, children) {
+    children = children || false;
     if (selfcheckoption) {
         if (privatecheck) {
             var publicdate = new Date();
@@ -327,7 +328,12 @@ function selfCheck(familyset) {
             if (dataconflictoption && conflicts) {
                 consistencymessage = concat("info") + getGeniData(person, "name") + " has pending <a href='https://www.geni.com/merge/resolve/" + getGeniData(person, "guid") + "'>data conflicts</a>.";
             }
-            if (privatecheck && !getGeniData(person, "public") && person_bdate < parseInt(publicdate.getTime() / 1000) && person_bdate > parseInt(publicbottom.getTime() / 1000)) {
+            var private_bdate = person_bdate;
+            if (isNaN(private_bdate) && !children) {
+                //If the birth date of the profile is unknown, compare the focus profile's birthdate for siblings, spouse, and parents to estimate birth
+                private_bdate = unixDate(getFocus(), "birth");
+            }
+            if (privatecheck && !getGeniData(person, "public") && private_bdate < parseInt(publicdate.getTime() / 1000) && private_bdate > parseInt(publicbottom.getTime() / 1000)) {
                 publiclist.push(person);
             }
             checkDate(person, "birth");

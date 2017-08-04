@@ -388,10 +388,10 @@ function parseFSJSONDate(eventinfo) {
 
     if (details["date"]) {
         var dateval = "";
-        if (details["date"]["normalizedText"]) {
-            dateval = details["date"]["normalizedText"];
-        } else if (details["date"]["localizedText"]) {
+        if (details["date"]["localizedText"]) {
             dateval = details["date"]["localizedText"];
+        } else if (details["date"]["normalizedText"]) {
+            dateval = details["date"]["normalizedText"];
         } else if (details["date"]["originalText"]) {
             dateval = details["date"]["originalText"];
         } else if (details["date"]["original"]) {
@@ -411,10 +411,10 @@ function parseFSJSONDate(eventinfo) {
     }
     if (details["place"]) {
         var eventlocation = "";
-        if (details["place"]["normalizedText"]) {
-            eventlocation = details["place"]["normalizedText"].trim();
-        } else if (details["place"]["localizedText"]) {
+        if (details["place"]["localizedText"]) {
             eventlocation = details["place"]["localizedText"].trim();
+        } else if (details["place"]["normalizedText"]) {
+            eventlocation = details["place"]["normalizedText"].trim();
         } else if (details["place"]["originalText"]) {
             eventlocation = details["place"]["originalText"].trim();
         } else if (details["place"]["original"]) {

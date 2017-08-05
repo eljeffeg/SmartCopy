@@ -69,9 +69,18 @@ registerCollection({
             return;
         }
 
-        var focusperson = parsed["data"]["name"];
-        if (focusperson.match(/\s\/\w+\//g, '')) {
-            focusperson = focusperson.replace(/\//g, "");
+        var focusperson;
+        if (parsed["data"]["nameConclusion"] && parsed["data"]["nameConclusion"]["details"] &&
+            parsed["data"]["nameConclusion"]["details"]["nameForms"]) {
+            focusperson = NameParse.parse(parsed["data"]["name"], mnameonoff);
+            if (focusperson.lastName !== "") {
+                focusperson.lastName = NameParse.cleanName(parsed["data"]["nameConclusion"]["details"]["nameForms"][0]["familyPart"]);
+                if (focusperson.lastName.contains(focusperson.middleName)) {
+                    focusperson.middleName = "";
+                }
+            }
+        } else {
+            focusperson = parsed["data"]["name"];
         }
         focusURLid = parsed["data"]["id"];  //In case it is merged with another profile - update
         focusname = focusperson;
@@ -92,10 +101,23 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
     if (!exists(parsed)) {
         return "";
     }
-
-    var focusperson = parsed["data"]["name"];
+    var focusperson;
+    if (parsed["data"]["nameConclusion"] && parsed["data"]["nameConclusion"]["details"] &&
+        parsed["data"]["nameConclusion"]["details"]["nameForms"]) {
+        focusperson = NameParse.parse(parsed["data"]["name"], mnameonoff);
+        if (focusperson.lastName !== "") {
+            focusperson.lastName = NameParse.cleanName(parsed["data"]["nameConclusion"]["details"]["nameForms"][0]["familyPart"]);
+            if (focusperson.lastName.contains(focusperson.middleName)) {
+                focusperson.middleName = "";
+            }
+        }
+        $("#readstatus").html(escapeHtml(focusperson.displayname));
+    } else {
+        focusperson = parsed["data"]["name"];
+        $("#readstatus").html(escapeHtml(focusperson));
+    }
     var focusdaterange = parsed["data"]["lifeSpan"] || "";
-    $("#readstatus").html(escapeHtml(focusperson));
+
 
     var genderval = String(parsed["data"]["gender"] || "unknown").toLowerCase();
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};

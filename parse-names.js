@@ -16,15 +16,11 @@ var NameParse = (function(){
     // - birth / maiden name
     // - suffix (II, Phd, Jr, etc)
     NameParse.parse = function (fullastName, detectMiddleName) {
-
-        var displayname = fullastName;
-        if (fullastName.match(/\s\/\s?\w+\s?\//g,'')) {
-            //Strip "/" from names like Daniel /Bubier/
-            fullastName = fullastName.replace(/\//g, "");
+        if (typeof fullastName == "object") {
+            return fullastName;
         }
-        fullastName = fullastName.replace(/\s*\/\s*/g,'/');
-        fullastName = fullastName.replace(/“/g, '"');
-        fullastName = fullastName.replace(/”/g, '"');
+        var displayname = fullastName;
+        fullastName = NameParse.cleanName(fullastName);
         var nickParts = [];
         var lastName = "";
         var firstName = "";
@@ -316,7 +312,17 @@ var NameParse = (function(){
         }
     };
 
-
+    // remove problematic characters
+    NameParse.cleanName = function (word) {
+        if (word.match(/\s\/\s?\w+\s?\//g,'')) {
+            //Strip "/" from names like Daniel /Bubier/
+            word = word.replace(/\//g, "");
+        }
+        word = word.replace(/\s*\/\s*/g,'/');
+        word = word.replace(/“/g, '"');
+        word = word.replace(/”/g, '"');
+        return word;
+    }
 
     //  detect and format common suffixes
     NameParse.is_suffix = function (word) {

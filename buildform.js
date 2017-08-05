@@ -194,7 +194,6 @@ function buildForm() {
     var ck = 0;
     var div = $("#profiletable");
     var membersstring = $(div[0]).html();
-    var mnameonoff = $('#mnameonoffswitch').prop('checked');
     var nameval = NameParse.parse(focusname, mnameonoff);
     if (focusgender === "unknown" && alldata["profile"].gender !== "unknown") {
         focusgender = alldata["profile"].gender;
@@ -591,10 +590,11 @@ function buildForm() {
             if (!exists(entry)) {
                 continue;
             }
-            var fullname = members[member].name;
-            if (!exists(fullname)) {
+            if (!exists(members[member].name)) {
                 continue;
             }
+            var nameval = NameParse.parse(members[member].name, mnameonoff);
+            var fullname = nameval.displayname;
             if (fullname.trim() === "") {
                 scored = false;
             }
@@ -622,8 +622,6 @@ function buildForm() {
             if (exists(members[member].alive)) {
                 living = members[member].alive;
             }
-            var mnameonoff = $('#mnameonoffswitch').prop('checked');
-            var nameval = NameParse.parse(fullname, mnameonoff);
             if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
                 if (members[member].gender === "male") {
                     nameval.birthName = nameval.lastName;
@@ -1548,12 +1546,11 @@ function updateInfoData(person, arg) {
     if (exists(arg.name)) {
         //This compares the data on the focus profile to the linked profile and uses most complete
         //Sometimes more information is shown on the SM, but when you click the link it goes <Private>
-        var mname = $('#mnameonoffswitch').prop('checked');
         if (exists(person.name) && person.name.trim() === "" && arg.name !== "") {
             person.name = arg.name;
         }
-        var tempname = NameParse.parse(person.name, mname);
-        var argname = NameParse.parse(arg.name, mname);
+        var tempname = NameParse.parse(person.name, mnameonoff);
+        var argname = NameParse.parse(arg.name, mnameonoff);
         if (exists(person["alive"])) {
             //leave alone - let parser define it
         } else if (exists(person["death"]) || exists(person["burial"])) {

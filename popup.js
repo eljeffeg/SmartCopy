@@ -3,7 +3,7 @@ var devblocksend = false; //Blocks the sending data to Geni, prints output to co
 var locationtest = false; //Verbose parsing of location data
 
 //Common Global Variables
-var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true, captcha = false;
+var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true, captcha = false, mnameonoff = true;
 var accountinfo, parentspouseunion, genigender, geniliving, genifocusdata;
 var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefactors = "", googlerequery = "";
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [], addsiblinglist = [];
@@ -392,7 +392,7 @@ function loadPage(request) {
                     return;
                 }
             }
-            $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>");
+            $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + getFocusName() + "</a></span>");
             if (focusrange !== "") {
                 $("#focusrange").text(focusrange);
             }
@@ -447,7 +447,7 @@ function loadPage(request) {
                     }
                 };
                 //Update focusname again in case there is a merge_into
-                $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>");
+                $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + getFocusName() + "</a></span>");
 
                 var byear = genifocusdata.get("birth", "date.year");
                 var dyear = genifocusdata.get("death", "date.year");
@@ -870,7 +870,7 @@ $(function () {
 
 $(function () {
     $('#addhistory').on('click', function () {
-        addHistory(focusid, tablink, focusname, "");
+        addHistory(focusid, tablink, getFocusName(), "");
         buildHistoryBox();
     });
 });
@@ -918,7 +918,7 @@ var submitform = function () {
         }
         // --------------------- Update Profile Data ---------------------
         if (!$.isEmptyObject(profileout)) {
-            $("#updatestatus").text("Update: " + focusname);
+            $("#updatestatus").text("Update: " + getFocusName());
             if (exists(profileout["about_me"])) {
                 about = profileout["about_me"];
                 if (!about.endsWith("\n")) {
@@ -967,7 +967,7 @@ var submitform = function () {
                 if (exists(profileout.author) && profileout.author !== "") {
                     description = profileout.author + ", ";
                 }
-                focusphotoinfo = {photo: profileout.photo, title: focusname, attribution: description + "Source: " + shorturl};
+                focusphotoinfo = {photo: profileout.photo, title: getFocusName(), attribution: description + "Source: " + shorturl};
                 delete profileout.photo;
                 delete profileout.author;
             }
@@ -1950,6 +1950,7 @@ $(function () {
     });
     $('#mnameonoffswitch').on('click', function () {
         chrome.storage.local.set({'automname': this.checked});
+        mnameonoff = this.checked;
         var profilegroup = $('.checkall');
         for (var group in profilegroup) if (profilegroup.hasOwnProperty(group)) {
             var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
@@ -2130,6 +2131,14 @@ function geoonoff(value) {
             }).prop("disabled", false);
         }
         $(".geoicon").attr("src", "images/geooff.png");
+    }
+}
+
+function getFocusName() {
+    if (typeof focusname == "object" && focusname.displayname) {
+        return focusname.displayname;
+    } else {
+        return focusname;
     }
 }
 
@@ -2405,6 +2414,7 @@ chrome.storage.local.get('automname', function (result) {
     var mnamechecked = result.automname;
     if (exists(mnamechecked)) {
         $('#mnameonoffswitch').prop('checked', mnamechecked);
+        mnameonoff = mnamechecked;
     }
 });
 

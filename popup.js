@@ -392,7 +392,7 @@ function loadPage(request) {
                     return;
                 }
             }
-            $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + getFocusName() + "</a></span>");
+            $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + getProfileName(focusname) + "</a></span>");
             if (focusrange !== "") {
                 $("#focusrange").text(focusrange);
             }
@@ -447,7 +447,7 @@ function loadPage(request) {
                     }
                 };
                 //Update focusname again in case there is a merge_into
-                $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + getFocusName() + "</a></span>");
+                $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + getProfileName(focusname) + "</a></span>");
 
                 var byear = genifocusdata.get("birth", "date.year");
                 var dyear = genifocusdata.get("death", "date.year");
@@ -870,7 +870,7 @@ $(function () {
 
 $(function () {
     $('#addhistory').on('click', function () {
-        addHistory(focusid, tablink, getFocusName(), "");
+        addHistory(focusid, tablink, getProfileName(focusname), "");
         buildHistoryBox();
     });
 });
@@ -918,7 +918,7 @@ var submitform = function () {
         }
         // --------------------- Update Profile Data ---------------------
         if (!$.isEmptyObject(profileout)) {
-            $("#updatestatus").text("Update: " + getFocusName());
+            $("#updatestatus").text("Update: " + getProfileName(focusname));
             if (exists(profileout["about_me"])) {
                 about = profileout["about_me"];
                 if (!about.endsWith("\n")) {
@@ -967,7 +967,7 @@ var submitform = function () {
                 if (exists(profileout.author) && profileout.author !== "") {
                     description = profileout.author + ", ";
                 }
-                focusphotoinfo = {photo: profileout.photo, title: getFocusName(), attribution: description + "Source: " + shorturl};
+                focusphotoinfo = {photo: profileout.photo, title: getProfileName(focusname), attribution: description + "Source: " + shorturl};
                 delete profileout.photo;
                 delete profileout.author;
             }
@@ -1191,7 +1191,7 @@ function buildTree(data, action, sendid) {
                 } else if (isSibling(relation) && !exists(parentspouseunion)) {
                     parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
                 }
-                addHistory(result.id, databyid[id].itemId, databyid[id].name, JSON.stringify(response.variable.data));
+                addHistory(result.id, databyid[id].itemId, getProfileName(databyid[id].name), JSON.stringify(response.variable.data));
             }
             if (action !== "add-photo" && action !== "delete") {
                 updatecount += 1;
@@ -1485,7 +1485,7 @@ function parseForm(fs) {
         return (!$(rawinput[item]).closest('tr').hasClass("geohidden"));
     });
     for (var item in fsinput) if (fsinput.hasOwnProperty(item)) {
-        if (exists(fsinput[item].value) && !fsinput[item].disabled && fsinput[item].name !== "") {
+        if (exists(fsinput[item].value) && !fsinput[item].disabled && getProfileName(fsinput[item].name) !== "") {
             //console.log(fsinput[item].name + ":" + fsinput[item].value);
             var splitentry = fsinput[item].name.split(":");
             if (splitentry.length > 1) {
@@ -2134,11 +2134,11 @@ function geoonoff(value) {
     }
 }
 
-function getFocusName() {
-    if (typeof focusname == "object" && focusname.displayname) {
-        return focusname.displayname;
+function getProfileName(profile) {
+    if (typeof profile == "object" && profile.displayname) {
+        return profile.displayname;
     } else {
-        return focusname;
+        return profile;
     }
 }
 

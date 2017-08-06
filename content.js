@@ -409,7 +409,7 @@ function checkSpace(person) {
                             // skip first found language with any names as these have been handled above in default language name checks
                             var name = names[lang][namevalues[i]];
                             if (improperSapce(name)) {
-                                consistencymessage = concat("info") + buildEditLink(person) + " contains a double space in "
+                                consistencymessage = concat("info") + buildEditLink(person) + " contains a double or trailing space in "
                                     + getPronoun(getGeniData(person, "gender")) + " names (" + lang + ").";
                                 break;
                             }
@@ -692,7 +692,7 @@ function updateQMessage() {
         $('.fixcase').on('click', function(){
             var id = $(this)[0].id.replace("case", "");
             var args = {};
-            var nameparts = $(this)[0].name.split(",");
+            var nameparts = getProfileName($(this)[0].name).split(",");
             for (var i=0;i < nameparts.length;i++) {
                 args[nameparts[i]] = formatName(getGeniData(id, nameparts[i]));
             }
@@ -741,7 +741,7 @@ function updateQMessage() {
         $('.fixspace').on('click', function(){
             var id = $(this)[0].id.replace("space", "");
             var args = {};
-            var nameparts = $(this)[0].name.split(",");
+            var nameparts = getProfileName($(this)[0].name).split(",");
             for (var i=0;i < nameparts.length;i++) {
                 args[nameparts[i]] = getGeniData(id, nameparts[i]).replace(/  /g, " ").trim();
             }
@@ -758,7 +758,7 @@ function updateQMessage() {
         $('.clearfield').off();
         $('.clearfield').on('click', function(){
             var args = {};
-            var name = $(this)[0].name;
+            var name = getProfileName($(this)[0].name);
             var id = $(this)[0].id.replace("clear" + name, "");
             args[name] = "";
             var url = "https://www.geni.com/api/" + id + "/update-basics";

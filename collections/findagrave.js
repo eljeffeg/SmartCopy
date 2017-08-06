@@ -20,7 +20,7 @@ registerCollection({
     "loadPage": function(request) {
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
         var fperson = parsed.find(".plus2").find("b");
-        focusname = getPersonName($(fperson[0]).html());
+        focusname = getFindAGraveName($(fperson[0]).html());
         var title = parsed.filter('title').text().replace(" - Find A Grave Memorial", "");
         if (title.contains("(")) {
             splitrange = title.split("(");
@@ -71,7 +71,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             return "";
         }
     }
-    var focusperson = getPersonName($(fperson[0]).html());
+    var focusperson = getFindAGraveName($(fperson[0]).html());
 
     $("#readstatus").html(escapeHtml(focusperson));
     var genderval = "unknown";
@@ -180,11 +180,11 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                             if (nametrim.contains("(")) {
                                 nameset = nametrim.split("(");
                                 name = nameset[0].trim();
-                                drange = getPersonName(nameset[1].replace(")", "")).trim();
+                                drange = getFindAGraveName(nameset[1].replace(")", "")).trim();
                             } else {
                                 name = nametrim;
                             }
-                            name = getPersonName(name);
+                            name = getFindAGraveName(name);
                             var gendersv = "unknown";
                             if (isFemale(title)) {
                                 gendersv = "female";
@@ -473,7 +473,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     return profiledata;
 }
 
-function getPersonName(focusperson) {
+function getFindAGraveName(focusperson) {
     var personborn = focusperson.match("\<i\>(.*)\</i\>");
     if (exists(personborn) && exists(personborn[0])) {
         focusperson = focusperson.replace(personborn[0], "");

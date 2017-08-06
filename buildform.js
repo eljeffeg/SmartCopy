@@ -1262,7 +1262,7 @@ function placementUpdate() {
                     $('.parentselector')
                         .append($("<option/>", {
                             value: famid,
-                            text: databyid[famid].name.replace("born ", "")
+                            text: getProfileName(databyid[famid].name).replace("born ", "")
                         }));
                 }
                 replacestring = section1[0].outerHTML;
@@ -1524,7 +1524,7 @@ function buildParentSelect(id) {
     }
     for (var key in myhspouse) if (myhspouse.hasOwnProperty(key)) {
         if (exists(databyid[myhspouse[key]])) {
-            pselect += '<option value="' + myhspouse[key] + '" ' + isSelected(id, myhspouse[key]) + '>' + databyid[myhspouse[key]].name.replace("born ", "") + '</option>';
+            pselect += '<option value="' + myhspouse[key] + '" ' + isSelected(id, myhspouse[key]) + '>' + getProfileName(databyid[myhspouse[key]].name).replace("born ", "") + '</option>';
         }
     }
     for (var i = 0; i < genispouse.length; i++) {

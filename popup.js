@@ -410,7 +410,13 @@ function loadPage(request) {
                 url: descurl
             }, function (response) {
                 genifamily = JSON.parse(response.source);
-                if (genifamily["focus"].merged_into) {
+                if (genifamily["error"]) {
+                    document.getElementById("top-container").style.display = "block";
+                    document.getElementById("submitbutton").style.display = "none";
+                    document.getElementById("loading").style.display = "none";
+                    setMessage(errormsg, 'SmartCopy was unable to retrieve the focus profile data from Geni.<br>Geni message: "' + genifamily["error"]["message"] + '"');
+                    return;
+                } else if (genifamily["focus"].merged_into) {
                     focusid = genifamily["focus"].merged_into.replace("https://www.geni.com/api/", "").trim();
                     loadPage(request);
                     return;

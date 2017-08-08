@@ -8,7 +8,7 @@
         "description": "The title of the application, displayed in the web store."
     },
     "appDesc": {
-        "message": "Tool for copying genealogical data into Geni and checking consistency of data in Geni.", 
+        "message": "Tool for copying genealogical data into Geni.", 
         "description": "The description of the application, displayed in the web store."
     },
     "consistencyCheck": {
@@ -140,7 +140,7 @@
         "description": "TODO"
     },
     "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
-        "message": "$count$ family members born before $year$ are set as private.",
+        "message": "$count$ family members born before c.$year$ are set as private.",
         "description": "TODO",
         "placeholders": {
             "count": {
@@ -154,7 +154,7 @@
         }
     },
     "personWasBornBeforeYearAndIsSetAsPrivate": {
-        "message": "$person$ was born before $year$ and is set as private.",
+        "message": "$person$ was born before c.$year$ and is set as private.",
         "description": "TODO",
         "placeholders": {
             "person": {

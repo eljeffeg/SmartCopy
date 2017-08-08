@@ -3,7 +3,7 @@ var devblocksend = false; //Blocks the sending data to Geni, prints output to co
 var locationtest = false; //Verbose parsing of location data
 
 //Common Global Variables
-var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true, captcha = false;
+var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true, captcha = false, mnameonoff = true;
 var accountinfo, parentspouseunion, genigender, geniliving, genifocusdata;
 var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefactors = "", googlerequery = "";
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [], addsiblinglist = [];
@@ -392,7 +392,7 @@ function loadPage(request) {
                     return;
                 }
             }
-            $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>");
+            $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + getProfileName(focusname) + "</a></span>");
             if (focusrange !== "") {
                 $("#focusrange").text(focusrange);
             }
@@ -410,7 +410,13 @@ function loadPage(request) {
                 url: descurl
             }, function (response) {
                 genifamily = JSON.parse(response.source);
-                if (genifamily["focus"].merged_into) {
+                if (genifamily["error"]) {
+                    document.getElementById("top-container").style.display = "block";
+                    document.getElementById("submitbutton").style.display = "none";
+                    document.getElementById("loading").style.display = "none";
+                    setMessage(errormsg, 'SmartCopy was unable to retrieve the focus profile data from Geni.<br>Geni message: "' + genifamily["error"]["message"] + '"');
+                    return;
+                } else if (genifamily["focus"].merged_into) {
                     focusid = genifamily["focus"].merged_into.replace("https://www.geni.com/api/", "").trim();
                     loadPage(request);
                     return;
@@ -447,7 +453,7 @@ function loadPage(request) {
                     }
                 };
                 //Update focusname again in case there is a merge_into
-                $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + focusname + "</a></span>");
+                $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + getProfileName(focusname) + "</a></span>");
 
                 var byear = genifocusdata.get("birth", "date.year");
                 var dyear = genifocusdata.get("death", "date.year");
@@ -870,7 +876,7 @@ $(function () {
 
 $(function () {
     $('#addhistory').on('click', function () {
-        addHistory(focusid, tablink, focusname, "");
+        addHistory(focusid, tablink, getProfileName(focusname), "");
         buildHistoryBox();
     });
 });
@@ -918,7 +924,7 @@ var submitform = function () {
         }
         // --------------------- Update Profile Data ---------------------
         if (!$.isEmptyObject(profileout)) {
-            $("#updatestatus").text("Update: " + focusname);
+            $("#updatestatus").text("Update: " + getProfileName(focusname));
             if (exists(profileout["about_me"])) {
                 about = profileout["about_me"];
                 if (!about.endsWith("\n")) {
@@ -967,7 +973,7 @@ var submitform = function () {
                 if (exists(profileout.author) && profileout.author !== "") {
                     description = profileout.author + ", ";
                 }
-                focusphotoinfo = {photo: profileout.photo, title: focusname, attribution: description + "Source: " + shorturl};
+                focusphotoinfo = {photo: profileout.photo, title: getProfileName(focusname), attribution: description + "Source: " + shorturl};
                 delete profileout.photo;
                 delete profileout.author;
             }
@@ -1191,7 +1197,7 @@ function buildTree(data, action, sendid) {
                 } else if (isSibling(relation) && !exists(parentspouseunion)) {
                     parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
                 }
-                addHistory(result.id, databyid[id].itemId, databyid[id].name, JSON.stringify(response.variable.data));
+                addHistory(result.id, databyid[id].itemId, getProfileName(databyid[id].name), JSON.stringify(response.variable.data));
             }
             if (action !== "add-photo" && action !== "delete") {
                 updatecount += 1;
@@ -1485,7 +1491,7 @@ function parseForm(fs) {
         return (!$(rawinput[item]).closest('tr').hasClass("geohidden"));
     });
     for (var item in fsinput) if (fsinput.hasOwnProperty(item)) {
-        if (exists(fsinput[item].value) && !fsinput[item].disabled && fsinput[item].name !== "") {
+        if (exists(fsinput[item].value) && !fsinput[item].disabled && getProfileName(fsinput[item].name) !== "") {
             //console.log(fsinput[item].name + ":" + fsinput[item].value);
             var splitentry = fsinput[item].name.split(":");
             if (splitentry.length > 1) {
@@ -1950,6 +1956,7 @@ $(function () {
     });
     $('#mnameonoffswitch').on('click', function () {
         chrome.storage.local.set({'automname': this.checked});
+        mnameonoff = this.checked;
         var profilegroup = $('.checkall');
         for (var group in profilegroup) if (profilegroup.hasOwnProperty(group)) {
             var privateprofiles = $(profilegroup[group]).closest('div').find('.checkslide');
@@ -2130,6 +2137,14 @@ function geoonoff(value) {
             }).prop("disabled", false);
         }
         $(".geoicon").attr("src", "images/geooff.png");
+    }
+}
+
+function getProfileName(profile) {
+    if (typeof profile == "object" && profile.displayname) {
+        return profile.displayname;
+    } else {
+        return profile;
     }
 }
 
@@ -2405,6 +2420,7 @@ chrome.storage.local.get('automname', function (result) {
     var mnamechecked = result.automname;
     if (exists(mnamechecked)) {
         $('#mnameonoffswitch').prop('checked', mnamechecked);
+        mnameonoff = mnamechecked;
     }
 });
 

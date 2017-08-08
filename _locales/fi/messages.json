@@ -8,7 +8,7 @@
         "description": "The title of the application, displayed in the web store."
     },
     "appDesc": {
-        "message": "Työkalu sukututkimustietojen kopioimiseen Geniin sekä Genissä olevien tietojen tarkistamiseen.", 
+        "message": "Työkalu sukututkimustietojen kopioimiseen Geniin.", 
         "description": "The description of the application, displayed in the web store."
     },
     "consistencyCheck": {
@@ -140,7 +140,7 @@
         "description": "TODO"
     },
     "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
-        "message": "$count$ ennen vuotta $year$ syntynyttä perheenjäsentä on asetettu yksityisiksi.",
+        "message": "$count$ ennen vuotta n. $year$ syntynyttä perheenjäsentä on asetettu yksityisiksi.",
         "description": "TODO",
         "placeholders": {
             "count": {
@@ -154,7 +154,7 @@
         }
     },
     "personWasBornBeforeYearAndIsSetAsPrivate": {
-        "message": "$person$ on syntynyt ennen vuotta $year$ ja on asetettu yksityiseksi.",
+        "message": "$person$ on syntynyt ennen vuotta n. $year$ ja on asetettu yksityiseksi.",
         "description": "TODO",
         "placeholders": {
             "person": {

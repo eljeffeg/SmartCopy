@@ -123,7 +123,7 @@ function checkConsistency() {
         //Compare profiles against themselves
         publiclist = [];
         selfCheck(siblings);
-        selfCheck(children);
+        selfCheck(children, true);
         selfCheck(partners);
         selfCheck(parents);
 
@@ -314,7 +314,8 @@ function childCheck(parents, children) {
     }
 }
 
-function selfCheck(familyset) {
+function selfCheck(familyset, children) {
+    children = children || false;
     if (selfcheckoption) {
         if (privatecheck) {
             var publicdate = new Date();
@@ -333,7 +334,12 @@ function selfCheck(familyset) {
             if (dataconflictoption && conflicts) {
                 consistencymessage = concat("info") + getGeniData(person, "name") + " has pending <a href='https://www.geni.com/merge/resolve/" + getGeniData(person, "guid") + "'>data conflicts</a>.";
             }
-            if (privatecheck && !getGeniData(person, "public") && person_bdate < parseInt(publicdate.getTime() / 1000) && person_bdate > parseInt(publicbottom.getTime() / 1000)) {
+            var private_bdate = person_bdate;
+            if (isNaN(private_bdate) && !children) {
+                //If the birth date of the profile is unknown, compare the focus profile's birthdate for siblings, spouse, and parents to estimate birth
+                private_bdate = unixDate(getFocus(), "birth");
+            }
+            if (privatecheck && !getGeniData(person, "public") && private_bdate < parseInt(publicdate.getTime() / 1000) && private_bdate > parseInt(publicbottom.getTime() / 1000)) {
                 publiclist.push(person);
             }
             checkDate(person, "birth");
@@ -409,7 +415,7 @@ function checkSpace(person) {
                             // skip first found language with any names as these have been handled above in default language name checks
                             var name = names[lang][namevalues[i]];
                             if (improperSapce(name)) {
-                                consistencymessage = concat("info") + buildEditLink(person) + " contains a double space in "
+                                consistencymessage = concat("info") + buildEditLink(person) + " contains a double or trailing space in "
                                     + getPronoun(getGeniData(person, "gender")) + " names (" + lang + ").";
                                 break;
                             }
@@ -547,7 +553,7 @@ function checkMaidenName(person) {
 function checkSuffix(person) {
     if (getGeniData(person, "suffix") !== "") {
         var suffix = getGeniData(person, "suffix").toLowerCase().replace(/./g, "").replace(/-/g,"");
-        if (suffix === "mr" || suffix === "mrs" || suffix === "miss" || title === "ms") {
+        if (suffix === "mr" || suffix === "mrs" || suffix === "miss" || suffix === "ms") {
             //Salutation in suffix
             consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in "
                 + getPronoun(getGeniData(person, "gender"))

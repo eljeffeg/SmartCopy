@@ -25,6 +25,10 @@ var datecheckoption = true;
 var samenameoption = true;
 var wedlock = false;
 
+var _ = function(messageName, substitutions) {
+    return chrome.i18n.getMessage(messageName, substitutions);
+};
+
 function buildconsistencyDiv() {
     if (isGeni(tablink)) {
         var consistencydiv = $(document.createElement('div'));
@@ -130,9 +134,11 @@ function checkConsistency() {
             }
             //Old private profiles
             if (publiclist.length > 1) {
-                consistencymessage = concat("info") + publiclist.length + " family members born before c." + publicyear + " are set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
+                consistencymessage = concat("info") + _("numFamilyMembersBornBeforeYearAreSetAsPrivate", [publiclist.length , publicyear])
+                    + "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[" + _("makePublic") + "]</a></sup>";
             } else {
-                consistencymessage = concat("info") + buildEditLink(publiclist[0]) + " was born before c." + publicyear + " and is set as private.<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[make public]</a></sup>";
+                consistencymessage = concat("info") + _("personWasBornBeforeYearAndIsSetAsPrivate", [buildEditLink(publiclist[0]), publicyear])
+                    + "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[" + _("makePublic") + "]</a></sup>";
             }
          }
 
@@ -393,7 +399,7 @@ function checkSpace(person) {
         consistencymessage = concat("info") + buildEditLink(person) + " contains a double space in "
             + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ")
             + "' class='fixspace' href='javascript:void(0)' id='space" + getGeniData(person, "id") + "' name='" + namevaluecheck
-            + "'>[fix space]</a></sup>";
+            + "'>[" + _("fixSpace") + "]</a></sup>";
     }
     // checks for other languages names (without fixes as Geni API does not support it)
     var names = getGeniData(person, "names");
@@ -467,10 +473,10 @@ function checkCase(person) {
             nameupdate.push(formatName(getGeniData(person, namevaluecheck[i])).replace(/'/g, "&#39;"));
         }
         //Name contains improper use of uppercase/lowercase
-        consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in "
-            + getPronoun(getGeniData(person, "gender")) + " name.<sup><a title='" + nameupdate.join("; ")
-            + "' class='fixcase' href='javascript:void(0)' id='case" + getGeniData(person, "id") + "' name='" + namevaluecheck
-            + "'>[fix case]</a></sup>";
+        consistencymessage = concat("info")
+            + _("contains_incorrect_uppercase_lowercase_in_name_default", [buildEditLink(person), getPronoun(getGeniData(person, "gender"))])
+            + "<sup><a title='" + nameupdate.join("; ") + "' class='fixcase' href='javascript:void(0)' id='case" + getGeniData(person, "id")
+            + "' name='" + namevaluecheck + "'>[" + _("fixCase") + "]</a></sup>";
     }
     // checks for other languages names (without fixes as Geni API does not support it)
     var names = getGeniData(person, "names");
@@ -486,8 +492,8 @@ function checkCase(person) {
                             // skip first found language with any names as these have been handled above in default language name checks
                             var name = names[lang][namevalues[i]];
                             if (validName(name) && !NameParse.is_camel_case(name) && name !== formatName(name)) {
-                                consistencymessage = concat("info") + buildEditLink(person) + " contains incorrect use of uppercase/lowercase in "
-                                    + getPronoun(getGeniData(person, "gender")) + " names (" + lang + ").";
+                                consistencymessage = concat("info") + _("contains_incorrect_uppercase_lowercase_in_name",
+                                  [buildEditLink(person), getPronoun(getGeniData(person, "gender")), lang]);
                                 break;
                             }
                         }
@@ -508,7 +514,7 @@ function checkSuffixInFirstName(person) {
         consistencymessage = concat("info") + buildEditLink(person) + " appears to contain a suffix in "
             + getPronoun(getGeniData(person, "gender"))
             + " first name.<sup><a title='Move Suffix' class='fixsuffix' href='javascript:void(0)' id='fsuffix" + getGeniData(person, "id")
-            + "'>[fix suffix]</a></sup>";
+            + "'>" + _("fixSuffix") + "</a></sup>";
     }
 }
 
@@ -520,13 +526,13 @@ function checkTitle(person) {
             consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in "
                 + getPronoun(getGeniData(person, "gender"))
                 + " title.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='cleartitle"
-                + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
+                + getGeniData(person, "id") + "' name='title'>" + _("fixTitle") + "</a></sup>";
         } else if (isChild(title) || isPartner(title) || isParent(title) || title === "grandmother" || title === "grandfather") {
             // Relationship in title
             consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of relationship in "
                 + getPronoun(getGeniData(person, "gender"))
                 + " title.<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='cleartitle"
-                + getGeniData(person, "id") + "' name='title'>[fix title]</a></sup>";
+                + getGeniData(person, "id") + "' name='title'>" + _("fixTitle") + "</a></sup>";
         }
     }
 }
@@ -539,7 +545,7 @@ function checkMaidenName(person) {
         consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of a numbering scheme in "
             + getPronoun(getGeniData(person, "gender"))
             + " birth surname.<sup><a title='Remove numeric' class='clearfield' href='javascript:void(0)' id='clearmaiden_name"
-            + getGeniData(person, "id") + "' name='maiden_name'>[fix name]</a></sup>";
+            + getGeniData(person, "id") + "' name='maiden_name'>" + _("fixName") + "</a></sup>";
     }
 }
 
@@ -552,19 +558,19 @@ function checkSuffix(person) {
             consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in "
                 + getPronoun(getGeniData(person, "gender"))
                 + " suffix.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix"
-                + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
+                + getGeniData(person, "id") + "' name='suffix'>" + _("fixSuffix") + "</a></sup>";
         } else if (suffix.startsWith("#") || (!isNaN(suffix) && suffix > 5)) {
             //Numbering scheme
             consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of a numbering scheme in "
                 + getPronoun(getGeniData(person, "gender"))
                 + " suffix.<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix"
-                + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
+                + getGeniData(person, "id") + "' name='suffix'>" + _("fixSuffix") + "</a></sup>";
         } else if (isChild(suffix) || isPartner(suffix) || isParent(suffix) || suffix === "grandmother" || suffix === "grandfather") {
             //Relationship in suffix
             consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of relationship in "
                 + getPronoun(getGeniData(person, "gender"))
                 + " suffix.<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='clearsuffix"
-                + getGeniData(person, "id") + "' name='suffix'>[fix suffix]</a></sup>";
+                + getGeniData(person, "id") + "' name='suffix'>" + _("fixSuffix") + "</a></sup>";
         }
     }
 }
@@ -682,7 +688,15 @@ function formatName(namepart) {
 
 function updateQMessage() {
     if (consistencymessage !== "") {
-        $("#consistencyck").html("<span style='float: right; margin-top: -1px; padding-left: 10px;'><img id='refreshcheck' src='"+ chrome.extension.getURL("images/content_update.png") + "' style='cursor: pointer; margin-right: 3px; width: 12px;'><img class='consistencyslide' src='"+ chrome.extension.getURL("images/content_close.png") + "' style='cursor: pointer; width: 18px;'></span><a href='https://www.geni.com/projects/SmartCopy/18783' target='_blank'><img src='" + chrome.extension.getURL("images/icon.png") + "' style='width: 16px; margin-top: -3px; padding-right: 5px;' title='SmartCopy'></a></img><strong>Consistency Check:</strong>"
+        $("#consistencyck").html("<span style='float: right; margin-top: -1px; padding-left: 10px;'><img id='refreshcheck' src='"
+            + chrome.extension.getURL("images/content_update.png")
+            + "' style='cursor: pointer; margin-right: 3px; width: 12px;'><img class='consistencyslide' src='"
+            + chrome.extension.getURL("images/content_close.png")
+            + "' style='cursor: pointer; width: 18px;'></span><a href='https://www.geni.com/projects/SmartCopy/18783' target='_blank'><img src='"
+            + chrome.extension.getURL("images/icon.png")
+            + "' style='width: 16px; margin-top: -3px; padding-right: 5px;' title='SmartCopy'></a></img><strong>"
+            + _("consistencyCheck")
+            + ":</strong>"
             + consistencymessage);
         $('.consistencyslide').off();
         $('.consistencyslide').on('click', function () {
@@ -697,7 +711,9 @@ function updateQMessage() {
                 args[nameparts[i]] = formatName(getGeniData(id, nameparts[i]));
             }
             var url = "https://www.geni.com/api/" + id + "/update-basics";
-            $("#case" + id).replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+            $("#case" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed")
+                + " <img src='"+ chrome.extension.getURL("images/content_check.png")
+                + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -708,7 +724,8 @@ function updateQMessage() {
         });
         $('#makepublic').off();
         $('#makepublic').on('click', function(){
-            $("#makepublic").replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+            $("#makepublic").replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='"
+                + chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             var args = {"public": true, "is_alive": false};
             for (var i=0; i < publiclist.length; i++) {
                 var url = "https://www.geni.com/api/" + publiclist[i] + "/update-basics";
@@ -728,7 +745,8 @@ function updateQMessage() {
             var suffix = fnamesplit.pop();
             var args = {"suffix": suffix, "first_name": fnamesplit.join(" ")};
             var url = "https://www.geni.com/api/" + id + "/update-basics";
-            $("#fsuffix" + id).replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+            $("#fsuffix" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='"
+                + chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -746,7 +764,8 @@ function updateQMessage() {
                 args[nameparts[i]] = getGeniData(id, nameparts[i]).replace(/  /g, " ").trim();
             }
             var url = "https://www.geni.com/api/" + id + "/update-basics";
-            $("#space" + id).replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+            $("#space" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='"
+                + chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -762,7 +781,8 @@ function updateQMessage() {
             var id = $(this)[0].id.replace("clear" + name, "");
             args[name] = "";
             var url = "https://www.geni.com/api/" + id + "/update-basics";
-            $("#clear" + name + id).replaceWith("<span style='cursor: default;'>[fixed <img src='"+ chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+            $("#clear" + name + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='"
+                + chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",

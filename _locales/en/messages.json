@@ -1,0 +1,170 @@
+{
+    "appName": {
+        "message": "SmartCopy",
+        "description": "The title of the application, displayed in the web store."
+    },
+    "appShortName": {
+        "message": "SmartCopy",
+        "description": "The title of the application, displayed in the web store."
+    },
+    "appDesc": {
+        "message": "Tool for copying genealogical data into Geni.", 
+        "description": "The description of the application, displayed in the web store."
+    },
+    "consistencyCheck": {
+        "message": "Consistency Check", 
+        "description": "TODO"
+    },
+    "contains_incorrect_uppercase_lowercase_in_name": {
+        "message": "$person$ contains incorrect use of uppercase/lowercase in $pronoun$ name ($lang$).",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            },
+            "lang": {
+                "content": "$3",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_incorrect_uppercase_lowercase_in_name_default": {
+        "message": "$person$ contains incorrect use of uppercase/lowercase in $pronoun$ name.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_patronym_in_first_name": {
+        "message": "$person$ contains a patro/matronym in $pronoun$ first name ($lang$).",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            },
+            "lang": {
+                "content": "$3",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_patronym_in_first_name_default": {
+        "message": "$person$ contains a patro/matronym in $pronoun$ first name.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name": {
+        "message": "$person$ contains a non-patro/matronym in $pronoun$ middle name ($lang$).",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            },
+            "lang": {
+                "content": "$3",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name_default": {
+        "message": "$person$ contains a non-patro/matronym in $pronoun$ middle name.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "fixCase": {
+        "message": "fix case", 
+        "description": "TODO"
+    },
+    "fixed": {
+        "message": "fixed", 
+        "description": "TODO"
+    },
+    "fixName": {
+        "message": "fix name", 
+        "description": "TODO"
+    },
+    "fixSpace": {
+        "message": "fix space", 
+        "description": "TODO"
+    },
+    "fixSuffix": {
+        "message": "fix suffix", 
+        "description": "TODO"
+    },
+    "fixTitle": {
+        "message": "fix title", 
+        "description": "TODO"
+    },
+    "makePublic": {
+        "message": "make public", 
+        "description": "TODO"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$ family members born before c.$year$ are set as private.",
+        "description": "TODO",
+        "placeholders": {
+            "count": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "year": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$ was born before c.$year$ and is set as private.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "year": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    }
+}

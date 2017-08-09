@@ -1,0 +1,170 @@
+{
+    "appName": {
+        "message": "SmartCopy",
+        "description": "The title of the application, displayed in the web store."
+    },
+    "appShortName": {
+        "message": "SmartCopy",
+        "description": "The title of the application, displayed in the web store."
+    },
+    "appDesc": {
+        "message": "Työkalu sukututkimustietojen kopioimiseen Geniin.", 
+        "description": "The description of the application, displayed in the web store."
+    },
+    "consistencyCheck": {
+        "message": "Johdonmukaisuustarkistus", 
+        "description": "TODO"
+    },
+    "contains_incorrect_uppercase_lowercase_in_name": {
+        "message": "$person$ nimi ei ole erisnimien kirjoitussäännön mukainen - iso alkukirjain, loput pienellä ($lang$).",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            },
+            "lang": {
+                "content": "$3",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_incorrect_uppercase_lowercase_in_name_default": {
+        "message": "$person$ nimi ei ole erisnimien kirjoitussäännön mukainen - iso alkukirjain, loput pienellä.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_patronym_in_first_name": {
+        "message": "$person$ sisältää patro/matronyymin etunimikentässään ($lang$).",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            },
+            "lang": {
+                "content": "$3",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_patronym_in_first_name_default": {
+        "message": "$person$ sisältää patro/matronyymin etunimikentässään.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name": {
+        "message": "$person$ sisältää muuta kuin patro/matronyymin tälle tarkoitetussa kentässä ($lang$).",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            },
+            "lang": {
+                "content": "$3",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name_default": {
+        "message": "$person$ sisältää muuta kuin patro/matronyymin tälle tarkoitetussa kentässä.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "fixCase": {
+        "message": "korjaa", 
+        "description": "TODO"
+    },
+    "fixed": {
+        "message": "korjattu", 
+        "description": "TODO"
+    },
+    "fixName": {
+        "message": "korjaa", 
+        "description": "TODO"
+    },
+    "fixSpace": {
+        "message": "korjaa", 
+        "description": "TODO"
+    },
+    "fixSuffix": {
+        "message": "korjaa", 
+        "description": "TODO"
+    },
+    "fixTitle": {
+        "message": "korjaa", 
+        "description": "TODO"
+    },
+    "makePublic": {
+        "message": "julkista", 
+        "description": "TODO"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$ ennen vuotta n. $year$ syntynyttä perheenjäsentä on asetettu yksityisiksi.",
+        "description": "TODO",
+        "placeholders": {
+            "count": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "year": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$ on syntynyt ennen vuotta n. $year$ ja on asetettu yksityiseksi.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "year": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    }
+}

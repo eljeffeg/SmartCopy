@@ -314,6 +314,9 @@ var NameParse = (function(){
 
     // remove problematic characters
     NameParse.cleanName = function (word) {
+        if (!exists(word)) {
+            return "";
+        }
         if (word.match(/\s\/\s?\w+\s?\//g,'')) {
             //Strip "/" from names like Daniel /Bubier/
             word = word.replace(/\//g, "");

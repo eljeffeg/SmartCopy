@@ -95,6 +95,10 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
     try {
         var parsed = JSON.parse(htmlstring);
     } catch(err) {
+        document.getElementById("top-container").style.display = "block";
+        document.getElementById("submitbutton").style.display = "none";
+        document.getElementById("loading").style.display = "none";
+        setMessage(errormsg, 'SmartCopy was unable to retrieve the FamilySearch data.  Please refresh the page and try again.');
         console.log(err);
     }
 
@@ -106,10 +110,17 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
         parsed["data"]["nameConclusion"]["details"]["nameForms"]) {
         focusperson = NameParse.parse(parsed["data"]["name"], mnameonoff);
         if (focusperson.lastName !== "") {
-            focusperson.lastName = NameParse.cleanName(parsed["data"]["nameConclusion"]["details"]["nameForms"][0]["familyPart"]);
-            if (focusperson.lastName.contains(focusperson.middleName)) {
-                focusperson.middleName = "";
+            var familyPart = parsed["data"]["nameConclusion"]["details"]["nameForms"][0]["familyPart"];
+            if (exists(familyPart)) {
+                focusperson.lastName = NameParse.cleanName(familyPart);
+                if (focusperson.lastName.contains(focusperson.middleName)) {
+                    focusperson.middleName = "";
+                }
+            } else if (focusperson.lastName != "") {
+                focusperson.firstName += " " + focusperson.lastName;
+                focusperson.lastName = "";
             }
+
         }
         $("#readstatus").html(escapeHtml(focusperson.displayname));
     } else {

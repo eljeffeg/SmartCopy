@@ -3,7 +3,7 @@
     "name": "SmartCopy",
     "short_name": "SmartCopy",
     "description": "Tool for copying genealogical data into Geni.",
-    "version": "4.2.11",
+    "version": "4.2.12",
     "icons": { "16": "images/icon16.png",
         "48": "images/icon48.png",
         "128": "images/icon128.png" },

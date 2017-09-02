@@ -1,19 +1,15 @@
 {
     "appName": {
-        "message": "SmartCopy",
-        "description": "The title of the application, displayed in the web store."
+        "message": "SmartCopy"
     },
     "appShortName": {
-        "message": "SmartCopy",
-        "description": "The title of the application, displayed in the web store."
+        "message": "SmartCopy"
     },
     "appDesc": {
-        "message": "Tool for copying genealogical data into Geni.", 
-        "description": "The description of the application, displayed in the web store."
+        "message": "Tool for copying genealogical data into Geni."
     },
     "consistencyCheck": {
-        "message": "Consistency Check", 
-        "description": "TODO"
+        "message": "Consistency Check"
     },
     "contains_incorrect_uppercase_lowercase_in_name": {
         "message": "$person$ contains incorrect use of uppercase/lowercase in $pronoun$ name ($lang$).",

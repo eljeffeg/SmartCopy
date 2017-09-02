@@ -3,6 +3,7 @@ registerCollection({
     "reload": false,
     "recordtype": "FamilySearch Genealogy",
     "prepareUrl": function(url) {
+        url = url.replace("://www.", "://");
         if (startsWithHTTP(url,"https://familysearch.org/pal:")) {
             var urlparts= url.split('?');
             focusURLid = urlparts[0].substring(url.lastIndexOf('/') + 1);
@@ -18,6 +19,7 @@ registerCollection({
                 }
             }
             url = hostDomain(url) + "/tree-data/person/" + focusURLid + "/all?locale=en";
+            console.log(url);
             this.reload = true;
         } else if (startsWithHTTP(url,"https://familysearch.org/ark:") && !url.contains("/1:1:")) {
             var urlparts= url.split('?');
@@ -33,6 +35,7 @@ registerCollection({
         return url;
     },
     "collectionMatch": function(url) {
+        url = url.replace("://www.", "://");
         return (
                 startsWithHTTP(url,"https://familysearch.org/tree-data") ||
                 startsWithHTTP(url,"https://familysearch.org/tree/") ||

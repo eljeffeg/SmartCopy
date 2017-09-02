@@ -1,0 +1,166 @@
+{
+    "appName": {
+        "message": "SmartCopy"
+    },
+    "appShortName": {
+        "message": "SmartCopy"
+    },
+    "appDesc": {
+        "message": "Herramienta para copiar datos genealógicos en Geni."
+    },
+    "consistencyCheck": {
+        "message": "Comprobación de consistencia"
+    },
+    "contains_incorrect_uppercase_lowercase_in_name": {
+        "message": "$person$ contiene un uso incorrecto de mayúsculas y minúsculas en el nombre $pronoun$ ($lang$).",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            },
+            "lang": {
+                "content": "$3",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_incorrect_uppercase_lowercase_in_name_default": {
+        "message": "$person$ contiene un uso incorrecto de mayúsculas y minúsculas en el nombre $pronoun$.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_patronym_in_first_name": {
+        "message": "$person$ contiene un patrónimo o matrónimo en el apellido $pronoun$ ($lang$).",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            },
+            "lang": {
+                "content": "$3",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_patronym_in_first_name_default": {
+        "message": "$person$ contiene un patrónimo o matrónimo en el apellido $pronoun$ .",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name": {
+        "message": "$person$ contiene un segundo nombre sin patrónimo o matrónimo $pronoun$ ($lang$).",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            },
+            "lang": {
+                "content": "$3",
+                "example": "TODO"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name_default": {
+        "message": "$person$ contiene un segundo nombre sin patrónimo o matrónimo $pronoun$.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "pronoun": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "fixCase": {
+        "message": "solucionar caso", 
+        "description": "TODO"
+    },
+    "fixed": {
+        "message": "solucionado", 
+        "description": "TODO"
+    },
+    "fixName": {
+        "message": "solucionar nombre", 
+        "description": "TODO"
+    },
+    "fixSpace": {
+        "message": "solucionar espacio", 
+        "description": "TODO"
+    },
+    "fixSuffix": {
+        "message": "solucionar sufijo", 
+        "description": "TODO"
+    },
+    "fixTitle": {
+        "message": "solucionar título", 
+        "description": "TODO"
+    },
+    "makePublic": {
+        "message": "haceer público", 
+        "description": "TODO"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$ familiares nacidos antes de c.$year$ están declarados como.",
+        "description": "TODO",
+        "placeholders": {
+            "count": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "year": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$ nació antes de c.$year$ y está declarada como privada.",
+        "description": "TODO",
+        "placeholders": {
+            "person": {
+                "content": "$1",
+                "example": "TODO"
+            },
+            "year": {
+                "content": "$2",
+                "example": "TODO"
+            }
+        }
+    }
+}

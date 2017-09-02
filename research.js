@@ -231,7 +231,7 @@ function buildTributes(responsedata) {
     }
     var query = 'http://www.tributes.com/search/obituaries/?solr=&first=' + firstname + '&last=' + lastname + '&search_type=' + daterange;
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Tributes</strong>';
-    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">Tributes (' + _("Genealogies") + ')</a></li>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">Tributes (' + _("Obituaries") + ')</a></li>';
     researchstring += '</div>';
     return researchstring;
 }
@@ -262,7 +262,7 @@ function buildLegacy(responsedata) {
     }
     var query = 'http://www.legacy.com/ns/obitfinder/obituary-search.aspx?daterange=' + daterange + '&firstname=' + firstname + '&lastname=' + lastname + '&countryid=0&stateid=all&affiliateid=all';
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Legacy</strong>';
-    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">Legacy (' + _("Genealogies") + ')</a></li>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">Legacy (' + _("Obituaries") + ')</a></li>';
     researchstring += '</div>';
     return researchstring;
 }

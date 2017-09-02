@@ -10,6 +10,20 @@ var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = 
 var genibuildaction = {}, updatecount = 1, updatetotal = 0;
 var errormsg = "#f9acac", warningmsg = "#f8ff86", infomsg = "#afd2ff";
 
+var _ = function(messageName, substitutions) {
+    return chrome.i18n.getMessage(messageName, substitutions);
+};
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
+    if ( el.hasAttribute('data-i18n') ){
+      var tranlation = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
+      el.innerHTML = tranlation;
+    }
+  });
+});
 
 chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
@@ -235,7 +249,7 @@ function userAccess() {
                         }
                     }
                 } else {
-                    $(accessdialog).html("<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...");
+                    $(accessdialog).html("<div style='font-size: 115%;'><strong>" + _("Research_this_Person") + "</strong></div>" + _("Loading___"));
                     buildResearch();
                 }
             });

@@ -76,7 +76,9 @@ registerCollection({
 var ancestrymrglist = [];
 function parseAncestryNew(htmlstring, familymembers, relation) {
     relation = relation || "";
-
+    if (!exists(htmlstring)) {
+        return "";
+    }
     var parsed = $(htmlstring.replace(/<img/ig, "<gmi"));
     var par = parsed.find("#personCard");
     var focusperson = par.find(".userCardTitle").text();

@@ -23,6 +23,7 @@ var locationcheckoption = false;
 var dataconflictoption = false;
 var datecheckoption = true;
 var samenameoption = true;
+var compoundlast = false;
 var wedlock = false;
 
 var _ = function(messageName, substitutions) {
@@ -681,7 +682,11 @@ function improperSapce(name) {
 function formatName(namepart) {
     var name = namepart.split(" ");
     for (var i=0; i < name.length; i++) {
-        name[i] = NameParse.fix_case(name[i]);
+        if (name.length > 1 && compoundlast && NameParse.is_compound_lastName(name[i]) && !name[i].contains(".")) {
+            name[i] = name[i].toLowerCase();
+        } else {
+            name[i] = NameParse.fix_case(name[i]);
+        }
     }
     return name.join(" ");
 }
@@ -990,6 +995,12 @@ function getSettings() {
     chrome.storage.local.get('samenamecheck', function (result) {
         if (result.samenamecheck !== undefined) {
             samenameoption = result.samenamecheck;
+        }
+    });
+
+    chrome.storage.local.get('compoundlast', function (result) {
+        if (result.compoundlast !== undefined) {
+            compoundlast = result.compoundlast;
         }
     });
 

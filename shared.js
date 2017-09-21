@@ -284,7 +284,9 @@ function getParentSets(focus, parents) {
                         if (!exists(parentset[union])) {
                             parentset[union] = [];
                         }
-                        parentset[union].push(parents[i]);
+                        if (parentset[union].indexOf(parents[i]) == -1) {
+                            parentset[union].push(parents[i]);
+                        }
                     }
                 }
             }

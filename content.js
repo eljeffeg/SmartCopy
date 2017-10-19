@@ -680,10 +680,12 @@ function improperSapce(name) {
 }
 
 function formatName(namepart) {
-    var name = namepart.split(" ");
+    var name = namepart.replace(/&quot;/g, '"').split(" ");
     for (var i=0; i < name.length; i++) {
         if (name.length > 1 && compoundlast && NameParse.is_compound_lastName(name[i]) && !name[i].contains(".")) {
             name[i] = name[i].toLowerCase();
+        } else if (name[i].startsWith('"') && name[i].endsWith('"')) {
+            name[i] = '"' + NameParse.fix_case(name[i].replace(/"/g, '')) + '"';
         } else {
             name[i] = NameParse.fix_case(name[i]);
         }

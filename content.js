@@ -510,7 +510,7 @@ function checkCase(person) {
 
 function checkSuffixInFirstName(person) {
     var fnamesplit = getGeniData(person, "first_name").split(" ");
-    if (fnamesplit.length > 1 && NameParse.is_suffix(fnamesplit[fnamesplit.length-1])) {
+    if (fnamesplit.length > 1 && NameParse.is_suffix(fnamesplit[fnamesplit.length-1]) && getGeniData(person, "suffix") === "") {
         //First Name contain suffix
         consistencymessage = concat("info") + buildEditLink(person) + " appears to contain a suffix in "
             + getPronoun(getGeniData(person, "gender"))

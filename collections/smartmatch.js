@@ -81,7 +81,8 @@ registerCollection({
             focusrange = parsed.find(".recordSubtitle").text().trim();
             if (!profilechanged) {
                 var smartmatchpage = parsed.find("#nav_tab_901");
-                if (!exists(smartmatchpage[0])) {
+                var smartmatchpage2 = parsed.find("#nav_tab_101");
+                if (!exists(smartmatchpage[0]) && !exists(smartmatchpage2[0])) {
                     var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
                     if (exists(focusprofile)) {
                         focusid = focusprofile.trim().replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");

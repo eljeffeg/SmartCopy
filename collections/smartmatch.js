@@ -667,9 +667,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     marriagedata.push(data);
                 } else {
                     //parent profiles
-                    if (!parentflag) {
-                        parentmarset.push(data);
-                    } else if (isPartner(relation.title)) {
+                    if (isPartner(relation.title)) {
                         if (exists(data[0].name) && exists(data[0].name === "<Private>")) {
                             //Verify the date in spouse marriage dates
                             for (var i=0; i < marriagedata.length; i++) {
@@ -681,6 +679,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                 }
                             }
                         }
+                    } else if (!parentflag && isParent(relation.title)) {
+                        parentmarset.push(data);
                     } else {
                         //attempt to match up parent with multiple spouses via matching date / location
                         for (var pm = 0; pm < parentmarset.length; pm++) {

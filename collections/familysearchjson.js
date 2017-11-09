@@ -19,7 +19,6 @@ registerCollection({
                 }
             }
             url = hostDomain(url) + "/tree-data/person/" + focusURLid + "/all?locale=en";
-            console.log(url);
             this.reload = true;
         } else if (startsWithHTTP(url,"https://familysearch.org/ark:") && !url.contains("/1:1:")) {
             var urlparts= url.split('?');

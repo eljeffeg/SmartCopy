@@ -1,29 +1,38 @@
 registerCollection({
+    "reload": false,
     "recordtype": "Find A Grave Memorial",
     "prepareUrl": function(url) {
+        if (startsWithHTTP(url, "https://www.findagrave.com") ||
+        startsWithHTTP(url, "https://findagrave.com") ||
+        startsWithHTTP(url, "https://forum.findagrave.com")) {
+            id = url.substring(url.lastIndexOf('memorial/') + 9).replace("#", "");
+            if (id.contains("/")) {
+                id = id.substring(0, id.indexOf('/'));
+            }
+            url = "https://old.findagrave.com/cgi-bin/fg.cgi?page=gr&GRid=" + id;
+            this.reload = true;
+        }
         return url;
     },
     "collectionMatch": function(url) {
         return (startsWithHTTP(url, "https://www.findagrave.com") ||
-            startsWithHTTP(url, "https://findagrave.com") ||
-            startsWithHTTP(url, "https://forum.findagrave.com"));
+        startsWithHTTP(url, "https://findagrave.com") ||
+        startsWithHTTP(url, "https://forum.findagrave.com") ||
+        startsWithHTTP(url, "https://old.findagrave.com"));
     },
     "parseData": function(url) {
         if (url.contains("page=gsr")) {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage(warningmsg, 'Please select one of the Matches on this results page.');
         } else {
-            focusURLid = url.substring(url.lastIndexOf('memorial/') + 9).replace("#", "");
-            if (focusURLid.contains("/")) {
-                focusURLid = focusURLid.substring(0, focusURLid.indexOf('/'));
-            }
+            focusURLid = getParameterByName('GRid', url);
             getPageCode();
         }
     },
     "loadPage": function(request) {
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-        var fperson = parsed.find("#bio-name");
-        focusname = getFindAGraveName($(fperson[0]).html()).trim();
+        var fperson = parsed.find(".plus2").find("b");
+        focusname = getFindAGraveName($(fperson[0]).html());
         var title = parsed.filter('title').text().replace(" - Find A Grave Memorial", "");
         if (title.contains("(")) {
             splitrange = title.split("(");
@@ -49,7 +58,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     var fperson = parsed.find(".plus2").find("b");
     if (!exists(fperson[0])) {
         //In case the Memorial has been merged
-        fperson = parsed.find("#bio-name");
+        fperson = parsed.find(".plus2");
         if (exists(fperson[0]) && $(fperson[0]).html() === "Memorial has been merged.") {
             var click = $(fperson[0]).next('table').find('a');
             var urlset = click[0].outerHTML.match('href="(.*)"');
@@ -74,8 +83,8 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             return "";
         }
     }
-    var focusperson = getFindAGraveName($(fperson[0]).html()).trim();
-    console.log(focusname);
+    var focusperson = getFindAGraveName($(fperson[0]).html());
+
     $("#readstatus").html(escapeHtml(focusperson));
     var genderval = "unknown";
 
@@ -91,23 +100,6 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     if (familymembers) {
         loadGeniData();
     }
-
-    // ---------------------- Profile Data --------------------
-    if (focusdaterange !== "") {
-        profiledata["daterange"] = focusdaterange;
-    }
-    var children = []; //records[0].childNodes;
-    //var child = children[0];
-    var rows = records;
-    var burialdtflag = false;
-    var buriallcflag = false;
-    var deathdtflag = false;
-
-    profiledata = addEvent(profiledata, "birth", parsed.find("#birthDateLabel").text(), parsed.find("#birthLocationLabel").text());
-    profiledata = addEvent(profiledata, "baptism", parsed.find("#baptismDateLabel").text(), parsed.find("#baptismLocationLabel").text());
-    profiledata = addEvent(profiledata, "death", parsed.find("#deathDateLabel").text(), parsed.find("#deathLocationLabel").text());
-  
-    profiledata = addEvent(profiledata, "burial", parsed.find("#burialDateLabel").text(), parsed.find("#burialLocationLabel").text());
 
     var records = parsed.find(".gr");
     var temprecord = $(records[1]).find("tr");
@@ -501,20 +493,4 @@ function getFindAGraveName(focusperson) {
     }
     focusperson = focusperson.replace(/(<([^>]+)>)/ig, "");
     return focusperson;
-}
-
-function addEvent(profiledata, event, dateval, eventlocation) {
-    data = []
-    dateval = cleanDate(dateval);
-    if (dateval !== "unknown" && dateval !== "") {
-        data.push({date: dateval});
-    }
-    if (eventlocation !== "") {
-        data.push({id: geoid, location: eventlocation});
-        geoid++;
-    }
-    if (!$.isEmptyObject(data)) {
-        profiledata[event] = data;
-    }
-    return profiledata;
 }

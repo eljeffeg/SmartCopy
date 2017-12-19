@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
   Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
     if ( el.hasAttribute('data-i18n') ){
       var tranlation = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
-      el.innerHTML = tranlation;
+      $(el).text(tranlation);
     }
   });
 });

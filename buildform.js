@@ -595,7 +595,9 @@ function buildForm() {
             }
             var nameval = NameParse.parse(members[member].name, mnameonoff);
             var fullname = nameval.displayname;
-            if (fullname.trim() === "") {
+            if (!exists(fullname)) {
+                continue;
+            } else if (fullname.trim() === "") {
                 scored = false;
             }
             var living = false;

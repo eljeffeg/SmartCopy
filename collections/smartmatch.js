@@ -548,7 +548,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 title = title.trim();
             }
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
-                && title !== 'occupation' && title !== 'cemetery' && title !== 'christening' && title !== 'aliases'
+                && title !== 'occupation' && title !== 'cemetery' && title !== 'christening' && title !== 'divorce' && title !== 'aliases'
                 && !(title === 'marriage' && (relation === "" || isParent(relation.title) || isPartner(relation.title)))) {
                 /*
                  This will exclude residence, since the API seems to only support current residence.

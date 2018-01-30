@@ -190,7 +190,7 @@
         "message": "Geni Customization"
     },
     "Note_Dates_that_contain_Between_Before_and_After___": {
-        "message": "<strong>Note:</strong> Dates that contain Between, Before, and After are not compared in consistency checks.  Dates with Circa are considered as exact dates."
+        "message": "Note: Dates that contain Between, Before, and After are not compared in consistency checks.  Dates with Circa are considered as exact dates."
     },
     "Run_consistency_checks_when_viewing_Geni_profiles": {
         "message": "Run consistency checks when viewing Geni profiles."

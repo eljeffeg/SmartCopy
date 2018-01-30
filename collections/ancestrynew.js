@@ -91,11 +91,17 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     var buriallcflag = false;
     var deathdtflag = false;
     var aboutdata = "";
-    var usercard = parsed.find(".cardSubtitle");
+    var usercard = parsed.find("#researchListFacts").find(".userCardTitle");
 
     for (var i = 0; i < usercard.length; i++) {
         var entry = $(usercard[i]);
         var titlename = entry.text();
+
+        if (titlename.contains(" — ")) {
+            var tsplit = titlename.split(" — ");
+            titlename = tsplit[1].trim();
+        }
+
         var encodetitle = encodeURI(titlename);
         if (encodetitle.contains("%20%E2%80%94%20")) {
             var splittitle = encodetitle.split("%20%E2%80%94%20");

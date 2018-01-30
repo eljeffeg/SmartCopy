@@ -190,7 +190,7 @@
         "message": "Geni-laajennukset"
     },
     "Note_Dates_that_contain_Between_Before_and_After___": {
-        "message": "<strong>Huomaa:</strong> Päiväyksiä jotka sisältävät Välillä, Ennen ja Jälkeen ei vertailla johdonmukaisuustarkistuksissa. Päiväykset joissa on Noin käsitellään täsmällisinä päiväyksinä."
+        "message": "Huomaa: Päiväyksiä jotka sisältävät Välillä, Ennen ja Jälkeen ei vertailla johdonmukaisuustarkistuksissa. Päiväykset joissa on Noin käsitellään täsmällisinä päiväyksinä."
     },
     "Run_consistency_checks_when_viewing_Geni_profiles": {
         "message": "Suorita tarkistukset tarkastellessasi Geni-profiileja."

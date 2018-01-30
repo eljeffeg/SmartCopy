@@ -161,7 +161,7 @@ var NameParse = (function(){
             if ((end - start) > 1) {
                 // concat the last name
                 for (j=i; j<end; j++) {
-                    if ($('#compountlastonoffswitch').prop('checked') && this.is_compound_lastName(nameParts[j])) {
+                    if (j !== end -1 && $('#compountlastonoffswitch').prop('checked') && this.is_compound_lastName(nameParts[j])) {
                         lastName += " " + nameParts[j].toLowerCase();
                     } else {
                         lastName += " " + this.fix_case(nameParts[j]);
@@ -202,6 +202,29 @@ var NameParse = (function(){
                     lastName = "";
                 }
             }
+        }
+
+        if (middleName !== "") {
+            var testcompound = false;
+            var splitlast = lastName.trim().split(" ");
+            if (splitlast.every(this.is_compound_lastName)) {
+                lastName = middleName + " " + lastName.trim();
+                middleName = "";
+            }
+        }
+
+        if (birthName !== "") {
+            var birthsplit = birthName.split(" ");
+            birthName = "";
+            // rebuild birth name
+            for (j=0; j<birthsplit.length; j++) {
+                if (j !== birthsplit.length -1 && $('#compountlastonoffswitch').prop('checked') && this.is_compound_lastName(birthsplit[j])) {
+                    birthName += " " + birthsplit[j].toLowerCase();
+                } else {
+                    birthName += " " + this.fix_case(birthsplit[j]);
+                }
+            }
+            birthName = this.removeIgnoredChars(birthName);
         }
 
         if (nickParts.length > 0) {
@@ -353,7 +376,7 @@ var NameParse = (function(){
     NameParse.is_compound_lastName = function (word) {
         word = word.toLocaleLowerCase();
         // these are some common prefixes that identify a compound last names - what am I missing?
-        var words = ['vere','von','van','de','del','della','di','da', 'do', 'pietro','vanden','du','st.','st','la','lo', 'las', 'los', 'ter','o', 'y', "o'",'mc','mac','fitz'];
+        var words = ['vere','von','van','de','der','del','della','di','da', 'do', 'pietro','vanden','du','st.','st','la','lo', 'las', 'los', 'ter','o', 'y', "o'",'mc','mac','fitz'];
         return (words.indexOf(word) >= 0);
     };
 

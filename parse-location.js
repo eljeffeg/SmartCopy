@@ -66,6 +66,8 @@ function parseGoogle(result, query) {
                 case 'point_of_interest,establishment':
                 case 'natural_feature,establishment':
                 case 'sublocality_level_1,sublocality,political':
+                case 'political,sublocality,sublocality_level_1':
+                case 'political,sublocality':
                 case 'sublocality,political':
                 case 'neighborhood,political':
                     if (location.place === "") {

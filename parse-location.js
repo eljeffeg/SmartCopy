@@ -328,8 +328,8 @@ function queryGeo(locationset, test) {
                         }
                     }
                     georesult.query = full_location;
-                    if (georesult.count === 0 && !exists(locationset.retry)) {
-                        locationset.retry = true;
+                    if (georesult.count === 0 && (!exists(locationset.retry) || locationset.retry < 2)) {
+                        locationset.retry += 1;
                         setTimeout(queryGeo, 100, locationset);
                     } else {
                         geolocation[id] = georesult;

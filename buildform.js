@@ -1692,6 +1692,8 @@ function cleanDate(dateval) {
         */
         dateval = "";
     }
+    
+    dateval = dateval.replace(/–/g,"-");
     dateval = dateval.replace(/ - /g, "-");
     dateval = dateval.replace(/\?/g, "");
     dateval = dateval.replace(/ABT\.? /i, "Circa ");
@@ -1724,7 +1726,8 @@ function cleanDate(dateval) {
     } else if (dateval.search(/\d{4}\/\d{2}/) !== -1) {
         dateval = dateval.replace(/\d{2}\//,"");
     }
-
+ 
+    dateval = dateval.replace("Between Between", "Between");
     dateval = dateval.replace(/\s?\/\s?/g, "-");
 
     if (dateval.startsWith("To")) {

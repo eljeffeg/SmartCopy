@@ -248,7 +248,7 @@ function partnerCheck(partners) {
 
 function siblingCheck(siblings) {
     if (siblingcheckoption) {
-        var day = 86400;
+        var day = 86400 * 2; //48 hours
         for (var i = 0; i < siblings.length; i++) {
             for (var j = i+1; j < siblings.length; j++) {
                 var sib1_bdate = unixDate(siblings[i], "birth");
@@ -261,7 +261,7 @@ function siblingCheck(siblings) {
                     (sib1_bdate > sib2_bdate && sib1_bdate - pregnancy < sib2_bdate)) {
                     if ((sib1_bdate < sib2_bdate && sib1_bdate + day > sib2_bdate) ||
                         (sib1_bdate > sib2_bdate && sib1_bdate - day < sib2_bdate)) {
-                        //Exclude Twins
+                        //Exclude Twins - 48hrs to account birth going into a second day
                     } else {
                         //Siblings ages too close together
                         consistencymessage = concat("warn") + "Birth date of " + buildEditLink(siblings[i]) + " and " + getPronoun(getGeniData(siblings[i], "gender"))

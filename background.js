@@ -22,7 +22,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
         xhttp.onerror = function(error) {
             // Do whatever you want on error. Don't forget to invoke the
             // callback to clean up the communication port.
-            var valrtn = {error: error, variable: request.variable};
+            var valrtn = {error: error, variable: request.variable, responseURL: xhttp.responseURL};
             callback(valrtn);
         };
         xhttp.open(method, request.url, true);

@@ -239,12 +239,15 @@ function queryGeo(locationset, test) {
         }
 
         geostatus.push(geostatus.length);
+        if (exists(locationset.retry)) {
+            geostatus.pop();
+        }
         var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&address=" + encodeURIComponent(location);
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
             url: url,
-            variable: {id: locationset.id, place: place, location: locationset.location, unittest: unittest}
+            variable: {id: locationset.id, place: place, location: locationset.location, unittest: unittest, locationset: locationset}
         }, function (response) {
             var result = JSON.parse(response.source);
             var id = response.variable.id;
@@ -282,7 +285,7 @@ function queryGeo(locationset, test) {
                     method: "GET",
                     action: "xhttp",
                     url: url,
-                    variable: {id: id, location: short_location, unittest: unittest, place: response.variable.place, full: full_location}
+                    variable: {id: id, location: short_location, unittest: unittest, place: response.variable.place, full: full_location, locationset: locationset}
                 }, function (response) {
                     var result = JSON.parse(response.source);
                     var id = response.variable.id;
@@ -325,12 +328,16 @@ function queryGeo(locationset, test) {
                         }
                     }
                     georesult.query = full_location;
-                    geolocation[id] = georesult;
-
-                    if (unittest !== "") {
-                        print(geolocation[id], unittest);
+                    if (georesult.count === 0 && !exists(locationset.retry)) {
+                        locationset.retry = true;
+                        setTimeout(queryGeo, 100, locationset);
+                    } else {
+                        geolocation[id] = georesult;
+                        if (unittest !== "") {
+                            print(geolocation[id], unittest);
+                        }
+                        geostatus.pop();
                     }
-                    geostatus.pop();
                 });
             } else {
                 if (unittest !== "") {

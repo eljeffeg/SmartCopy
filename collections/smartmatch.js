@@ -205,7 +205,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 var imgurl = encodeURIComponent(thumb).replace(/'/g,"%27").replace(/"/g,"%22");
                 chrome.runtime.sendMessage({
                     method: "GET",
-                    action: "redirect",
+                    action: "xhttp",
                     url: imgurl,
                     variable: imgurl
                 }, function (response) {

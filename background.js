@@ -16,7 +16,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
         var xhttp = new XMLHttpRequest();
         var method = request.method ? request.method.toUpperCase() : 'GET';
         xhttp.onload = function() {
-            var valrtn = {source: xhttp.responseText, variable: request.variable};
+            var valrtn = {source: xhttp.responseText, variable: request.variable, responseURL: xhttp.responseURL};
             callback(valrtn);
         };
         xhttp.onerror = function(error) {
@@ -35,15 +35,6 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
     } else if (request.action == "icon") {
         chrome.browserAction.setIcon({path: request.path});
         return true;
-    } else if (request.action == "redirect") {
-        var xhttp = new XMLHttpRequest();
-        var method = request.method ? request.method.toUpperCase() : 'GET';
-        xhttp.onload = function() {
-            var valrtn = {variable: request.variable, responseURL: xhttp.responseURL};
-            callback(valrtn);
-        };
-        xhttp.send(null); 
-        return true; // prevents the callback from being called too early on return
     }
 });
 

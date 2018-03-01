@@ -202,24 +202,26 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 profiledata["thumb"] = thumb;
             } else if (thumb.contains("get-fs-image.php")) {
                 familystatus.push(familystatus.length);
-                var imgurl = smartcopyurl + "/smartredirect?url=" + encodeURIComponent(thumb).replace(/'/g,"%27").replace(/"/g,"%22");
+                var imgurl = encodeURIComponent(thumb).replace(/'/g,"%27").replace(/"/g,"%22");
                 chrome.runtime.sendMessage({
                     method: "GET",
-                    action: "xhttp",
+                    action: "redirect",
                     url: imgurl,
                     variable: imgurl
                 }, function (response) {
-                    var thumb = response.source;
+                    var thumb = decodeURIComponent(response.responseURL);
                     var imgurl = decodeURIComponent(response.variable);
                     if (imgurl.startsWith("http") && !thumb.contains("myheritageimages.com") && !thumb.contains("mhcache.com") && !thumb.contains("myheritage.com")) {
                         //https://www.myheritage.com/research/collection-40001/familysearch-family-tree?itemId=149064846&action=showRecord
                         //https://www.myheritage.com/research/collection-40001/familysearch-family-tree?itemId=337043845&action=showRecord
+                        console.log("smartredirect: " + imgurl)
                         profiledata["image"] = imgurl;
                         profiledata["thumb"] = imgurl;
                         fsimage[imgurl] = thumb;
                     }
                     familystatus.pop();
                 });
+             
             }
         }
     }

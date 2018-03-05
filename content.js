@@ -150,10 +150,13 @@ function appendBio() {
 }
 
 function dateFormat(dateval) {
-    if (exists(dateval.day)) {
-        return " on " + dateval.formatted_date;
+    var eventdate = dateval.formatted_date;
+    if (eventdate.startsWith("circa") || eventdate.startsWith("before") || eventdate.startsWith("after") || eventdate.startsWith("between")) {
+        return " " + eventdate;
+    } else if (exists(dateval.day)) {
+        return " on " + eventdate;
     } else {
-        return " in " + dateval.formatted_date;
+        return " in " + eventdate;
     }
 }
 
@@ -252,12 +255,14 @@ function buildProfile() {
             }
         }
 
-        if (getGeniData(focus, "gender") === "male") {
-            bio += "He ";
-        } else if (getGeniData(focus, "gender") === "female") {
-            bio += "She ";
-        } else {
-            bio += getGeniData(focus, "first_name") + " ";
+        if (death !== "" || burial !== "") {
+            if (getGeniData(focus, "gender") === "male") {
+                bio += "He ";
+            } else if (getGeniData(focus, "gender") === "female") {
+                bio += "She ";
+            } else {
+                bio += getGeniData(focus, "first_name") + " ";
+            }
         }
 
         if (death !== "") {
@@ -274,6 +279,7 @@ function buildProfile() {
                 bio += ". ";
             }
         }
+
         if (burial !== "") {
             bio += "was buried";
             if (exists(burial.date)) {

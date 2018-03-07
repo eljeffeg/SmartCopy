@@ -64,7 +64,7 @@ function queryGeni() {
         dconflict = ",data_conflict";
     }
     familystatus.push(1);
-    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,burial,is_alive,marriage,divorce,public" + dconflict;
+    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,cause_of_death,burial,is_alive,marriage,divorce,public" + dconflict;
     var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
     chrome.runtime.sendMessage({
         method: "GET",
@@ -178,6 +178,7 @@ function buildProfile() {
         var birth = getGeniData(focus, "birth");
         var bap = getGeniData(focus, "baptism");
         var death = getGeniData(focus, "death");
+        var deathcause = getGeniData(focus, "cause_of_death");
         var burial = getGeniData(focus, "burial");
         var occupation = getGeniData(focus, "occupation")
 
@@ -306,6 +307,9 @@ function buildProfile() {
             if (exists(death.location)) {
                 bio += " in " + death.location.formatted_location;
             }
+            if (deathcause !== "") {
+                bio += " from " + deathcause;
+            }
             if (burial !== "") {
                 bio += " and ";
             } else {
@@ -314,6 +318,9 @@ function buildProfile() {
         }
 
         if (burial !== "") {
+            if (death === "" && deathcause !== "") {
+                bio += "died from " + deathcause + " and ";
+            }
             bio += "was buried";
             if (exists(burial.date)) {
                 bio += dateFormat(burial.date);

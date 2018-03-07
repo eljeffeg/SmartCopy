@@ -64,7 +64,7 @@ function queryGeni() {
         dconflict = ",data_conflict";
     }
     familystatus.push(1);
-    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,gender,deleted,birth,baptism,death,burial,is_alive,marriage,divorce,public" + dconflict;
+    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,burial,is_alive,marriage,divorce,public" + dconflict;
     var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
     chrome.runtime.sendMessage({
         method: "GET",
@@ -142,7 +142,8 @@ function appendBio() {
         setTimeout(appendBio, 50);
     } else if (screenopen) {
         $("*").css("cursor", "default");
-        $("#page_profile_detail_strings_en-US_about_me").prepend(biography);
+        var textarea = $("#page_profile_detail_strings_en-US_about_me");
+        textarea.val(biography + textarea.val().replace(getSelection(), "").trim());
     } else {
         //In case the screen is closed
         $("*").css("cursor", "default");
@@ -160,6 +161,12 @@ function dateFormat(dateval) {
     }
 }
 
+function getSelection() {
+	return (!!document.getSelection) ? document.getSelection() :
+	       (!!window.getSelection)   ? window.getSelection() :
+	       document.selection.createRange().text;
+}
+
 function buildProfile() {
     if (biography == null) {
         //In case edit is clicked twice - only need to build this once.
@@ -172,6 +179,7 @@ function buildProfile() {
         var bap = getGeniData(focus, "baptism");
         var death = getGeniData(focus, "death");
         var burial = getGeniData(focus, "burial");
+        var occupation = getGeniData(focus, "occupation")
 
         if (birth !== "") {
             bio += "was born";
@@ -229,19 +237,28 @@ function buildProfile() {
 
         for (var i=0; i < partners.length; i++) {
 
-            bio += getGeniData(focus, "first_name");
-            if (getGeniData(partners[i], "status") === "spouse") {
+            bio += "<br/>" + getGeniData(focus, "first_name");
+            if (getGeniData(partners[i], "status") !== "partner") {
                 bio += " married ";
             } else {
                 bio += " partnered with "
             }
             bio += buildWikiLink(partners[i]);
-            if (getGeniData(partners[i], "status") === "spouse") {
+            if (getGeniData(partners[i], "status") !== "partner") {
                 if (getGeniData(partners[i], "marriage", "date") !== "") {
                     bio += dateFormat(getGeniData(partners[i], "marriage", "date"));
                 }
                 if (getGeniData(partners[i], "marriage", "location") !== "") {
                     bio += " in " + getGeniData(partners[i], "marriage", "location")["formatted_location"];
+                }
+                if (getGeniData(partners[i], "divorce") !== "") {
+                    bio += " and they divorced"
+                    if (getGeniData(partners[i], "divorce", "date") !== "") {
+                        bio += dateFormat(getGeniData(partners[i], "divorce", "date"));
+                    }
+                    if (getGeniData(partners[i], "divorce", "location") !== "") {
+                        bio += " in " + getGeniData(partners[i], "divorce", "location")["formatted_location"];
+                    }
                 }
             }
             bio += ". ";
@@ -249,13 +266,27 @@ function buildProfile() {
             if (children.length > 0) {
                 bio += "Together they had the following children: " + buildWikiLink(children[0]);
                 for (var x=1; x < children.length; x++) {
-                    bio += ", " + buildWikiLink(children[x]);
+                    bio += "; " + buildWikiLink(children[x]);
                 }
                 bio += ". ";
             }
         }
 
+        if (occupation !== "") {
+            if (getGeniData(focus, "gender") === "male") {
+                bio += "<br/>" + "He ";
+            } else if (getGeniData(focus, "gender") === "female") {
+                bio += "<br/>" + "She ";
+            } else {
+                bio += "<br/>" + getGeniData(focus, "first_name") + " ";
+            }
+            bio += "worked as a " + occupation + ". ";
+        }
+
         if (death !== "" || burial !== "") {
+            if (occupation === "") {
+                bio += "<br/>";
+            }
             if (getGeniData(focus, "gender") === "male") {
                 bio += "He ";
             } else if (getGeniData(focus, "gender") === "female") {
@@ -265,8 +296,10 @@ function buildProfile() {
             }
         }
 
+       
+
         if (death !== "") {
-            bio += "passed away";
+            bio += "died";
             if (exists(death.date)) {
                 bio += dateFormat(death.date);
             }

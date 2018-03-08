@@ -236,9 +236,21 @@ function buildProfile() {
             }
         }
 
+
+        if (occupation !== "") {
+            if (getGeniData(focus, "gender") === "male") {
+                bio += "He ";
+            } else if (getGeniData(focus, "gender") === "female") {
+                bio += "She ";
+            } else {
+                bio += getGeniData(focus, "first_name") + " ";
+            }
+            bio += "was a " + occupation + ". ";
+        }
+
         for (var i=0; i < partners.length; i++) {
 
-            bio += "<br/>" + getGeniData(focus, "first_name");
+            bio += "\n\n" + getGeniData(focus, "first_name");
             if (getGeniData(partners[i], "status") !== "partner") {
                 bio += " married ";
             } else {
@@ -265,29 +277,16 @@ function buildProfile() {
             bio += ". ";
             children = getChildren(focus, partners[i]);
             if (children.length > 0) {
-                bio += "Together they had the following children: " + buildWikiLink(children[0]);
+                bio += "Together they had the following children:\n" + buildWikiLink(children[0]);
                 for (var x=1; x < children.length; x++) {
-                    bio += "; " + buildWikiLink(children[x]);
+                    bio += ";\n" + buildWikiLink(children[x]);
                 }
                 bio += ". ";
             }
         }
 
-        if (occupation !== "") {
-            if (getGeniData(focus, "gender") === "male") {
-                bio += "<br/>" + "He ";
-            } else if (getGeniData(focus, "gender") === "female") {
-                bio += "<br/>" + "She ";
-            } else {
-                bio += "<br/>" + getGeniData(focus, "first_name") + " ";
-            }
-            bio += "worked as a " + occupation + ". ";
-        }
-
         if (death !== "" || burial !== "") {
-            if (occupation === "") {
-                bio += "<br/>";
-            }
+            bio += "\n\n";
             if (getGeniData(focus, "gender") === "male") {
                 bio += "He ";
             } else if (getGeniData(focus, "gender") === "female") {
@@ -900,7 +899,7 @@ function buildEditLink(person) {
 }
 
 function buildWikiLink(person) {
-    return "[https://www.geni.com/profile/" + getGeniData(person, "guid") + " " + getGeniData(person, "name") + "]";
+    return "[https://www.geni.com/" + getGeniData(person, "id") + " " + getGeniData(person, "name") + "]";
 }
 
 function improperSapce(name) {

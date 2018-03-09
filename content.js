@@ -202,7 +202,19 @@ function buildProfile() {
                 bio += dateFormat(bap.date);
             }
             if (exists(bap.location)) {
-                bio += " in " + bap.location.formatted_location;
+                var baploc = bap.location.formatted_location;
+                if (exists(birth.location)) {
+                    var birthloc = birth.location.formatted_location;
+                    if (birthloc === baploc) {
+                        bio += " there"
+                    } else if (birthloc === baploc.replace(bap.location.place_name + ", ", "")) {
+                        bio += " in " + bap.location.place_name;
+                    } else {
+                        bio += " in " + baploc;
+                    }
+                } else {
+                    bio += " in " + baploc;
+                }
             }
             bio += ". ";
         }
@@ -325,7 +337,19 @@ function buildProfile() {
                 bio += dateFormat(burial.date);
             }
             if (exists(burial.location)) {
-                bio += " in " + burial.location.formatted_location;
+                var burloc = burial.location.formatted_location;
+                if (exists(death.location)) {
+                    var deathloc = death.location.formatted_location;
+                    if (deathloc === burloc) {
+                        bio += " there";
+                    } else if (deathloc === burloc.replace(burial.location.place_name + ", ", "")) {
+                        bio += " in " + burial.location.place_name;
+                    } else {
+                        bio += " in " + burloc;
+                    }
+                } else {
+                    bio += " in " + burloc;
+                }
             }
             bio += ". ";
         }

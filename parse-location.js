@@ -169,6 +169,9 @@ function checkPlace(location) {
             place = splitplace[0];
             place = place.trim();
         }
+    } else if (checkplace.toLowerCase().endsWith("hospital")) {
+        place = splitplace[0];
+        place = place.trim();
     }
     return place;
 }

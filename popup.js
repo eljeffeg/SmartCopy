@@ -416,7 +416,7 @@ function loadPage(request) {
             $(accessdialog).text("");
             accessdialog.style.backgroundColor = "#dfe6ed";
 
-            var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,nicknames,gender,deleted,merged_into,birth,baptism,death,burial,cause_of_death,is_alive,occupation,photo_urls,marriage,divorce,locked_fields,match_counts&actions=update,update-basics,add";
+            var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,nicknames,gender,deleted,merged_into,birth,baptism,death,burial,cause_of_death,is_alive,occupation,photo_urls,marriage,divorce,locked_fields,match_counts&actions=update,update-basics,add,add-photo";
             var descurl = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
             chrome.runtime.sendMessage({
                 method: "GET",
@@ -1157,13 +1157,18 @@ function buildTree(data, action, sendid) {
             }
         } else if (action.startsWith("add") && action !== "add-photo") {
             if (permissions.indexOf("add") === -1) {
-                setMessage(errormsg, "Permission denied - No add permission on: " + sendid);
-                console.log("Permission denied - No add permission on profile: " + sendid);
+                setMessage(errormsg, "Geni permission denied - No add permission on: " + sendid);
+                console.log("Geni permission denied - No add permission on profile: " + sendid);
                 return;
             }
         }
         var posturl = "https://www.geni.com/api/" + sendid + "/" + action +  "?fields=id,unions,name";
         if (action === "add-photo") {
+            if (permissions.indexOf("add-photo") === -1) {
+                setMessage(errormsg, "Geni permission to add photo denied on: " + sendid);
+                console.log("Geni permission to add photo denied on: " + sendid);
+                return;
+            }
             posturl = smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action;
         }
         chrome.runtime.sendMessage({

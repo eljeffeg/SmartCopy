@@ -227,6 +227,12 @@ var NameParse = (function(){
             birthName = this.removeIgnoredChars(birthName);
         }
 
+        if (suffix !== "" && lastName === "" && birthName === "") {
+            //For names like John Ma, where the last name is detected as a suffix
+            suffix = "";
+            lastName = nameParts[numWords - 1];
+        }
+
         if (nickParts.length > 0) {
             /*
             Can't recall why I did all this... commenting for now and just doing a join(" ")

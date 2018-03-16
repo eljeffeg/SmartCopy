@@ -3,6 +3,9 @@ registerCollection({
     "reload": false,
     "recordtype": "FamilySearch Record",
     "prepareUrl": function(url) {
+        if (startsWithHTTP(url,"https://www.familysearch.org/")) {
+            url = url.replace("www.familysearch.org", "familysearch.org");
+        }
         if (startsWithHTTP(url,"https://familysearch.org/ark:") && url.contains("/1:1:")) {
             var urlparts= url.split('?');
             focusURLid = urlparts[0].substring(url.lastIndexOf(':') + 1);
@@ -19,6 +22,9 @@ registerCollection({
         return url;
     },
     "collectionMatch": function(url) {
+        if (startsWithHTTP(url,"https://www.familysearch.org/")) {
+            url = url.replace("www.familysearch.org", "familysearch.org");
+        }
         return (
             startsWithHTTP(url, "https://familysearch.org/platform") ||
             startsWithHTTP(url,"https://familysearch.org/search/") ||

@@ -1149,6 +1149,9 @@ function buildTree(data, action, sendid) {
             permissions = genifamilydata[sendid].get("actions");
         } else if (genifocusdata.get("id") === sendid || sendid.startsWith("union")) {
             permissions = genifocusdata.get("actions");
+        } else {
+            //New profile
+            permissions = ["add-photo"];
         }
 
         if (action === "update") {

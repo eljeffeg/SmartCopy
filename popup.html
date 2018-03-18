@@ -487,10 +487,24 @@
             </div>
             <div id="genicustom" class="tabcontent">
                 <table style="border-spacing: 0; border-collapse: collapse; white-space: nowrap; width: 100%;">
-                    <tr><td><table>
-                    <tr><td><ul><li data-i18n="Future_options_to_add_features_to_Geni">Future options to add features to Geni.</li></ul></td></tr>
-                    </table></td><td><img style="margin-left: -10px; width: 100px;" src="images/control.png" alt='Control Image'></td>
-
+                    <tr><td>
+                    <table>
+                        <tr style="padding-top: 5px;"><td colspan="2"></td></tr>
+                        <tr>
+                            <td style="padding: 3px 6px 0 25px; width: 58px;">
+                                <div class="onoffswitch">
+                                    <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                                            id="addbioonoffswitch" checked>
+                                    <label class="onoffswitch-label" for="addbioonoffswitch">
+                                        <span class="onoffswitch-inner"></span>
+                                        <span class="onoffswitch-switch"></span>
+                                    </label>
+                                </div>
+                            </td>
+                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Display Add Biograph button in About<div id="addbiochange" style="display: none; color: red;">Requires a page refresh to take effect.</div></td>
+                        </tr>
+                    </table>
+                    </td><td id="controlimage"><img style="margin-left: -10px; width: 140px;" src="images/control.png" alt="Control"></td>
                     </tr>
                 </table>
             </div>

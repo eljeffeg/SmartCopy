@@ -1,6 +1,7 @@
 //Development Global Variables
 var devblocksend = false; //Blocks the sending data to Geni, prints output to console instead
 var locationtest = false; //Verbose parsing of location data
+var verboselogs = true;
 
 //Common Global Variables
 var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true, captcha = false, mnameonoff = true;
@@ -417,7 +418,7 @@ function loadPage(request) {
             accessdialog.style.backgroundColor = "#dfe6ed";
 
             var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,nicknames,gender,deleted,merged_into,birth,baptism,death,burial,cause_of_death,is_alive,occupation,photo_urls,marriage,divorce,locked_fields,match_counts&actions=update,update-basics,add,add-photo";
-            var descurl = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
+            var descurl = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;
             chrome.runtime.sendMessage({
                 method: "GET",
                 action: "xhttp",
@@ -564,7 +565,7 @@ function loadSelectPage(request) {
         $('#optionsc').css("display", "none");
         focusprofile = focusprofile.replace("http://www.geni.com/", "").replace("https://www.geni.com/", "").trim();
         var args = "fields=id,guid,name,gender,deleted";
-        var url = "https://www.geni.com/api/" + focusprofile + "/immediate-family?" + args;
+        var url = "https://www.geni.com/api/" + focusprofile + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -782,6 +783,7 @@ function loadLogin() {
 
         console.log("Logged In...");
         accountinfo = response;
+        console.log(accountinfo);
         if (accountinfo.curator) {
             //display leaderboard link if user is a curator - page itself still verifies
             //document.getElementById("curator").style.display = "inline-block";
@@ -975,7 +977,11 @@ var submitform = function () {
                 profileout["about_me"] = focusabout + "\n" + about;
             }
             if (exists(profileout["nicknames"]) && focusnicknames !== "") {
+                if (focusnicknames instanceof Array) {
+                    focusnicknames = focusnicknames.join();
+                }
                 profileout["nicknames"] = focusnicknames + "," + profileout["nicknames"];
+                profileout["nicknames"] = profileout["nicknames"].split(/\s*,\s*/);
             }
             if (exists(profileout.photo)) {
                 if (tablink.indexOf('showRecord') !== -1) {
@@ -1091,7 +1097,7 @@ var submitform = function () {
                             }
                         }
                         if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "")) {
-                            var abouturl = "https://www.geni.com/api/" + pid + "?fields=about_me,nicknames";
+                            var abouturl = "https://www.geni.com/api/" + pid + "?fields=about_me,nicknames" + "&access_token=" + accountinfo.access_token;
                             submitstatus.push(updatetotal);
                             chrome.runtime.sendMessage({
                                 method: "GET",
@@ -1106,8 +1112,12 @@ var submitform = function () {
                                         familyout["about_me"] = geni_return.about_me + "\n" + familyout["about_me"];
                                     }
                                     if (exists(familyout["nicknames"]) && exists(geni_return.nicknames)) {
+                                        if (geni_return instanceof Array) {
+                                            geni_return.nicknames = geni_return.nicknames.join();
+                                        }
                                         familyout["nicknames"] = geni_return.nicknames + "," + familyout["nicknames"];
                                     }
+                                    familyout["nicknames"] = familyout["nicknames"].split(/\s*,\s*/);
                                 }
                                 buildTree(familyout, "update", response.variable.pid);
                                 submitstatus.pop();
@@ -1165,14 +1175,18 @@ function buildTree(data, action, sendid) {
                 return;
             }
         }
-        var posturl = "https://www.geni.com/api/" + sendid + "/" + action +  "?fields=id,unions,name";
+        var posturl = "https://www.geni.com/api/" + sendid + "/" + action +  "?fields=id,unions,name" + "&access_token=" + accountinfo.access_token;
         if (action === "add-photo") {
             if (permissions.indexOf("add-photo") === -1) {
                 setMessage(errormsg, "Geni permission to add photo denied on: " + sendid);
                 console.log("Geni permission to add photo denied on: " + sendid);
                 return;
             }
-            posturl = smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action;
+            posturl = smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action + "&access_token=" + accountinfo.access_token;
+        }
+        if (verboselogs) {
+            console.log("Post URL: " + posturl);
+            console.log("Post Data: " + JSON.stringify(data));
         }
         chrome.runtime.sendMessage({
             method: "POST",
@@ -1183,6 +1197,13 @@ function buildTree(data, action, sendid) {
         }, function (response) {
             try {
                 var result = JSON.parse(response.source);
+                if (verboselogs) {
+                    console.log("Geni Response: " + response.source);
+                }
+                if (exists(result.error) && exists(result.error.message)) {
+                    noerror = false;
+                    setMessage(errormsg, "Geni Error: " + result.error.message);
+                }
             } catch (e) {
                 noerror = false;
                 var extrainfo = "";
@@ -1364,7 +1385,7 @@ function submitChildren() {
                     chrome.runtime.sendMessage({
                         method: "POST",
                         action: "xhttp",
-                        url: "https://www.geni.com/api/" + spouseinfo.union + "/update",
+                        url: "https://www.geni.com/api/" + spouseinfo.union + "/update" + "?access_token=" + accountinfo.access_token,
                         data: $.param(marriageupdate),
                         variable: ""
                     }, function (response) {
@@ -1445,7 +1466,7 @@ function buildTempSpouse(parentid) {
         chrome.runtime.sendMessage({
             method: "POST",
             action: "xhttp",
-            url: "https://www.geni.com/api/" + focusid + "/add-partner",
+            url: "https://www.geni.com/api/" + focusid + "/add-partner" + "?access_token=" + accountinfo.access_token,
             data: $.param({gender: tgender}),
             variable: {id: parentid}
         }, function (response) {
@@ -1911,6 +1932,10 @@ $(function () {
     $('#locationcheckonoffswitch').on('click', function () {
         chrome.storage.local.set({'locationcheck': this.checked});
     });
+    $('#addbioonoffswitch').on('click', function () {
+        chrome.storage.local.set({'addbiobutton': this.checked});
+        $("#addbiochange").css("display", "block");
+    });
     $('#partneronoffswitch').on('click', function () {
         chrome.storage.local.set({'partnercheck': this.checked});
         if (this.checked) {
@@ -2357,7 +2382,6 @@ chrome.storage.local.get('partnercheck', function (result) {
     }
 });
 
-
 chrome.storage.local.get('childcheck', function (result) {
     var childcheck = result.childcheck;
     if (exists(childcheck)) {
@@ -2407,6 +2431,13 @@ chrome.storage.local.get('autoprivate', function (result) {
     var privatechecked = result.autoprivate;
     if (exists(privatechecked)) {
         $('#privateonoffswitch').prop('checked', privatechecked);
+    }
+});
+
+chrome.storage.local.get('addbiobutton', function (result) {
+    var addbiobutton = result.addbiobutton;
+    if (exists(addbiobutton)) {
+        $('#addbioonoffswitch').prop('checked', addbiobutton);
     }
 });
 

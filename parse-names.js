@@ -382,7 +382,7 @@ var NameParse = (function(){
     NameParse.is_compound_lastName = function (word) {
         word = word.toLocaleLowerCase();
         // these are some common prefixes that identify a compound last names - what am I missing?
-        var words = ['vere','von','van','de','der','del','della','di','da', 'do', 'pietro','vanden','du','st.','st','la','lo', 'las', 'los', 'ter','o', 'y', "o'",'mc','mac','fitz'];
+        var words = ['vere','von','van','de','der','del','della','di','da', 'do', 'pietro','vanden','du','st.','st','la','le','lo', 'las', 'los', 'ter','o', 'y', "o'",'mc','mac','fitz'];
         return (words.indexOf(word) >= 0);
     };
 

@@ -26,6 +26,7 @@ var samenameoption = true;
 var compoundlast = false;
 var wedlock = false;
 var biography = null;
+var addbioonoff = true;
 
 var _ = function(messageName, substitutions) {
     return chrome.i18n.getMessage(messageName, substitutions);
@@ -33,16 +34,18 @@ var _ = function(messageName, substitutions) {
 
 function initializeContent() {
     if (isGeni(tablink)) {
+        getSettings();
         if (tablink.contains("www.geni.com/people/")) {
             $($($("#overview_tab_content").find(".flt_r")[0]).find("a")[0]).on('click', function() {
-                addBioButton();
+                if (addbioonoff) {
+                    addBioButton();
+                }
             });
         }
         var consistencydiv = $(document.createElement('div'));
         consistencydiv.attr('id', 'consistencyck');
         consistencydiv.css({"display": "none", "position": "absolute", "background-color": "#fff", "box-sizing": "border-box", "z-index": "2", "width": "100%", "borderBottom":"solid 1px #cad3dd", "padding": "5px 20px 3px", "vertical-align": "middle", "line-height": "150%"});
         $("#header").after(consistencydiv);
-        getSettings();
         queryGeni();
     }
 }
@@ -1254,6 +1257,12 @@ function getSettings() {
     chrome.storage.local.get('compoundlast', function (result) {
         if (result.compoundlast !== undefined) {
             compoundlast = result.compoundlast;
+        }
+    });
+
+    chrome.storage.local.get('addbiobutton', function (result) {
+        if (result.addbiobutton !== undefined) {
+            addbioonoff = result.addbiobutton;
         }
     });
 

@@ -783,7 +783,6 @@ function loadLogin() {
 
         console.log("Logged In...");
         accountinfo = response;
-        console.log(accountinfo);
         if (accountinfo.curator) {
             //display leaderboard link if user is a curator - page itself still verifies
             //document.getElementById("curator").style.display = "inline-block";
@@ -1117,7 +1116,9 @@ var submitform = function () {
                                         }
                                         familyout["nicknames"] = geni_return.nicknames + "," + familyout["nicknames"];
                                     }
-                                    familyout["nicknames"] = familyout["nicknames"].split(/\s*,\s*/);
+                                    if (exists(familyout["nicknames"])) {
+                                        familyout["nicknames"] = familyout["nicknames"].split(/\s*,\s*/);
+                                    }                                    
                                 }
                                 buildTree(familyout, "update", response.variable.pid);
                                 submitstatus.pop();
@@ -1202,7 +1203,7 @@ function buildTree(data, action, sendid) {
                 }
                 if (exists(result.error) && exists(result.error.message)) {
                     noerror = false;
-                    setMessage(errormsg, "Geni Error: " + result.error.message);
+                    setMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + 'Error Response: "' + result.error.message + '"');
                 }
             } catch (e) {
                 noerror = false;
@@ -1210,7 +1211,7 @@ function buildTree(data, action, sendid) {
                 if (response.variable.relation === "photo") {
                     extrainfo = "The photo may be too large. "
                 }
-                setMessage(errormsg, 'There was a problem adding a ' + response.variable.relation + ' to Geni. ' + extrainfo + 'Error Response: "' + e.message + '"');
+                setMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + extrainfo + 'Error Response: "' + e.message + '"');
                 console.log(e); //error in the above string(in this case,yes)!
                 console.log(response.source);
             }

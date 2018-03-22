@@ -119,7 +119,9 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                     focusperson.middleName = "";
                 }
             } else if (focusperson.lastName != "") {
-                focusperson.firstName += " " + focusperson.lastName;
+                if (focusperson.firstName !== focusperson.lastName) {
+                    focusperson.firstName += " " + focusperson.lastName;
+                }
                 focusperson.lastName = "";
             }
 

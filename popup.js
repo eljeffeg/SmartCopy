@@ -1027,7 +1027,9 @@ var submitform = function () {
                                 if (!about.endsWith("\n")) {
                                     about += "\n";
                                 }
-                                about += "*";
+                                if (sourcecheck) {
+                                    about += "*";
+                                }
                             }
                         }
                         if (sourcecheck) {

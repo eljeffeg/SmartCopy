@@ -1728,6 +1728,7 @@ function cleanDate(dateval) {
     }
  
     dateval = dateval.replace("Between Between", "Between");
+    dateval = dateval.replace("Circa Circa","Circa");
     dateval = dateval.replace(/\s?\/\s?/g, "-");
 
     if (dateval.startsWith("To")) {

@@ -333,7 +333,7 @@ function queryGeo(locationset, test) {
                     georesult.query = full_location;
                     if (georesult.count === 0 && (!exists(locationset.retry) || locationset.retry < 2)) {
                         locationset.retry += 1;
-                        setTimeout(queryGeo, 250, locationset);
+                        setTimeout(queryGeo, 400, locationset);
                     } else {
                         geolocation[id] = georesult;
                         if (unittest !== "") {

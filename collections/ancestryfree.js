@@ -25,11 +25,15 @@ registerCollection({
         }
     },
     "loadPage": function(request) {
-        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-        focusname = parsed.find(".personName").text();
-        if (focusname === "") {
-            focusname = parsed.filter('title').text();
+        const regex = /(?<=window\.__PRELOADED_STATE__ \= ).*?(?=;.*?\<\/script>)/gs;
+        var match = regex.exec(request.source);
+        if (exists(match)) {
+            var preload = JSON.parse(match[0]);
         }
+        if (!exists(preload) || !exists(preload.person)) {
+            return;
+        }
+        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
         var frange = parsed.find(".pageCrumb");
         for (var i = 0; i < frange.length; i++) {
             if ($(frange[i]).text().startsWith(focusname)) {
@@ -40,39 +44,60 @@ registerCollection({
                 break;
             }
         }
+        focusname = preload.person.Self.name;
     },
     "parseProfileData": parseAncestryFree
 });
 
 function parseAncestryFree(htmlstring, familymembers, relation) {
     relation = relation || "";
-
-    var parsed = $(htmlstring.replace(/<img/ig, "<gmi"));
-    var focusperson = parsed.find(".personName").text();
-    if (focusperson === "") {
-        focusperson = parsed.filter('title').text().trim();
+    if (!exists(htmlstring)) {
+        return;
     }
-    var focusdaterange = "";
-    var frange = parsed.find(".pageCrumb");
-    for (var i = 0; i < frange.length; i++) {
-        if ($(frange[i]).text().startsWith(focusperson)) {
-            var fsplit = $(frange[i]).text().split("(");
-            if (fsplit.length > 1) {
-                focusdaterange = fsplit[1].replace(")", "").trim();
-            }
-            break;
+    var person = null;
+    var preload = null;
+    if (relation === "") {
+        var parsed = $(htmlstring.replace(/<img/ig, "<gmi"));
+        const regex = /(?<=window\.__PRELOADED_STATE__ \= ).*?(?=;.*?\<\/script>)/gs;
+        var match = regex.exec(htmlstring);
+        if (exists(match)) {
+            preload = JSON.parse(match[0]);
         }
+        console.log(preload);
+        if (!exists(preload) || !exists(preload.person)) {
+            return;
+        }
+        var focusdaterange = "";
+        var frange = parsed.find(".pageCrumb");
+        for (var i = 0; i < frange.length; i++) {
+            if ($(frange[i]).text().startsWith(focusperson)) {
+                var fsplit = $(frange[i]).text().split("(");
+                if (fsplit.length > 1) {
+                    focusdaterange = fsplit[1].replace(")", "").trim();
+                }
+                break;
+            }
+        }
+        person = preload.person.Self;
+    } else {
+        person = htmlstring;
     }
+    if (!exists(person)) {
+        return;
+    }
+
+    var focusperson = person.name;
+
 
     $("#readstatus").html(escapeHtml(focusperson));
 
     var genderval = "unknown";
-    var photoclass = parsed.find(".personPhoto ");
-
-    if (photoclass.hasClass("iconMale")) {
-        genderval = "male";
-    } else if (photoclass.hasClass("iconFemale")) {
-        genderval = "female";
+    if (exists(person.gender)) {
+        if (person.gender == "F") {
+            genderval = "female";
+        } else if (person.gender == "M") {
+            genderval = "male";
+        }
     }
 
     var profiledata = {name: focusperson, gender: genderval, status: relation.title};
@@ -80,34 +105,22 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
     var buriallcflag = false;
     var deathdtflag = false;
     var aboutdata = "";
-    // ---------------------- Profile Data --------------------
-    var fperson = parsed.find(".personSummary");
-    if (exists(fperson[0])) {
-        var fsplit = $(fperson[0]).html().replace(/<a .*?<\/a>/g, "").split(".");
-        for (var i = 0; i < fsplit.length; i++) {
-            if (fsplit[i].contains("Born")) {
-                var data = parseAncestryFreeDate(fsplit[i]);
-                if (!$.isEmptyObject(data)) {
-                    profiledata["birth"] = data;
-                }
-            } else if (fsplit[i].contains("passed away")) {
-                if (genderval === "unknown") {
-                    if (fsplit[i].startsWith("He")) {
-                        genderval = "male";
-                    } else if (fsplit[i].startsWith("She")) {
-                        genderval = "female";
-                    }
-                }
-                var data = parseAncestryFreeDate(fsplit[i]);
-                if (!$.isEmptyObject(data)) {
-                    if (exists(getDate(data))) {
-                        deathdtflag = true;
-                    }
-                    profiledata["death"] = data;
-                }
-            }
+    if (exists(person.birth)) {
+        var data = parseAncestryFreeNewDate(person.birth);
+        if (!$.isEmptyObject(data)) {
+            profiledata["birth"] = data;
         }
     }
+    if (exists(person.death)) {
+        var data = parseAncestryFreeNewDate(person.death);
+        if (!$.isEmptyObject(data)) {
+            if (exists(getDate(data))) {
+                deathdtflag = true;
+            }
+            profiledata["death"] = data;
+        }
+    }
+    // ---------------------- Profile Data --------------------
 
     if (relation === "") {
         focusgender = genderval;
@@ -120,114 +133,25 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
 
     // ---------------------- Family Data --------------------
     if (familymembers) {
-        var person;
-        person = parsed.find(".personFather");
-        if (!exists(person[0])) {
-            person = parsed.find("#personFather");
-        }
-        if (exists(person[0])) {
-            processAncestryFamily(person[0], "father", famid);
+        if (exists(preload.person.Father)) {
+            parseAncestryFree(preload.person.Father, false, {"title": "father", "profile_id": famid, "itemId": preload.person.Father.pid});
             famid++;
         }
-        person = parsed.find(".personMother");
-        if (!exists(person[0])) {
-            person = parsed.find("#personMother");
-        }
-        if (exists(person[0])) {
-            processAncestryFamily(person[0], "mother", famid);
+        if (exists(preload.person.Mother)) {
+            parseAncestryFree(preload.person.Mother, false, {"title": "mother", "profile_id": famid, "itemId": preload.person.Mother.pid});
             famid++;
         }
-        person = parsed.find(".personSpouses").find("li");
-        if (!exists(person[0])) {
-           var sections = parsed.find(".ancCol");
-            for (var i = 0; i < sections.length; i++) {
-                if ($(sections[i]).text().trim().startsWith("Spouse")) {
-                    person = $(sections[i]).find(".userCardContent");
-                    break;
-                }
-            }
-        }
-        if (exists(person[0])) {
-            for (var i = 0; i < person.length; i++) {
-                processAncestryFamily(person[i], "spouse", famid);
-                myhspouse.push(famid);
+        if (exists(preload.person.Spouses)) {
+            for (i=0; i < preload.person.Spouses.length; i++) {
+                parseAncestryFree(preload.person.Spouses[i], false, {"title": "spouse", "profile_id": famid, "itemId":preload.person.Spouses[i].pid});
                 famid++;
             }
         }
-        person = parsed.find(".personChildren").find("li");
-        if (!exists(person[0])) {
-            var sections = parsed.find(".ancCol");
-            for (var i = 0; i < sections.length; i++) {
-                if ($(sections[i]).text().trim().startsWith("Child")) {
-                    person = $(sections[i]).find(".userCardContent");
-                    break;
-                }
-            }
-        }
-        if (exists(person[0])) {
-            for (var i = 0; i < person.length; i++) {
-                processAncestryFamily(person[i], "child", famid);
+        if (exists(preload.person.Children)) {
+            for (i=0; i < preload.person.Children.length; i++) {
+                parseAncestryFree(preload.person.Children[i], false, {"title": "child", "profile_id": famid, "itemId": preload.person.Children[i].pid});
                 famid++;
             }
-        }
-    } else if (isParent(relation.title)) {
-        if (parentmarriageid === "") {
-            parentmarriageid = relation.itemId;
-        } else if (relation.itemId !== parentmarriageid) {
-            //TODO - Not sure if this Marriage information is provided
-        }
-    } else if (isChild(relation.title)) {
-        var person;
-        var url;
-        var itemid;
-        person = parsed.find(".personFather");
-        if (!exists(person[0])) {
-            person = parsed.find("#personFather");
-        }
-        if (exists(person[0])) {
-            url = $(person[0]).find("a").attr("href");
-            itemid = getAncestryItemId(url);
-        }
-        if (exists(itemid) && focusURLid !== itemid) {
-            childlist[relation.proid] = $.inArray(itemid, unionurls);
-            profiledata["parent_id"] = $.inArray(itemid, unionurls);
-        } else {
-            person = parsed.find(".personMother");
-            if (!exists(person[0])) {
-                person = parsed.find("#personMother");
-            }
-            if (exists(person[0])) {
-                url = $(person[0]).find("a").attr("href");
-                itemid = getAncestryItemId(url);
-                childlist[relation.proid] = $.inArray(itemid, unionurls);
-                profiledata["parent_id"] = $.inArray(itemid, unionurls);
-            }
-        }
-    } else if (isSibling(relation.title)) {
-        var siblingparents = [];
-        var person;
-        var url;
-        var itemid;
-        person = parsed.find(".personFather");
-        if (!exists(person[0])) {
-            person = parsed.find("#personFather");
-        }
-        if (exists(person[0])) {
-            url = $(person[0]).find("a").attr("href");
-            itemid = getAncestryItemId(url);
-            siblingparents.push(itemid);
-        }
-        person = parsed.find(".personMother");
-        if (!exists(person[0])) {
-            person = parsed.find("#personMother");
-        }
-        if (exists(person[0])) {
-            url = $(person[0]).find("a").attr("href");
-            itemid = getAncestryItemId(url);
-            siblingparents.push(itemid);
-        }
-        if (siblingparents.length > 0) {
-            profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
         }
     }
 
@@ -246,85 +170,26 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
         alldata["profile"] = profiledata;
         alldata["scorefactors"] = smscorefactors;
         updateGeo();
+    } else {
+        profiledata["url"] = "https://www.ancestry.com/genealogy/records/" + relation.itemId;
+        profiledata["profile_id"] = relation.profile_id;
+        databyid[relation.profile_id] = profiledata;
+        if (!exists(alldata["family"][relation.title])) {
+            alldata["family"][relation.title] = [];
+        }
+        alldata["family"][relation.title].push(profiledata);
     }
     return profiledata;
 }
 
-function getAncestryItemId(url) {
-    if (exists(url)) {
-        if (url.contains("pid=")) {
-            return getParameterByName("pid", url);
-        } else {
-            return url.substring(url.lastIndexOf("_")+1, url.length);
-        }
-    } else {
-        return "";
-    }
-}
-
-function processAncestryFamily(person, title, famid) {
-    var url = $(person).find("a").attr("href");
-    if (exists(url)) {
-        if (!exists(alldata["family"][title])) {
-            alldata["family"][title] = [];
-        }
-        var genderimg = $(person).find(".photo");
-        var gendersv = "unknown";
-        if (isFemale(title) || genderimg.hasClass("iconFemale")) {
-            gendersv = "female";
-        } else if (isMale(title) || genderimg.hasClass("iconMale")) {
-            gendersv = "male";
-        }
-        var name = $(person).find(".name").text();
-        var itemid = getAncestryItemId(url);
-        if (isParent(title)) {
-            parentlist.push(itemid);
-        }
-        var subdata = {name: name, title: title, gender: gendersv, url: url, itemId: itemid, profile_id: famid};
-        unionurls[famid] = itemid;
-        getAncestryFreeFamily(famid, url, subdata);
-    }
-}
-
-function parseAncestryFreeDate(vitalstring) {
-
+function parseAncestryFreeNewDate(vitalstring) {
     var data = [];
-    var dmatch = vitalstring.match(/on <b>(.*?)<\/b>/);
-    if (exists(dmatch)) {
-        var dateval = dmatch[1].trim();
-        dateval = cleanDate(dateval);
-        if (dateval !== "") {
-            data.push({date: dateval});
-        }
+    if (vitalstring.date) {
+        data.push({date: vitalstring.date});
     }
-    var lmatch = vitalstring.match(/in <b>(.*?)<\/b>/);
-    if (exists(lmatch)) {
-        var eventlocation = lmatch[1].trim();
-        if (eventlocation !== "") {
-            data.push({id: geoid, location: eventlocation});
-            geoid++;
-        }
+    if (vitalstring.place) {
+        data.push({id: geoid, location: vitalstring.place});
+        geoid++;
     }
     return data;
-}
-
-function getAncestryFreeFamily(famid, url, subdata) {
-    familystatus.push(famid);
-    chrome.runtime.sendMessage({
-        method: "GET",
-        action: "xhttp",
-        url: url,
-        variable: subdata
-    }, function (response) {
-        var arg = response.variable;
-        var person = parseAncestryFree(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
-        if (person === "") {
-            familystatus.pop();
-            return;
-        }
-        person = updateInfoData(person, arg);
-        databyid[arg.profile_id] = person;
-        alldata["family"][arg.title].push(person);
-        familystatus.pop();
-    });
 }

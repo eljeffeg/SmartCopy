@@ -244,6 +244,8 @@ function queryGeo(locationset, test) {
         geostatus.push(geostatus.length);
         if (exists(locationset.retry)) {
             geostatus.pop();
+        } else {
+            locationset.retry = 0;
         }
         var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&address=" + encodeURIComponent(location);
         chrome.runtime.sendMessage({
@@ -333,7 +335,8 @@ function queryGeo(locationset, test) {
                     georesult.query = full_location;
                     if (georesult.count === 0 && (!exists(locationset.retry) || locationset.retry < 2)) {
                         locationset.retry += 1;
-                        setTimeout(queryGeo, 400, locationset);
+                        console.log("Retry " + locationset.retry + " - Failed to Locate: " + full_location);
+                        setTimeout(queryGeo, 500, locationset);
                     } else {
                         geolocation[id] = georesult;
                         if (unittest !== "") {

@@ -633,6 +633,21 @@ function getFSProfileData(focusRecord, relation) {
         }
     }
 
+    if (!exists(profiledata["birth"]) || !exists(profiledata["birth"]["date"])) {
+        if (focusRecord["fields"]) {
+            var facts = focusRecord["fields"];
+            for (var i = 0; i < facts.length; i++) {
+                var eventinfo = facts[i];
+                var type = rmGED(eventinfo["type"]);
+                if (type === "estimatedbirthyear") {
+                    var data = [];
+                    data.push({date: "Circa " + cleanDate(eventinfo["values"][0]["text"])});
+                    profiledata["birth"] = data;
+                }
+            }
+        }
+    }
+
     if (relation === "") {
         focusgender = genderval;
     } else if (genderval === "unknown" && exists(relation.gender)) {

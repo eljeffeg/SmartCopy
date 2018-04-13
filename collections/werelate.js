@@ -101,6 +101,7 @@ function parseWeRelate(htmlstring, familymembers, relation) {
                                 name = $(personval[x]).attr("content");
                             } else if ($(personval[x]).attr("itemprop") === "url") {
                                 url = $(personval[x]).attr("content");
+                                url = url.replace("http://", "https://");
                             }
                         }
                         if (exists(url)) {

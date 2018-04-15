@@ -58,7 +58,7 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
     var preload = null;
     if (relation === "") {
         var parsed = $(htmlstring.replace(/<img/ig, "<gmi"));
-        const regex = /(?<=window\.__PRELOADED_STATE__ \= ).*?(?=;.*?\<\/script>)/gs;
+        var regex = new RegExp('(?<=window\.__PRELOADED_STATE__ \= ).*?(?=;.*?\<\/script>)', 'gs');
         var match = regex.exec(htmlstring);
         if (exists(match)) {
             preload = JSON.parse(match[0]);

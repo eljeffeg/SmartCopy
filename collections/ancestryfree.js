@@ -25,7 +25,7 @@ registerCollection({
         }
     },
     "loadPage": function(request) {
-        const regex = /(?<=window\.__PRELOADED_STATE__ \= ).*?(?=;.*?\<\/script>)/gs;
+        var regex = new RegExp('(?<=window\.__PRELOADED_STATE__ \= ).*?(?=;.*?\<\/script>)', 'gs');
         var match = regex.exec(request.source);
         if (exists(match)) {
             var preload = JSON.parse(match[0]);
@@ -63,7 +63,7 @@ function parseAncestryFree(htmlstring, familymembers, relation) {
         if (exists(match)) {
             preload = JSON.parse(match[0]);
         }
-        console.log(preload);
+
         if (!exists(preload) || !exists(preload.person)) {
             return;
         }

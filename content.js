@@ -82,7 +82,7 @@ function queryGeni() {
             } catch (e) {
                 genifamily = [];
             }
-            if (!exists(genifamily)) {
+            if (!exists(genifamily) || !exists(genifamily["focus"])) {
                 genifamily = [];
             } else {
                 focusid = genifamily["focus"].id;

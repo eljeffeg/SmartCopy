@@ -82,7 +82,9 @@ registerCollection({
             if (!profilechanged) {
                 var smartmatchpage = parsed.find("#nav_tab_901");
                 var smartmatchpage2 = parsed.find("#nav_tab_101");
-                if (!exists(smartmatchpage[0]) && !exists(smartmatchpage2[0])) {
+                var smartmatchpage3 = parsed.find(".value_add_score_factors_container");
+                var smartmatchpage4 = request.source.contains("window.NREUM");
+                if (!exists(smartmatchpage[0]) && !exists(smartmatchpage2[0]) && (exists(smartmatchpage3[0]) || smartmatchpage4)) {
                     var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
                     if (exists(focusprofile)) {
                         focusid = focusprofile.trim().replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");

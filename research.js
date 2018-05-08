@@ -135,7 +135,7 @@ function buildFindAGrave(responsedata) {
     } else if (exists(responsedata.maiden_name)) {
         lastname = wrapEncode(responsedata.maiden_name.replace(/'/g,""));
     }
-    var query = 'https://www.findagrave.com/cgi-bin/fg.cgi?page=gsr&GSfn=' + firstname.replace(/%22/g, "") + '&GSmn=&GSln=' + lastname.replace(/%22/g, "") + '&GSiman=1&GScntry=0&GSst=0&GSgrid=&df=all&GSob=n';
+    var query = 'https://www.findagrave.com/memorial/search?firstname=' + firstname.replace(/%22/g, "") + '&middlename=&lastname=' + lastname.replace(/%22/g, "") + '&birthyear=&birthyearfilter=&deathyear=&deathyearfilter=&location=&locationId=&memorialid=&datefilter=&orderby=n&includeNickName=true&includeMaidenName=true';
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>FindAGrave</strong>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">FindAGrave (' + _("Gravestones") + ')</a></li>';
     researchstring += '</div>';

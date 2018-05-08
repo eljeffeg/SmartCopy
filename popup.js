@@ -1334,7 +1334,7 @@ function submitChildren() {
                 var childid = childlist[i];
                 if (!exists(childid) || childid === -1) {
                     childid = 0;
-                } else if (childid.startsWith("union")) {
+                } else if (typeof childid == "string" && childid.startsWith("union")) {
                     continue;
                 }
                 if (!exists(tempadded[childid]) && !exists(spouselist[childid])) {
@@ -1412,7 +1412,7 @@ function submitChildren() {
             var parentunion;
             if (!exists(clid) || clid === -1) {
                 parentunion = spouselist[0].union;
-            } else if (clid.startsWith("union")) {
+            } else if (typeof clid == "string" && clid.startsWith("union")) {
                 parentunion = clid;
             } else {
                 parentunion = spouselist[clid].union;

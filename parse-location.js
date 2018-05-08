@@ -336,7 +336,7 @@ function queryGeo(locationset, test) {
                     if (georesult.count === 0 && (!exists(locationset.retry) || locationset.retry < 2)) {
                         locationset.retry += 1;
                         console.log("Retry " + locationset.retry + " - Failed to Locate: " + full_location);
-                        setTimeout(queryGeo, 500, locationset);
+                        setTimeout(queryGeo, 1000, locationset);
                     } else {
                         geolocation[id] = georesult;
                         if (unittest !== "") {

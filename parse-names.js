@@ -168,7 +168,14 @@ var NameParse = (function(){
                     }
 
                 }
+
                 lastName = this.removeIgnoredChars(lastName);
+                if ((end - start) === 2 && lastName.trim().length === 1) {
+                    //Look for the situation where the last name is not specified, just First Middle Initial. (ie George R.)
+                    //https://www.familysearch.org/ark:/61903/1:1:Q2W7-5YZF
+                    middleName = lastName.trim();
+                    lastName = "";
+                }
             }
 
             if (detectMiddleName) {
@@ -227,7 +234,7 @@ var NameParse = (function(){
             birthName = this.removeIgnoredChars(birthName);
         }
 
-        if (suffix !== "" && lastName === "" && birthName === "") {
+        if (suffix !== false && suffix !== "" && lastName === "" && birthName === "") {
             //For names like John Ma, where the last name is detected as a suffix
             suffix = "";
             lastName = nameParts[numWords - 1];

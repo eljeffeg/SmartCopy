@@ -1,6 +1,6 @@
 //Shared Variables between popup and context scripts
 var smartcopyurl = "https://historylink.herokuapp.com";  //helpful for local testing to switch from https to http
-var genifamily, focusid, tablink;
+var genifamily, focusid, tabuniondatalink;
 var familystatus = [], genifamilydata = {};
 var focusgender = "unknown";
 var uniondata = [];
@@ -181,37 +181,37 @@ function GeniPerson(obj) {
 
 function isFemale(title) {
     if (!exists(title)) { return false; }
-    title = title.replace(" (implied)", "");
+    title = title.toLowerCase().replace(" (implied)", "");
     return (title === "wife" || title === "ex-wife" || title === "mother" || title === "sister" || title === "daughter" || title === "female");
 }
 
 function isMale(title) {
     if (!exists(title)) { return false; }
-    title = title.replace(" (implied)", "");
+    title = title.toLowerCase().replace(" (implied)", "");
     return (title === "husband" || title === "ex-husband" || title === "father" || title === "brother" || title === "son" || title === "male");
 }
 
 function isSibling(relationship) {
     if (!exists(relationship)) { return false; }
-    relationship = relationship.replace(" (implied)", "");
+    relationship = relationship.toLowerCase().replace(" (implied)", "");
     return (relationship === "siblings" || relationship === "sibling" || relationship === "brother" || relationship === "sister" || relationship === "bro" || relationship === "sis");
 }
 
 function isChild(relationship) {
     if (!exists(relationship)) { return false; }
-    relationship = relationship.replace(" (implied)", "");
+    relationship = relationship.toLowerCase().replace(" (implied)", "");
     return (relationship === "children" || relationship === "child" || relationship === "son" || relationship === "daughter" || relationship === "dau");
 }
 
 function isParent(relationship) {
     if (!exists(relationship)) { return false; }
-    relationship = relationship.replace(" (implied)", "");
+    relationship = relationship.toLowerCase().replace(" (implied)", "");
     return (relationship === "parents" || relationship === "father" || relationship === "mother" || relationship === "parent" || relationship === "moth" || relationship === "fath");
 }
 
 function isPartner(relationship) {
     if (!exists(relationship)) { return false; }
-    relationship = relationship.replace(" (implied)", "");
+    relationship = relationship.toLowerCase().replace(" (implied)", "");
     return (relationship === "spouse" || relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner" || relationship === "ex_husband" || relationship === "ex_wife" || relationship === "ex_partner" || relationship === "spouses");
 }
 

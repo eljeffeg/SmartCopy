@@ -66,6 +66,8 @@ function parseGoogle(result, query) {
                 case 'point_of_interest,establishment':
                 case 'natural_feature,establishment':
                 case 'sublocality_level_1,sublocality,political':
+                case 'political,sublocality,sublocality_level_1':
+                case 'political,sublocality':
                 case 'sublocality,political':
                 case 'neighborhood,political':
                     if (location.place === "") {
@@ -167,6 +169,9 @@ function checkPlace(location) {
             place = splitplace[0];
             place = place.trim();
         }
+    } else if (checkplace.toLowerCase().endsWith("hospital")) {
+        place = splitplace[0];
+        place = place.trim();
     }
     return place;
 }
@@ -237,12 +242,17 @@ function queryGeo(locationset, test) {
         }
 
         geostatus.push(geostatus.length);
+        if (exists(locationset.retry)) {
+            geostatus.pop();
+        } else {
+            locationset.retry = 0;
+        }
         var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&address=" + encodeURIComponent(location);
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
             url: url,
-            variable: {id: locationset.id, place: place, location: locationset.location, unittest: unittest}
+            variable: {id: locationset.id, place: place, location: locationset.location, unittest: unittest, locationset: locationset}
         }, function (response) {
             var result = JSON.parse(response.source);
             var id = response.variable.id;
@@ -280,7 +290,7 @@ function queryGeo(locationset, test) {
                     method: "GET",
                     action: "xhttp",
                     url: url,
-                    variable: {id: id, location: short_location, unittest: unittest, place: response.variable.place, full: full_location}
+                    variable: {id: id, location: short_location, unittest: unittest, place: response.variable.place, full: full_location, locationset: locationset}
                 }, function (response) {
                     var result = JSON.parse(response.source);
                     var id = response.variable.id;
@@ -323,12 +333,17 @@ function queryGeo(locationset, test) {
                         }
                     }
                     georesult.query = full_location;
-                    geolocation[id] = georesult;
-
-                    if (unittest !== "") {
-                        print(geolocation[id], unittest);
+                    if (georesult.count === 0 && (!exists(locationset.retry) || locationset.retry < 2)) {
+                        locationset.retry += 1;
+                        console.log("Retry " + locationset.retry + " - Failed to Locate: " + full_location);
+                        setTimeout(queryGeo, 1000, locationset);
+                    } else {
+                        geolocation[id] = georesult;
+                        if (unittest !== "") {
+                            print(geolocation[id], unittest);
+                        }
+                        geostatus.pop();
                     }
-                    geostatus.pop();
                 });
             } else {
                 if (unittest !== "") {

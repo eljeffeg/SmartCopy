@@ -595,7 +595,9 @@ function buildForm() {
             }
             var nameval = NameParse.parse(members[member].name, mnameonoff);
             var fullname = nameval.displayname;
-            if (fullname.trim() === "") {
+            if (!exists(fullname)) {
+                continue;
+            } else if (fullname.trim() === "") {
                 scored = false;
             }
             var living = false;
@@ -1690,6 +1692,8 @@ function cleanDate(dateval) {
         */
         dateval = "";
     }
+    
+    dateval = dateval.replace(/–/g,"-");
     dateval = dateval.replace(/ - /g, "-");
     dateval = dateval.replace(/\?/g, "");
     dateval = dateval.replace(/ABT\.? /i, "Circa ");
@@ -1722,7 +1726,9 @@ function cleanDate(dateval) {
     } else if (dateval.search(/\d{4}\/\d{2}/) !== -1) {
         dateval = dateval.replace(/\d{2}\//,"");
     }
-
+ 
+    dateval = dateval.replace("Between Between", "Between");
+    dateval = dateval.replace("Circa Circa","Circa");
     dateval = dateval.replace(/\s?\/\s?/g, "-");
 
     if (dateval.startsWith("To")) {

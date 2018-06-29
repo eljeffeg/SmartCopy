@@ -81,7 +81,10 @@ registerCollection({
             focusrange = parsed.find(".recordSubtitle").text().trim();
             if (!profilechanged) {
                 var smartmatchpage = parsed.find("#nav_tab_901");
-                if (!exists(smartmatchpage[0])) {
+                var smartmatchpage2 = parsed.find("#nav_tab_101");
+                var smartmatchpage3 = parsed.find(".value_add_score_factors_container");
+                var smartmatchpage4 = request.source.contains("window.NREUM");
+                if (!exists(smartmatchpage[0]) && !exists(smartmatchpage2[0]) && (exists(smartmatchpage3[0]) || smartmatchpage4)) {
                     var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
                     if (exists(focusprofile)) {
                         focusid = focusprofile.trim().replace("http://www.geni.com/", "").replace("https://www.geni.com/", "");
@@ -201,15 +204,15 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 profiledata["thumb"] = thumb;
             } else if (thumb.contains("get-fs-image.php")) {
                 familystatus.push(familystatus.length);
-                var imgurl = smartcopyurl + "/smartredirect?url=" + encodeURIComponent(thumb).replace(/'/g,"%27").replace(/"/g,"%22");
+                var imgurl = thumb.replace(/'/g,"%27").replace(/"/g,"%22");
                 chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",
                     url: imgurl,
                     variable: imgurl
                 }, function (response) {
-                    var thumb = response.source;
-                    var imgurl = decodeURIComponent(response.variable);
+                    var thumb = response.responseURL;
+                    var imgurl = response.variable;
                     if (imgurl.startsWith("http") && !thumb.contains("myheritageimages.com") && !thumb.contains("mhcache.com") && !thumb.contains("myheritage.com")) {
                         //https://www.myheritage.com/research/collection-40001/familysearch-family-tree?itemId=149064846&action=showRecord
                         //https://www.myheritage.com/research/collection-40001/familysearch-family-tree?itemId=337043845&action=showRecord
@@ -547,7 +550,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 title = title.trim();
             }
             if (title !== 'birth' && title !== 'death' && title !== 'baptism' && title !== 'burial'
-                && title !== 'occupation' && title !== 'cemetery' && title !== 'christening' && title !== 'aliases'
+                && title !== 'occupation' && title !== 'cemetery' && title !== 'christening' && title !== 'divorce' && title !== 'aliases'
                 && !(title === 'marriage' && (relation === "" || isParent(relation.title) || isPartner(relation.title)))) {
                 /*
                  This will exclude residence, since the API seems to only support current residence.
@@ -666,9 +669,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     marriagedata.push(data);
                 } else {
                     //parent profiles
-                    if (!parentflag) {
-                        parentmarset.push(data);
-                    } else if (isPartner(relation.title)) {
+                    if (isPartner(relation.title)) {
                         if (exists(data[0].name) && exists(data[0].name === "<Private>")) {
                             //Verify the date in spouse marriage dates
                             for (var i=0; i < marriagedata.length; i++) {
@@ -680,6 +681,8 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                 }
                             }
                         }
+                    } else if (!parentflag && isParent(relation.title)) {
+                        parentmarset.push(data);
                     } else {
                         //attempt to match up parent with multiple spouses via matching date / location
                         for (var pm = 0; pm < parentmarset.length; pm++) {

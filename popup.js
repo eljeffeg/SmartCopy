@@ -1,6 +1,7 @@
 //Development Global Variables
 var devblocksend = false; //Blocks the sending data to Geni, prints output to console instead
 var locationtest = false; //Verbose parsing of location data
+var verboselogs = true;
 
 //Common Global Variables
 var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true, captcha = false, mnameonoff = true;
@@ -10,6 +11,20 @@ var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = 
 var genibuildaction = {}, updatecount = 1, updatetotal = 0;
 var errormsg = "#f9acac", warningmsg = "#f8ff86", infomsg = "#afd2ff";
 
+var _ = function(messageName, substitutions) {
+    return chrome.i18n.getMessage(messageName, substitutions);
+};
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+  Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
+    if ( el.hasAttribute('data-i18n') ){
+      var tranlation = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
+      $(el).text(tranlation);
+    }
+  });
+});
 
 chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
@@ -235,7 +250,7 @@ function userAccess() {
                         }
                     }
                 } else {
-                    $(accessdialog).html("<div style='font-size: 115%;'><strong>Research this Person</strong></div>Loading...");
+                    $(accessdialog).html("<div style='font-size: 115%;'><strong>" + _("Research_this_Person") + "</strong></div>" + _("Loading___"));
                     buildResearch();
                 }
             });
@@ -402,8 +417,8 @@ function loadPage(request) {
             $(accessdialog).text("");
             accessdialog.style.backgroundColor = "#dfe6ed";
 
-            var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,nicknames,gender,deleted,merged_into,birth,baptism,death,burial,cause_of_death,is_alive,occupation,photo_urls,marriage,divorce,locked_fields,match_counts&actions=update,update-basics,add";
-            var descurl = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
+            var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,nicknames,gender,deleted,merged_into,birth,baptism,death,burial,cause_of_death,is_alive,occupation,photo_urls,marriage,divorce,locked_fields,match_counts&actions=update,update-basics,add,add-photo";
+            var descurl = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;
             chrome.runtime.sendMessage({
                 method: "GET",
                 action: "xhttp",
@@ -550,7 +565,7 @@ function loadSelectPage(request) {
         $('#optionsc').css("display", "none");
         focusprofile = focusprofile.replace("http://www.geni.com/", "").replace("https://www.geni.com/", "").trim();
         var args = "fields=id,guid,name,gender,deleted";
-        var url = "https://www.geni.com/api/" + focusprofile + "/immediate-family?" + args;
+        var url = "https://www.geni.com/api/" + focusprofile + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -961,7 +976,11 @@ var submitform = function () {
                 profileout["about_me"] = focusabout + "\n" + about;
             }
             if (exists(profileout["nicknames"]) && focusnicknames !== "") {
+                if (focusnicknames instanceof Array) {
+                    focusnicknames = focusnicknames.join();
+                }
                 profileout["nicknames"] = focusnicknames + "," + profileout["nicknames"];
+                profileout["nicknames"] = profileout["nicknames"].split(/\s*,\s*/);
             }
             if (exists(profileout.photo)) {
                 if (tablink.indexOf('showRecord') !== -1) {
@@ -1008,7 +1027,9 @@ var submitform = function () {
                                 if (!about.endsWith("\n")) {
                                     about += "\n";
                                 }
-                                about += "*";
+                                if (sourcecheck) {
+                                    about += "*";
+                                }
                             }
                         }
                         if (sourcecheck) {
@@ -1077,7 +1098,7 @@ var submitform = function () {
                             }
                         }
                         if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "")) {
-                            var abouturl = "https://www.geni.com/api/" + pid + "?fields=about_me,nicknames";
+                            var abouturl = "https://www.geni.com/api/" + pid + "?fields=about_me,nicknames" + "&access_token=" + accountinfo.access_token;
                             submitstatus.push(updatetotal);
                             chrome.runtime.sendMessage({
                                 method: "GET",
@@ -1092,8 +1113,14 @@ var submitform = function () {
                                         familyout["about_me"] = geni_return.about_me + "\n" + familyout["about_me"];
                                     }
                                     if (exists(familyout["nicknames"]) && exists(geni_return.nicknames)) {
+                                        if (geni_return instanceof Array) {
+                                            geni_return.nicknames = geni_return.nicknames.join();
+                                        }
                                         familyout["nicknames"] = geni_return.nicknames + "," + familyout["nicknames"];
                                     }
+                                    if (exists(familyout["nicknames"])) {
+                                        familyout["nicknames"] = familyout["nicknames"].split(/\s*,\s*/);
+                                    }                                    
                                 }
                                 buildTree(familyout, "update", response.variable.pid);
                                 submitstatus.pop();
@@ -1135,6 +1162,9 @@ function buildTree(data, action, sendid) {
             permissions = genifamilydata[sendid].get("actions");
         } else if (genifocusdata.get("id") === sendid || sendid.startsWith("union")) {
             permissions = genifocusdata.get("actions");
+        } else {
+            //New profile
+            permissions = ["add-photo"];
         }
 
         if (action === "update") {
@@ -1143,14 +1173,23 @@ function buildTree(data, action, sendid) {
             }
         } else if (action.startsWith("add") && action !== "add-photo") {
             if (permissions.indexOf("add") === -1) {
-                setMessage(errormsg, "Permission denied - No add permission on: " + sendid);
-                console.log("Permission denied - No add permission on profile: " + sendid);
+                setMessage(errormsg, "Geni permission denied - No add permission on: " + sendid);
+                console.log("Geni permission denied - No add permission on profile: " + sendid);
                 return;
             }
         }
-        var posturl = "https://www.geni.com/api/" + sendid + "/" + action +  "?fields=id,unions,name";
+        var posturl = "https://www.geni.com/api/" + sendid + "/" + action +  "?fields=id,unions,name" + "&access_token=" + accountinfo.access_token;
         if (action === "add-photo") {
-            posturl = smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action;
+            if (permissions.indexOf("add-photo") === -1) {
+                setMessage(errormsg, "Geni permission to add photo denied on: " + sendid);
+                console.log("Geni permission to add photo denied on: " + sendid);
+                return;
+            }
+            posturl = smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action + "&access_token=" + accountinfo.access_token;
+        }
+        if (verboselogs) {
+            console.log("Post URL: " + posturl);
+            console.log("Post Data: " + JSON.stringify(data));
         }
         chrome.runtime.sendMessage({
             method: "POST",
@@ -1161,13 +1200,20 @@ function buildTree(data, action, sendid) {
         }, function (response) {
             try {
                 var result = JSON.parse(response.source);
+                if (verboselogs) {
+                    console.log("Geni Response: " + response.source);
+                }
+                if (exists(result.error) && exists(result.error.message)) {
+                    noerror = false;
+                    setMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + 'Error Response: "' + result.error.message + '"');
+                }
             } catch (e) {
                 noerror = false;
                 var extrainfo = "";
                 if (response.variable.relation === "photo") {
                     extrainfo = "The photo may be too large. "
                 }
-                setMessage(errormsg, 'There was a problem adding a ' + response.variable.relation + ' to Geni. ' + extrainfo + 'Error Response: "' + e.message + '"');
+                setMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + extrainfo + 'Error Response: "' + e.message + '"');
                 console.log(e); //error in the above string(in this case,yes)!
                 console.log(response.source);
             }
@@ -1288,7 +1334,7 @@ function submitChildren() {
                 var childid = childlist[i];
                 if (!exists(childid) || childid === -1) {
                     childid = 0;
-                } else if (childid.startsWith("union")) {
+                } else if (typeof childid == "string" && childid.startsWith("union")) {
                     continue;
                 }
                 if (!exists(tempadded[childid]) && !exists(spouselist[childid])) {
@@ -1342,7 +1388,7 @@ function submitChildren() {
                     chrome.runtime.sendMessage({
                         method: "POST",
                         action: "xhttp",
-                        url: "https://www.geni.com/api/" + spouseinfo.union + "/update",
+                        url: "https://www.geni.com/api/" + spouseinfo.union + "/update" + "?access_token=" + accountinfo.access_token,
                         data: $.param(marriageupdate),
                         variable: ""
                     }, function (response) {
@@ -1366,7 +1412,7 @@ function submitChildren() {
             var parentunion;
             if (!exists(clid) || clid === -1) {
                 parentunion = spouselist[0].union;
-            } else if (clid.startsWith("union")) {
+            } else if (typeof clid == "string" && clid.startsWith("union")) {
                 parentunion = clid;
             } else {
                 parentunion = spouselist[clid].union;
@@ -1423,7 +1469,7 @@ function buildTempSpouse(parentid) {
         chrome.runtime.sendMessage({
             method: "POST",
             action: "xhttp",
-            url: "https://www.geni.com/api/" + focusid + "/add-partner",
+            url: "https://www.geni.com/api/" + focusid + "/add-partner" + "?access_token=" + accountinfo.access_token,
             data: $.param({gender: tgender}),
             variable: {id: parentid}
         }, function (response) {
@@ -1889,6 +1935,10 @@ $(function () {
     $('#locationcheckonoffswitch').on('click', function () {
         chrome.storage.local.set({'locationcheck': this.checked});
     });
+    $('#addbioonoffswitch').on('click', function () {
+        chrome.storage.local.set({'addbiobutton': this.checked});
+        $("#addbiochange").css("display", "block");
+    });
     $('#partneronoffswitch').on('click', function () {
         chrome.storage.local.set({'partnercheck': this.checked});
         if (this.checked) {
@@ -2335,7 +2385,6 @@ chrome.storage.local.get('partnercheck', function (result) {
     }
 });
 
-
 chrome.storage.local.get('childcheck', function (result) {
     var childcheck = result.childcheck;
     if (exists(childcheck)) {
@@ -2385,6 +2434,13 @@ chrome.storage.local.get('autoprivate', function (result) {
     var privatechecked = result.autoprivate;
     if (exists(privatechecked)) {
         $('#privateonoffswitch').prop('checked', privatechecked);
+    }
+});
+
+chrome.storage.local.get('addbiobutton', function (result) {
+    var addbiobutton = result.addbiobutton;
+    if (exists(addbiobutton)) {
+        $('#addbioonoffswitch').prop('checked', addbiobutton);
     }
 });
 

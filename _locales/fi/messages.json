@@ -1,170 +1,330 @@
 {
     "appName": {
-        "message": "SmartCopy",
-        "description": "The title of the application, displayed in the web store."
+        "message": "SmartCopy"
     },
     "appShortName": {
-        "message": "SmartCopy",
-        "description": "The title of the application, displayed in the web store."
+        "message": "SmartCopy"
     },
     "appDesc": {
-        "message": "Työkalu sukututkimustietojen kopioimiseen Geniin.", 
-        "description": "The description of the application, displayed in the web store."
+        "message": "Työkalu sukututkimustietojen kopioimiseen Geniin."
     },
     "consistencyCheck": {
-        "message": "Johdonmukaisuustarkistus", 
-        "description": "TODO"
+        "message": "Johdonmukaisuus"
     },
     "contains_incorrect_uppercase_lowercase_in_name": {
         "message": "$person$ nimi ei ole erisnimien kirjoitussäännön mukainen - iso alkukirjain, loput pienellä ($lang$).",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "pronoun": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             },
             "lang": {
-                "content": "$3",
-                "example": "TODO"
+                "content": "$3"
             }
         }
     },
     "contains_incorrect_uppercase_lowercase_in_name_default": {
         "message": "$person$ nimi ei ole erisnimien kirjoitussäännön mukainen - iso alkukirjain, loput pienellä.",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "pronoun": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             }
         }
     },
     "contains_patronym_in_first_name": {
         "message": "$person$ sisältää patro/matronyymin etunimikentässään ($lang$).",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "pronoun": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             },
             "lang": {
-                "content": "$3",
-                "example": "TODO"
+                "content": "$3"
             }
         }
     },
     "contains_patronym_in_first_name_default": {
         "message": "$person$ sisältää patro/matronyymin etunimikentässään.",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "pronoun": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             }
         }
     },
     "contains_non_patronym_in_middle_name": {
         "message": "$person$ sisältää muuta kuin patro/matronyymin tälle tarkoitetussa kentässä ($lang$).",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "pronoun": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             },
             "lang": {
-                "content": "$3",
-                "example": "TODO"
+                "content": "$3"
             }
         }
     },
     "contains_non_patronym_in_middle_name_default": {
         "message": "$person$ sisältää muuta kuin patro/matronyymin tälle tarkoitetussa kentässä.",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "pronoun": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             }
         }
     },
     "fixCase": {
-        "message": "korjaa", 
-        "description": "TODO"
+        "message": "korjaa"
     },
     "fixed": {
-        "message": "korjattu", 
-        "description": "TODO"
+        "message": "korjattu"
     },
     "fixName": {
-        "message": "korjaa", 
-        "description": "TODO"
+        "message": "korjaa"
     },
     "fixSpace": {
-        "message": "korjaa", 
-        "description": "TODO"
+        "message": "korjaa"
     },
     "fixSuffix": {
-        "message": "korjaa", 
-        "description": "TODO"
+        "message": "korjaa"
     },
     "fixTitle": {
-        "message": "korjaa", 
-        "description": "TODO"
+        "message": "korjaa"
     },
     "makePublic": {
-        "message": "julkista", 
-        "description": "TODO"
+        "message": "julkista"
     },
     "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
-        "message": "$count$ ennen vuotta n. $year$ syntynyttä perheenjäsentä on asetettu yksityisiksi.",
-        "description": "TODO",
+        "message": "$count$ ennen vuotta n.$year$ syntynyttä perheenjäsentä on asetettu yksityisiksi.",
         "placeholders": {
             "count": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "year": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             }
         }
     },
     "personWasBornBeforeYearAndIsSetAsPrivate": {
-        "message": "$person$ on syntynyt ennen vuotta n. $year$ ja on asetettu yksityiseksi.",
-        "description": "TODO",
+        "message": "$person$ on syntynyt ennen vuotta n.$year$ ja on asetettu yksityiseksi.",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "year": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             }
         }
+    },
+    "Research_this_Person": {
+        "message": "Tutki tätä henkilöä"
+    },
+    "Gravestones": {
+        "message": "hautakiviä"
+    },
+    "Genealogies": {
+        "message": "sukupuita"
+    },
+    "Genealogy": {
+        "message": "sukututkimus"
+    },
+    "Geni_Search": {
+        "message": "Geni-haku"
+    },
+    "Google_Search": {
+        "message": "Google-haku"
+    },
+    "Records": {
+        "message": "asiakirjoja"
+    },
+    "Messageboard": {
+        "message": "keskustelupalstoja"
+    },
+    "Newspapers": {
+        "message": "sanomalehtiä"
+    },
+    "Books": {
+        "message": "kirjoja"
+    },
+    "Obituaries": {
+        "message": "muistokirjoituksia"
+    },
+    "Other_Resources": {
+        "message": "Muita lähteitä"
+    },
+    "Loading___": {
+        "message": "Ladataan..."
+    },
+    "Ancestor_Graph": {
+        "message": "Esivanhempikaavio"
+    },
+    "Descendant_Graph": {
+        "message": "Jälkeläiskaavio"
+    },
+    "History_Search": {
+        "message": "Historiahaku"
+    },
+    "Configuration": {
+        "message": "Asetukset"
+    },
+    "Copy_Preferences": {
+        "message": "Kopiointiasetukset"
+    },
+    "Consistency_Checks": {
+        "message": "Johdonmukaisuus"
+    },
+    "Geni_Customization": {
+        "message": "Geni-laajennukset"
+    },
+    "Note_Dates_that_contain_Between_Before_and_After___": {
+        "message": "Huomaa: Päiväyksiä jotka sisältävät Välillä, Ennen ja Jälkeen ei vertailla johdonmukaisuustarkistuksissa. Päiväykset joissa on Noin käsitellään täsmällisinä päiväyksinä."
+    },
+    "Run_consistency_checks_when_viewing_Geni_profiles": {
+        "message": "Suorita tarkistukset tarkastellessasi Geni-profiileja."
+    },
+    "Age_difference_between_partners_is_significant": {
+        "message": "Kumppanien ikäero on merkittävä"
+    },
+    "Maiden_name_same_as_husbands_last_name": {
+        "message": "Syntymänimi sama kuin aviomiehen sukunimi"
+    },
+    "Husband_and_wife_death_dates_the_same": {
+        "message": "Aviomiehen ja vaimon kuolinpäivä on sama"
+    },
+    "Husband_death_date_same_as_marriage_date": {
+        "message": "Aviomiehen kuolinpäivä on sama kuin avioitumispäivä"
+    },
+    "Wife_death_date_same_as_marriage_date": {
+        "message": "Vaimon kuolinpäivä on sama kuin avioitumispäivä"
+    },
+    "Born_after_marriage": {
+        "message": "Syntynyt avioitumisen jälkeen"
+    },
+    "Died_before_marriage": {
+        "message": "Kuollut ennen avioitumista"
+    },
+    "Implausible_marriage_age_too_young": {
+        "message": "Epäuskottava avioitumisikä, liian nuori"
+    },
+    "Siblings_ages_too_close_together": {
+        "message": "Sisarusten iät liian lähellä toisiaan"
+    },
+    "Born_before_parent_birth": {
+        "message": "Syntynyt ennen vanhempaansa"
+    },
+    "Born_after_parent_death": {
+        "message": "Syntynyt vanhemman kuoleman jälkeen"
+    },
+    "Death_before_baptism_date": {
+        "message": "Kuollut ennen kastetta"
+    },
+    "Death_after_burial_date": {
+        "message": "Kuolema hautauksen jälkeen"
+    },
+    "Parent_too_young_for_childs_birth": {
+        "message": "Vanhempi liian nuori lapsen syntymään"
+    },
+    "Mother_too_old_for_childs_birth": {
+        "message": "Äiti liian vanha synnyttämään lapsen"
+    },
+    "Born_before_parent_marriage": {
+        "message": "Syntynyt ennen vanhempien avioliittoa"
+    },
+    "Excessive_Age": {
+        "message": "Yletön ikä"
+    },
+    "Born_after_death": {
+        "message": "Syntynyt kuoleman jälkeen"
+    },
+    "Name_contains_double_space": {
+        "message": "Nimessä on ylimääräisiä välilyöntejä"
+    },
+    "Name_contains_alias": {
+        "message": "Nimeen sisältyy alias"
+    },
+    "Name_contains_improper_use_of_uppercase_lowercase": {
+        "message": "Name contains improper use of uppercase/lowercase"
+    },
+    "First_Name_ends_in_suffix_eg___": {
+        "message": "Etunimi päättyy suffiksiin (esim. 'i','ii','iii','iv','jr','sr')"
+    },
+    "Salutation_or_relationship_in_title_eg___": {
+        "message": "Salutation or relationship in title (eg. 'Mr', 'Mrs')"
+    },
+    "Salutation_or_relationship_in_suffix_eg___": {
+        "message": "Salutation or relationship in suffix (eg. 'Mr', 'Mrs')"
+    },
+    "Relationship_cycle_in_immediate_family": {
+        "message": "Relationship cycle in immediate family"
+    },
+    "Check_date_formatting_for_inconsistent_values": {
+        "message": "Check date formatting for inconsistent values"
+    },
+    "Check_for_pending_data_conflict_resolution": {
+        "message": "Tarkista avoimet tietoristiriitaisuudet"
+    },
+    "Self_check_profile_for_inconsistent_dates_and_values": {
+        "message": "Tarkista profiilin päivämäärien ja arvojen johdonmukaisuus."
+    },
+    "Check_name_fields_for_improper_values": {
+        "message": "Tarkista nimikenttien oikeellisuus"
+    },
+    "Check_profile_for_pending_data_conflicts": {
+        "message": "Tarkista profiilin tietojen avoimet ristiriitaisuudet"
+    },
+    "Check_date_values_for_irregular_formatting": {
+        "message": "Tarkista päiväysten muotoilun oikeellisuus"
+    },
+    "Check_when_location_is_missing_a_country": {
+        "message": "Tarkista että paikkatieto sisältää maan"
+    },
+    "Maximum_year_to_be_private": {
+        "message": "Maximum year to be private:"
+    },
+    "Maximum_age": {
+        "message": "Maksimi-ikä:"
+    },
+    "Check_the_dates_of_children_against_their_parents": {
+        "message": "Tarkista lasten päiväystiedot vasten vanehmpensa tietoja."
+    },
+    "Age_the_parent_is_too_young_to_have_a_child": {
+        "message": "Ikä jolloin vanhempi on liian nuori saadakseen lapsen"
+    },
+    "Age_the_mother_is_too_old_to_have_a_child": {
+        "message": "Äiti on liian vanha saadakseen lapsen"
+    },
+    "Check_the_values_of_partner_spouses_against_each_other": {
+        "message": "Check the values of partner/spouses against each other."
+    },
+    "Identify_possible_maiden_name_copy_issues": {
+        "message": "Tunnista mahdollisia tyttönimen kopiontiongelmia"
+    },
+    "Age_the_spouse_is_too_young_to_be_married": {
+        "message": "Age the spouse is too young to be married"
+    },
+    "Maximum_age_difference_between_spouses": {
+        "message": "Maksimi ikäero puolisoiden välillä"
+    },
+    "Check_siblings_birth_are_over_": {
+        "message": "Check siblings birth are over "
+    },
+    "_months_apart_excl_twins": {
+        "message": " months apart (excl. twins)."
+    },
+    "Future_options_to_add_features_to_Geni": {
+        "message": "Tulevaisuuden optioita Genin lisätoiminnoiksi."
     }
 }

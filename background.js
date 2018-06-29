@@ -16,13 +16,13 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
         var xhttp = new XMLHttpRequest();
         var method = request.method ? request.method.toUpperCase() : 'GET';
         xhttp.onload = function() {
-            var valrtn = {source: xhttp.responseText, variable: request.variable};
+            var valrtn = {source: xhttp.responseText, variable: request.variable, responseURL: xhttp.responseURL};
             callback(valrtn);
         };
         xhttp.onerror = function(error) {
             // Do whatever you want on error. Don't forget to invoke the
             // callback to clean up the communication port.
-            var valrtn = {error: error, variable: request.variable};
+            var valrtn = {error: error, variable: request.variable, responseURL: xhttp.responseURL};
             callback(valrtn);
         };
         xhttp.open(method, request.url, true);

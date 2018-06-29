@@ -3,6 +3,7 @@ registerCollection({
     "reload": false,
     "recordtype": "FamilySearch Record",
     "prepareUrl": function(url) {
+        url = url.replace("://www.", "://");
         if (startsWithHTTP(url,"https://familysearch.org/ark:") && url.contains("/1:1:")) {
             var urlparts= url.split('?');
             focusURLid = urlparts[0].substring(url.lastIndexOf(':') + 1);
@@ -19,6 +20,7 @@ registerCollection({
         return url;
     },
     "collectionMatch": function(url) {
+        url = url.replace("://www.", "://");
         return (
             startsWithHTTP(url, "https://familysearch.org/platform") ||
             startsWithHTTP(url,"https://familysearch.org/search/") ||
@@ -626,6 +628,21 @@ function getFSProfileData(focusRecord, relation) {
                         }
                         aboutdata += abt + "\n";
                     }
+                }
+            }
+        }
+    }
+
+    if (!exists(profiledata["birth"]) || !exists(profiledata["birth"]["date"])) {
+        if (focusRecord["fields"]) {
+            var facts = focusRecord["fields"];
+            for (var i = 0; i < facts.length; i++) {
+                var eventinfo = facts[i];
+                var type = rmGED(eventinfo["type"]);
+                if (type === "estimatedbirthyear") {
+                    var data = [];
+                    data.push({date: "Circa " + cleanDate(eventinfo["values"][0]["text"])});
+                    profiledata["birth"] = data;
                 }
             }
         }

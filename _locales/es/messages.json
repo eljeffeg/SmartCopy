@@ -6,13 +6,13 @@
         "message": "SmartCopy"
     },
     "appDesc": {
-        "message": "Herramienta para copiar datos genealógicos en Geni."
+        "message": "Herramienta para copiar datos genealÃ³gicos en Geni."
     },
     "consistencyCheck": {
-        "message": "Comprobación de consistencia"
+        "message": "ComprobaciÃ³n de consistencia"
     },
     "contains_incorrect_uppercase_lowercase_in_name": {
-        "message": "$person$ contiene un uso incorrecto de mayúsculas y minúsculas en el nombre $pronoun$ ($lang$).",
+        "message": "$person$ contiene un uso incorrecto de mayÃºsculas y minÃºsculas en el nombre $pronoun$ ($lang$).",
         "description": "TODO",
         "placeholders": {
             "person": {
@@ -30,7 +30,7 @@
         }
     },
     "contains_incorrect_uppercase_lowercase_in_name_default": {
-        "message": "$person$ contiene un uso incorrecto de mayúsculas y minúsculas en el nombre $pronoun$.",
+        "message": "$person$ contiene un uso incorrecto de mayÃºsculas y minÃºsculas en el nombre $pronoun$.",
         "description": "TODO",
         "placeholders": {
             "person": {
@@ -44,7 +44,7 @@
         }
     },
     "contains_patronym_in_first_name": {
-        "message": "$person$ contiene un patrónimo o matrónimo en el apellido $pronoun$ ($lang$).",
+        "message": "$person$ contiene un patrÃ³nimo o matrÃ³nimo en el apellido $pronoun$ ($lang$).",
         "description": "TODO",
         "placeholders": {
             "person": {
@@ -62,7 +62,7 @@
         }
     },
     "contains_patronym_in_first_name_default": {
-        "message": "$person$ contiene un patrónimo o matrónimo en el apellido $pronoun$ .",
+        "message": "$person$ contiene un patrÃ³nimo o matrÃ³nimo en el apellido $pronoun$ .",
         "description": "TODO",
         "placeholders": {
             "person": {
@@ -76,7 +76,7 @@
         }
     },
     "contains_non_patronym_in_middle_name": {
-        "message": "$person$ contiene un segundo nombre sin patrónimo o matrónimo $pronoun$ ($lang$).",
+        "message": "$person$ contiene un segundo nombre sin patrÃ³nimo o matrÃ³nimo $pronoun$ ($lang$).",
         "description": "TODO",
         "placeholders": {
             "person": {
@@ -94,7 +94,7 @@
         }
     },
     "contains_non_patronym_in_middle_name_default": {
-        "message": "$person$ contiene un segundo nombre sin patrónimo o matrónimo $pronoun$.",
+        "message": "$person$ contiene un segundo nombre sin patrÃ³nimo o matrÃ³nimo $pronoun$.",
         "description": "TODO",
         "placeholders": {
             "person": {
@@ -128,15 +128,15 @@
         "description": "TODO"
     },
     "fixTitle": {
-        "message": "solucionar título", 
+        "message": "solucionar tÃ­tulo", 
         "description": "TODO"
     },
     "makePublic": {
-        "message": "haceer público", 
+        "message": "haceer pÃºblico", 
         "description": "TODO"
     },
     "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
-        "message": "$count$ familiares nacidos antes de c.$year$ están declarados como.",
+        "message": "$count$ familiares nacidos antes de c.$year$ estÃ¡n declarados como.",
         "description": "TODO",
         "placeholders": {
             "count": {
@@ -150,7 +150,7 @@
         }
     },
     "personWasBornBeforeYearAndIsSetAsPrivate": {
-        "message": "$person$ nació antes de c.$year$ y está declarada como privada.",
+        "message": "$person$ naciÃ³ antes de c.$year$ y estÃ¡ declarada como privada.",
         "description": "TODO",
         "placeholders": {
             "person": {

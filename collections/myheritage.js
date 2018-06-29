@@ -166,7 +166,7 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
         for (var i = 0; i < fperson.length; i++) {
             var member = $(fperson[i]);
             var title = member.next('br').next('span.FL_LabelDimmed').text().trim();
-            title = title.replace("His", "").replace("Her", "").trim();
+            title = title.replace("His", "").replace("Her", "").trim().toLowerCase();
             var url = member.attr("href");
             var itemid = "";
             if (url.contains("#!profile-")) {

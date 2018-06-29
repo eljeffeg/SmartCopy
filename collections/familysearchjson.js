@@ -19,7 +19,6 @@ registerCollection({
                 }
             }
             url = hostDomain(url) + "/tree-data/person/" + focusURLid + "/all?locale=en";
-            console.log(url);
             this.reload = true;
         } else if (startsWithHTTP(url,"https://familysearch.org/ark:") && !url.contains("/1:1:")) {
             var urlparts= url.split('?');
@@ -120,7 +119,9 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                     focusperson.middleName = "";
                 }
             } else if (focusperson.lastName != "") {
-                focusperson.firstName += " " + focusperson.lastName;
+                if (focusperson.firstName !== focusperson.lastName) {
+                    focusperson.firstName += " " + focusperson.lastName;
+                }
                 focusperson.lastName = "";
             }
 

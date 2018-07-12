@@ -230,7 +230,7 @@ function userAccess() {
                 var accessdialog = document.querySelector('#useraccess');
                 accessdialog.style.display = "block";
                 if (!responsedata.big_tree) {
-                    setMessage(infomsg, '<strong>This profile is not in the World Family Tree.</strong>');
+                    setMessage(infomsg, '<strong>' + _('This_profile_is_not_in_the_World_Family_Tree') + '</strong>');
                     accessdialog.style.marginBottom = "-2px";
                 }
                 if (accountinfo.curator && responsedata.claimed && !responsedata.curator) {

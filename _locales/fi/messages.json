@@ -165,6 +165,9 @@
     "Other_Resources": {
         "message": "Muita lähteitä"
     },
+    "Unable_to_create_research_links_on_this_profile": {
+        "message": "Profiilille ei voitu luoda tutkimuslinkkejä."
+    },
     "Loading___": {
         "message": "Ladataan..."
     },
@@ -256,22 +259,22 @@
         "message": "Nimeen sisältyy alias"
     },
     "Name_contains_improper_use_of_uppercase_lowercase": {
-        "message": "Name contains improper use of uppercase/lowercase"
+        "message": "Nimessä käytetty väärin isoja/pieniä kirjaimia"
     },
     "First_Name_ends_in_suffix_eg___": {
         "message": "Etunimi päättyy suffiksiin (esim. 'i','ii','iii','iv','jr','sr')"
     },
     "Salutation_or_relationship_in_title_eg___": {
-        "message": "Salutation or relationship in title (eg. 'Mr', 'Mrs')"
+        "message": "Titteli tai suhde arvonimikentässä (esim. 'Mr', 'Mrs')"
     },
     "Salutation_or_relationship_in_suffix_eg___": {
-        "message": "Salutation or relationship in suffix (eg. 'Mr', 'Mrs')"
+        "message": "Titteli tai suhde suffiksikentässä (esim. 'Mr', 'Mrs')"
     },
     "Relationship_cycle_in_immediate_family": {
-        "message": "Relationship cycle in immediate family"
+        "message": "Suhdesykli lähiperheessä"
     },
     "Check_date_formatting_for_inconsistent_values": {
-        "message": "Check date formatting for inconsistent values"
+        "message": "Tarkista päivämämäärät epäjohdonmukaisuuksien varalta"
     },
     "Check_for_pending_data_conflict_resolution": {
         "message": "Tarkista avoimet tietoristiriitaisuudet"
@@ -292,13 +295,16 @@
         "message": "Tarkista että paikkatieto sisältää maan"
     },
     "Maximum_year_to_be_private": {
-        "message": "Maximum year to be private:"
+        "message": "Maksimivuosi yksityiselle profiilille:"
     },
     "Maximum_age": {
         "message": "Maksimi-ikä:"
     },
     "Check_the_dates_of_children_against_their_parents": {
-        "message": "Tarkista lasten päiväystiedot vasten vanehmpensa tietoja."
+        "message": "Tarkista lasten päiväystiedot vasten vanhempiensa tietoja."
+    },
+    "Check_child_is_born_after_parent_marriage": {
+        "message": "Lapsi on syntynyt vanhempien avioitumisen jälkeen"
     },
     "Age_the_parent_is_too_young_to_have_a_child": {
         "message": "Ikä jolloin vanhempi on liian nuori saadakseen lapsen"
@@ -307,24 +313,36 @@
         "message": "Äiti on liian vanha saadakseen lapsen"
     },
     "Check_the_values_of_partner_spouses_against_each_other": {
-        "message": "Check the values of partner/spouses against each other."
+        "message": "Tarkista kumppanien/puolisoiden arvot toisiansa vasten."
     },
     "Identify_possible_maiden_name_copy_issues": {
         "message": "Tunnista mahdollisia tyttönimen kopiontiongelmia"
     },
     "Age_the_spouse_is_too_young_to_be_married": {
-        "message": "Age the spouse is too young to be married"
+        "message": "Puoliso on iältään liian nuori"
     },
     "Maximum_age_difference_between_spouses": {
         "message": "Maksimi ikäero puolisoiden välillä"
     },
     "Check_siblings_birth_are_over_": {
-        "message": "Check siblings birth are over "
+        "message": "Tarkista että sisarusten iät eroavat vähintään "
     },
     "_months_apart_excl_twins": {
-        "message": " months apart (excl. twins)."
+        "message": " kuukautta (poislukien kaksoset)."
     },
     "Future_options_to_add_features_to_Geni": {
         "message": "Tulevaisuuden optioita Genin lisätoiminnoiksi."
+    },
+    "This_profile_is_not_in_the_World_Family_Tree": {
+        "message": "Tämä profiili ei ole maailmanpuussa."
+    },
+    "Add_to_History": {
+        "message": "Lisää historiaan"
+    },
+    "Show_History": {
+        "message": "Näytä historia"
+    },
+    "Clear_History": {
+        "message": "Tyhjennä historia"
     }
 }

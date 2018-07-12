@@ -31,7 +31,7 @@ function buildResearch() {
             researchstring += buildTributes(responsedata);
             researchstring += "<div style='text-align: center; padding-top: 10px;'><strong>" + _("Other_Resources") + "</strong></div><div style='text-align: left; padding-left: 5px;'><li style='padding-left: 5px;'><a class='ctrllink' url='https://www.geni.com/projects/Genealogie-Zoekmachines-voor-de-Lage-Landen/24259'>Genealogy Search Engines for the Low Countries</a></li></div>";
         } else {
-            researchstring = "<div><strong>Unable to create research links on this profile.</strong>"
+            researchstring = "<div><strong>" + _("Unable_to_create_research_links_on_this_profile") + "</strong>"
         }
         researchstring += '</div>';
         $(accessdialog).html(researchstring);

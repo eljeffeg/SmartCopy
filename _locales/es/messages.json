@@ -13,153 +13,119 @@
     },
     "contains_incorrect_uppercase_lowercase_in_name": {
         "message": "$person$ contiene un uso incorrecto de mayúsculas y minúsculas en el nombre $pronoun$ ($lang$).",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "pronoun": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             },
             "lang": {
-                "content": "$3",
-                "example": "TODO"
+                "content": "$3"
             }
         }
     },
     "contains_incorrect_uppercase_lowercase_in_name_default": {
         "message": "$person$ contiene un uso incorrecto de mayúsculas y minúsculas en el nombre $pronoun$.",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "pronoun": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             }
         }
     },
     "contains_patronym_in_first_name": {
         "message": "$person$ contiene un patrónimo o matrónimo en el apellido $pronoun$ ($lang$).",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "pronoun": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             },
             "lang": {
-                "content": "$3",
-                "example": "TODO"
+                "content": "$3"
             }
         }
     },
     "contains_patronym_in_first_name_default": {
         "message": "$person$ contiene un patrónimo o matrónimo en el apellido $pronoun$ .",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "pronoun": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             }
         }
     },
     "contains_non_patronym_in_middle_name": {
         "message": "$person$ contiene un segundo nombre sin patrónimo o matrónimo $pronoun$ ($lang$).",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "pronoun": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             },
             "lang": {
-                "content": "$3",
-                "example": "TODO"
+                "content": "$3"
             }
         }
     },
     "contains_non_patronym_in_middle_name_default": {
         "message": "$person$ contiene un segundo nombre sin patrónimo o matrónimo $pronoun$.",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "pronoun": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             }
         }
     },
     "fixCase": {
-        "message": "solucionar caso", 
-        "description": "TODO"
+        "message": "solucionar caso"
     },
     "fixed": {
-        "message": "solucionado", 
-        "description": "TODO"
+        "message": "solucionado"
     },
     "fixName": {
-        "message": "solucionar nombre", 
-        "description": "TODO"
+        "message": "solucionar nombre"
     },
     "fixSpace": {
-        "message": "solucionar espacio", 
-        "description": "TODO"
+        "message": "solucionar espacio"
     },
     "fixSuffix": {
-        "message": "solucionar sufijo", 
-        "description": "TODO"
+        "message": "solucionar sufijo"
     },
     "fixTitle": {
-        "message": "solucionar título", 
-        "description": "TODO"
+        "message": "solucionar título"
     },
     "makePublic": {
-        "message": "haceer público", 
-        "description": "TODO"
+        "message": "haceer público"
     },
     "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
         "message": "$count$ familiares nacidos antes de c.$year$ están declarados como.",
-        "description": "TODO",
         "placeholders": {
             "count": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "year": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             }
         }
     },
     "personWasBornBeforeYearAndIsSetAsPrivate": {
         "message": "$person$ nació antes de c.$year$ y está declarada como privada.",
-        "description": "TODO",
         "placeholders": {
             "person": {
-                "content": "$1",
-                "example": "TODO"
+                "content": "$1"
             },
             "year": {
-                "content": "$2",
-                "example": "TODO"
+                "content": "$2"
             }
         }
     }

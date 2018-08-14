@@ -247,7 +247,7 @@ function queryGeo(locationset, test) {
         } else {
             locationset.retry = 0;
         }
-        var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&address=" + encodeURIComponent(location);
+        var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&key=" + accountinfo.google_key + "&address=" + encodeURIComponent(location);
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",

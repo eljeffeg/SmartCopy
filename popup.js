@@ -5,7 +5,7 @@ var verboselogs = true;
 
 //Common Global Variables
 var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true, captcha = false, mnameonoff = true;
-var accountinfo, parentspouseunion, genigender, geniliving, genifocusdata;
+var accountinfo, parentspouseunion, genigender, geniliving, genifocusdata, google_api;
 var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefactors = "", googlerequery = "";
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [], addsiblinglist = [];
 var genibuildaction = {}, updatecount = 1, updatetotal = 0;

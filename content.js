@@ -27,6 +27,7 @@ var compoundlast = false;
 var wedlock = false;
 var biography = null;
 var addbioonoff = true;
+var messagestatus = [];
 
 var _ = function(messageName, substitutions) {
     return chrome.i18n.getMessage(messageName, substitutions);
@@ -418,7 +419,15 @@ function buildConsistency() {
         childCheck(parents, children);
     }
 
-    updateQMessage();
+    checkQMessage();
+}
+
+function checkQMessage() {
+    if (messagestatus.length > 0) {
+        setTimeout(checkQMessage, 50);
+    } else {
+        updateQMessage();
+    }
 }
 
 function partnerCheck(partners) {
@@ -458,8 +467,67 @@ function partnerCheck(partners) {
             if (!(getGeniData(husband, "maiden_name") !== "" && getGeniData(husband, "last_name") !== getGeniData(husband, "maiden_name"))) {
                 //Maiden name same as husband's last name
                 //TODO if you get additional family members, compare this against her father's last name
-                consistencymessage = concat("info") + "Birth Surname of " + buildEditLink(wife) + " is the same as the last name of "
-                    + getPronoun(getGeniData(wife, "gender")) + " " + getStatus(hstatus, getGeniData(husband, "gender")) + " " + buildEditLink(husband) + ".";
+                messagestatus.push(wife);
+                var args = "fields=id,first_name,last_name,maiden_name,gender,deleted,public";
+                var url = "https://www.geni.com/api/" + wife + "/immediate-family?" + args;
+                chrome.runtime.sendMessage({
+                    method: "GET",
+                    action: "xhttp",
+                    url: url
+                }, function (response) {
+                    if (response.source === "[]" || response.source === "") {
+                        wifefamily = [];
+                    } else {
+                        try {
+                            wifefamily = JSON.parse(response.source);
+                        } catch (e) {
+                            wifefamily = [];
+                        }
+                        if (!exists(wifefamily) || !exists(wifefamily["focus"])) {
+                            wifefamily = [];
+                        } else {
+                            var wifeid = wifefamily["focus"].id;
+                            var nodes = wifefamily["nodes"];
+                            var wifeunionid = null;
+                            var wifefather = null;
+                            wifefamilydata = [];
+                            for (var node in nodes) {
+                                if (!nodes.hasOwnProperty(node)) continue;
+                                if (!nodes[node].id.startsWith("union") && !nodes[node].deleted) {
+                                    if (nodes[node].id == wifeid && nodes[node].edges) {
+                                        for (edge in nodes[node].edges) {
+                                            if (nodes[node].edges[edge].rel == "child") {
+                                                wifeunionid = edge;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            for (var node in nodes) {
+                                if (!nodes.hasOwnProperty(node)) continue;
+                                if (!nodes[node].id.startsWith("union") && !nodes[node].deleted) {
+                                    if (nodes[node].edges) {
+                                        for (edge in nodes[node].edges) {
+                                            if (edge == wifeunionid && nodes[node].edges[edge].rel == "partner" && isMale(nodes[node].gender)) {
+                                                wifefather = nodes[node];
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (wifefather === null || (
+                                wifefamily["focus"].maiden_name !== wifefather.last_name && 
+                                wifefamily["focus"].maiden_name !== wifefather.maiden_name &&
+                                wifefamily["focus"].maiden_name.startsWith(wifefather.first_name) === false)) {
+                                    consistencymessage = concat("info") + "Birth Surname of " + buildEditLink(wife) + " is the same as the last name of "
+                                    + getPronoun(getGeniData(wife, "gender")) + " " + getStatus(hstatus, getGeniData(husband, "gender")) + " " + buildEditLink(husband) + ".";
+                            }
+                        }
+                    }
+                    messagestatus.pop();
+                });
             }
         }
         if (isNaN(husband_ddate) && husband_ddate === wife_ddate) {

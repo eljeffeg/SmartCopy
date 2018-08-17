@@ -393,7 +393,7 @@ function buildConsistency() {
             consistencymessage = concat("info") + _("personWasBornBeforeYearAndIsSetAsPrivate", [buildEditLink(publiclist[0]), publicyear])
                 + "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[" + _("makePublic") + "]</a></sup>";
         }
-        }
+    }
 
     relationshipCheck(parents, siblings);
     relationshipCheck(parents, partners);
@@ -517,10 +517,15 @@ function partnerCheck(partners) {
                                     }
                                 }
                             }
+                            var fatherfirstcheck = true;
+                            if (wifefather !== null && exists(wifefather.first_name)) {
+                                fatherfirst = wifefather.first_name.split(" ");
+                                fatherfirstcheck = wifefamily["focus"].maiden_name.startsWith(fatherfirst[0]) !== true;
+                            }
                             if (wifefather === null || (
                                 wifefamily["focus"].maiden_name !== wifefather.last_name && 
                                 wifefamily["focus"].maiden_name !== wifefather.maiden_name &&
-                                wifefamily["focus"].maiden_name.startsWith(wifefather.first_name) === false)) {
+                                fatherfirstcheck)) {
                                     consistencymessage = concat("info") + "Birth Surname of " + buildEditLink(wife) + " is the same as the last name of "
                                     + getPronoun(getGeniData(wife, "gender")) + " " + getStatus(hstatus, getGeniData(husband, "gender")) + " " + buildEditLink(husband) + ".";
                             }

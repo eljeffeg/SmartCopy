@@ -238,6 +238,8 @@ function queryGeo(locationset, test) {
             } else if (location === "") {
                 geolocation[locationset.id] = georesult;
                 return;
+            } else if (place === "" && !location.startsWith(",")) {
+                location = "," + location;  //Prefix string with comma to help prevent mix-ups.
             }
         }
 

@@ -609,7 +609,8 @@ function childCheck(parents, children) {
             for (var x=0; x < children.length; x++) {
                 var adj_parent_ddate = parent_ddate;
                 if (isMale(getGeniData(parents[i], "gender"))) {
-                    adj_parent_ddate = parent_ddate + pregnancy; //Add 9 months to compare conception
+                    var pregnancy_padding = 5259487;  // 2 months
+                    adj_parent_ddate = parent_ddate + pregnancy + pregnancy_padding; //Add pregnacy term and some padding to compare conception
                 }
                 var sibling_bdate = unixDate(children[x], "birth");
                 if (sibling_bdate < parent_bdate) {

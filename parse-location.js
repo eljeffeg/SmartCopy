@@ -238,7 +238,7 @@ function queryGeo(locationset, test) {
             } else if (location === "") {
                 geolocation[locationset.id] = georesult;
                 return;
-            } else if (place === "" && !location.startsWith(",")) {
+            } else if (place === "" && !location.startsWith(",") && USCheck(location)) {
                 location = "," + location;  //Prefix string with comma to help prevent mix-ups.
             }
         }
@@ -361,6 +361,11 @@ function queryGeo(locationset, test) {
 
         });
     }
+}
+
+function USCheck(location) {
+    l = location.toLowerCase();
+    return (l.endsWith("united states") || l.endsWith(" usa") || l.endsWith(" us"));
 }
 
 function matchGeoFields(g1, g2, cnt) {

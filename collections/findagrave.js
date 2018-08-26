@@ -133,6 +133,9 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
         for (var i = 0; i < familyquery.length; i++) {
             var title = $(familyquery[i]).prev().text().toLowerCase();
             if (exists(title)) {
+                if (title === "half siblings") {
+                    title = "siblings";
+                }
                 var group = $(familyquery[i]).find(".name");
                 for (var x = 0; x < group.length; x++) {
                     var url = $(group[x]).attr("href");

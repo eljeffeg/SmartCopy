@@ -178,7 +178,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 childlist[relation.proid] = $.inArray(mid, unionurls);
             } else if (focusURLid === mid) {
                 focusgender = "female";
-                childlist[relation.proid] = $.inArray(fid, unionurls);
+                childlist[relation.proid] = $.inArray(pid, unionurls);
             }
         }
     } else if (isSibling(relation.title)) {

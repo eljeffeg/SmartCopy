@@ -249,7 +249,7 @@ function queryGeo(locationset, test) {
         } else {
             locationset.retry = 0;
         }
-        var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&key=" + accountinfo.google_key + "&address=" + encodeURIComponent(location);
+        var url = "https://maps.googleapis.com/maps/api/geocode/json?language=en&key=" + accountinfo.google_key + "&address=" + encodeURIComponent(location);
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -287,7 +287,7 @@ function queryGeo(locationset, test) {
             // ----- Stage 2: Run again with one item removed from front, or modified, for comparison -----
             var short_location = location_split.join(",").trim();
             if (location_split.length > 0) {
-                var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&address=" + encodeURIComponent(short_location);
+                var url = "https://maps.googleapis.com/maps/api/geocode/json?language=en&key=" + accountinfo.google_key + "&address=" + encodeURIComponent(short_location);
                 chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",

@@ -92,6 +92,9 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     var deathdtflag = false;
     var aboutdata = "";
     var usercard = parsed.find("#researchListFacts").find(".userCardTitle");
+    if (usercard.length == 0) {
+        usercard = parsed.find("#toggleNameAndGenderButton").next().find(".userCardTitle");
+    }
 
     for (var i = 0; i < usercard.length; i++) {
         var entry = $(usercard[i]);

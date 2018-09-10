@@ -299,8 +299,7 @@ function parseAncestryNewDate(vitalinfo) {
     var data = [];
     var dmatch = vitalinfo.find(".factItemDate").text();
     if (exists(dmatch)) {
-        var dateval = dmatch.replace(",", "").replace(".", "").trim();
-        dateval = cleanDate(dateval);
+        dateval = cleanDate(dmatch.trim());
         if (dateval !== "") {
             data.push({date: dateval});
         }

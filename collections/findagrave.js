@@ -93,8 +93,11 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     if (focusdaterange !== "") {
         profiledata["daterange"] = focusdaterange;
     }
-
-    aboutdata = parsed.find("#fullBio").text().trim();
+    
+    abouttemp = parsed.find("#fullBio").html();
+    if (exists(abouttemp)) {
+        aboutdata = $($.parseHTML(abouttemp.replace(/<br>/g, "\n"))).text().trim();
+    }
     profiledata = addEvent(profiledata, "birth", parsed.find("#birthDateLabel").text(), parsed.find("#birthLocationLabel").text());
     profiledata = addEvent(profiledata, "baptism", parsed.find("#baptismDateLabel").text(), parsed.find("#baptismLocationLabel").text());
     profiledata = addEvent(profiledata, "death", parsed.find("#deathDateLabel").text(), parsed.find("#deathLocationLabel").text());
@@ -127,6 +130,27 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     parentstrings = htmlstring.substring(start, start+50);
     var mid = parentstrings.substring(0, parentstrings.indexOf('"'));
 
+    if (!familymembers && (isNaN(parseInt(pid)) || isNaN(parseInt(mid)))) {
+        var familyquery = parsed.find(".member-family");
+        for (var i = 0; i < familyquery.length; i++) {
+            var title = $(familyquery[i]).prev().text().toLowerCase();
+            if (isParent(title)) {
+                var group = $(familyquery[i]).find(".name");
+                for (var x = 0; x < group.length; x++) {
+                    var url = $(group[x]).attr("href");
+                    if (exists(url)) {
+                        var itemid = getFAGID(url);
+                        if (isNaN(parseInt(pid))) {
+                            pid = itemid;
+                        } else if (isNaN(parseInt(mid)) && pid != itemid) {
+                            mid = itemid;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     if (familymembers) {
         var famid = 0;
         var familyquery = parsed.find(".member-family");
@@ -145,11 +169,17 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                         if (!exists(alldata["family"][title])) {
                             alldata["family"][title] = [];
                         }
+
                         if (isParent(title)) {
                             if (itemid === pid) {
                                 genderval = "male";
                             } else if (itemid === mid) {
                                 genderval = "female";
+                            }
+                            if (isNaN(parseInt(pid))) {
+                                pid = itemid;
+                            } else if (isNaN(parseInt(mid)) && pid != itemid) {
+                                mid = itemid;
                             }
                         }
                         var subdata = {name: name, title: title, genderval: genderval};
@@ -172,17 +202,13 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             }
         }
     } else if (isChild(relation.title)) {
-        if (focusgender === "unknown") {
-            if (focusURLid === pid) {
-                focusgender = "male";
-                childlist[relation.proid] = $.inArray(mid, unionurls);
-            } else if (focusURLid === mid) {
-                focusgender = "female";
-                childlist[relation.proid] = $.inArray(pid, unionurls);
-            }
+        if (focusURLid !== itemid) {
+            childlist[relation.proid] = $.inArray(itemid, unionurls);
+            profiledata["parent_id"] = $.inArray(itemid, unionurls);
         }
     } else if (isSibling(relation.title)) {
         var siblingparents = [];
+
         if (pid !== "") {
             siblingparents.push(pid);
         }

@@ -202,9 +202,13 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             }
         }
     } else if (isChild(relation.title)) {
-        if (focusURLid !== itemid) {
-            childlist[relation.proid] = $.inArray(itemid, unionurls);
-            profiledata["parent_id"] = $.inArray(itemid, unionurls);
+        if (pid !== undefined && focusURLid !== pid) {
+            childlist[relation.proid] = $.inArray(pid, unionurls);
+            profiledata["parent_id"] = $.inArray(pid, unionurls);
+
+        } else if (mid !== undefined && focusURLid !== mid) {
+            childlist[relation.proid] = $.inArray(mid, unionurls);
+            profiledata["parent_id"] = $.inArray(mid, unionurls);
         }
     } else if (isSibling(relation.title)) {
         var siblingparents = [];

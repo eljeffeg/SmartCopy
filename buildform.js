@@ -18,11 +18,14 @@ var focusabout = "";
 var focusnicknames = "";
 var parentmarriageid = "";
 alldata["family"] = {};
+var geounique = [];
+var geocleanup = [];
 
 function updateGeo() {
     if (familystatus.length > 0) {
         setTimeout(updateGeo, 50);
     } else if (!captcha) {
+        var values = [];
         console.log("Family Processed...");
         $("#readstatus").html("Determining Locations");
         var listvalues = ["birth", "baptism", "marriage", "divorce", "death", "burial"];
@@ -31,7 +34,17 @@ function updateGeo() {
             var memberobj = alldata["profile"][title];
             if (exists(memberobj)) {
                 for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
-                    queryGeo(memberobj[item]);
+                    if (memberobj[item].location !== undefined && !values.includes(memberobj[item].location)) {
+                        values.push(memberobj[item].location);
+                        geounique.push(memberobj[item]);
+                    } else if (memberobj[item].location !== undefined) {
+                        geocleanup.push(memberobj[item]);
+                    } else {
+                        geounique.push(memberobj[item]);
+                    }
+                }
+                for (var i=0; i<geounique.length; i++) {
+                    queryGeo(geounique[i]);
                 }
             }
         }
@@ -61,7 +74,17 @@ function updateGeo() {
                     var memberobj = members[member][title];
                     if (exists(memberobj)) {
                         for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
-                            queryGeo(memberobj[item]);
+                            if (memberobj[item].location !== undefined && !values.includes(memberobj[item].location)) {
+                                values.push(memberobj[item].location);
+                                geounique.push(memberobj[item]);
+                            } else if (memberobj[item].location !== undefined) {
+                                geocleanup.push(memberobj[item]);
+                            } else {
+                                geounique.push(memberobj[item]);
+                            }
+                        }
+                        for (var i=0; i<geounique.length; i++) {
+                            queryGeo(geounique[i]);
                         }
                     }
                 }
@@ -75,6 +98,14 @@ function updateFamily() {
     if (geostatus.length > 0) {
         setTimeout(updateFamily, 50);
     } else {
+        for (var i=0; i < geocleanup.length; i++) {
+            for (var x=0; x < geounique.length; x++) {
+                if (geocleanup[i].location === geounique[x].location) {
+                    geolocation[geocleanup[i].id] = geolocation[geounique[x].id];
+                    continue;
+                }
+            }
+        }
         console.log("Geo Processed...");
         $("#readstatus").html("");
         updateGenders();

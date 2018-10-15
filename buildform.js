@@ -43,9 +43,6 @@ function updateGeo() {
                         geounique.push(memberobj[item]);
                     }
                 }
-                for (var i=0; i<geounique.length; i++) {
-                    queryGeo(geounique[i]);
-                }
             }
         }
         if (locationtest) {
@@ -83,29 +80,34 @@ function updateGeo() {
                                 geounique.push(memberobj[item]);
                             }
                         }
-                        for (var i=0; i<geounique.length; i++) {
-                            queryGeo(geounique[i]);
-                        }
                     }
                 }
             }
+        }
+        for (var i=0; i<geounique.length; i++) {
+            queryGeo(geounique[i]);
         }
         updateFamily();
     }
 }
 
 function updateFamily() {
+    
     if (geostatus.length > 0) {
         setTimeout(updateFamily, 50);
     } else {
+        //console.log(geounique);
         for (var i=0; i < geocleanup.length; i++) {
             for (var x=0; x < geounique.length; x++) {
                 if (geocleanup[i].location === geounique[x].location) {
                     geolocation[geocleanup[i].id] = geolocation[geounique[x].id];
+                    //console.log("Adding " + geounique[x].id + " to " + geocleanup[i].id);
+                    //console.log(geocleanup[i].location);
                     continue;
                 }
             }
         }
+        //console.log(geolocation);
         console.log("Geo Processed...");
         $("#readstatus").html("");
         updateGenders();
@@ -472,6 +474,9 @@ function buildForm() {
                     var geovar1 = geolocation[obj[item].id];
                     var pincolor = "clear";
                     var pintitle = "";
+                    if (geovar1 === undefined) {
+                        geevar1 = parseGoogle("");
+                    }
                     if (geovar1.ambiguous || geovar1.count > 1) {
                         pincolor = "yellow";
                         pintitle = "Location lookup may be incorrect";

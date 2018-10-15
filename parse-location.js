@@ -186,6 +186,7 @@ function isCem(checkplace) {
 function queryGeo(locationset, test) {
     //locationset should contain "location", "id", and optionally "place" if detected prior to date.
     if (exists(locationset.location)) {
+        //console.log(locationset.id + ": " + locationset.location);
         var unittest = "";
         if (exists(test) && test !== "") {
             unittest = JSON.parse(test);

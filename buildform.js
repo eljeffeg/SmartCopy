@@ -702,19 +702,47 @@ function buildForm() {
                 checkunknown = " disabled";
                 hideunknown = "none";
             }
+            var expand = true;
+            if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]["date"])) {
+                var dt = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"]));
+                var year = dt.get('year');
+                if (year < 1600) {
+                    checkunknown = " disabled";
+                    scored = false;
+                    expand = false;
+                    actionicon = "disabled";
+                }
+            } else if (exists(members[member]["death"]) && exists(members[member]["death"][0]["date"])) {
+                var dt = moment(members[member]["death"][0]["date"], getDateFormat(members[member]["death"][0]["date"]));
+                var year = dt.get('year');
+                if (year < 1600) {
+                    checkunknown = " disabled";
+                    scored = false;
+                    expand = false;
+                    actionicon = "disabled";
+                }
+            }
 
             var membersstring = $(entry).html();
             membersstring += '<div class="membertitle" style="background-color: ' + bgcolor + '"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
-                '<td><input type="checkbox" class="checkslide" name="checkbox' + i + '-' + relationship + '" ' + isChecked(fullname, scored) + checkunknown + '></td>' +
-                '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;">';
+                '<td><input type="checkbox" class="checkslide" name="checkbox' + i + '-' + relationship + '" ' + isChecked(fullname, scored) + checkunknown + '></td>';
+            if (expand) {
+                membersstring += '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;">';
+            } else {
+                membersstring += '<td name="' + i + '-' + relationship + '"  style="width: 100%;" title="pre 1600 - disabled" description="pre 1600 - disabled">';
+            }
             membersstring += '<span id="ribbon' + i + '" style="display: ' + isHidden(living) + '; float: right; position: relative; margin-right: -12px; margin-bottom: -5px; right: 8px; top: -3px; margin-left: -8px;"><img src="images/deceased.png" style="width: 18px;"></span>';
-            membersstring += '<span style="font-size: 130%; float: right; padding-right: 8px; padding-left:2px;"><img src="images/dropdown.png" style="width: 11px;"></span>';
+            if (expand) {
+                membersstring += '<span style="font-size: 130%; float: right; padding-right: 8px; padding-left:2px;"><img src="images/dropdown.png" style="width: 11px;"></span>';
+            }
             membersstring += '<span style="font-size: 90%;"><img class="iconaction" style="width: 16px; margin-bottom: -4px; margin-left: -2px; padding-right: 3px;" src="/images/' + actionicon +  '.png" title=' + actionicon + ' description=' + actionicon + '>' + escapeHtml(fullname.replace(/&quot;/g, '"')) + '</span>';
-
+            
             if (halfsibling) {
                 membersstring += '<span style="float: right; margin-right: 3px; margin-left: -2px; margin-top: 3px; margin-bottom: -3px;"><img src="images/halfcircle.png" style="width: 14px; margin-top: -2px;" alt="half-sibling" title="half-sibling"></span>';
             }
-            membersstring += '<span style="float: right; padding-left: 8px;"><img class="geopin" id="' + i + 'gpin" src="images/clearpin.png" style="height: 14px; margin-bottom: -3px;"><img id="' + i + 'errordate" src="images/dateerror.png" style="display: none; height: 13px; margin-bottom: -3px; padding-right: 3px; margin-left: -3px;" title="Ambiguous Date"></span>';
+            if (expand) {
+                membersstring += '<span style="float: right; padding-left: 8px;"><img class="geopin" id="' + i + 'gpin" src="images/clearpin.png" style="height: 14px; margin-bottom: -3px;"><img id="' + i + 'errordate" src="images/dateerror.png" style="display: none; height: 13px; margin-bottom: -3px; padding-right: 3px; margin-left: -3px;" title="Ambiguous Date"></span>';
+            }
             membersstring += '</td><td></td></tr></table></div>' +
                 '<div id="slide' + i + '-' + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table id="familytable_' + i + '" style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
                 '<tr><td colspan="3" style="padding: 0px;"><input type="hidden" name="profile_id" value="' + members[member].profile_id + '"></td></tr>';

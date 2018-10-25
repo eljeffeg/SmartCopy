@@ -86,6 +86,12 @@
             }
         }
     },
+    "living": {
+        "message": "living"
+    },
+    "claimed": {
+        "message": "claimed"
+    },
     "fixCase": {
         "message": "fix case"
     },
@@ -284,6 +290,9 @@
     },
     "Check_name_fields_for_improper_values": {
         "message": "Check name fields for improper values"
+    },
+    "Check_name_fields_for_living_profiles": {
+        "message": "Exclude living profiles from quick fix"
     },
     "Check_profile_for_pending_data_conflicts": {
         "message": "Check profile for pending data conflicts"

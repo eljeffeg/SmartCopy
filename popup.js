@@ -856,17 +856,19 @@ $(function () {
     $('.checkall').on('click', function () {
         var fs = $(this).closest('div').find('fieldset');
         var ffs = fs.find('[type="checkbox"]');
-        var photoon = $('#photoonoffswitch').prop('checked');
-        ffs.filter(function (item) {
-            if ($(ffs[item]).closest('tr').css("display") === "none") {
-                return false;
-            }
-            return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
-        }).prop('checked', this.checked);
-        var ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector");
-        ffs.filter(function (item) {
-            return !((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
-        }).attr('disabled', !this.checked);
+        if (!$(ffs[0]).prop("disabled")) {
+            var photoon = $('#photoonoffswitch').prop('checked');
+            ffs.filter(function (item) {
+                if ($(ffs[item]).closest('tr').css("display") === "none") {
+                    return false;
+                }
+                return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
+            }).prop('checked', this.checked);
+            var ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector");
+            ffs.filter(function (item) {
+                return !((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
+            }).attr('disabled', !this.checked);
+        }
     });
 });
 
@@ -1871,6 +1873,9 @@ $(function () {
     $('#namecheckonoffswitch').on('click', function () {
         chrome.storage.local.set({'namecheck': this.checked});
     });
+    $('#livingcheckonoffswitch').on('click', function () {
+        chrome.storage.local.set({'livingnameexclude': this.checked});
+    });
     $('#siblingonoffswitch').on('click', function () {
         chrome.storage.local.set({'siblingcheck': this.checked});
     });
@@ -2251,6 +2256,13 @@ chrome.storage.local.get('namecheck', function (result) {
     var namecheck = result.namecheck;
     if (exists(namecheck)) {
         $('#namecheckonoffswitch').prop('checked', namecheck);
+    }
+});
+
+chrome.storage.local.get('livingnameexclude', function (result) {
+    var livingnameexclude = result.livingnameexclude;
+    if (exists(livingnameexclude)) {
+        $('#livingcheckonoffswitch').prop('checked', livingnameexclude);
     }
 });
 

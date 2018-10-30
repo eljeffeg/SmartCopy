@@ -703,7 +703,7 @@ function buildForm() {
                 hideunknown = "none";
             }
             var expand = true;
-            if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]["date"])) {
+            if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
                 var dt = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"]));
                 var year = dt.get('year');
                 if (year < 1600) {
@@ -712,7 +712,7 @@ function buildForm() {
                     expand = false;
                     actionicon = "disabled";
                 }
-            } else if (exists(members[member]["death"]) && exists(members[member]["death"][0]["date"])) {
+            } else if (exists(members[member]["death"]) && exists(members[member]["death"][0]) && exists(members[member]["death"][0]["date"])) {
                 var dt = moment(members[member]["death"][0]["date"], getDateFormat(members[member]["death"][0]["date"]));
                 var year = dt.get('year');
                 if (year < 1600) {

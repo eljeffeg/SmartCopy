@@ -4,7 +4,7 @@ registerCollection({
     "recordtype": "MyHeritage Genealogy",
     "prepareUrl": function(url) {
         if (startsWithMH(url, "") && !startsWithHTTP(url, "https://www.myheritage.com/")) {
-            url = url.replace(/https?:\/\/www\.myheritage\..*?\//i, "https://www.myheritage.com/") + "&lang=EN";
+            url = url.replace(/https?:\/\/www\.myheritage\..*?\//i, "https://www.myheritage.com/");
             this.reload = true;
         }
         return url;

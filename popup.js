@@ -150,7 +150,7 @@ function loginProcess() {
         " lookups due to the cost of Google's service.  While this is sad news, Geni has recently provided the feature" +
         " of doing geolocation lookups <i>after</i> submission.  When a location is submitted via the place field, Geni will do the query" + 
         " and populate the location fields on the website. You still have the option to manually fill out the location data in SmartCopy" + 
-        " and if you want to disable Geni's geolocation lookup, you can do so in the SmartCopy configuration.</div><br/>" + 
+        " by clicking the globe icon <img src='images/geooff.png' style='height: 14px; margin-bottom: -2px;'> and if you want to disable Geni's geolocation lookup, you can do so in the SmartCopy configuration.</div><br/>" + 
         "<button id='closeGeoNotice'>Close</button><br/><br/>");
         $('#loginspinner').hide();
         $('#closeGeoNotice').on('click', function () {
@@ -1592,7 +1592,10 @@ function parseForm(fs) {
                             fieldname = "place_name";
                         }
                         varlocation[fieldname] = fsinput[item].value;
-
+                        if (!$('#geoonoffswitch').prop('checked') && !exists(varlocation['latitude']) && !exists(varlocation['longitude'])) {
+                            varlocation['latitude'] = 0;
+                            varlocation['longitude'] = 0;
+                        }
                         if (splitentry[0] === "divorce") {
                             if (!exists(diventry[splitentry[0]])) {
                                 diventry[splitentry[0]] = {};
@@ -1617,10 +1620,6 @@ function parseForm(fs) {
                                 marentry[splitentry[0]][splitentry[1]] = {};
                             }
                             $.extend(marentry[splitentry[0]][splitentry[1]], varlocation);
-                        }
-                        if (!$('#geoonoffswitch').prop('checked')) {
-                            varlocation['latitude'] = 0;
-                            varlocation['longitude'] = 0;
                         }
                     }
                 }

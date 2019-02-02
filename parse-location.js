@@ -184,6 +184,11 @@ function isCem(checkplace) {
 }
 
 function queryGeo(locationset, test) {
+    var geoenabled = googlegeoquery;
+    if (!geoenabled) {
+        geolocation[locationset.id] = parseGoogle("");
+        return;
+    }
     //locationset should contain "location", "id", and optionally "place" if detected prior to date.
     if (exists(locationset.location)) {
         //console.log(locationset.id + ": " + locationset.location);

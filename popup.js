@@ -4,7 +4,8 @@ var locationtest = false; //Verbose parsing of location data
 var verboselogs = true;
 
 //Common Global Variables
-var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true, captcha = false, mnameonoff = true;
+var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true;
+var geonotice = true, googlegeoquery = false, captcha = false, mnameonoff = true;
 var accountinfo, parentspouseunion, genigender, geniliving, genifocusdata, google_api;
 var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefactors = "", googlerequery = "";
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [], addsiblinglist = [];
@@ -144,6 +145,23 @@ function registerCollection(collection) {
 }
 
 function loginProcess() {
+    if (geonotice) {
+        setMessage(infomsg, "<h2>Notice - Please Read</h2><div style='text-align: justify;'>SmartCopy will no longer do geo-location" + 
+        " lookups due to the cost of Google's service.  While this is sad news, Geni has recently provided the feature" +
+        " of doing geolocation lookups <i>after</i> submission.  When a location is submitted via the place field, Geni will do the query" + 
+        " and populate the location fields on the website. You still have the option to manually fill out the location data in SmartCopy" + 
+        " and if you want to disable Geni's geolocation lookup, you can do so in the SmartCopy configuration.</div><br/>" + 
+        "<button id='closeGeoNotice'>Close</button><br/><br/>");
+        $('#loginspinner').hide();
+        $('#closeGeoNotice').on('click', function () {
+            geonotice = false;
+            chrome.storage.local.set({'geonotice': geonotice});
+            $("#message").css("display", "none");
+            $('#loginspinner').show();
+            loginProcess();
+        });
+        return
+    }
     if (isGeni(tablink)) {
         document.querySelector('#message').style.display = "none";
         var focusprofile = getProfile(tablink);
@@ -1600,6 +1618,10 @@ function parseForm(fs) {
                             }
                             $.extend(marentry[splitentry[0]][splitentry[1]], varlocation);
                         }
+                        if (!$('#geoonoffswitch').prop('checked')) {
+                            varlocation['latitude'] = 0;
+                            varlocation['longitude'] = 0;
+                        }
                     }
                 }
             } else {
@@ -2245,8 +2267,18 @@ $(function () {
     });
 });
 
+chrome.storage.local.get('geonotice', function(result) {
+    geonotice = result.geonotice;
+    if (!exists(geonotice)) {
+        geonotice = true;
+    }
+});
+
 chrome.storage.local.get('autogeo', function (result) {
     var geochecked = result.autogeo;
+    // Disabled due to Google cost of Geolocation services
+
+    // googlegeoquery = geochecked;
     if (exists(geochecked)) {
         $('#geoonoffswitch').prop('checked', geochecked);
     }

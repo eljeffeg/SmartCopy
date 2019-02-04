@@ -86,6 +86,12 @@
             }
         }
     },
+    "living": {
+        "message": "vivant"
+    },
+    "claimed": {
+        "message": "revendiqué"
+    },
     "fixCase": {
         "message": "korjaa"
     },
@@ -284,6 +290,9 @@
     },
     "Check_name_fields_for_improper_values": {
         "message": "Tarkista nimikenttien oikeellisuus"
+    },
+    "Check_name_fields_for_living_profiles": {
+        "message": "Exclure les profils de vie de la solution rapide"
     },
     "Check_profile_for_pending_data_conflicts": {
         "message": "Tarkista profiilin tietojen avoimet ristiriitaisuudet"

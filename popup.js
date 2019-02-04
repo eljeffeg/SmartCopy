@@ -4,8 +4,9 @@ var locationtest = false; //Verbose parsing of location data
 var verboselogs = true;
 
 //Common Global Variables
-var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true, captcha = false, mnameonoff = true;
-var accountinfo, parentspouseunion, genigender, geniliving, genifocusdata;
+var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true;
+var geonotice = true, googlegeoquery = false, captcha = false, mnameonoff = true;
+var accountinfo, parentspouseunion, genigender, geniliving, genifocusdata, google_api;
 var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefactors = "", googlerequery = "";
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [], addsiblinglist = [];
 var genibuildaction = {}, updatecount = 1, updatetotal = 0;
@@ -144,6 +145,23 @@ function registerCollection(collection) {
 }
 
 function loginProcess() {
+    if (geonotice) {
+        setMessage(infomsg, "<h2>Notice - Please Read</h2><div style='text-align: justify;'>SmartCopy will no longer do geo-location" + 
+        " lookups due to the cost of Google's service.  While this is sad news, Geni has recently provided the feature" +
+        " of doing geolocation lookups <i>after</i> submission.  When a location is submitted via the place field, Geni will do the query" + 
+        " and populate the location fields on the website. You still have the option to manually fill out the location data in SmartCopy" + 
+        " by clicking the globe icon <img src='images/geooff.png' style='height: 14px; margin-bottom: -2px;'> and if you want to disable Geni's geolocation lookup, you can do so in the SmartCopy configuration.</div><br/>" + 
+        "<button id='closeGeoNotice'>Close</button><br/><br/>");
+        $('#loginspinner').hide();
+        $('#closeGeoNotice').on('click', function () {
+            geonotice = false;
+            chrome.storage.local.set({'geonotice': geonotice});
+            $("#message").css("display", "none");
+            $('#loginspinner').show();
+            loginProcess();
+        });
+        return
+    }
     if (isGeni(tablink)) {
         document.querySelector('#message').style.display = "none";
         var focusprofile = getProfile(tablink);
@@ -856,17 +874,19 @@ $(function () {
     $('.checkall').on('click', function () {
         var fs = $(this).closest('div').find('fieldset');
         var ffs = fs.find('[type="checkbox"]');
-        var photoon = $('#photoonoffswitch').prop('checked');
-        ffs.filter(function (item) {
-            if ($(ffs[item]).closest('tr').css("display") === "none") {
-                return false;
-            }
-            return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
-        }).prop('checked', this.checked);
-        var ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector");
-        ffs.filter(function (item) {
-            return !((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
-        }).attr('disabled', !this.checked);
+        if (!$(ffs[0]).prop("disabled")) {
+            var photoon = $('#photoonoffswitch').prop('checked');
+            ffs.filter(function (item) {
+                if ($(ffs[item]).closest('tr').css("display") === "none") {
+                    return false;
+                }
+                return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
+            }).prop('checked', this.checked);
+            var ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector");
+            ffs.filter(function (item) {
+                return !((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
+            }).attr('disabled', !this.checked);
+        }
     });
 });
 
@@ -1572,7 +1592,10 @@ function parseForm(fs) {
                             fieldname = "place_name";
                         }
                         varlocation[fieldname] = fsinput[item].value;
-
+                        if (!$('#geoonoffswitch').prop('checked') && !exists(varlocation['latitude']) && !exists(varlocation['longitude'])) {
+                            varlocation['latitude'] = 0;
+                            varlocation['longitude'] = 0;
+                        }
                         if (splitentry[0] === "divorce") {
                             if (!exists(diventry[splitentry[0]])) {
                                 diventry[splitentry[0]] = {};
@@ -1870,6 +1893,9 @@ $(function () {
     });
     $('#namecheckonoffswitch').on('click', function () {
         chrome.storage.local.set({'namecheck': this.checked});
+    });
+    $('#livingcheckonoffswitch').on('click', function () {
+        chrome.storage.local.set({'livingnameexclude': this.checked});
     });
     $('#siblingonoffswitch').on('click', function () {
         chrome.storage.local.set({'siblingcheck': this.checked});
@@ -2240,8 +2266,18 @@ $(function () {
     });
 });
 
+chrome.storage.local.get('geonotice', function(result) {
+    geonotice = result.geonotice;
+    if (!exists(geonotice)) {
+        geonotice = true;
+    }
+});
+
 chrome.storage.local.get('autogeo', function (result) {
     var geochecked = result.autogeo;
+    // Disabled due to Google cost of Geolocation services
+
+    // googlegeoquery = geochecked;
     if (exists(geochecked)) {
         $('#geoonoffswitch').prop('checked', geochecked);
     }
@@ -2251,6 +2287,13 @@ chrome.storage.local.get('namecheck', function (result) {
     var namecheck = result.namecheck;
     if (exists(namecheck)) {
         $('#namecheckonoffswitch').prop('checked', namecheck);
+    }
+});
+
+chrome.storage.local.get('livingnameexclude', function (result) {
+    var livingnameexclude = result.livingnameexclude;
+    if (exists(livingnameexclude)) {
+        $('#livingcheckonoffswitch').prop('checked', livingnameexclude);
     }
 });
 

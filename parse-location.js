@@ -184,8 +184,14 @@ function isCem(checkplace) {
 }
 
 function queryGeo(locationset, test) {
+    var geoenabled = googlegeoquery;
+    if (!geoenabled) {
+        geolocation[locationset.id] = parseGoogle("");
+        return;
+    }
     //locationset should contain "location", "id", and optionally "place" if detected prior to date.
     if (exists(locationset.location)) {
+        //console.log(locationset.id + ": " + locationset.location);
         var unittest = "";
         if (exists(test) && test !== "") {
             unittest = JSON.parse(test);
@@ -238,6 +244,8 @@ function queryGeo(locationset, test) {
             } else if (location === "") {
                 geolocation[locationset.id] = georesult;
                 return;
+            } else if (place === "" && !location.startsWith(",") && USCheck(location)) {
+                location = "," + location;  //Prefix string with comma to help prevent mix-ups.
             }
         }
 
@@ -247,7 +255,7 @@ function queryGeo(locationset, test) {
         } else {
             locationset.retry = 0;
         }
-        var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&address=" + encodeURIComponent(location);
+        var url = "https://maps.googleapis.com/maps/api/geocode/json?language=en&key=" + accountinfo.google_key + "&address=" + encodeURIComponent(location);
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -285,7 +293,7 @@ function queryGeo(locationset, test) {
             // ----- Stage 2: Run again with one item removed from front, or modified, for comparison -----
             var short_location = location_split.join(",").trim();
             if (location_split.length > 0) {
-                var url = "http://maps.googleapis.com/maps/api/geocode/json?language=en&address=" + encodeURIComponent(short_location);
+                var url = "https://maps.googleapis.com/maps/api/geocode/json?language=en&key=" + accountinfo.google_key + "&address=" + encodeURIComponent(short_location);
                 chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",
@@ -333,7 +341,7 @@ function queryGeo(locationset, test) {
                         }
                     }
                     georesult.query = full_location;
-                    if (georesult.count === 0 && (!exists(locationset.retry) || locationset.retry < 2)) {
+                    if (georesult.count === 0 && (!exists(locationset.retry) || locationset.retry < 0)) {
                         locationset.retry += 1;
                         console.log("Retry " + locationset.retry + " - Failed to Locate: " + full_location);
                         setTimeout(queryGeo, 1000, locationset);
@@ -359,6 +367,11 @@ function queryGeo(locationset, test) {
 
         });
     }
+}
+
+function USCheck(location) {
+    l = location.toLowerCase();
+    return (l.endsWith("united states") || l.endsWith(" usa") || l.endsWith(" us"));
 }
 
 function matchGeoFields(g1, g2, cnt) {
@@ -468,10 +481,10 @@ function compareGeo(shortGeo, longGeo) {
         if (verbose){console.log("used short when long had 0 or multiples");}
 // ... do we suspect the 'place' is a state?
         if (numShortFields === 1) {
-            location.state = location_split[0];
+            location.state = locationCase(location_split[0]);
             if (verbose){console.log("... & used loc.split[0] as state");}
         } else if ((numShortFields > 1) && (location.state !== location_split[0])) {
-            location.place = location_split[0];
+            location.place = locationCase(location_split[0]);
             if (verbose){console.log("... & used loc.split[0] as place (when not same as state)");}
         }
     } else {
@@ -482,10 +495,10 @@ function compareGeo(shortGeo, longGeo) {
             if (verbose){console.log("used short when short had more fields & match");}
 // ... do we suspect the 'place' is a state?
             if (numShortFields === 1) {
-                location.state = location_split[0];
+                location.state = locationCase(location_split[0]);
                 if (verbose){console.log("... & used loc.split[0] as state");}
             } else if (location_split[0] !== location.query && location_split[0] + " State" !== location.query) {
-                location.place = location_split[0];
+                location.place = locationCase(location_split[0]);
                 if (verbose){console.log("... & used loc.split[0] as place");}
             }
         } else if ((numShortFields < numLongFields) && (fields_match)) {
@@ -499,10 +512,10 @@ function compareGeo(shortGeo, longGeo) {
                 if (verbose){console.log("used short when min fields are the same");}
 // ... do we suspect the 'place' is a state?
                 if (numShortFields === 1) {
-                    location.state = location_split[0];
+                    location.state = locationCase(location_split[0]);
                     if (verbose){console.log("... & used loc.split[0] as state");}
                 }  else if (location_split[0] !== location.query && location_split[0] + " State" !== location.query) {
-                    location.place = location_split[0];
+                    location.place = locationCase(location_split[0]);
                     if (verbose){console.log("... & used loc.split[0] as place");}
                 }
             } else {
@@ -538,6 +551,13 @@ function compareGeo(shortGeo, longGeo) {
 
     location.ambiguous = ambig;
     return location;
+}
+
+function locationCase(name) {
+    if (!NameParse.is_camel_case(name)) {
+        name = NameParse.fix_case(name);
+    }
+    return name;
 }
 
 var fcount = 1;

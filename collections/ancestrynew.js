@@ -92,6 +92,9 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     var deathdtflag = false;
     var aboutdata = "";
     var usercard = parsed.find("#researchListFacts").find(".userCardTitle");
+    if (usercard.length == 0) {
+        usercard = parsed.find("#toggleNameAndGenderButton").next().find(".userCardTitle");
+    }
 
     for (var i = 0; i < usercard.length; i++) {
         var entry = $(usercard[i]);
@@ -296,8 +299,7 @@ function parseAncestryNewDate(vitalinfo) {
     var data = [];
     var dmatch = vitalinfo.find(".factItemDate").text();
     if (exists(dmatch)) {
-        var dateval = dmatch.replace(",", "").replace(".", "").trim();
-        dateval = cleanDate(dateval);
+        dateval = cleanDate(dmatch.trim());
         if (dateval !== "") {
             data.push({date: dateval});
         }

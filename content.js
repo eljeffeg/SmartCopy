@@ -132,7 +132,7 @@ function addBioButton() {
     if ($("#add-language-button").length == 0) {
         setTimeout(addBioButton, 50);
     } else {
-        $("<a id='addbio' href='javascript:void(0)' class='super grey tab button flt_r' style='margin-right: 2px;' title='SmartCopy Add Biography'>Add Biography</a>").insertAfter($("#add-language-button"));
+        $("<a id='addbio' href='javascript:void(0)' class='super grey tab button flt_r' style='margin-right: 2px;' title='SmartCopy " + _("Add_Biography") +"'>"+ _("Add_Biography") + "</a>").insertAfter($("#add-language-button"));
         $('#addbio').on('click', function(){
             $("*").css("cursor", "progress");
             appendBio();

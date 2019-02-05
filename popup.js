@@ -146,12 +146,9 @@ function registerCollection(collection) {
 
 function loginProcess() {
     if (geonotice) {
-        setMessage(infomsg, "<h2>Notice - Please Read</h2><div style='text-align: justify;'>SmartCopy will no longer do geo-location" + 
-        " lookups due to the cost of Google's service.  While this is sad news, Geni has recently provided the feature" +
-        " of doing geolocation lookups <i>after</i> submission.  When a location is submitted via the place field, Geni will do the query" + 
-        " and populate the location fields on the website. You still have the option to manually fill out the location data in SmartCopy" + 
-        " by clicking the globe icon <img src='images/geooff.png' style='height: 14px; margin-bottom: -2px;'> and if you want to disable Geni's geolocation lookup, you can do so in the SmartCopy configuration.</div><br/>" + 
-        "<button id='closeGeoNotice'>Close</button><br/><br/>");
+        setMessage(infomsg, "<h2>"+_("Notice___Please_Read") + "</h2><div style='text-align: justify;'>" +
+            _("SmartCopy_will_no_longer_do_geo_location_lookups___", ["<img src='images/geooff.png' style='height: 14px; margin-bottom: -2px;'>"]) +
+            "</div><br/><button id='closeGeoNotice'>" + _("Close") + "</button><br/><br/>");
         $('#loginspinner').hide();
         $('#closeGeoNotice').on('click', function () {
             geonotice = false;

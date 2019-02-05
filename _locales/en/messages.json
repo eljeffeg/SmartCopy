@@ -353,5 +353,25 @@
     },
     "Clear_History": {
         "message": "Clear History"
+    },
+    "Notice___Please_Read": {
+        "message": "Notice - Please Read"
+    },
+    "SmartCopy_will_no_longer_do_geo_location_lookups___": {
+        "message": "SmartCopy will no longer do geo-location lookups due to the cost of Google's service. While this is sad news, Geni has recently provided the feature of doing geolocation lookups <i>after</i> submission. When a location is submitted via the place field, Geni will do the query and populate the location fields on the website. You still have the option to manually fill out the location data in SmartCopy by clicking the globe icon $globe_icon$ and if you want to disable Geni's geolocation lookup, you can do so in the SmartCopy configuration.",
+        "placeholders": {
+            "globe_icon": {
+                "content": "$1"
+            }
+        }
+    },
+    "Close": {
+        "message": "Close"
+    },
+    "Display_Add_Biography_button_in_About": {
+        "message": "Display Add Biography button in About"
+    },
+    "Add_Biography": {
+        "message": "Add biography"
     }
 }

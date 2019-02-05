@@ -87,10 +87,10 @@
         }
     },
     "living": {
-        "message": "vivant"
+        "message": "elää"
     },
     "claimed": {
-        "message": "revendiqué"
+        "message": "haltuunotettu"
     },
     "fixCase": {
         "message": "korjaa"
@@ -292,7 +292,7 @@
         "message": "Tarkista nimikenttien oikeellisuus"
     },
     "Check_name_fields_for_living_profiles": {
-        "message": "Exclure les profils de vie de la solution rapide"
+        "message": "Tarkista elossa olevien nimikentät"
     },
     "Check_profile_for_pending_data_conflicts": {
         "message": "Tarkista profiilin tietojen avoimet ristiriitaisuudet"
@@ -353,5 +353,25 @@
     },
     "Clear_History": {
         "message": "Tyhjennä historia"
+    },
+    "Notice___Please_Read": {
+        "message": "Ilmoitus - ole hyvä ja lue"
+    },
+    "SmartCopy_will_no_longer_do_geo_location_lookups___": {
+        "message": "SmartCopy ei enää tee geo-sijainnin hakuja Googlen palvelun kustannusten vuoksi. Vaikka tämä on surullinen uutinen, Geni on äskettäin tarjonnut mahdollisuuden tehdä paikannushaku <i>jälkikäteen</i>. Kun paikka lähetetään paikkakentän kautta, Geni tekee kyselyn ja täyttää sijaintikentät verkkosivustolla. Sinulla on edelleen mahdollisuus manuaalisesti täyttää sijaintitiedot SmartCopyssa klikkaamalla maapallo-kuvaketta $globe_icon$ ja jos haluat poistaa Geni-sijainnin etsinnän, voit tehdä sen SmartCopy-määrityksissä.",
+        "placeholders": {
+            "globe_icon": {
+                "content": "$1"
+            }
+        }
+    },
+    "Close": {
+        "message": "Sulje"
+    },
+    "Display_Add_Biography_button_in_About": {
+        "message": "Näytä \"Lisää elämäkerta\"-nappula Tietoa-osiossa"
+    },
+    "Add_Biography": {
+      "message": "Lisää elämäkerta"
     }
 }

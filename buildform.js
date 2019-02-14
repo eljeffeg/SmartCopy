@@ -1,4 +1,5 @@
 var alldata = {};
+alldata["family"] = {};
 var geostatus = [];
 var geoid = 0;
 var geolocation = [];
@@ -17,7 +18,6 @@ var myhspouse = [];
 var focusabout = "";
 var focusnicknames = "";
 var parentmarriageid = "";
-alldata["family"] = {};
 var geounique = [];
 var geocleanup = [];
 
@@ -411,14 +411,14 @@ function buildForm() {
     var geoplace = "table-row";
     var geoauto = "none";
     var geoicon = "geooff.png";
-    if (googlegeoquery) {
+    if (geoqueryCheck()) {
         geoplace = "none";
         geoauto = "table-row";
         geoicon = "geoon.png";
     }
     var geoplacehidden = " geohidden";
     var geolochidden = "";
-    if (!googlegeoquery) {
+    if (!geoqueryCheck()) {
         geoplacehidden = "";
         geolochidden = " geohidden";
     }
@@ -492,9 +492,11 @@ function buildForm() {
                     var geoone = ($('#forcegeoswitch').prop('checked') && (isValue(city) || isValue(county) || isValue(state) || isValue(country)));
                     locationval = locationval +
                         '<tr id="focus_'+title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
-                        '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + geoicon + '" height="14px">' + 
-                        //<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">' +
-                        '<img class="geopin" title="' + pintitle + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
+                        '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + geoicon + '" height="14px">'; 
+                        if (geoqueryCheck()) {
+                            locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
+                        }
+                        locationval = locationval + '<img class="geopin" title="' + pintitle + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                         '<tr class="geoplace' + geoplacehidden + '"style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + capFL(title) + ' Place:</td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, scored) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location_string") + '" disabled></td></tr>' +
                         '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, scored, geoone) + '>Place: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, scored, geoone) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.place_name") + '" disabled></td></tr>' +
                         '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, scored, geoone) + '>City: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, scored, geoone) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.city") + '" disabled></td></tr>' +
@@ -514,9 +516,11 @@ function buildForm() {
             }
             if (!locationadded) {
                 locationval = locationval +
-                    '<tr id="focus_'+title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck"><img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px">' +
-                    //'<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">'
-                    '<img class="geopin" title="" src="images/clearpin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td><td></td></tr>' +
+                    '<tr id="focus_'+title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck"><img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px">';
+                    if (geoqueryCheck()) {
+                        locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
+                    }
+                    locationval = locationval + '<img class="geopin" title="" src="images/clearpin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td><td></td></tr>' +
                     '<tr class="geoplace hiddenrow' + geoplacehidden + '" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location_string") + '" disabled></td></tr>' +
                     '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.place_name") + '" disabled></td></tr>' +
                     '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.city") + '" disabled></td></tr>' +
@@ -536,9 +540,11 @@ function buildForm() {
                 membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
             }
             membersstring = membersstring +
-                '<tr id="focus_'+title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck"><img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;"  alt="Toggle Geolocation" title="Toggle Geolocation"  src="images/' + geoicon + '" height="14px">' +
-                //'<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">'
-                '<img class="geopin" title="" src="images/clearpin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td><td></td></tr>' +
+                '<tr id="focus_'+title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck"><img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;"  alt="Toggle Geolocation" title="Toggle Geolocation"  src="images/' + geoicon + '" height="14px">';
+                if (geoqueryCheck()) {
+                    membersstring = membersstring + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
+                }
+                membersstring = membersstring + '<img class="geopin" title="" src="images/clearpin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td><td></td></tr>' +
                 '<tr class="geoplace hiddenrow' + geoplacehidden + '" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location_string") + '" disabled></td></tr>' +
                 '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.place_name") + '" disabled></td></tr>' +
                 '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.city") + '" disabled></td></tr>' +
@@ -859,9 +865,11 @@ function buildForm() {
                             var geoone = ($('#forcegeoswitch').prop('checked') && (isValue(city) || isValue(county) || isValue(state) || isValue(country)));
                             locationval = locationval +
                                 '<tr id="'+ i + "_" +title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
-                                '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + geoicon + '" height="14px">' + 
-                                //<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">'
-                                '<img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + pintitle + '" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
+                                '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + geoicon + '" height="14px">';
+                                if (geoqueryCheck()) {
+                                    locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
+                                }
+                                locationval = locationval + '<img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + pintitle + '" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                                 '<tr class="geoplace' +  geoplacehidden + '" style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, scored) + '>' + Abbr(capFL(title)) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                                 '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, scored, geoone) + '>Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, scored, geoone) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                                 '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, scored, geoone) + '>City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, scored, geoone) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_city" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -887,9 +895,11 @@ function buildForm() {
                     if (!locationadded) {
                         locationval = locationval +
                             '<tr id="'+ i + "_" +title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
-                            '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px">' +
-                            //<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">'
-                            '<img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
+                            '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px">';
+                            if (geoqueryCheck()) {
+                                locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
+                            }
+                            locationval = locationval + '<img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
                             '<tr class="geoplace hiddenrow' +  geoplacehidden + '" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + Abbr(capFL(title)) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                             '<tr class="geoloc hiddenrow' +  geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                             '<tr class="geoloc hiddenrow' +  geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_city" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -908,9 +918,11 @@ function buildForm() {
                     }
                     membersstring = membersstring +
                         '<tr id="'+ i + "_" +title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
-                        '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px">' + 
-                        //<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">'
-                        '<img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
+                        '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px">';
+                        if (geoqueryCheck()) {
+                            membersstring = membersstring + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
+                        }
+                        membersstring = membersstring +'<img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
                         '<tr class="geoplace hiddenrow' + geoplacehidden + '" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + Abbr(capFL(title)) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                         '<tr class="geoloc hiddenrow' +  geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                         '<tr class="geoloc hiddenrow' +  geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_city" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -1277,7 +1289,7 @@ function updateClassResponse() {
                 value.attr("src", "images/show.png");
                 value.attr("title", "Show All Fields");
             } else {
-                if (googlegeoquery) {
+                if (geoqueryCheck()) {
                     $(this).closest("table").find(".hiddenrow").not(".geoplace").css("display", "table-row");
                 } else {
                     $(this).closest("table").find(".hiddenrow").not(".geoloc").css("display", "table-row");
@@ -1376,7 +1388,7 @@ function isEnabled(value, score, force) {
 }
 
 function isHidden(value, geo) {
-    var hidden = googlegeoquery;
+    var hidden = geoqueryCheck();
     if (geo === "place" && hidden) {
         return "none";
     } else if (geo === "loc" && !hidden) {
@@ -2031,8 +2043,8 @@ function setGeniFamilyData(id, profile) {
         var locationicon = getGeniLock(profile, title, "location");
         $("#" + id + "_geni_" + title + "_date").val(getGeniData(profile, title, "date.formatted_date"));
         $("#" + id + "_geni_" + title + "_date").prev().attr('src', getGeniLock(profile, title, "date"));
-        $("#" + id + "_geni_" + title + "_location_str").val(getGeniData(profile, title, "location_string"));
-        $("#" + id + "_geni_" + title + "_location_str").prev().attr('src', locationicon);
+        $("#" + id + "_geni_" + title + "_location_string").val(getGeniData(profile, title, "location_string"));
+        $("#" + id + "_geni_" + title + "_location_string").prev().attr('src', locationicon);
         $("#" + id + "_geni_" + title + "_place").val(getGeniData(profile, title, "location.place_name"));
         $("#" + id + "_geni_" + title + "_place").prev().attr('src', locationicon);
         $("#" + id + "_geni_" + title + "_city").val(getGeniData(profile, title, "location.city"));

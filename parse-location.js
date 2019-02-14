@@ -184,7 +184,7 @@ function isCem(checkplace) {
 }
 
 function queryGeo(locationset, test) {
-    var geoenabled = googlegeoquery;
+    var geoenabled = geoqueryCheck();
     if (!geoenabled) {
         geolocation[locationset.id] = parseGoogle("");
         return;
@@ -255,7 +255,7 @@ function queryGeo(locationset, test) {
         } else {
             locationset.retry = 0;
         }
-        var url = "https://maps.googleapis.com/maps/api/geocode/json?language=en&key=" + accountinfo.google_key + "&address=" + encodeURIComponent(location);
+        var url = "https://maps.googleapis.com/maps/api/geocode/json?language=en&key=" + google_api + "&address=" + encodeURIComponent(location);
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -293,7 +293,7 @@ function queryGeo(locationset, test) {
             // ----- Stage 2: Run again with one item removed from front, or modified, for comparison -----
             var short_location = location_split.join(",").trim();
             if (location_split.length > 0) {
-                var url = "https://maps.googleapis.com/maps/api/geocode/json?language=en&key=" + accountinfo.google_key + "&address=" + encodeURIComponent(short_location);
+                var url = "https://maps.googleapis.com/maps/api/geocode/json?language=en&key=" + google_api + "&address=" + encodeURIComponent(short_location);
                 chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",

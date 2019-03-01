@@ -358,7 +358,7 @@
         "message": "Ilmoitus - ole hyvä ja lue"
     },
     "SmartCopy_will_no_longer_do_geo_location_lookups___": {
-        "message": "SmartCopy ei enää tee geo-sijainnin hakuja Googlen palvelun kustannusten vuoksi. Vaikka tämä on surullinen uutinen, Geni on äskettäin tarjonnut mahdollisuuden tehdä paikannushaku <i>jälkikäteen</i>. Kun paikka lähetetään paikkakentän kautta, Geni tekee kyselyn ja täyttää sijaintikentät verkkosivustolla. Sinulla on edelleen mahdollisuus manuaalisesti täyttää sijaintitiedot SmartCopyssa klikkaamalla maapallo-kuvaketta $globe_icon$ ja jos haluat poistaa Geni-sijainnin etsinnän, voit tehdä sen SmartCopy-määrityksissä.",
+        "message": "SmartCopy ei enää tee automaattisesti sijaintihakuja Googlen palvelun kustannusten vuoksi. Vaikka tämä on huono uutinen, Geni on äskettäin tarjonnut rajapinnassaan mahdollisuuden tehdä paikannushaku <i>jälkikäteen</i>. Kun paikka lähetetään paikannimi-kentän kautta, Geni tekee kyselyn ja täyttää sijaintikentät verkkosivustolla. Vaihtoehtoisesti voit määrittää oman Google API-avamen asetuksissa. Sinulla on edelleen mahdollisuus täyttää sijaintitiedot manuaalisesti SmartCopyssa klikkaamalla maailma-kuvaketta $globe_icon$ ja jos haluat poistaa Geni-sijainnin etsinnän, voit tehdä sen SmartCopy-asetuksissa.",
         "placeholders": {
             "globe_icon": {
                 "content": "$1"

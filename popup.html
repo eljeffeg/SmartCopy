@@ -140,7 +140,11 @@
                                             </label>
                                         </div>
                                     </td>
-                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Enable Geni post-submission geolocation</td>
+                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;">Enable Geolocation <span id="geo_location_type"></span></td>
+                                </tr>
+                                <tr id="google_apirow">
+                                    <td><img id="geocheckimage" src="images/content_check.png" style="float: right; display: none; width: 14px;"></td>
+                                    <td><a href="https://www.geni.com/projects/SmartCopy/18783#Google-Geocoding-API" target="_blank">API Key</a>: <input id="google_api_key"> <button id="geoapi_save">Save</button></td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 3px 6px 0 25px; width: 58px;">
@@ -632,7 +636,7 @@
                 Update the location and resubmit it to Google for GeoLocation.
                 <div class="modal-body" style="height: 100%;">
                     <p><input id="geoupdatetext" type="text" style="width: 100%;"></p>
-                    <button type="button" id="georevertbtn" value="" class="cta cta-blue" title="Restore Original Location" style="float: left;"><img style="width: 22px; margin-top: 3px;" alt="Revert" src="images/revert.png"></button><button disabled type="button" id="geolookupbtn" class="cta cta-blue" style="float: right;">Update</button>
+                    <button type="button" id="georevertbtn" value="" class="cta cta-blue" title="Restore Original Location" style="float: left;"><img style="width: 22px; margin-top: 3px;" alt="Revert" src="images/revert.png"></button><button type="button" id="geolookupbtn" class="cta cta-blue" style="float: right;">Update</button>
                     <br><br>
                 </div>
             </div>

@@ -798,6 +798,11 @@ function loadLogin() {
 
         console.log("Logged In...");
         accountinfo = response;
+        
+        if (exists(accountinfo.google_key) && accountinfo.google_key !== "" && accountinfo.google_key !== "invalid") {
+            //This allows the server to issue the Google API Key if they ever change their payment model to something reasonable
+            google_api = accountinfo.google_key;
+        }
         if (accountinfo.curator) {
             //display leaderboard link if user is a curator - page itself still verifies
             //document.getElementById("curator").style.display = "inline-block";
@@ -1871,6 +1876,56 @@ $(function () {
             }
         }
     });
+    $('#geoapi_save').on('click', function() {
+        var api_value = $("#google_api_key").val();
+        if (exists(api_value) && api_value.length > 0) {
+            var url = "https://maps.googleapis.com/maps/api/geocode/json?language=en&key=" + api_value + "&address=New York, New York, USA";
+            chrome.runtime.sendMessage({
+                method: "GET",
+                action: "xhttp",
+                url: url,
+                variable: {api_value: api_value}
+            }, function (response) {
+                var result = JSON.parse(response.source);
+                if (exists(result.error_message)) {
+                    google_api = "";
+                    googlegeoquery = false;
+                    $("#geo_location_type").text("(Geni post-submission)");
+                    $("#geocheckimage").css("display", "none");
+                    alert("Google Response: " + result.error_message);
+                } else {
+                    google_api = response.variable.api_value;
+                    googlegeoquery = true;
+                    $("#geocheckimage").css("display", "block");
+                    $("#geo_location_type").text("(Google pre-submission)");
+                }
+                chrome.storage.local.set({'google_key': google_api});
+            });
+        } else {
+            google_api = "";
+            googlegeoquery = false;
+            $("#geo_location_type").text("(Geni post-submission)");
+            $("#geocheckimage").css("display", "none");
+            chrome.storage.local.set({'google_key': google_api});
+        }
+    });
+
+    chrome.storage.local.get('google_key', function (result) {
+        var google_api_key = result.google_key;
+        if (exists(google_api_key) && google_api_key !== "") {
+            google_api = google_api_key;
+            googlegeoquery = true;
+            $("#google_api_key").val(google_api);
+            $("#geocheckimage").css("display", "block");
+            $("#geo_location_type").text("(Google pre-submission)");
+        } else {
+            google_api = "";
+            googlegeoquery = false;
+            $("#google_api_key").val("");
+            $("#geocheckimage").css("display", "none");
+            $("#geo_location_type").text("(Geni post-submission)");
+        }
+    });
     $('#geoonoffswitch').on('click', function () {
         chrome.storage.local.set({'autogeo': this.checked});
         geoonoff(this.checked);
@@ -2179,6 +2234,7 @@ $(function () {
 
 function geoonoff(value) {
     if (value) {
+        $("#google_apirow").css("display", "table-row");
         var locobj = document.getElementsByClassName("geoloc");
         for (var i = 0; i < locobj.length; i++) {
             locobj[i].style.display = "table-row";
@@ -2195,6 +2251,7 @@ function geoonoff(value) {
         }
         $(".geoicon").attr("src", "images/geoon.png");
     } else {
+        $("#google_apirow").css("display", "none");
         var locobj = document.getElementsByClassName("geoloc");
         for (var i = 0; i < locobj.length; i++) {
             locobj[i].style.display = "none";
@@ -2226,6 +2283,10 @@ function hostDomain(url) {
     a.href = url;
     return a.protocol + "//" + a.host;
 };
+
+function geoqueryCheck() {
+    return googlegeoquery && $('#geoonoffswitch').prop('checked');
+}
 
 $(function () {
     $('#logoutbutton').on('click', function () {
@@ -2272,11 +2333,9 @@ chrome.storage.local.get('geonotice', function(result) {
 
 chrome.storage.local.get('autogeo', function (result) {
     var geochecked = result.autogeo;
-    // Disabled due to Google cost of Geolocation services
-
-    // googlegeoquery = geochecked;
     if (exists(geochecked)) {
         $('#geoonoffswitch').prop('checked', geochecked);
+        geoonoff(geochecked);
     }
 });
 

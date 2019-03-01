@@ -166,202 +166,426 @@ function dateFormat(dateval) {
     }
 }
 
+function dateFormatFinnish(dateval) {
+  var eventdate = " ";
+  if (exists(dateval.circa)) {
+    eventdate += "noin ";
+  } 
+  if (exists(dateval.range) && dateval.range == 'before') {
+    eventdate += "ennen ";
+  }
+  if (exists(dateval.day)) {
+    eventdate += dateval.day + ".";
+  }
+  if (exists(dateval.month)) {
+    eventdate += dateval.month + ".";
+  }
+  if (exists(dateval.year)) {
+    eventdate += dateval.year;
+  }
+  if (exists(dateval.end_day) || exists(dateval.end_month) || exists(dateval.end_year)) {
+    eventdate += " ja ";
+    if (exists(dateval.end_circa)) {
+      eventdate += "noin ";
+      if (exists(dateval.end_day)) {
+        eventdate += dateval.end_day + ".";
+      }
+      if (exists(dateval.end_month)) {
+        eventdate += dateval.end_month + ".";
+      }
+      if (exists(dateval.end_year)) {
+        eventdate += dateval.end_year;
+      }
+    } 
+  }
+  if (exists(dateval.range)) {
+    if (dateval.range == 'after') {
+      eventdate += " jälkeen";
+    } else if (dateval.range == 'between') {
+      eventdate += " välillä";
+    }
+  }
+  return eventdate;
+}
+
 function getSelection() {
-	return (!!document.getSelection) ? document.getSelection() :
-	       (!!window.getSelection)   ? window.getSelection() :
-	       document.selection.createRange().text;
+    return (!!document.getSelection) ? document.getSelection() :
+           (!!window.getSelection)   ? window.getSelection() :
+           document.selection.createRange().text;
 }
 
 function buildProfile() {
     if (biography == null) {
         //In case edit is clicked twice - only need to build this once.
-        var focus = getFocus();
-        var parents = getParents();
-        var partners = getPartners();
-        var bio = "==Biography==\n'''" + getGeniData(focus,"name") + "''' ";
+        switch (chrome.i18n.getUILanguage()) {
+        case "fi":
+          buildProfileFinnish();
+          break;
+        default:
+          buildProfileDefault();
+          break;
+        }
+    }
+}
 
-        var birth = getGeniData(focus, "birth");
-        var bap = getGeniData(focus, "baptism");
-        var death = getGeniData(focus, "death");
-        var deathcause = getGeniData(focus, "cause_of_death");
-        var burial = getGeniData(focus, "burial");
-        var occupation = getGeniData(focus, "occupation")
+function buildProfileDefault() {
+    var focus = getFocus();
+    var parents = getParents();
+    var partners = getPartners();
+    var bio = "==Biography==\n'''" + getGeniData(focus,"name") + "''' ";
 
-        if (birth !== "") {
-            bio += "was born";
-            if (exists(birth.date)) {
-                bio += dateFormat(birth.date);
-            }
-            if (exists(birth.location)) {
-                bio += " in " + birth.location.formatted_location;
-            }
-            if (bap !== "") {
-                bio += " and ";
-            } else {
-                bio += ". ";
-            }
+    var birth = getGeniData(focus, "birth");
+    var bap = getGeniData(focus, "baptism");
+    var death = getGeniData(focus, "death");
+    var deathcause = getGeniData(focus, "cause_of_death");
+    var burial = getGeniData(focus, "burial");
+    var occupation = getGeniData(focus, "occupation")
+
+    if (birth !== "") {
+        bio += "was born";
+        if (exists(birth.date)) {
+            bio += dateFormat(birth.date);
+        }
+        if (exists(birth.location)) {
+            bio += " in " + birth.location.formatted_location;
         }
         if (bap !== "") {
-            bio += "was baptized";
-            if (exists(bap.date)) {
-                bio += dateFormat(bap.date);
-            }
-            if (exists(bap.location)) {
-                var baploc = bap.location.formatted_location;
-                if (exists(birth.location)) {
-                    var birthloc = birth.location.formatted_location;
-                    if (birthloc === baploc) {
-                        bio += " there"
-                    } else if (birthloc === baploc.replace(bap.location.place_name + ", ", "")) {
-                        bio += " in " + bap.location.place_name;
-                    } else {
-                        bio += " in " + baploc;
-                    }
+            bio += " and ";
+        } else {
+            bio += ". ";
+        }
+    }
+    if (bap !== "") {
+        bio += "was baptized";
+        if (exists(bap.date)) {
+            bio += dateFormat(bap.date);
+        }
+        if (exists(bap.location)) {
+            var baploc = bap.location.formatted_location;
+            if (exists(birth.location)) {
+                var birthloc = birth.location.formatted_location;
+                if (birthloc === baploc) {
+                    bio += " there"
+                } else if (birthloc === baploc.replace(bap.location.place_name + ", ", "")) {
+                    bio += " in " + bap.location.place_name;
                 } else {
                     bio += " in " + baploc;
                 }
+            } else {
+                bio += " in " + baploc;
+            }
+        }
+        bio += ". ";
+    }
+    if (parents.length > 0 && parents.length < 3) {
+        var father = null;
+        var mother = null;
+        if (getGeniData(parents[0], "gender") === "male") {
+            father = parents[0];
+        } else if (getGeniData(parents[1], "gender") === "male") {
+            father = parents[1];
+        }
+        if (getGeniData(parents[0], "gender") === "female") {
+            mother = parents[0];
+        } else if (getGeniData(parents[1], "gender") === "female") {
+            mother = parents[1];
+        }
+        if (getGeniData(focus, "gender") === "male") {
+            bio += "His ";
+        } else if (getGeniData(focus, "gender") === "female") {
+            bio += "Her ";
+        } else {
+            bio += getGeniData(focus, "first_name") + "\'s ";
+        }
+        
+        if (exists(father) && exists(mother)) {
+            bio += "parents were " + buildWikiLink(father) + " and " + buildWikiLink(mother) + ". ";
+        } else if (exists(father)) {
+            bio += "father was " + buildWikiLink(father) + ". ";
+        } else if (exists(mother)) {
+            bio += "mother was " + buildWikiLink(mother) + ". ";
+        }
+    }
+
+
+    if (occupation !== "") {
+        if (getGeniData(focus, "gender") === "male") {
+            bio += "He ";
+        } else if (getGeniData(focus, "gender") === "female") {
+            bio += "She ";
+        } else {
+            bio += getGeniData(focus, "first_name") + " ";
+        }
+        bio += "was a " + occupation + ". ";
+    }
+
+    for (var i=0; i < partners.length; i++) {
+
+        bio += "\n\n" + getGeniData(focus, "first_name");
+        if (getGeniData(partners[i], "status") !== "partner") {
+            bio += " married ";
+        } else {
+            bio += " partnered with "
+        }
+        bio += buildWikiLink(partners[i]);
+        if (getGeniData(partners[i], "status") !== "partner") {
+            if (getGeniData(partners[i], "marriage", "date") !== "") {
+                bio += dateFormat(getGeniData(partners[i], "marriage", "date"));
+            }
+            if (getGeniData(partners[i], "marriage", "location") !== "") {
+                bio += " in " + getGeniData(partners[i], "marriage", "location")["formatted_location"];
+            }
+            if (getGeniData(partners[i], "divorce") !== "") {
+                bio += " and they divorced"
+                if (getGeniData(partners[i], "divorce", "date") !== "") {
+                    bio += dateFormat(getGeniData(partners[i], "divorce", "date"));
+                }
+                if (getGeniData(partners[i], "divorce", "location") !== "") {
+                    bio += " in " + getGeniData(partners[i], "divorce", "location")["formatted_location"];
+                }
+            }
+        }
+        bio += ". ";
+        children = getChildren(focus, partners[i]);
+        if (children.length > 0) {
+            bio += "Together they had the following children:\n" + buildWikiLink(children[0]);
+            for (var x=1; x < children.length; x++) {
+                bio += ";\n" + buildWikiLink(children[x]);
             }
             bio += ". ";
         }
-        if (parents.length > 0 && parents.length < 3) {
-            var father = null;
-            var mother = null;
-            if (getGeniData(parents[0], "gender") === "male") {
-                father = parents[0];
-            } else if (getGeniData(parents[1], "gender") === "male") {
-                father = parents[1];
-            }
-            if (getGeniData(parents[0], "gender") === "female") {
-                mother = parents[0];
-            } else if (getGeniData(parents[1], "gender") === "female") {
-                mother = parents[1];
-            }
-            if (getGeniData(focus, "gender") === "male") {
-                bio += "His ";
-            } else if (getGeniData(focus, "gender") === "female") {
-                bio += "Her ";
-            } else {
-                bio += getGeniData(focus, "first_name") + "\'s ";
-            }
-            
-            if (exists(father) && exists(mother)) {
-                bio += "parents were " + buildWikiLink(father) + " and " + buildWikiLink(mother) + ". ";
-            } else if (exists(father)) {
-                bio += "father was " + buildWikiLink(father) + ". ";
-            } else if (exists(mother)) {
-                bio += "mother was " + buildWikiLink(mother) + ". ";
-            }
+    }
+
+    if (death !== "" || burial !== "") {
+        bio += "\n\n";
+        if (getGeniData(focus, "gender") === "male") {
+            bio += "He ";
+        } else if (getGeniData(focus, "gender") === "female") {
+            bio += "She ";
+        } else {
+            bio += getGeniData(focus, "first_name") + " ";
         }
+    }
 
+   
 
-        if (occupation !== "") {
-            if (getGeniData(focus, "gender") === "male") {
-                bio += "He ";
-            } else if (getGeniData(focus, "gender") === "female") {
-                bio += "She ";
-            } else {
-                bio += getGeniData(focus, "first_name") + " ";
-            }
-            bio += "was a " + occupation + ". ";
+    if (death !== "") {
+        bio += "died";
+        if (exists(death.date)) {
+            bio += dateFormat(death.date);
         }
-
-        for (var i=0; i < partners.length; i++) {
-
-            bio += "\n\n" + getGeniData(focus, "first_name");
-            if (getGeniData(partners[i], "status") !== "partner") {
-                bio += " married ";
-            } else {
-                bio += " partnered with "
-            }
-            bio += buildWikiLink(partners[i]);
-            if (getGeniData(partners[i], "status") !== "partner") {
-                if (getGeniData(partners[i], "marriage", "date") !== "") {
-                    bio += dateFormat(getGeniData(partners[i], "marriage", "date"));
-                }
-                if (getGeniData(partners[i], "marriage", "location") !== "") {
-                    bio += " in " + getGeniData(partners[i], "marriage", "location")["formatted_location"];
-                }
-                if (getGeniData(partners[i], "divorce") !== "") {
-                    bio += " and they divorced"
-                    if (getGeniData(partners[i], "divorce", "date") !== "") {
-                        bio += dateFormat(getGeniData(partners[i], "divorce", "date"));
-                    }
-                    if (getGeniData(partners[i], "divorce", "location") !== "") {
-                        bio += " in " + getGeniData(partners[i], "divorce", "location")["formatted_location"];
-                    }
-                }
-            }
-            bio += ". ";
-            children = getChildren(focus, partners[i]);
-            if (children.length > 0) {
-                bio += "Together they had the following children:\n" + buildWikiLink(children[0]);
-                for (var x=1; x < children.length; x++) {
-                    bio += ";\n" + buildWikiLink(children[x]);
-                }
-                bio += ". ";
-            }
+        if (exists(death.location)) {
+            bio += " in " + death.location.formatted_location;
         }
-
-        if (death !== "" || burial !== "") {
-            bio += "\n\n";
-            if (getGeniData(focus, "gender") === "male") {
-                bio += "He ";
-            } else if (getGeniData(focus, "gender") === "female") {
-                bio += "She ";
-            } else {
-                bio += getGeniData(focus, "first_name") + " ";
-            }
+        if (deathcause !== "") {
+            bio += " from " + deathcause;
         }
-
-       
-
-        if (death !== "") {
-            bio += "died";
-            if (exists(death.date)) {
-                bio += dateFormat(death.date);
-            }
-            if (exists(death.location)) {
-                bio += " in " + death.location.formatted_location;
-            }
-            if (deathcause !== "") {
-                bio += " from " + deathcause;
-            }
-            if (burial !== "") {
-                bio += " and ";
-            } else {
-                bio += ". ";
-            }
-        }
-
         if (burial !== "") {
-            if (death === "" && deathcause !== "") {
-                bio += "died from " + deathcause + " and ";
-            }
-            bio += "was buried";
-            if (exists(burial.date)) {
-                bio += dateFormat(burial.date);
-            }
-            if (exists(burial.location)) {
-                var burloc = burial.location.formatted_location;
-                if (exists(death.location)) {
-                    var deathloc = death.location.formatted_location;
-                    if (deathloc === burloc) {
-                        bio += " there";
-                    } else if (deathloc === burloc.replace(burial.location.place_name + ", ", "")) {
-                        bio += " in " + burial.location.place_name;
-                    } else {
-                        bio += " in " + burloc;
-                    }
+            bio += " and ";
+        } else {
+            bio += ". ";
+        }
+    }
+
+    if (burial !== "") {
+        if (death === "" && deathcause !== "") {
+            bio += "died from " + deathcause + " and ";
+        }
+        bio += "was buried";
+        if (exists(burial.date)) {
+            bio += dateFormat(burial.date);
+        }
+        if (exists(burial.location)) {
+            var burloc = burial.location.formatted_location;
+            if (exists(death.location)) {
+                var deathloc = death.location.formatted_location;
+                if (deathloc === burloc) {
+                    bio += " there";
+                } else if (deathloc === burloc.replace(burial.location.place_name + ", ", "")) {
+                    bio += " in " + burial.location.place_name;
                 } else {
                     bio += " in " + burloc;
                 }
+            } else {
+                bio += " in " + burloc;
             }
-            bio += ". ";
         }
-
-        bio += "\n----\n";
-        biography = bio;
+        bio += ". ";
     }
+
+    bio += "\n----\n";
+    biography = bio;
+}
+
+function buildProfileFinnish() {
+  var focus = getFocus();
+  var parents = getParents();
+  var partners = getPartners();
+  var bio = "==Elämäkerta==\n'''" + getGeniData(focus,"name") + "''' ";
+
+  var birth = getGeniData(focus, "birth");
+  var bap = getGeniData(focus, "baptism");
+  var death = getGeniData(focus, "death");
+  var deathcause = getGeniData(focus, "cause_of_death");
+  var burial = getGeniData(focus, "burial");
+  var occupation = getGeniData(focus, "occupation")
+
+  if (birth !== "") {
+      bio += "syntyi";
+      if (exists(birth.date)) {
+          bio += dateFormatFinnish(birth.date);
+      }
+      if (exists(birth.location)) {
+          bio += ", " + birth.location.formatted_location;
+      }
+      if (bap !== "") {
+          bio += " ja ";
+      } else {
+          bio += ". ";
+      }
+  }
+  if (bap !== "") {
+      bio += "ja kastettiin";
+      if (exists(bap.date)) {
+          bio += dateFormatFinnish(bap.date);
+      }
+      if (exists(bap.location)) {
+          var baploc = bap.location.formatted_location;
+          if (exists(birth.location)) {
+              var birthloc = birth.location.formatted_location;
+              if (birthloc === baploc) {
+                  bio += " siellä"
+              } else if (birthloc === baploc.replace(bap.location.place_name + ", ", "")) {
+                  bio += ", " + bap.location.place_name;
+              } else {
+                  bio += ", " + baploc;
+              }
+          } else {
+              bio += ", " + baploc;
+          }
+      }
+      bio += ". ";
+  }
+  if (parents.length > 0 && parents.length < 3) {
+      var father = null;
+      var mother = null;
+      if (getGeniData(parents[0], "gender") === "male") {
+          father = parents[0];
+      } else if (getGeniData(parents[1], "gender") === "male") {
+          father = parents[1];
+      }
+      if (getGeniData(parents[0], "gender") === "female") {
+          mother = parents[0];
+      } else if (getGeniData(parents[1], "gender") === "female") {
+          mother = parents[1];
+      }
+      bio += "Hänen ";
+      
+      if (exists(father) && exists(mother)) {
+          bio += "vanhempansa olivat " + buildWikiLink(father) + " ja " + buildWikiLink(mother) + ". ";
+      } else if (exists(father)) {
+          bio += "isänsä oli " + buildWikiLink(father) + ". ";
+      } else if (exists(mother)) {
+          bio += "äitinsä oli " + buildWikiLink(mother) + ". ";
+      }
+  }
+
+
+  if (occupation !== "") {
+      bio += "Hän oli ammatiltaan " + occupation + ". ";
+  }
+
+  for (var i=0; i < partners.length; i++) {
+
+      bio += "\n\n" + getGeniData(focus, "first_name");
+      if (getGeniData(partners[i], "status") !== "partner") {
+          bio += " avioitui ";
+      } else {
+          bio += " hänen kumppaninsa oli "
+      }
+      bio += buildWikiLink(partners[i]);
+      if (getGeniData(partners[i], "status") !== "partner") {
+          bio += " kanssa";
+          if (getGeniData(partners[i], "marriage", "date") !== "") {
+              bio += dateFormatFinnish(getGeniData(partners[i], "marriage", "date"));
+          }
+          if (getGeniData(partners[i], "marriage", "location") !== "") {
+              bio += ", " + getGeniData(partners[i], "marriage", "location")["formatted_location"];
+          }
+          if (getGeniData(partners[i], "divorce") !== "") {
+              bio += " he erosivat"
+              if (getGeniData(partners[i], "divorce", "date") !== "") {
+                  bio += dateFormatFinnish(getGeniData(partners[i], "divorce", "date"));
+              }
+              if (getGeniData(partners[i], "divorce", "location") !== "") {
+                  bio += ", " + getGeniData(partners[i], "divorce", "location")["formatted_location"];
+              }
+          }
+      }
+      bio += ". ";
+      children = getChildren(focus, partners[i]);
+      if (children.length > 0) {
+          bio += "Heillä oli yhteiset lapset:\n" + buildWikiLink(children[0]);
+          for (var x=1; x < children.length; x++) {
+              bio += ";\n" + buildWikiLink(children[x]);
+          }
+          bio += ". ";
+      }
+  }
+
+  if (death !== "" || burial !== "") {
+      bio += "\n\n";
+      bio += "Hän ";
+  }
+
+ 
+
+  if (death !== "") {
+      bio += "kuoli";
+      if (exists(death.date)) {
+          bio += dateFormatFinnish(death.date);
+      }
+      if (exists(death.location)) {
+          bio += ", " + death.location.formatted_location;
+      }
+      if (deathcause !== "") {
+          bio += ", syynä " + deathcause;
+      }
+      if (burial !== "") {
+          bio += " ja ";
+      } else {
+          bio += ". ";
+      }
+  }
+
+  if (burial !== "") {
+      if (death === "" && deathcause !== "") {
+          bio += "kuoli, syynä " + deathcause + ", ja ";
+      }
+      bio += "haudattiin";
+      if (exists(burial.date)) {
+          bio += dateFormatFinnish(burial.date);
+      }
+      if (exists(burial.location)) {
+          var burloc = burial.location.formatted_location;
+          if (exists(death.location)) {
+              var deathloc = death.location.formatted_location;
+              if (deathloc === burloc) {
+                  bio += " sinne";
+              } else if (deathloc === burloc.replace(burial.location.place_name + ", ", "")) {
+                  bio += ", " + burial.location.place_name;
+              } else {
+                  bio += ", " + burloc;
+              }
+          } else {
+              bio += ", " + burloc;
+          }
+      }
+      bio += ". ";
+  }
+
+  bio += "\n----\n";
+  biography = bio;
 }
 
 function buildConsistency() {

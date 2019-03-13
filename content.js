@@ -1022,38 +1022,31 @@ function checkCase(person, quickfix) {
     var namevaluecheck = [];
     var nameupdate = [];
     var namevalues = ["display_name", "first_name", "middle_name", "last_name", "maiden_name"];
-    for (var i=0; i < namevalues.length; i++) {
-        var name = getGeniData(person, namevalues[i]);
-        if (validName(name) && !NameParse.is_camel_case(name) && name !== formatName(name)) {
-            namevaluecheck.push(namevalues[i]);
-            nameupdate.push(formatName(name).replace(/'/g, "&#39;"));
-        }
-    }
     var names = getGeniData(person, "names");
     if (names !== "") {
-        var defaultLanguage = true;
         for (var lang in names) {
             if (names.hasOwnProperty(lang)) {
-                var nameFound = false;
                 for (var i=0; i < namevalues.length; i++) {
                     if (names[lang].hasOwnProperty(namevalues[i])) {
-                        nameFound = true;
-                        if (!defaultLanguage) {
-                            // skip first found language with any names as these have been handled above in default language name checks
-                            var name = names[lang][namevalues[i]];
-                            if (validName(name) && !NameParse.is_camel_case(name) && name !== formatName(name)) {
-                                namevaluecheck.push("names[" + lang + "][" + namevalues[i] + "]");
-                                nameupdate.push(formatName(name).replace(/'/g, "&#39;"));
-                            }
+                        // skip first found language with any names as these have been handled above in default language name checks
+                        var name = names[lang][namevalues[i]];
+                        if (validName(name) && !NameParse.is_camel_case(name) && name !== formatName(name)) {
+                            namevaluecheck.push("names[" + lang + "][" + namevalues[i] + "]");
+                            nameupdate.push(formatName(name).replace(/'/g, "&#39;"));
                         }
                     }
                 }
-                if (nameFound) {
-                    defaultLanguage = false;
-                }
             }
         }
-    }    
+    } else {
+        for (var i=0; i < namevalues.length; i++) {
+            var name = getGeniData(person, namevalues[i]);
+            if (validName(name) && !NameParse.is_camel_case(name) && name !== formatName(name)) {
+                namevaluecheck.push(namevalues[i]);
+                nameupdate.push(formatName(name).replace(/'/g, "&#39;"));
+            }
+        }
+    } 
     if (namevaluecheck.length > 0) {
         //Name contains improper use of uppercase/lowercase
         consistencymessage = concat("info")

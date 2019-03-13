@@ -1,5 +1,5 @@
 ==License==
-Copyright (C) 2014-2017 Jeffrey Gentes
+Copyright (C) 2014-2019 Jeffrey Gentes
 All rights reserved.
 
 == Disclaimer ==

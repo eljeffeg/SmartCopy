@@ -224,9 +224,9 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
     }
 
     if (familymembers) {
-        profiledata["url"] = hostDomain(tablink) + "/tree/#view=ancestor&person=" + focusURLid;
+        profiledata["url"] = hostDomain(tablink) + "/tree/person/details/" + focusURLid;
     } else {
-        profiledata["url"] = hostDomain(tablink) + "/tree/#view=ancestor&person=" + relation.itemId;
+        profiledata["url"] = hostDomain(tablink) + "/tree/person/details/" + relation.itemId;
     }
 
     // ---------------------- Family Data --------------------

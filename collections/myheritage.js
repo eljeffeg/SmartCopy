@@ -56,9 +56,13 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
     var focusperson = fperson.text();
     $("#readstatus").html(escapeHtml(focusperson));
     var genderval = "unknown";
-    if (htmlstring.contains("PK_Silhouette PK_SilhouetteSize192 PK_Silhouette_S_192_F_A_LTR")) {
+    if (htmlstring.contains("PK_Silhouette PK_SilhouetteSize192 PK_Silhouette_S_192_F_A_LTR") ||
+        htmlstring.contains("PK_Silhouette PK_SilhouetteSize150 PK_Silhouette_S_150_F_A_LTR") ||
+        htmlstring.contains("PK_Silhouette PK_SilhouetteSize96 PK_Silhouette_S_96_F_A_LTR")) {
         genderval = "female";
-    } else if (htmlstring.contains("PK_Silhouette PK_SilhouetteSize192 PK_Silhouette_S_192_M_A_LTR")) {
+    } else if (htmlstring.contains("PK_Silhouette PK_SilhouetteSize192 PK_Silhouette_S_192_M_A_LTR") ||
+    htmlstring.contains("PK_Silhouette PK_SilhouetteSize150 PK_Silhouette_S_150_M_A_LTR") ||
+        htmlstring.contains("PK_Silhouette PK_SilhouetteSize96 PK_Silhouette_S_96_M_A_LTR")) {
         genderval = "male";
     } else if (focusperson.contains("(born")) {
         genderval = "female";

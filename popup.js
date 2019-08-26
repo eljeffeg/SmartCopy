@@ -311,8 +311,8 @@ function useradd() {
                     chrome.tabs.onUpdated.removeListener(listener);
                     chrome.tabs.executeScript(tab1.id, {
                         code: "document.getElementById('thread_subject').value='SmartCopy Invite';" +
-                            "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, " +
-                            "which is a Google Chrome extension that allows Geni users to copy information and profiles from various sources into Geni.\\n\\n" +
+                            "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, which is a browser extension that " +
+                            "allows Geni users to copy information and profiles from various sources into Geni.\\n\\n" +
                             "The extension can be downloaded here: https://historylink.herokuapp.com/smartcopy\\n" +
                             "More information and discussion can be found in the Geni project: https://www.geni.com/projects/SmartCopy/18783\\n\\n" +
                             "Before using SmartCopy, please read the cautionary notes in the Project Description. " +

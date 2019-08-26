@@ -160,9 +160,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     var genderdiv = parsed.find(".recordImage");
     var genderimage = $(genderdiv).find('.PK_Silhouette');
     var genderval = "unknown";
-    if ($(genderimage).hasClass('PK_Silhouette_S_150_M_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_150_M_C_LTR')) {
+    if ($(genderimage).hasClass('PK_Silhouette_S_150_M_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_150_M_C_LTR') || 
+        $(genderimage).hasClass('PK_Silhouette_S_96_M_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_192_M_A_LTR')) {
         genderval = "male";
-    } else if ($(genderimage).hasClass('PK_Silhouette_S_150_F_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_150_F_C_LTR')) {
+    } else if ($(genderimage).hasClass('PK_Silhouette_S_150_F_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_150_F_C_LTR') || 
+        $(genderimage).hasClass('PK_Silhouette_S_96_F_A_LTR') || $(genderimage).hasClass('PK_Silhouette_S_192_F_A_LTR')) {
         genderval = "female";
     }
     if (relation === "") {

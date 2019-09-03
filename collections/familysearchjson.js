@@ -306,12 +306,12 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                 for (var x = 0; x < jsonrel.length; x++) {
                     var spouse = "";
                     var image = "";
-                    if (jsonrel[x]["husband"] && jsonrel[x]["husband"]["id"] !== focusURLid) {
-                        spouse = jsonrel[x]["husband"]["id"];
-                        image = jsonrel[x]["husband"]["portraitUrl"] || "";
-                    } else if (jsonrel[x]["wife"] && jsonrel[x]["wife"]["id"] !== focusURLid) {
-                        spouse = jsonrel[x]["wife"]["id"];
-                        image = jsonrel[x]["wife"]["portraitUrl"] || "";
+                    if (jsonrel[x]["spouse0"] && jsonrel[x]["spouse0"]["id"] !== focusURLid) {
+                        spouse = jsonrel[x]["spouse0"]["id"];
+                        image = jsonrel[x]["spouse0"]["portraitUrl"] || "";
+                    } else if (jsonrel[x]["spouse1"] && jsonrel[x]["spouse1"]["id"] !== focusURLid) {
+                        spouse = jsonrel[x]["spouse1"]["id"];
+                        image = jsonrel[x]["spouse1"]["portraitUrl"] || "";
                     }
                     if (spouse !== "") {
                         var data = parseFSJSONUnion(jsonrel[x]["event"]);

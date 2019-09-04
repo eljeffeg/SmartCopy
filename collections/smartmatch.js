@@ -68,6 +68,9 @@ registerCollection({
         } else {
             var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
             focusname = parsed.find(".recordTitle").text().trim();
+            if (focusname == "") {
+                focusname = parsed.find(".record_title").text().trim();
+            }
             recordtype = parsed.find(".infoGroupTitle");
             var shorturl = shorturlreader(tablink);
             focusURLid = getMHURLId(shorturl);
@@ -154,9 +157,11 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     var parsed = $('<div>').html(htmlstring.replace(/<img[^>]*>/ig, ""));
 
     var focusperson = parsed.find(".recordTitle").text().trim();
+    if (focusperson == "") {
+        focusperson = parsed.find(".record_title").text().trim();
+    }
     $("#readstatus").html(escapeHtml(focusperson));
     var focusdaterange = parsed.find(".recordSubtitle").text().trim();
-    //console.log(focusperson);
     var genderdiv = parsed.find(".recordImage");
     var genderimage = $(genderdiv).find('.PK_Silhouette');
     var genderval = "unknown";

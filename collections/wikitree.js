@@ -169,12 +169,12 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                     var urlset = $(cells[i]).find('a');
                     if (exists(urlset)) {
                         var url = hostDomain(tablink) + $(urlset[0]).attr('href');
-                        var title = $(urlset[0]).attr('title');
+                        var title = $(cells[i]).attr('itemprop');
                         var name = $(urlset[0]).text();
                         if (exists(name)) {
                             name = name.replace("(", "(born ");
                         }
-                        if (exists(title) && title !== "") {
+                        if (exists(title) && title !== "" && title != "name") {
                             if (title.contains(" ")) {
                                 title = title.substring(0, title.indexOf(" "));
                             }

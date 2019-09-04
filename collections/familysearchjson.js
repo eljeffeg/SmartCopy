@@ -306,9 +306,9 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                 for (var x = 0; x < jsonrel.length; x++) {
                     var spouse = "";
                     var image = "";
-                    if (jsonrel[x]["spouse0"] && jsonrel[x]["spouse0"]["id"] !== focusURLid) {
-                        spouse = jsonrel[x]["spouse0"]["id"];
-                        image = jsonrel[x]["spouse0"]["portraitUrl"] || "";
+                    if (jsonrel[x]["spouse2"] && jsonrel[x]["spouse2"]["id"] !== focusURLid) {
+                        spouse = jsonrel[x]["spouse2"]["id"];
+                        image = jsonrel[x]["spouse2"]["portraitUrl"] || "";
                     } else if (jsonrel[x]["spouse1"] && jsonrel[x]["spouse1"]["id"] !== focusURLid) {
                         spouse = jsonrel[x]["spouse1"]["id"];
                         image = jsonrel[x]["spouse1"]["portraitUrl"] || "";

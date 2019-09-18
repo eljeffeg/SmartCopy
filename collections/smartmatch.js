@@ -69,16 +69,16 @@ registerCollection({
             var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
             focusname = parsed.find(".recordTitle").text().trim();
             if (focusname == "") {
-                focusname = parsed.find(".record_title").text().trim();
+                focusname = $(parsed.find(".record_title")[0]).text().trim();
             }
-            recordtype = parsed.find(".infoGroupTitle");
+            recordtypeval = parsed.find(".infoGroupTitle");
             var shorturl = shorturlreader(tablink);
             focusURLid = getMHURLId(shorturl);
             if (focusURLid === "") {
                 focusURLid = getMHURLId(tablink);
             }
             smscorefactors = parsed.find(".value_add_score_factors_container").text().trim();
-            if (exists(recordtype[0])) {
+            if (exists(recordtypeval[0])) {
                 recordtype = $(recordtype[0]).text();
             }
             focusrange = parsed.find(".recordSubtitle").text().trim();
@@ -158,7 +158,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
 
     var focusperson = parsed.find(".recordTitle").text().trim();
     if (focusperson == "") {
-        focusperson = parsed.find(".record_title").text().trim();
+        focusperson = $(parsed.find(".record_title")[0]).text().trim();
     }
     $("#readstatus").html(escapeHtml(focusperson));
     var focusdaterange = parsed.find(".recordSubtitle").text().trim();

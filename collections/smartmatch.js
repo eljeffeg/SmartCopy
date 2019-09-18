@@ -71,15 +71,19 @@ registerCollection({
             if (focusname == "") {
                 focusname = $(parsed.find(".record_title")[0]).text().trim();
             }
-            recordtypeval = parsed.find(".infoGroupTitle");
+            
             var shorturl = shorturlreader(tablink);
             focusURLid = getMHURLId(shorturl);
             if (focusURLid === "") {
                 focusURLid = getMHURLId(tablink);
             }
             smscorefactors = parsed.find(".value_add_score_factors_container").text().trim();
+            recordtypeval = parsed.find(".infoGroupTitle");
+            recordtypeval2 = parsed.find(".collection_info_box_title")
             if (exists(recordtypeval[0])) {
-                recordtype = $(recordtype[0]).text();
+                recordtype = $(recordtypeval[0]).text();
+            } else if (exists(recordtypeval2[0])) {
+                recordtype = $(recordtypeval2[0]).text();
             }
             focusrange = parsed.find(".recordSubtitle").text().trim();
             if (!profilechanged) {

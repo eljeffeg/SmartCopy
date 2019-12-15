@@ -31,7 +31,6 @@ registerCollection({
                 focusURLid = focussplit[focussplit.length - 2];
             }
         }
-        console.log(url);
         return url;
     },
     "collectionMatch": function(url) {
@@ -470,7 +469,6 @@ function parseFSJSONDate(eventinfo) {
 
 
 function getFamilySearchJSON(famid, url, subdata) {
-    console.log(url)
     familystatus.push(famid);
     chrome.runtime.sendMessage({
         method: "GET",
@@ -479,7 +477,6 @@ function getFamilySearchJSON(famid, url, subdata) {
         variable: subdata
     }, function (response) {
         var arg = response.variable;
-        console.log("Here")
         var person = parseFamilySearchJSON(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
         if (person === "") {
             familystatus.pop();

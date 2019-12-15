@@ -90,7 +90,7 @@ function getProfile(profile_id) {
                 profile_id = "profile-" + profile_id;
             }
         }
-        var validate = profile_id.replace("profile-g", "").replace("profile-", "");
+        var validate = profile_id.replace("profile-g", "").replace("profile-", "").replace("#","");
         if (isNaN(validate)) {
             profile_id = "";
         }

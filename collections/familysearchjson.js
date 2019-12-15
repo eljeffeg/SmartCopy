@@ -7,7 +7,7 @@ registerCollection({
         if (startsWithHTTP(url,"https://familysearch.org/pal:")) {
             var urlparts= url.split('?');
             focusURLid = urlparts[0].substring(url.lastIndexOf('/') + 1);
-            url = hostDomain(url) + "/tree-data/person/" + focusURLid + "/all?locale=en";
+            url = hostDomain(url) + "/service/tree/tree-data/person/" + focusURLid + "/all?locale=en";
             this.reload = true;
         } else if (startsWithHTTP(url,"https://familysearch.org/tree/") && !startsWithHTTP(url, "https://familysearch.org/tree/find")) {
             focusURLid = getParameterByName('person', url);
@@ -18,24 +18,26 @@ registerCollection({
                     focusURLid = focusURLid.substring(0, focusURLid.lastIndexOf('?'));
                 }
             }
-            url = hostDomain(url) + "/tree-data/person/" + focusURLid + "/all?locale=en";
+            url = hostDomain(url) + "/service/tree/tree-data/person/" + focusURLid + "/all?locale=en";
             this.reload = true;
         } else if (startsWithHTTP(url,"https://familysearch.org/ark:") && !url.contains("/1:1:")) {
             var urlparts= url.split('?');
             focusURLid = urlparts[0].substring(url.lastIndexOf(':') + 1);
-            url = hostDomain(url) + "/tree-data/person/" + focusURLid + "/all?locale=en";
+            url = hostDomain(url) + "/service/tree/tree-data/person/" + focusURLid + "/all?locale=en";
             this.reload = true;
-        } else if (startsWithHTTP(url,"https://familysearch.org/tree-data/")) {
+        } else if (startsWithHTTP(url,"https://familysearch.org/service/tree/tree-data/")) {
             var focussplit = url.split("/");
             if (focussplit.length > 1) {
                 focusURLid = focussplit[focussplit.length - 2];
             }
         }
+        console.log(url);
         return url;
     },
     "collectionMatch": function(url) {
         url = url.replace("://www.", "://");
         return (
+                startsWithHTTP(url,"https://familysearch.org/service/tree") ||
                 startsWithHTTP(url,"https://familysearch.org/tree-data") ||
                 startsWithHTTP(url,"https://familysearch.org/tree/") ||
                 startsWithHTTP(url,"https://familysearch.org/pal:") ||
@@ -232,7 +234,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
     // ---------------------- Family Data --------------------
     if (familymembers) {
         familystatus.push(famid);
-        var url = hostDomain(tablink) + "/tree-data/family-members/person/" + focusURLid + "?includePhotos=true&locale=en";
+        var url = hostDomain(tablink) + "/service/tree/tree-data/family-members/person/" + focusURLid + "?includePhotos=true&locale=en";
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -330,7 +332,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         var spouse = fsspouselist[x];
                         familystatus.push(famid);
                         //https://familysearch.org/tree-data/family-members/couple/LKKN-H49_LH2H-51B/children?focusPersonId=LH2H-51B&includePhotos=true&locale=en
-                        var url = hostDomain(tablink) + "/tree-data/family-members/couple/" + spouse + "_" + focusURLid + "/children?focusPersonId=" + focusURLid + "&includePhotos=true&locale=en";
+                        var url = hostDomain(tablink) + "/service/tree/tree-data/family-members/couple/" + spouse + "_" + focusURLid + "/children?focusPersonId=" + focusURLid + "&includePhotos=true&locale=en";
                         var subdata = {spouse: spouse};
                         chrome.runtime.sendMessage({
                             method: "GET",
@@ -468,6 +470,7 @@ function parseFSJSONDate(eventinfo) {
 
 
 function getFamilySearchJSON(famid, url, subdata) {
+    console.log(url)
     familystatus.push(famid);
     chrome.runtime.sendMessage({
         method: "GET",
@@ -476,6 +479,7 @@ function getFamilySearchJSON(famid, url, subdata) {
         variable: subdata
     }, function (response) {
         var arg = response.variable;
+        console.log("Here")
         var person = parseFamilySearchJSON(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
         if (person === "") {
             familystatus.pop();
@@ -507,7 +511,7 @@ function processFamilySearchJSON(itemid, title, famid, image, data) {
     if (itemid === focusURLid) {
         return false;
     }
-    var url = hostDomain(tablink) + "/tree-data/person/" + itemid + "/all?locale=en";
+    var url = hostDomain(tablink) + "/service/tree/tree-data/person/" + itemid + "/all?locale=en";
     if (!exists(alldata["family"][title])) {
         alldata["family"][title] = [];
     }

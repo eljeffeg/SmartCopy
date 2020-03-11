@@ -538,6 +538,9 @@ function loadSelectPage(request) {
         '<tr><td style="padding-top: 5px;"><button id="changefocus">Set Destination</button></td></tr></table>');
     var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
     var focusperson = parsed.find(".individualInformationName").text().trim();
+    if (focusperson == "<Private>") {
+        focusperson = parsed.find("#BreadcrumbsFinalText").text().trim();
+    }
     var focusprofile = parsed.find(".individualInformationProfileLink").attr("href");
     if (exists(focusprofile) && focusprofile.contains("myheritage.com")) {
         focusprofile = null;
@@ -2125,6 +2128,10 @@ $(function () {
         chrome.storage.local.set({'geniparent': this.checked});
         $("#gparentchange").css("display", "block");
     });
+    $('#privacyonoffswitch').on('click', function () {
+        chrome.storage.local.set({'privacy': this.checked});
+        $("#privacychange").css("display", "block");
+    });
     $('#burialonoffswitch').on('click', function () {
         chrome.storage.local.set({'burialdate': this.checked});
         $("#burialchange").css("display", "block");
@@ -2601,6 +2608,13 @@ chrome.storage.local.get('geniparent', function (result) {
     var gparentchecked = result.geniparent;
     if (exists(gparentchecked)) {
         $('#geniparentonoffswitch').prop('checked', gparentchecked);
+    }
+});
+
+chrome.storage.local.get('privacy', function (result) {
+    var privacychecked = result.privacy;
+    if (exists(privacychecked)) {
+        $('#privacyonoffswitch').prop('checked', privacychecked);
     }
 });
 

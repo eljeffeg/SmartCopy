@@ -1,6 +1,6 @@
 ## License
 
-Copyright (C) 2014-2019 Jeffrey Gentes
+Copyright (C) 2014-2020 jeffg2k
 All rights reserved.
 
 ## Disclaimer

@@ -118,7 +118,7 @@ function buildFamilySearch(responsedata) {
     query += '~';
     query = query.replace(/[\u2018\u2019]/g, "'");
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>FamilySearch</strong>';
-    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://familysearch.org/search/tree/' + query + '">FamilySearch (' + _("Genealogies") + ')</a></li>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://familysearch.org/search/family-trees/' + query + '">FamilySearch (' + _("Genealogies") + ')</a></li>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://familysearch.org/search/record/' + query + '">FamilySearch (' + _("Records") + ')</a></li>';
     researchstring += '</div>';
     return researchstring;

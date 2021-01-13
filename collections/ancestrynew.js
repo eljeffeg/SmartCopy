@@ -105,7 +105,7 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
             titlename = tsplit[1].trim();
         }
 
-        var encodetitle = encodeURI(titlename);
+        var encodetitle = encodeURIComponent(titlename);
         if (encodetitle.contains("%20%E2%80%94%20")) {
             var splittitle = encodetitle.split("%20%E2%80%94%20");
             titlename = splittitle[1];

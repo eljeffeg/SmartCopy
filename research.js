@@ -90,33 +90,32 @@ function buildGeni(responsedata) {
 }
 
 function buildFamilySearch(responsedata) {
-    var query = 'results?count=75&query=%2Bgivenname%3A%22' + wrapEncode(responsedata.first_name.replace("'","")).replace(/%22/g, "") + '%22';
+    var query = 'results?q.givenName=' + wrapEncode(responsedata.first_name.replace("'","")).replace(/%22/g, "");
     var lastname = wrapEncode(responsedata.last_name).replace(/%22/g, "");
     if (exists(responsedata.maiden_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
         lastname = wrapEncode(responsedata.maiden_name.replace(/'/g,"")).replace(/%22/g, "");
         if (exists(responsedata.last_name)) {
-            query += '~%20%2Bspouse_surname%3A%22' + wrapEncode(responsedata.last_name.replace(/'/g,"")).replace(/%22/g, "") + '%22';
+            query += '&q.spouse_surname=' + wrapEncode(responsedata.last_name.replace(/'/g,"")).replace(/%22/g, "");
         }
     }
-    query += '~%20%2Bsurname%3A%22' + wrapEncode(lastname).replace(/%22/g, "") + '%22';
+    query += '&q.surname=' + wrapEncode(lastname).replace(/%22/g, "");
     if (exists(responsedata.birth)) {
         if (exists(responsedata.birth.date) && exists(responsedata.birth.date.year)) {
-            query += '~%20%2Bbirth_year%3A' + (responsedata.birth.date.year - 1) + '-' + (responsedata.birth.date.year + 1);
+            query += '&q.birthLikeDate.from=' + (responsedata.birth.date.year - 1) + '&q.birthLikeDate.to=' + (responsedata.birth.date.year + 1);
         }
         if (exists(responsedata.birth.location)) {
-            query += '~%20%2Bbirth_place%3A%22' + wrapEncode(locationString(responsedata.birth.location)).replace(/%22/g, "") + '%22';
+            query += '&q.birthLikePlace=' + wrapEncode(locationString(responsedata.birth.location)).replace(/%22/g, "");
         }
     }
     if (exists(responsedata.death)) {
         if (exists(responsedata.death.location)) {
-            query += '~%20%2Bdeath_place%3A%22' + wrapEncode(locationString(responsedata.death.location)).replace(/%22/g, "") + '%22';
+            query += '&q.deathLikePlace=' + wrapEncode(locationString(responsedata.death.location)).replace(/%22/g, "");
         }
         if (exists(responsedata.death.date) && exists(responsedata.death.date.year)) {
-            query += '~%20%2Bdeath_year%3A' + (responsedata.death.date.year - 1) + '-' + (responsedata.death.date.year + 1);
+            query += '&q.deathLikeDate.from=' + (responsedata.death.date.year - 1) + '&q.deathLikeDate.to=' + (responsedata.death.date.year + 1);
         }
     }
-    query += '~';
-    query = query.replace(/[\u2018\u2019]/g, "'");
+    query = query.replace(/[\u2018\u2019]/g, "'").replace(/%252C/g, "%2C").replace(/%2520/g, "%20");
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>FamilySearch</strong>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://familysearch.org/search/family-trees/' + query + '">FamilySearch (' + _("Genealogies") + ')</a></li>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://familysearch.org/search/record/' + query + '">FamilySearch (' + _("Records") + ')</a></li>';
@@ -194,7 +193,7 @@ function buildAncestry(responsedata) {
     } else if (exists(responsedata.maiden_name)) {
         lastname = responsedata.maiden_name;
     }
-    var query = 'https://www.ancestry.com/genealogy/records/results?firstname=' + firstname + '&lastname=' + lastname;
+    var query = 'https://www.ancestry.com/genealogy/records/results?firstName=' + firstname + '&lastName=' + lastname;
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Ancestry</strong>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">Ancestry (' + _("Genealogies") + ')</a></li>';
     researchstring += '</div>';
@@ -326,6 +325,6 @@ function wrapEncode(name) {
     } else if (name.contains(" ")) {
         name = '"' + name + '"';
     }
-    name = encodeURI(name);
+    name = encodeURIComponent(name);
     return name;
 }

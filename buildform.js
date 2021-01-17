@@ -1784,7 +1784,7 @@ function cleanHTML(html) {
 }
 
 function cleanDate(dateval) {
-    if (dateval.contains("WFT ") || dateval.contains("Calculated")) {
+    if (dateval.contains("WFT ") || dateval.contains("Calculated") || dateval.toLowerCase().contains("deceased")) {
         /*
         WFT is an abbreviation for the World Family Tree algorithm, used in cases where the submitter did not provide a date.
         It is used to satisfy the database requirements of the World Family Tree Project and has no basis in fact.

@@ -2199,7 +2199,7 @@ $(function () {
         $('.aboutdev').on('click', function () {
             var modal2 = document.getElementById('AboutModal');
             modal2.style.display = "block";
-            $('body').css('min-height', '545px');
+            $('body').css('min-height', '540px');
         });
     });
     $(function () {

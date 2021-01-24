@@ -304,7 +304,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             // console.log(row);
             var row = rows[r];
             var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
-
             if (title === "gender") {
                 if (exists($(row).find(".recordFieldValue").contents().get(0))) {
                     genderval = $(row).find(".recordFieldValue").contents().get(0).nodeValue.toLowerCase();
@@ -343,12 +342,13 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                 listrowval = listrowval.childNodes[0];
                                 var urlval = $(listrowval).attr("href");
                                 if (!exists(urlval) || urlval === "") {
-                                    continue;
+                                    if($(listrow[lr]).text() === "" && $(listrow[lr]).data("itemId") === "undefined") {
+                                        continue;
+                                    }
                                 }
                             } else if (listrowval.nodeName === "BR") {
                                 continue;
                             }
-
                             if (listrowval.className !== "eventSeparator" && listrowval.nodeValue !== null) {
                                 var name = listrowval.nodeValue.trim();
                                 if (name.replace(",","").length > 1) {

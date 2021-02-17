@@ -264,6 +264,15 @@ function userAccess() {
                             document.getElementById('grantbutton').addEventListener('click', userrestore, false);
                         }
                     }
+                    chrome.runtime.sendMessage({
+                        method: "GET",
+                        action: "xhttp",
+                        url: "https://www.geni.com/api/" + focusid + "&fields=name",
+                        variable: ""
+                    }, function (response) {
+                        var responsedata = JSON.parse(response.source);
+                        focusname = responsedata.name;
+                    })
                 } else {
                     $(accessdialog).html("<div style='font-size: 115%;'><strong>" + _("Research_this_Person") + "</strong></div>" + _("Loading___"));
                     buildResearch();

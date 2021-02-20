@@ -342,7 +342,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                 listrowval = listrowval.childNodes[0];
                                 var urlval = $(listrowval).attr("href");
                                 if (!exists(urlval) || urlval === "") {
-                                    if($(listrow[lr]).text() === "" && $(listrow[lr]).data("itemId") === "undefined") {
+                                    if(household.length > 0 || ($(listrow[lr]).text() === "" && $(listrow[lr]).data("itemId") === "undefined")) {
                                         continue;
                                     }
                                 }

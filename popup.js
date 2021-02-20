@@ -611,6 +611,7 @@ function loadSelectPage(request) {
             });
             var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select relative of ' + focusperson + '</option>';
             if (exists(result)) {
+                selectsrt += '<option value="' + focusprofile + '">Self: ' + focusperson + '</option>';
                 for (var key in result) if (result.hasOwnProperty(key)) {
                     var person = result[key];
                     if (exists(person) && person.get("relation") !== "self") {

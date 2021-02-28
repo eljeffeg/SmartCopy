@@ -27,6 +27,7 @@ function buildResearch() {
             researchstring += buildGeni(responsedata);
             researchstring += buildGoogle(responsedata);
             researchstring += buildLegacy(responsedata);
+            researchstring += buildMyHeritage(responsedata);
             researchstring += buildRootsWeb(responsedata);
             researchstring += buildTributes(responsedata);
             researchstring += "<div style='text-align: center; padding-top: 10px;'><strong>" + _("Other_Resources") + "</strong></div><div style='text-align: left; padding-left: 5px;'><li style='padding-left: 5px;'><a class='ctrllink' url='https://www.geni.com/projects/Genealogie-Zoekmachines-voor-de-Lage-Landen/24259'>Genealogy Search Engines for the Low Countries</a></li></div>";
@@ -262,6 +263,46 @@ function buildLegacy(responsedata) {
     var query = 'http://www.legacy.com/ns/obitfinder/obituary-search.aspx?daterange=' + daterange + '&firstname=' + firstname + '&lastname=' + lastname + '&countryid=0&stateid=all&affiliateid=all';
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Legacy</strong>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">Legacy (' + _("Obituaries") + ')</a></li>';
+    researchstring += '</div>';
+    return researchstring;
+}
+
+function buildMyHeritage(responsedata) {
+    var query = 'qname=Name+fn.' + wrapEncode(responsedata.first_name.replace("'","")).replace(/%22/g, "");
+    var lastname = wrapEncode(responsedata.last_name).replace(/%22/g, "");
+    query += '%2F3+ln.' + wrapEncode(lastname).replace(/%22/g, "");
+    if (exists(responsedata.maiden_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
+        query += '%2F' + wrapEncode(responsedata.maiden_name.replace(/'/g,"")).replace(/%22/g, "");
+    }
+    if (responsedata.gender === "female") {
+        query += '+g.F'
+    } else {
+        query += '+g.M'
+    }
+    let i = 1
+    if (exists(responsedata.birth)) {
+        query += '&qevents-any/1event_' + i + '=Event'
+        if (exists(responsedata.birth.date) && exists(responsedata.birth.date.year)) {
+            query += '+et.birth+ed.9+em.9+ey.' + (responsedata.birth.date.year);
+        }
+        if (exists(responsedata.birth.location)) {
+            query += 'ep.' + wrapEncode(locationString(responsedata.birth.location)).replace(/%22/g, "") + '+epmo.similar';
+        }
+        i += 1
+    }
+    if (exists(responsedata.death)) {
+        query += '&qevents-any/1event_' + i + '=Event'
+        if (exists(responsedata.death.date) && exists(responsedata.death.date.year)) {
+            query += 'et.death+ey.' + (responsedata.death.date.year);
+        }
+        if (exists(responsedata.death.location)) {
+            query += '+ep.' + wrapEncode(locationString(responsedata.death.location)).replace(/%22/g, "") + '+epmo.similar';
+        }
+        i += 1
+    }
+    query = 'https://www.myheritage.com/research?action=query&exactSearch=0&formId=master&formMode=1&qevents=List&' + query.replace(/[\u2018\u2019]/g, "'").replace(/%252C/g, "%2C").replace(/%2520/g, "%20");
+    var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>MyHeritage</strong>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">MyHeritage (' + _("All_Collections") + ')</a></li>';
     researchstring += '</div>';
     return researchstring;
 }

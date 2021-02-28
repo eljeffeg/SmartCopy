@@ -11,6 +11,26 @@
  *
  * Call to verify HistoryLink authentication to Geni & query Family Data
  * */
+function getUrlFromJson(obj) {
+    let result = "";
+    for (var key in obj) {
+        if (result != "") {
+            result += "&";
+        }
+        result += key + "=" + encodeURIComponent(obj[key]);
+    }
+    return result;
+}
+
+function getJsonFromUrl(query) {
+    var result = {};
+    query.split("&").forEach(function(part) {
+      var item = part.split("=");
+      result[item[0]] = decodeURIComponent(item[1]);
+    });
+    return result;
+}
+
 chrome.runtime.onMessage.addListener(function(request, sender, callback) {
     if (request.action == "xhttp") {
         var xhttp = new XMLHttpRequest();
@@ -29,8 +49,34 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
         if (method == 'POST') {
             xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");  //"application/json;charset=UTF-8"
             //xhttp.setRequestHeader("Content-length", request.data.length);
+            data = getJsonFromUrl(request.data)
+            if (data.photo !== undefined) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', data.photo, true);
+                xhr.onload = function(){
+                    const response = xhr.responseText;
+                    if (!response.includes("Error")) {
+                        let binary = ""
+                        for(i=0;i<response.length;i++){
+                            binary += String.fromCharCode(response.charCodeAt(i) & 0xff);
+                        }
+                        delete data.photo
+                        data.file = btoa(binary)
+                        xhttp.send(getUrlFromJson(data));
+                    }
+                }
+                xhr.onerror = function(error) {
+                    var valrtn = {error: error, responseURL: xhr.responseURL};
+                    callback(valrtn);
+                };
+                xhr.overrideMimeType('text/plain; charset=x-user-defined');
+                xhr.send();
+            } else {
+                xhttp.send(request.data);
+            }
+        } else {
+            xhttp.send(request.data);
         }
-        xhttp.send(request.data);
         return true; // prevents the callback from being called too early on return
     } else if (request.action == "icon") {
         chrome.browserAction.setIcon({path: request.path});

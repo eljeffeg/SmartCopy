@@ -1214,13 +1214,10 @@ function buildTree(data, action, sendid) {
             }
         }
         var posturl = "https://www.geni.com/api/" + sendid + "/" + action +  "?fields=id,unions,name" + "&access_token=" + accountinfo.access_token;
-        if (action === "add-photo") {
-            if (permissions.indexOf("add-photo") === -1) {
-                setMessage(errormsg, "Geni permission to add photo denied on: " + sendid);
-                console.log("Geni permission to add photo denied on: " + sendid);
-                return;
-            }
-            posturl = smartcopyurl + "/smartsubmit?profile=" + sendid + "&action=" + action + "&access_token=" + accountinfo.access_token;
+        if (action === "add-photo" && permissions.indexOf("add-photo") === -1) {
+            setMessage(errormsg, "Geni permission to add photo denied on: " + sendid);
+            console.log("Geni permission to add photo denied on: " + sendid);
+            return;
         }
         if (verboselogs) {
             console.log("Post URL: " + posturl);
@@ -1474,7 +1471,7 @@ function submitChildren() {
         if (photototal > 1) {
             photodialog = photototal + " Photos";
         }
-        $("#updatestatus").text("Queuing " + photodialog);
+        $("#updatestatus").text("Uploading " + photodialog);
         $("#updatetotal").text(photototal);
         $("#updatecount").text(Math.min(photocount, photototal).toString());
         if (exists(focusphotoinfo)) {

@@ -29,6 +29,9 @@ registerCollection({
 
 // Parse FindAGrave
 function parseBillionGraves(htmlstring, familymembers, relation) {
+
+    $("#experimentalmessage").text("Note: BillionGraves images will not copy for technical reasons, so the preview has been disabled. This is not a bug. Sorry, you'll have to do that part manually.");
+    $("#experimentalmessage").show();
     relation = relation || "";
     var parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));
     
@@ -89,12 +92,12 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     for (var i = 0; i < imagedata.length; i++) {
         let src = $(imagedata[i]).attr( "src" );
         if (src.startsWith("https://s3.amazonaws.com/images.billiongraves.com/headstones/images")) {
-            //profiledata["image"] = src;
-            //profiledata["thumb"] = src.replace("/images/", "/thumbnails/");
+            // profiledata["image"] = src;
+            // profiledata["thumb"] = src.replace("/images/", "/thumbnails/");
             // Haven't figure out how to allow image loading
         }
     }
-    
+
     const imagecredit = parsed.find("amp-img[alt='Photographer']");
     if (exists(imagecredit)) {
         profiledata["imagecredit"] = $(imagecredit[0]).next().find("h2").text();

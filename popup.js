@@ -1223,66 +1223,78 @@ function buildTree(data, action, sendid) {
             console.log("Post URL: " + posturl);
             console.log("Post Data: " + JSON.stringify(data));
         }
-        chrome.runtime.sendMessage({
-            method: "POST",
-            action: "xhttp",
-            url: posturl,
-            data: $.param(data),
-            variable: {id: id, relation: action.replace("add-", ""), data: data}
-        }, function (response) {
-            try {
-                var result = JSON.parse(response.source);
-                if (verboselogs) {
-                    console.log("Geni Response: " + response.source);
-                }
-                if (exists(result.error) && exists(result.error.message)) {
-                    noerror = false;
-                    setMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + 'Error Response: "' + result.error.message + '"');
-                }
-            } catch (e) {
-                noerror = false;
-                var extrainfo = "";
-                if (response.variable.relation === "photo") {
-                    extrainfo = "The photo may be too large. "
-                }
-                setMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + extrainfo + 'Error Response: "' + e.message + '"');
-                console.log(e); //error in the above string(in this case,yes)!
-                console.log(response.source);
-            }
-            var id = response.variable.id;
-            var relation = response.variable.relation;
-            if (exists(databyid[id])) {
-                var genidata;
-                if (exists(result.id)) {
-                    databyid[id]["geni_id"] = result.id;
-                }
-                if (exists(genifamilydata[databyid[id]["geni_id"]])) {
-                    genidata = genifamilydata[databyid[id]["geni_id"]];
-                } else {
-                    genidata = new GeniPerson(result);
-                }
-                if (isPartner(relation) && exists(result.unions)) {
-                    spouselist[id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: databyid[id].status, genidata: genidata};
-                } else if (isParent(relation) && exists(result.unions)) {
-                    parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
-                    if (parentlist.length > 0) {
-                        if (exists(marriagedates[id]) || exists(marriagedates[parentlist[0]])){
-                            spouselist[id] = {union: parentspouseunion, status: databyid[id].status, genidata: genidata};
-                        }
-                    } else {
-                        parentlist.push(id);
+        if (action !== "add-photo") {
+            chrome.runtime.sendMessage({
+                method: "POST",
+                action: "xhttp",
+                url: posturl,
+                data: $.param(data),
+                variable: {id: id, relation: action.replace("add-", ""), data: data}
+            }, function (response) {
+                try {
+                    var result = JSON.parse(response.source);
+                    if (verboselogs) {
+                        console.log("Geni Response: " + response.source);
                     }
-                } else if (isSibling(relation) && !exists(parentspouseunion)) {
-                    parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
+                    if (exists(result.error) && exists(result.error.message)) {
+                        noerror = false;
+                        setMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + 'Error Response: "' + result.error.message + '"');
+                    }
+                } catch (e) {
+                    noerror = false;
+                    var extrainfo = "";
+                    if (response.variable.relation === "photo") {
+                        extrainfo = "The photo may be too large. "
+                    }
+                    setMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + extrainfo + 'Error Response: "' + e.message + '"');
+                    console.log(e); //error in the above string(in this case,yes)!
+                    console.log(response.source);
                 }
-                addHistory(result.id, databyid[id].itemId, getProfileName(databyid[id].name), JSON.stringify(response.variable.data));
-            }
-            if (action !== "add-photo" && action !== "delete") {
-                updatecount += 1;
-                $("#updatecount").text(Math.min(updatecount, updatetotal).toString());
-            }
+                var id = response.variable.id;
+                var relation = response.variable.relation;
+                if (exists(databyid[id])) {
+                    var genidata;
+                    if (exists(result.id)) {
+                        databyid[id]["geni_id"] = result.id;
+                    }
+                    if (exists(genifamilydata[databyid[id]["geni_id"]])) {
+                        genidata = genifamilydata[databyid[id]["geni_id"]];
+                    } else {
+                        genidata = new GeniPerson(result);
+                    }
+                    if (isPartner(relation) && exists(result.unions)) {
+                        spouselist[id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: databyid[id].status, genidata: genidata};
+                    } else if (isParent(relation) && exists(result.unions)) {
+                        parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
+                        if (parentlist.length > 0) {
+                            if (exists(marriagedates[id]) || exists(marriagedates[parentlist[0]])){
+                                spouselist[id] = {union: parentspouseunion, status: databyid[id].status, genidata: genidata};
+                            }
+                        } else {
+                            parentlist.push(id);
+                        }
+                    } else if (isSibling(relation) && !exists(parentspouseunion)) {
+                        parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
+                    }
+                    addHistory(result.id, databyid[id].itemId, getProfileName(databyid[id].name), JSON.stringify(response.variable.data));
+                }
+                if (action !== "add-photo" && action !== "delete") {
+                    updatecount += 1;
+                    $("#updatecount").text(Math.min(updatecount, updatetotal).toString());
+                }
+                submitstatus.pop();
+            });
+        } else {
+            chrome.runtime.sendMessage({
+                method: "POST",
+                action: "xhttp",
+                url: posturl,
+                data: $.param(data),
+                variable: {id: id, relation: action.replace("add-", ""), data: data}
+            });
             submitstatus.pop();
-        });
+        }
+        
     } else if (!$.isEmptyObject(data) && exists(sendid) && devblocksend) {
         var permissions = [];
         if (exists(genifamilydata[sendid])) {

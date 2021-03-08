@@ -741,10 +741,25 @@ function buildGeniCount(val, name) {
 }
 
 function setMessage(color, messagetext) {
-    var message = document.querySelector('#message');
+    let message = document.querySelector('#message');
     message.style.backgroundColor = color;
     message.style.display = "block";
     $(message).html(messagetext);
+}
+
+function updateMessage(color, messagetext) {
+    let message = document.querySelector('#message');
+    if (color === errormsg && warningmsg === message.style.backgroundColor) {
+        // if moving from warning to errro - clear message
+        $(message).html("")
+    }
+    message.style.backgroundColor = color;
+    message.style.display = "block";
+    messagehtml = $(message).html();
+    if (messagehtml.length > 0) {
+        messagehtml = messagehtml + "<br><br>"
+    }
+    $(message).html(messagehtml + messagetext);
 }
 
 function getPageCode() {
@@ -1208,15 +1223,17 @@ function buildTree(data, action, sendid) {
             }
         } else if (action.startsWith("add") && action !== "add-photo") {
             if (permissions.indexOf("add") === -1) {
-                setMessage(errormsg, "Geni permission denied - No add permission on: " + sendid);
+                updateMessage(errormsg, "Geni permission denied - No add permission on: " + sendid);
                 console.log("Geni permission denied - No add permission on profile: " + sendid);
+                submitstatus.pop();
                 return;
             }
         }
         var posturl = "https://www.geni.com/api/" + sendid + "/" + action +  "?fields=id,unions,name" + "&access_token=" + accountinfo.access_token;
         if (action === "add-photo" && permissions.indexOf("add-photo") === -1) {
-            setMessage(errormsg, "Geni permission to add photo denied on: " + sendid);
+            updateMessage(errormsg, "Geni permission to add photo denied on: " + sendid);
             console.log("Geni permission to add photo denied on: " + sendid);
+            submitstatus.pop();
             return;
         }
         if (verboselogs) {
@@ -1238,7 +1255,7 @@ function buildTree(data, action, sendid) {
                     }
                     if (exists(result.error) && exists(result.error.message)) {
                         noerror = false;
-                        setMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + 'Error Response: "' + result.error.message + '"');
+                        updateMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + 'Error Response: "' + result.error.message + '"');
                     }
                 } catch (e) {
                     noerror = false;
@@ -1246,7 +1263,7 @@ function buildTree(data, action, sendid) {
                     if (response.variable.relation === "photo") {
                         extrainfo = "The photo may be too large. "
                     }
-                    setMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + extrainfo + 'Error Response: "' + e.message + '"');
+                    updateMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + extrainfo + 'Error Response: "' + e.message + '"');
                     console.log(e); //error in the above string(in this case,yes)!
                     console.log(response.source);
                 }
@@ -1308,7 +1325,7 @@ function buildTree(data, action, sendid) {
             }
         } else if (action.startsWith("add") && action !== "add-photo") {
             if (permissions.indexOf("add") === -1) {
-                setMessage(errormsg, "Permission denied - No add permission on: " + sendid);
+                updateMessage(errormsg, "Permission denied - No add permission on: " + sendid);
                 console.log("Permission denied - No add permission on profile: " + sendid);
                 return;
             }

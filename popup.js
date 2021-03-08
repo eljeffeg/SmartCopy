@@ -749,15 +749,17 @@ function setMessage(color, messagetext) {
 
 function updateMessage(color, messagetext) {
     let message = document.querySelector('#message');
-    if (color === errormsg && warningmsg === message.style.backgroundColor) {
-        // if moving from warning to errro - clear message
-        $(message).html("")
-    }
+    let color_before = message.style.backgroundColor
     message.style.backgroundColor = color;
+    let color_after = message.style.backgroundColor
+    if (color === errormsg && color_before !== color_after) {
+        // if moving from warning to error then clear message
+        $(message).empty()
+    }
     message.style.display = "block";
     messagehtml = $(message).html();
     if (messagehtml.length > 0) {
-        messagehtml = messagehtml + "<br><br>"
+        messagehtml = messagehtml + "<br>"
     }
     $(message).html(messagehtml + messagetext);
 }

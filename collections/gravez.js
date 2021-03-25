@@ -1,7 +1,7 @@
 // Parse Gravez.me Records
 registerCollection({
     "reload": false,
-    "recordtype": "Gravez.me Records",
+    "recordtype": "Gravez.me Grave",
     "prepareUrl": function(url) {
         if (startsWithHTTP(url,"http://www.gravez.me/en")) {
             url = url.replace("/en/", "/");

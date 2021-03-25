@@ -24,7 +24,7 @@ registerCollection({
     },
     "loadPage": function(request) {
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-        focusname = parsed.find(".name").first().find("h2").text();
+        focusname = parsed.find(".name").first().find("h2").text().replace('ז"ל','').trim();
     },
     "parseProfileData": parseGravezMe
 });
@@ -32,12 +32,14 @@ registerCollection({
 
 // Parse FindAGrave
 function parseGravezMe(htmlstring, familymembers, relation) {
-    var parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));
+    var parsed = $(htmlstring.replace(/<img/ig, "<gmi"));
     relation = relation || "";
     
     var focusdaterange = "";
 
     var focusperson = parsed.find(".name").first().find("h2").text();
+    focusperson = focusperson.replace('ז"ל','').trim();
+
     var genderval = "unknown";
 
     if (relation === "") {
@@ -94,11 +96,12 @@ function parseGravezMe(htmlstring, familymembers, relation) {
 
     // ---------------------- Profile Continued --------------------
     profiledata["alive"] = false; //assume deceased
-    const imagedata = parsed.find(".deceased-image").find("img");
+    const imagedata = parsed.find(".deceased-image").children();
     
     for (var i = 0; i < imagedata.length; i++) {
         let src = $(imagedata[i]).attr( "src" );
         profiledata["image"] = src;
+        profiledata["thumb"] = src.replace("/Medium/", "/Small/");
     }
 
     const imagecredit = parsed.find("amp-img[alt='Photographer']");

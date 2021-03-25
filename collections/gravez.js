@@ -24,7 +24,7 @@ registerCollection({
     },
     "loadPage": function(request) {
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-        focusname = parsed.find(".name").text().split(" ז\"ל ")[0];
+        focusname = parsed.find(".name").first().find("h2").text();
     },
     "parseProfileData": parseGravezMe
 });
@@ -32,12 +32,12 @@ registerCollection({
 
 // Parse FindAGrave
 function parseGravezMe(htmlstring, familymembers, relation) {
-
     var parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));
+    relation = relation || "";
     
     var focusdaterange = "";
 
-    var focusperson = parsed.find(".name").text().split(" ז\"ל ")[0];
+    var focusperson = parsed.find(".name").first().find("h2").text();
     var genderval = "unknown";
 
     if (relation === "") {
@@ -46,12 +46,12 @@ function parseGravezMe(htmlstring, familymembers, relation) {
         genderval = relation.genderval
     }
 
-    if (parsed.find(".name").text().split(" ז\"ל ").length == 2) {
-        const prefix = parsed.find(".name").text().split(" ז\"ל ")[1].substring(0,2)
+    if (parsed.find(".name").first().find("h5").text() != "") {
+        const prefix = parsed.find(".name").first().find("h5").text().trim().split(" ")[0]
 
-        if (prefix == "בן"){
+        if (prefix == "בן" || prefix == "Son"){
             genderval = "male";
-        } else if (prefix == "בת") {
+        } else if (prefix == "בת" || prefix == "Daughter") {
             genderval = "female";
         }
     }
@@ -68,11 +68,29 @@ function parseGravezMe(htmlstring, familymembers, relation) {
         profiledata["daterange"] = focusdaterange;
     }
 
-    profiledata = addEvent(profiledata, "death", parsed.find("h6:contains('תאריך פטירה')").next("span").first().text().split("|")[1].trim(), "");
-    profiledata = addEvent(profiledata, "burial", parsed.find("h6:contains('תאריך קבורה')").next("span").first().text().split("|")[1].trim(), "");
+    // Herbrew or English
+    let deathField = parsed.find("h6:contains('תאריך פטירה')");
+    if (deathField.text() == "") {
+        deathField = parsed.find("h6:contains('Date of death')")
+    }
+    if (deathField.text() != "") {
+        profiledata = addEvent(profiledata, "death", deathField.next("span").first().text().split("|")[1].trim(), "");
+    } 
 
+    // Herbrew or English
+    let burialField = parsed.find("h6:contains('תאריך קבורה')");
+    if (burialField.text() == "") {
+        burialField = parsed.find("h6:contains('Burial date')")
+    }
+    let burialDate = "";
+    if (burialField.text() != "") {
+        burialDate = burialField.next("span").first().text().split("|")[1].trim();
+    }
     cemname = parsed.find(".location-wrap").find("span").first().text();
-    profiledata = addEvent(profiledata, "burial", "", cemname);
+    
+    if (burialDate != "" || cemname != "") {
+        profiledata = addEvent(profiledata, "burial", burialDate, cemname);
+    }
 
     // ---------------------- Profile Continued --------------------
     profiledata["alive"] = false; //assume deceased

@@ -33,6 +33,8 @@
         "*://*.ancestry.com/",
         "*://*.myheritage.com/",
         "*://historylink.herokuapp.com/",
-        "*://maps.googleapis.com/"
+        "*://maps.googleapis.com/",
+        "*://*.gravez.me/",
+        "*://gravez.me/"
     ]
 }

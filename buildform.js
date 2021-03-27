@@ -1674,10 +1674,10 @@ function updateInfoData(person, arg) {
             }
             person.name = arg.name;
         }
-        if (argname.suffix !== "" && tempname.suffix === "") {
+        if (argname.suffix !== undefined && argname.suffix !== "" && tempname.suffix === "") {
             person.name += ", " + argname.suffix;
         }
-        if (tempname.lastName !== argname.lastName && tempname.lastName.toLowerCase() === argname.lastName.toLowerCase()) {
+        if (tempname.lasName !== undefined && argname.lastName !== undefined && tempname.lastName !== argname.lastName && tempname.lastName.toLowerCase() === argname.lastName.toLowerCase()) {
             //Check if one is CamelCase
             var tlast = tempname.lastName.substring(1, tempname.lastName.length);
             var alast = argname.lastName.substring(1, argname.lastName.length);
@@ -1685,7 +1685,7 @@ function updateInfoData(person, arg) {
                 person.name = person.name.replace(tempname.lastName, argname.lastName);
             }
         }
-        if (tempname.birthName !== argname.birthName && tempname.birthName.toLowerCase() === argname.birthName.toLowerCase()) {
+        if (tempname.birthName !== undefined && argname.birthName !== undefined && tempname.birthName !== argname.birthName && tempname.birthName.toLowerCase() === argname.birthName.toLowerCase()) {
             //Check if one is CamelCase
             var tlast = tempname.birthName.substring(1, tempname.birthName.length);
             var alast = argname.birthName.substring(1, argname.birthName.length);

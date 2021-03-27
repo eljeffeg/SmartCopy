@@ -101,7 +101,7 @@ chrome.webRequest.onHeadersReceived.addListener(
         return {responseHeaders: headers};
     },
     {
-        urls: [ "https://www.geni.com/platform/oauth/*"],
+        urls: [ "https://www.geni.com/platform/oauth/*" ],
         types: [ "sub_frame" ]
     },
     [

@@ -357,6 +357,10 @@ var NameParse = (function(){
             //Strip "/" from names like Daniel /Bubier/
             word = word.replace(/\//g, "");
         }
+        if (word.match(/undefined/g,'')) {
+            //Strip undefined
+            word = word.replace(/\//g, "");
+        }
         word = word.replace(/\s*\/\s*/g,'/');
         word = word.replace(/“/g, '"');
         word = word.replace(/”/g, '"');

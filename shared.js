@@ -75,9 +75,9 @@ function getProfile(profile_id) {
         if (profile_id.indexOf("#") != -1) {
             //In case the copy the profile url by navigating in tree view 6000000001495436722#6000000010985379345
             if (profile_id.contains("html5")) {
-                profile_id = "profile-" + profile_id.substring(profile_id.lastIndexOf('#') + 1, profile_id.length);
+                profile_id = "profile-" + profile_id.substring(0, profile_id.lastIndexOf('#'));
             } else {
-                profile_id = "profile-g" + profile_id.substring(profile_id.lastIndexOf('#') + 1, profile_id.length);
+                profile_id = "profile-g" + profile_id.substring(0, profile_id.lastIndexOf('#'));
             }
         }
         var isnum = /^\d+$/.test(profile_id);

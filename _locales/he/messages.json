@@ -1,0 +1,380 @@
+{
+    "appName": {
+        "message": "SmartCopy"
+    },
+    "appShortName": {
+        "message": "SmartCopy"
+    },
+    "appDesc": {
+        "message": "כלי להעתקת מידע גניאולוגי לתוך Geni."
+    },
+    "consistencyCheck": {
+        "message": "בדיקת עקביות"
+    },
+    "contains_incorrect_uppercase_lowercase_in_name": {
+        "message": "$person$ מכיל שימוש לא נכון של אותיות גדולות/קטנות ב $pronoun$ שם ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_incorrect_uppercase_lowercase_in_name_default": {
+        "message": "$person$ מכיל שימוש לא נכון בcontains incorrect $pronoun$ שם.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_patronym_in_first_name": {
+        "message": "$person$ מכיל שם אב/אם $pronoun$ בשם הפרטי ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_patronym_in_first_name_default": {
+        "message": "$person$ מכיל שם אב/אם ב-$pronoun$ שם פרטי.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name": {
+        "message": "$person$ מכיל מה שאינו שם אב/אם ב-$pronoun$ שם האמצעי ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name_default": {
+        "message": "$person$  מכיל מה שאינו שם אב/אם ב-$pronoun$ שם האמצעי.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "living": {
+        "message": "חי"
+    },
+    "claimed": {
+        "message": "נדרש"
+    },
+    "fixCase": {
+        "message": "תקן אותיות גדולות/קטנות"
+    },
+    "fixed": {
+        "message": "תוקן"
+    },
+    "fixName": {
+        "message": "תקן שם"
+    },
+    "fixSpace": {
+        "message": "תקן רווח"
+    },
+    "fixSuffix": {
+        "message": "תקן סיומת"
+    },
+    "fixTitle": {
+        "message": "תקן כותרת"
+    },
+    "makePublic": {
+        "message": "הפוך לציבורי"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$ בני משפחה שנולדו לפני c.$year$  מוגדרים כפרופילים פרטיים.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$ נולד לפני c.$year$ ומוגדר כפרופיל פרטי.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "Research_this_Person": {
+        "message": "חקור אדם זה"
+    },
+    "All_Collections": {
+        "message": "כל האוספים"
+    },
+    "Gravestones": {
+        "message": "מצבות"
+    },
+    "Genealogies": {
+        "message": "גניאולוגיות"
+    },
+    "Genealogy": {
+        "message": "גניאולוגיה"
+    },
+    "Geni_Search": {
+        "message": "חיפוש Geni"
+    },
+    "Google_Search": {
+        "message": "חיפוש Google"
+    },
+    "Records": {
+        "message": "רשומות"
+    },
+    "Messageboard": {
+        "message": "לוח מודעות"
+    },
+    "Newspapers": {
+        "message": "עיתונים"
+    },
+    "Books": {
+        "message": "ספרים"
+    },
+    "Obituaries": {
+        "message": "הספדים"
+    },
+    "Other_Resources": {
+        "message": "משאבים אחרים"
+    },
+    "Unable_to_create_research_links_on_this_profile": {
+        "message": "לא ניתן ליצור קישורי מחקר עבור פרופיל זה."
+    },
+    "Loading___": {
+        "message": "בטעינה..."
+    },
+    "Ancestor_Graph": {
+        "message": "גרף אבות קדומים"
+    },
+    "Descendant_Graph": {
+        "message": "גרף ילדים"
+    },
+    "History_Search": {
+        "message": "חיפוש היסטוריה"
+    },
+    "Configuration": {
+        "message": "תצורה"
+    },
+    "Copy_Preferences": {
+        "message": "העתק הגדרות"
+    },
+    "Consistency_Checks": {
+        "message": "בדיקות עקביות"
+    },
+    "Geni_Customization": {
+        "message": "התאמות Gni"
+    },
+    "Note_Dates_that_contain_Between_Before_and_After___": {
+        "message": "הערה: התאריכים שמכילים ׳בין׳, ׳לפני׳ ו׳אחרי׳ לא מושווים בבדיקות עקביות. תאריכים עם ׳בערך׳ נחשבות כמו תאריכים מדוייקים."
+    },
+    "Run_consistency_checks_when_viewing_Geni_profiles": {
+        "message": "הפעל בדיקות עקביות בזמן צפייה בפרופילים של Geni."
+    },
+    "Age_difference_between_partners_is_significant": {
+        "message": "הפרש הגילאים בין בני זוג הוא משמעותי"
+    },
+    "Maiden_name_same_as_husbands_last_name": {
+        "message": "השם האמצעי זהה לשם המשפחה של הבעל"
+    },
+    "Husband_and_wife_death_dates_the_same": {
+        "message": "תאריכי פטירת הבעל והאישה זהה"
+    },
+    "Husband_death_date_same_as_marriage_date": {
+        "message": "תאריך פטירת הבעל זהה לתאריך הנישואין"
+    },
+    "Wife_death_date_same_as_marriage_date": {
+        "message": "תאריך פטירת האישה זהה לתאריך הנישואין"
+    },
+    "Born_after_marriage": {
+        "message": "נולד/ה לפני הנישואין"
+    },
+    "Died_before_marriage": {
+        "message": "נפטר/ה אחרי הנישואין"
+    },
+    "Implausible_marriage_age_too_young": {
+        "message": "תאריך נישואין לא סביר - בגיל צעיר מידי"
+    },
+    "Siblings_ages_too_close_together": {
+        "message": "גילאי האחים קרוב מידי"
+    },
+    "Born_before_parent_birth": {
+        "message": "נולד/ה לפני הולדת אחד מהוריו/ה"
+    },
+    "Born_after_parent_death": {
+        "message":  "נולד/ה לאחר פטירת אחד מהוריו/ה"
+    },
+    "Death_before_baptism_date": {
+        "message": "תאריך פטירה לפני תאריך הטבלה"
+    },
+    "Death_after_burial_date": {
+        "message": "תאריך פטירה אחרי תאריך קבורה"
+    },
+    "Parent_too_young_for_childs_birth": {
+        "message": "אחד ההורים צעיר מידי מכדי להביא ילדים"
+    },
+    "Mother_too_old_for_childs_birth": {
+        "message": "האם מבוגרת מידי מכדי להביא ילדים"
+    },
+    "Born_before_parent_marriage": {
+        "message": "נולד/ה לפני נישואי ההורים"
+    },
+    "Excessive_Age": {
+        "message": "גיל מוגזם"
+    },
+    "Born_after_death": {
+        "message": "נולד/ה אחרי מותו/ה"
+    },
+    "Name_contains_double_space": {
+        "message": "השם מכיל רווח כפול"
+    },
+    "Name_contains_alias": {
+        "message": "השם מכיל כינוי"
+    },
+    "Name_contains_improper_use_of_uppercase_lowercase": {
+        "message": "השם מכיל שימוש לא תקין של אותיות קטנות וגדולות"
+    },
+    "First_Name_ends_in_suffix_eg___": {
+        "message": "השם הפרטי מסתיים בסיומת (לדוגמה: 'i','ii','iii','iv','jr','sr')"
+    },
+    "Salutation_or_relationship_in_title_eg___": {
+        "message": "הכותרת מכילה תיאור מערכת יחסים (לדוגמה 'Mr', 'Mrs')"
+    },
+    "Salutation_or_relationship_in_suffix_eg___": {
+        "message": "הסיומת מכילה תיאור מערכת יחסים (לדוגמה 'Mr', 'Mrs')"
+    },
+    "Relationship_cycle_in_immediate_family": {
+        "message": "מעגל זוגיות במשפחה הקרובה"
+    },
+    "Check_date_formatting_for_inconsistent_values": {
+        "message": "בדוק תקינות פורמט תאריך עבור מבנה לא תקין"
+    },
+    "Check_for_pending_data_conflict_resolution": {
+        "message": "בדוק האם קיימים פתרונות קונפליקטי מידע שממתינים"
+    },
+    "Self_check_profile_for_inconsistent_dates_and_values": {
+        "message": "בדיקה עצמית של חוסר עקביות בערכים ובתאריכים"
+    },
+    "Check_name_fields_for_improper_values": {
+        "message": "בדוק שדות שם עבור ערכים לא תקינים"
+    },
+    "Check_name_fields_for_living_profiles": {
+        "message": "אל תכלול פרופילים של אנשים חיים מהתיקון המהיר"
+    },
+    "Check_profile_for_pending_data_conflicts": {
+        "message": "בדוק פרופיל עבור קונפליקטי מידע ממתינים"
+    },
+    "Check_date_values_for_irregular_formatting": {
+        "message": "בדוק שדות תאריך עבור ערכים לא תקינים"
+    },
+    "Check_when_location_is_missing_a_country": {
+        "message": "בדוק מתי אין מדינה בשדה מיקום"
+    },
+    "Maximum_year_to_be_private": {
+        "message": "שנה מירבית כדי להיות פרופיל פרטי:"
+    },
+    "Maximum_age": {
+        "message": "גיל מירבי:"
+    },
+    "Check_the_dates_of_children_against_their_parents": {
+        "message": "בדוק את תאריכי הילדים מול הוריהם."
+    },
+    "Check_child_is_born_after_parent_marriage": {
+        "message": "בדוק אם הילד נולד לאחר נישואי הוריו"
+    },
+    "Age_the_parent_is_too_young_to_have_a_child": {
+        "message": "גיל ההורה צעיר מידי מכדי להביא ילד"
+    },
+    "Age_the_mother_is_too_old_to_have_a_child": {
+        "message": "גיל האם מבוגר מידי מכדי להביא ילד"
+    },
+    "Check_the_values_of_partner_spouses_against_each_other": {
+        "message": "בדוק ערכי הפרופיל אל מול הפרופיל של בן/בת הזוג."
+    },
+    "Identify_possible_maiden_name_copy_issues": {
+        "message": "זהה בעיות בהעתקת שם הנעורים"
+    },
+    "Age_the_spouse_is_too_young_to_be_married": {
+        "message": "גיל בן/בת הזוג צעיר מידי מכדי להנשא"
+    },
+    "Maximum_age_difference_between_spouses": {
+        "message": "הבדל מירבי בין גילאי בני הזוג"
+    },
+    "Check_siblings_birth_are_over_": {
+        "message": "בדוק האם תאריכי הלידה של האחרים מעבר ל "
+    },
+    "_months_apart_excl_twins": {
+        "message": " חודשים זה מזה (למעט תאומים)."
+    },
+    "Future_options_to_add_features_to_Geni": {
+        "message": "אפשרויות עתידיות להוסיף יכולות לGeni."
+    },
+    "This_profile_is_not_in_the_World_Family_Tree": {
+        "message": "הפרופיל הזה אינו בWorld Family Tree"
+    },
+    "Add_to_History": {
+        "message": "הוסף להיסטוריה"
+    },
+    "Show_History": {
+        "message": "הצג היסטוריה"
+    },
+    "Clear_History": {
+        "message": "נקה היסטוריה"
+    },
+    "Notice___Please_Read": {
+        "message": "הודעה - נא לקרוא"
+    },
+    "SmartCopy_will_no_longer_do_geo_location_lookups___": {
+        "message": "SmartCopy לא יוסיף לבצע חיפושי מיקום באופן אוטומטי בעקבות המחיר של השירות בGoogle. אמנם אלה חדשות רעות, אך Geni הוסיפה יכולת של לבצע חיפושי מיקום <i>לאחר</i> ההוספה. כאשר מיקום מוסף בשדה המיקום, Geni תבצע את החיפוש ותמלא את שדה המיקום בהתאם לתוצאות. לחילופין, תוכל לציין את ה Google API key  האישי שלך בהגדרות התוסף. עדיין תוכל להוסיף ידנית את מידע המיקום ב SmartCopy על ידי לחיצה על תמונת כדור הארץ $globe_icon$ ואם תרצה לבטל את חיפוש המיקום של ג׳ני, תוכל לעשות זאת בהגדרות SmartCopy.",
+        "placeholders": {
+            "globe_icon": {
+                "content": "$1"
+            }
+        }
+    },
+    "Close": {
+        "message": "סגור"
+    },
+    "Display_Add_Biography_button_in_About": {
+        "message": "הצד כפתור הוספת ביוגרפיה ב-אודות"
+    },
+    "Add_Biography": {
+        "message": "הוסף ביוגרפיה"
+    }
+}

@@ -89,6 +89,7 @@ function exists(object) {
 }
 
 chrome.webRequest.onHeadersReceived.addListener(
+    // https://stackoverflow.com/questions/15532791/getting-around-x-frame-options-deny-in-a-chrome-extension?rq=1
     function(info) {
         var headers = info.responseHeaders;
         for (var i=headers.length-1; i>=0; --i) {
@@ -103,5 +104,11 @@ chrome.webRequest.onHeadersReceived.addListener(
         urls: [ "https://www.geni.com/platform/oauth/*" ],
         types: [ "sub_frame" ]
     },
-    ["blocking", "responseHeaders"]
+    [
+        "blocking", 
+        "responseHeaders", 
+        // Modern Chrome needs 'extraHeaders' to see and change this header,
+        // so the following code evaluates to 'extraHeaders' only in modern Chrome.
+        chrome.webRequest.OnHeadersReceivedOptions.EXTRA_HEADERS
+    ].filter(Boolean)
 );

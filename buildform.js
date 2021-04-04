@@ -1792,6 +1792,9 @@ function cleanDate(dateval) {
         */
         dateval = "";
     }
+    if (dateval.contains("(aged")) {
+        dateval = dateval.replace(/ \(.*\)/gm, "");
+    }
     
     dateval = dateval.replace(/–/g,"-");
     dateval = dateval.replace(/ - /g, "-");

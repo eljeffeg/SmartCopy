@@ -55,10 +55,10 @@ function buildResearch() {
 function buildGoogle(responsedata) {
     var query = responsedata.name.replace(/ /g, "+");
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Google</strong>';
-    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.google.com/?gws_rd=ssl#q=' + query + '%20site:news.google.com/newspapers&source=newspapers">' + _("Google_Search") + ' (' + _("NewsPapers") + ')</a></li>';
-    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.google.com/?gws_rd=ssl#q=' + query + '&tbm=bks">' + _("Google_Search") + ' (' + _("Books") + ')</a></li>';
-    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.google.com/?gws_rd=ssl#q=' + query + "+~genealogy" + '">' + _("Google_Search") + ' (' + _("Genealogy") + ')</a></li>';
-    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.google.com/?gws_rd=ssl#q=' + query + "+intitle:obituary obituaries" + '">' + _("Google_Search") + ' (' + _("Obituaries") + ')</a></li>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.google.com/search?q=' + query + '%20site:news.google.com/newspapers&source=newspapers">' + _("Google_Search") + ' (' + _("NewsPapers") + ')</a></li>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.google.com/search?q=' + query + '&tbm=bks">' + _("Google_Search") + ' (' + _("Books") + ')</a></li>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.google.com/search?q=' + query + "+~genealogy" + '">' + _("Google_Search") + ' (' + _("Genealogy") + ')</a></li>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.google.com/search?q=' + query + "+intitle:obituary obituaries" + '">' + _("Google_Search") + ' (' + _("Obituaries") + ')</a></li>';
     researchstring += '</div>';
     return researchstring;
 }

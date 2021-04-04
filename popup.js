@@ -131,12 +131,20 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log(chrome.runtime.getManifest().name + " v" + version);
     $("#versionbox").html("SmartCopy v" + version);
     $("#versionbox2").html("SmartCopy v" + version);
+    get_tab();
+});
+
+function get_tab() {
     chrome.tabs.query({"currentWindow": true, "status": "complete", "windowType": "normal", "active": true}, function (tabs) {
         var tab = tabs[0];
-        tablink = tab.url;
-        loginProcess();
+        if (tab !== undefined) {
+            tablink = tab.url;
+            loginProcess();
+        } else {
+            window.setTimeout(get_tab, 1000);
+        }
     });
-});
+}
 
 var collections = new Array();
 var collection;

@@ -110,6 +110,22 @@ function GeniPerson(obj) {
     this.person = obj;
     this.get = function (path, subpath) {
         var obj = this.person;
+        if (path === "name_language") {
+            if (obj["names"] === undefined) {
+                return "en-US"
+            } else {
+                for (lang in obj["names"]) {
+                    if (Object.keys(obj["names"][lang]).length > 0) {
+                        return lang
+                    }
+                }
+            }
+        }
+        if (path === "names" && subpath !== undefined && obj[path] === undefined && subpath.substring(0,5) === "en-US") {
+            // names object only exists if there is more than one language on the profile
+            path = subpath.substring(6,subpath.length)
+            subpath = undefined
+        }
         if (path == "photo_urls") {
             if (checkNested(this.person,"photo_urls", "medium")) {
                 return this.person["photo_urls"].medium;

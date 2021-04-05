@@ -253,27 +253,32 @@ function buildForm() {
 
     var nameimage = genifocusdata.lockIcon("name");
     var namescore = scorefactors.contains("middle name");
+    let namelang = genifocusdata.get("name_language");
+    let langtarget = Object.assign({}, $("#language_selector"));
+    $(langtarget).find("select").attr("id","profilelanguage");
+    let regex = new RegExp('value="' + namelang + '">',"gm");
+    membersstring += '<tr><td colspan="2"></td><td>' + $(langtarget).html().replace(regex, "value='" + namelang + "' selected>"); + '</td></tr>'
     if (namescore && mnameonoff) {
         membersstring +=
-            '<tr><td class="profilediv"><input type="checkbox" class="checknext">Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("title") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("first_name") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext" checked>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '"></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("middle_name") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("last_name") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("maiden_name") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("suffix") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("display_name") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" disabled></td><td class="genisliderow"><img src="images/append.png" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("nicknames") + '" disabled></td></tr>';
+            '<tr><td class="profilediv"><input type="checkbox" class="checknext">Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_title" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".title") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_first_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".first_name") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext" checked>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '"></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_middle_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".middle_name") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_last_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".last_name") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_maiden_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".maiden_name") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_suffix" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".suffix") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_display_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".display_name") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" disabled></td><td class="genisliderow"><img src="images/append.png" class="genislideimage"><input id="focus_geni_nicknames" type="text" class="formtext genislideinput" value="' + genifocusdata.get("nicknames") + '" disabled></td></tr>';
         x += 1;
     } else {
         membersstring +=
-            '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("title") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("first_name") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("middle_name") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("last_name") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("maiden_name") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("suffix") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("display_name") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" disabled><td class="genisliderow"><img src="images/append.png" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("nicknames") + '" disabled></td></td></tr>';
+            '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_title" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".title") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_first_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".first_name") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_middle_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".middle_name") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_last_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".last_name") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_maiden_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".maiden_name") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_suffix" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".suffix") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_display_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".display_name") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" disabled><td class="genisliderow"><img src="images/append.png" class="genislideimage"><input id="focus_geni_nicknames" type="text" class="formtext genislideinput" value="' + genifocusdata.get("nicknames") + '" disabled></td></td></tr>';
     }
     $(div[0]).html(membersstring);
     if (exists(alldata["profile"]["thumb"])) {
@@ -797,6 +802,11 @@ function buildForm() {
                     '<tr id="photo"><td class="profilediv"><input type="checkbox" class="checknext photocheck" ' + isChecked(thumbnail, (scored && photoscore)) + '>' +
                     "Photo" + ':</td><td style="padding: 0;"><div style="float: right;"><input type="hidden" class="photocheck" name="photo" value="' + image + '" ' + isEnabled(thumbnail, (scored && photoscore)) + ' author="' + credit + '"><img style="max-width: 150px; max-height: 120px; object-fit: contain;"  src="' + thumbnail + '"></div></td><td class="genisliderow" style="vertical-align: middle; padding: 0;"><div style="display: inline-block; vertical-align: middle; padding: 0;"><img id="' + i + '_geni_mugshot" src="images/right.png" class="genislideimage" style="padding-left: 5px;"></div><div style="display: inline-block; vertical-align: middle; padding: 0;"><img id="' + i + '_geni_photo_urls" style="max-width: 150px; max-height: 120px; object-fit: contain; padding: 0px;" src="' + geniPhoto(gender) + '"></div></td></tr>';
             }
+            let namelang = "en-US";
+            let langtarget = Object.assign({}, $("#language_selector"));
+            $(langtarget).find("select").attr("id", i + "_geni_name_language");
+            let regex = new RegExp('value="' + namelang + '">',"gm");
+            membersstring += '<tr><td colspan="2"></td><td>' + $(langtarget).html().replace(regex, "value='" + namelang + "' selected>"); + '</td></tr>'
             membersstring +=
                 '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.prefix, scored) + '>Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" ' + isEnabled(nameval.prefix, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_title" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                     '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored) + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_first_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -1075,7 +1085,10 @@ function actionUpdate(object) {
         actionicon.attr('title','update');
         actionicon.attr('description','update');
     }
-
+    let namelang = getGeniData(profile, "name_language");
+    if (namelang !== "en-US") {
+        $("#" + id + "_geni_name_language").val(namelang);
+    }
     setGeniFamilyData(id, profile);
 }
 
@@ -1091,6 +1104,53 @@ function updateClassResponse() {
                 iconUpdate();
                 var gendercolor = genderColor(gender);
                 genselect.closest('.memberexpand').prev('.membertitle').css('background-color', gendercolor);
+            }
+        });
+    });
+
+    $('.language_select').off();
+    $(function () {
+        $('.language_select').on('change', function () {
+            let id = $(this).attr("id").replace("_geni_name_language","");
+            if (id === "profilelanguage") {
+                let namelang = $(this).val();
+                var nameicon = "images/" + genifocusdata.lockIcon("name");
+                $("#focus_geni_title").val(genifocusdata.get("names", namelang + ".title"));
+                $("#focus_geni_title").prev().attr('src', nameicon);
+                $("#focus_geni_first_name").val(genifocusdata.get("names", namelang + ".first_name").replace(/&quot;/g, '"'));
+                $("#focus_geni_first_name").prev().attr('src', nameicon);
+                $("#focus_geni_middle_name").val(genifocusdata.get("names", namelang + ".middle_name").replace(/&quot;/g, '"'));
+                $("#focus_geni_middle_name").prev().attr('src', nameicon);
+                $("#focus_geni_last_name").val(genifocusdata.get("names", namelang + ".last_name"));
+                $("#focus_geni_last_name").prev().attr('src', nameicon);
+                $("#focus_geni_maiden_name").val(genifocusdata.get("names", namelang + ".maiden_name"));
+                $("#focus_geni_maiden_name").prev().attr('src', nameicon);
+                $("#focus_geni_suffix").val(genifocusdata.get("names", namelang + ".suffix"));
+                $("#focus_geni_suffix").prev().attr('src', nameicon);
+                $("#focus_geni_display_name").val(genifocusdata.get("names", namelang + ".display_name").replace(/&quot;/g, '"'));
+                $("#focus_geni_display_name").prev().attr('src', nameicon);
+                $("#focus_geni_nicknames").val(genifocusdata.get("nicknames"));
+            } else {
+                let profile = $("#action" + id).find("select").val();
+                var nameicon = getGeniLock(profile, "name");
+                let namelang = $("#" + id + "_geni_name_language").val();
+                $("#" + id + "_geni_photo_urls").attr('src', getGeniData(profile, "photo_urls"));
+                $("#" + id + "_geni_mugshot").attr('src', isAppend(getGeniData(profile, "photo_urls")));
+                $("#" + id + "_geni_title").val(getGeniData(profile,  "names", namelang + ".title"));
+                $("#" + id + "_geni_title").prev().attr('src', nameicon);
+                $("#" + id + "_geni_first_name").val(getGeniData(profile, "names", namelang + ".first_name").replace(/&quot;/g, '"'));
+                $("#" + id + "_geni_first_name").prev().attr('src', nameicon);
+                $("#" + id + "_geni_middle_name").val(getGeniData(profile, "names", namelang + ".middle_name").replace(/&quot;/g, '"'));
+                $("#" + id + "_geni_middle_name").prev().attr('src', nameicon);
+                $("#" + id + "_geni_last_name").val(getGeniData(profile, "names", namelang + ".last_name"));
+                $("#" + id + "_geni_last_name").prev().attr('src', nameicon);
+                $("#" + id + "_geni_maiden_name").val(getGeniData(profile, "names", namelang + ".maiden_name"));
+                $("#" + id + "_geni_maiden_name").prev().attr('src', nameicon);
+                $("#" + id + "_geni_suffix").val(getGeniData(profile, "names", namelang + ".suffix"));
+                $("#" + id + "_geni_suffix").prev().attr('src', nameicon);
+                $("#" + id + "_geni_display_name").val(getGeniData(profile, "names", namelang + ".display_name").replace(/&quot;/g, '"'));
+                $("#" + id + "_geni_display_name").prev().attr('src', nameicon);
+                $("#" + id + "_geni_nicknames").val(getGeniData(profile, "nicknames"));
             }
         });
     });
@@ -2024,21 +2084,22 @@ function geniPhoto(gender) {
 
 function setGeniFamilyData(id, profile) {
     var nameicon = getGeniLock(profile, "name");
+    let namelang = $("#" + id + "_geni_name_language").val();
     $("#" + id + "_geni_photo_urls").attr('src', getGeniData(profile, "photo_urls"));
     $("#" + id + "_geni_mugshot").attr('src', isAppend(getGeniData(profile, "photo_urls")));
-    $("#" + id + "_geni_title").val(getGeniData(profile, "title"));
+    $("#" + id + "_geni_title").val(getGeniData(profile,  "names", namelang + ".title"));
     $("#" + id + "_geni_title").prev().attr('src', nameicon);
-    $("#" + id + "_geni_first_name").val(getGeniData(profile, "first_name").replace(/&quot;/g, '"'));
+    $("#" + id + "_geni_first_name").val(getGeniData(profile, "names", namelang + ".first_name").replace(/&quot;/g, '"'));
     $("#" + id + "_geni_first_name").prev().attr('src', nameicon);
-    $("#" + id + "_geni_middle_name").val(getGeniData(profile, "middle_name").replace(/&quot;/g, '"'));
+    $("#" + id + "_geni_middle_name").val(getGeniData(profile, "names", namelang + ".middle_name").replace(/&quot;/g, '"'));
     $("#" + id + "_geni_middle_name").prev().attr('src', nameicon);
-    $("#" + id + "_geni_last_name").val(getGeniData(profile, "last_name"));
+    $("#" + id + "_geni_last_name").val(getGeniData(profile, "names", namelang + ".last_name"));
     $("#" + id + "_geni_last_name").prev().attr('src', nameicon);
-    $("#" + id + "_geni_maiden_name").val(getGeniData(profile, "maiden_name"));
+    $("#" + id + "_geni_maiden_name").val(getGeniData(profile, "names", namelang + ".maiden_name"));
     $("#" + id + "_geni_maiden_name").prev().attr('src', nameicon);
-    $("#" + id + "_geni_suffix").val(getGeniData(profile, "suffix"));
+    $("#" + id + "_geni_suffix").val(getGeniData(profile, "names", namelang + ".suffix"));
     $("#" + id + "_geni_suffix").prev().attr('src', nameicon);
-    $("#" + id + "_geni_display_name").val(getGeniData(profile, "display_name").replace(/&quot;/g, '"'));
+    $("#" + id + "_geni_display_name").val(getGeniData(profile, "names", namelang + ".display_name").replace(/&quot;/g, '"'));
     $("#" + id + "_geni_display_name").prev().attr('src', nameicon);
     $("#" + id + "_geni_nicknames").val(getGeniData(profile, "nicknames"));
     $("#" + id + "_geni_nickimage").attr('src', isAppend(profile));

@@ -477,3 +477,33 @@ function reverseRelationship(relationship) {
         return "";
     }
 }
+
+function replaceUrlParam(url, paramName, paramValue)
+{
+    if (paramValue == null) {
+        paramValue = '';
+    }
+    var pattern = new RegExp('\\b('+paramName+'=).*?(&|#|$)');
+    if (url.search(pattern)>=0) {
+        return url.replace(pattern,'$1' + paramValue + '$2');
+    }
+    url = url.replace(/[?#]$/,'');
+    return url + (url.indexOf('?')>0 ? '&' : '?') + paramName + '=' + paramValue;
+}
+
+
+function getUrlParam(url, paramName, defaultValue = undefined)
+    var params = {};
+	var parser = document.createElement('a');
+	parser.href = url;
+    params = parse.search.substring(1)
+
+
+    let searchParams = new URLSearchParams(params)
+    
+    if (searchParams.has(paramName)) {
+        searchParams.get(paramName);
+    }
+
+    return defaultValue;
+}

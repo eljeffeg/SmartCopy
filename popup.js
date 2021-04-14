@@ -131,12 +131,20 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log(chrome.runtime.getManifest().name + " v" + version);
     $("#versionbox").html("SmartCopy v" + version);
     $("#versionbox2").html("SmartCopy v" + version);
+    get_tab();
+});
+
+function get_tab() {
     chrome.tabs.query({"currentWindow": true, "status": "complete", "windowType": "normal", "active": true}, function (tabs) {
         var tab = tabs[0];
-        tablink = tab.url;
-        loginProcess();
+        if (tab !== undefined) {
+            tablink = tab.url;
+            loginProcess();
+        } else {
+            window.setTimeout(get_tab, 1000);
+        }
     });
-});
+}
 
 var collections = new Array();
 var collection;
@@ -441,7 +449,7 @@ function loadPage(request) {
             $(accessdialog).text("");
             accessdialog.style.backgroundColor = "#dfe6ed";
 
-            var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,nicknames,gender,deleted,merged_into,birth,baptism,death,burial,cause_of_death,is_alive,public,occupation,photo_urls,marriage,divorce,locked_fields,match_counts&actions=update,update-basics,add,add-photo";
+            var args = "fields=id,guid,name,names,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,nicknames,gender,deleted,merged_into,birth,baptism,death,burial,cause_of_death,is_alive,public,occupation,photo_urls,marriage,divorce,locked_fields,match_counts&actions=update,update-basics,add,add-photo";
             var descurl = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;
             chrome.runtime.sendMessage({
                 method: "GET",
@@ -1591,6 +1599,8 @@ document.getElementById('optionbutton').addEventListener('click', slideoptions, 
 
 
 function parseForm(fs) {
+    let name_element = ["title", "first_name", "middle_name", "last_name", "maiden_name", "suffix", "display_name"]
+    let name_language = "en-US"
     var objentry = {};
     var marentry = {};
     var diventry = {};
@@ -1600,6 +1610,10 @@ function parseForm(fs) {
         return (!$(rawinput[item]).closest('tr').hasClass("geohidden"));
     });
     for (var item in fsinput) if (fsinput.hasOwnProperty(item)) {
+        if (fsinput[item].name === "name_language"){
+            name_language = fsinput[item].value;
+            fsinput[item].name = ""
+        }
         if (exists(fsinput[item].value) && !fsinput[item].disabled && getProfileName(fsinput[item].name) !== "") {
             //console.log(fsinput[item].name + ":" + fsinput[item].value);
             var splitentry = fsinput[item].name.split(":");
@@ -1678,6 +1692,14 @@ function parseForm(fs) {
                     if (exists(fsinput[item].options[fsinput[item].selectedIndex])) {
                         childlist[objentry.profile_id] = fsinput[item].options[fsinput[item].selectedIndex].value;
                     }
+                } else if (name_element.includes(fsinput[item].name)) {
+                    if (!exists(objentry["names"])) {
+                        objentry["names"] = {};
+                    }
+                    if (!exists(objentry["names"][name_language])) {
+                        objentry["names"][name_language] = {};
+                    }
+                    objentry["names"][name_language][fsinput[item].name] = fsinput[item].value;
                 } else if (fsinput[item].value !== "" || updatefd) {
                     objentry[fsinput[item].name] = fsinput[item].value;
                     if (fsinput[item].name === "photo" && $(fsinput[item]).attr("author")) {
@@ -2237,7 +2259,7 @@ $(function () {
         $('.aboutdev').on('click', function () {
             var modal2 = document.getElementById('AboutModal');
             modal2.style.display = "block";
-            $('body').css('min-height', '540px');
+            $('body').css('min-height', '550px');
         });
     });
     $(function () {

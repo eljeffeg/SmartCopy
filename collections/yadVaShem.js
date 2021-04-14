@@ -4,12 +4,12 @@ registerCollection({
     "recordtype": "YadVaShem record",
     "prepareUrl": function(url) {
         if (startsWithHTTP(url,"https://yvng.yadvashem.org/nameDetails.html")) {
-            url = replaceUrlParameter(url, "language", "en");
+            url = updateUrlParam(url, "language", "en");
         }
         return url;
     },
     "collectionMatch": function(url) {
-        return startsWithHTTP(url,"https://yvng.yadvashem.org/nameDetails.html");
+        return startsWithHTTP(url,"https://yvng.yadvashem.org/nameDetails.html") && getUrlParam(url, "itemId");
     },
     "parseData": function(url) {
         if (startsWithHTTP(url,"https://yvng.yadvashem.org/nameDetails.html") && getUrlParam(url, "itemId")) { 
@@ -29,14 +29,12 @@ registerCollection({
 
 
 // Parse FindAGrave
-function parseGravezMe(htmlstring, familymembers, relation) {
+function parseYadVaShem(htmlstring, familymembers, relation) {
     var parsed = $(htmlstring.replace(/<img/ig, "<gmi"));
     relation = relation || "";
-    
-    var \ = "";
 
     var focusperson = parsed.find("#title").first().text().trim();
-
+    var focusdaterange = "";
     var genderval = "unknown";
 
     var genderField = getYadVaShemData(parsed, "gender");
@@ -65,7 +63,7 @@ function parseGravezMe(htmlstring, familymembers, relation) {
     let birthDate = getYadVaShemData(parsed, "dateOfBirth");
     if (birthDate != "") {
         let placeOfBirth = getYadVaShemData(parsed, "placeOfBirth");
-        profiledata = addEvent(profiledata, "birth", deathDate, placeOfBirth);
+        profiledata = addEvent(profiledata, "birth", birthDate, placeOfBirth);
     }
 
     let deathDate = getYadVaShemData(parsed, "dateOfDeath");
@@ -116,12 +114,12 @@ function addEvent(profiledata, event, dateval, eventlocation) {
 
 function getYadVaShemData(parsed, fieldName) {
     if (!fieldNameToLabelMap.has(fieldName)) {
-        console.log("Field [" + fieldName "] is unknown for YadVaShem fields");
+        console.log("Field [" + fieldName + "] is unknown for YadVaShem fields");
         return undefined;
     }
 
     field = fieldNameToLabelMap.get(fieldName);
-    return parsed.find("[id^="=field).text();
+    return parsed.find("[id^="+field+"]").text();
 }
 
 const fieldNameToLabelMap = new Map([

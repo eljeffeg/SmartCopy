@@ -478,8 +478,7 @@ function reverseRelationship(relationship) {
     }
 }
 
-function replaceUrlParam(url, paramName, paramValue)
-{
+function updateUrlParam(url, paramName, paramValue) {
     if (paramValue == null) {
         paramValue = '';
     }
@@ -492,17 +491,16 @@ function replaceUrlParam(url, paramName, paramValue)
 }
 
 
-function getUrlParam(url, paramName, defaultValue = undefined)
+function getUrlParam(url, paramName, defaultValue = undefined) {
     var params = {};
 	var parser = document.createElement('a');
 	parser.href = url;
-    params = parse.search.substring(1)
-
-
-    let searchParams = new URLSearchParams(params)
+    params = parser.search.substring(1);
     
+    console.log("searchParams.has('itemId') = " + searchParams.has("itemId"));
+
     if (searchParams.has(paramName)) {
-        searchParams.get(paramName);
+        return searchParams.get(paramName);
     }
 
     return defaultValue;

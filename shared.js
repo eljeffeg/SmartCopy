@@ -495,10 +495,10 @@ function getUrlParam(url, paramName, defaultValue = undefined) {
     var params = {};
 	var parser = document.createElement('a');
 	parser.href = url;
-    params = parser.search.substring(1);
-    
-    console.log("searchParams.has('itemId') = " + searchParams.has("itemId"));
+    params = parser.search.substring(1)
 
+    let searchParams = new URLSearchParams(params)
+    
     if (searchParams.has(paramName)) {
         return searchParams.get(paramName);
     }

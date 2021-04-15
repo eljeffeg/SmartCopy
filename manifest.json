@@ -35,6 +35,8 @@
         "*://historylink.herokuapp.com/",
         "*://maps.googleapis.com/",
         "*://*.gravez.me/",
-        "*://gravez.me/"
+        "*://gravez.me/",
+        "*://*.yadvashem.org/",
+        "*://yadvashem.org/"
     ]
 }

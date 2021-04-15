@@ -36,6 +36,8 @@
         "*://maps.googleapis.com/",
         "*://*.gravez.me/",
         "*://gravez.me/",
+        "*://*.toldot.ru/",
+        "*://toldot.ru",
         "*://*.yadvashem.org/",
         "*://yadvashem.org/"
     ]

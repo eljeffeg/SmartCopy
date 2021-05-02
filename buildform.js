@@ -1086,7 +1086,7 @@ function actionUpdate(object) {
         actionicon.attr('description','update');
     }
     let namelang = getGeniData(profile, "name_language");
-    if (namelang !== "en-US") {
+    if (namelang !== "en-US" && namelang !== "") {
         $("#" + id + "_geni_name_language").val(namelang);
     }
     setGeniFamilyData(id, profile);

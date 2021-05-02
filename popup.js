@@ -272,6 +272,8 @@ function userAccess() {
                             document.getElementById('grantbutton').addEventListener('click', userrestore, false);
                         }
                     }
+                    $(accessdialog).append('<div style="text-align:center"><br><a id="researchclick" href="#">Continue to Research this Person</a></div>')
+                    document.getElementById('researchclick').addEventListener('click', buildResearch, false);
                     chrome.runtime.sendMessage({
                         method: "GET",
                         action: "xhttp",

@@ -373,5 +373,11 @@
     },
     "Add_Biography": {
       "message": "Lisää elämäkerta"
+    },
+    "Export_Profiles_button_on_Project_Actions": {
+        "message": "Vie profiilit -painike projektitoiminnoissa"
+    },
+    "Export_Profiles": {
+        "message": "Vie profiilit"
     }
 }

@@ -376,5 +376,11 @@
     },
     "Add_Biography": {
         "message": "הוסף ביוגרפיה"
+    },
+    "Export_Profiles_button_on_Project_Actions": {
+        "message": "לחצן ייצוא פרופילים בפעולות פרוייקט"
+    },
+    "Export_Profiles": {
+        "message": "פרופילי ייצוא"
     }
 }

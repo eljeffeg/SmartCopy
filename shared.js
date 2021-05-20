@@ -43,6 +43,14 @@ function isGeni(url) {
     return (startsWithHTTP(url,"http://www.geni.com/people") || startsWithHTTP(url,"http://www.geni.com/family-tree") || startsWithHTTP(url,"http://www.geni.com/profile"));
 }
 
+function isGeniProject(url) {
+    return startsWithHTTP(url,"http://www.geni.com/projects")
+}
+
+function getProject(project_id) {
+    return project_id.substring(project_id.lastIndexOf('/') + 1).replace("#", "");
+}
+
 function getProfile(profile_id) {
     //Gets the profile id from the Geni URL
     if (profile_id.length > 0) {

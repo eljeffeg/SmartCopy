@@ -12,7 +12,7 @@ var spouse_age_dif = 22;
 var publicyear = 1850;
 var publiclist = [];
 var privatecheck = true;
-var geniconsistency;
+var geniconsistency = true;
 var namecheckoption = true;
 var livingnameoption = false;
 var siblingcheckoption = true;
@@ -28,37 +28,49 @@ var compoundlast = false;
 var wedlock = false;
 var biography = null;
 var addbioonoff = true;
+var exportprojectsonoff = false;
 var messagestatus = [];
+var projectExportResults = [];
+var project_id;
+var getsettingsdone = false;
 
 var _ = function(messageName, substitutions) {
     return chrome.i18n.getMessage(messageName, substitutions);
 };
 
 function initializeContent() {
-    if (isGeni(tablink)) {
+    if (isGeni(tablink) || isGeniProject(tablink)) {
         getSettings();
+        runContent();
+    }
+}
+
+function runContent() {
+    if (getsettingsdone) {
         if (tablink.contains("www.geni.com/people/")) {
             $($($("#overview_tab_content").find(".flt_r")[0]).find("a")[0]).on('click', function() {
                 if (addbioonoff) {
                     addBioButton();
                 }
             });
+        } else if (isGeniProject(tablink)) {  
+            if (exportprojectsonoff) {
+                addProjectExportButton();
+                return
+            }
         }
         var consistencydiv = $(document.createElement('div'));
         consistencydiv.attr('id', 'consistencyck');
         consistencydiv.css({"display": "none", "position": "absolute", "background-color": "#fff", "box-sizing": "border-box", "z-index": "2", "width": "100%", "borderBottom":"solid 1px #cad3dd", "padding": "5px 20px 3px", "vertical-align": "middle", "line-height": "150%"});
         $("#header").after(consistencydiv);
         queryGeni();
+    } else {
+        setTimeout(runContent, 50);
+        return
     }
 }
 
 function queryGeni() {
-    if (!exists(geniconsistency)) {
-        setTimeout(queryGeni, 50);
-        return;
-    } else if (!geniconsistency) {
-        return;
-    }
     focusid = getProfile(tablink).replace("?profile=", "");
     if (focusid === "" && tablink !== "https://www.geni.com/family-tree") {
         return;
@@ -132,13 +144,172 @@ function addBioButton() {
     if ($("#add-language-button").length == 0) {
         setTimeout(addBioButton, 50);
     } else {
-        $("<a id='addbio' href='javascript:void(0)' class='super grey tab button flt_r' style='margin-right: 2px;' title='SmartCopy " + _("Add_Biography") +"'>"+ _("Add_Biography") + "</a>").insertAfter($("#add-language-button"));
+        $("<a id='addbio' href='javascript:void(0)' class='super grey tab button flt_r' style='margin-right: 2px;' title='" + _("appShortName") + " " + _("Add_Biography") + "'>"+ _("Add_Biography") + "</a>").insertAfter($("#add-language-button"));
         $('#addbio').on('click', function(){
             $("*").css("cursor", "progress");
             appendBio();
         });
         buildProfile();
     }
+}
+
+function addProjectExportButton() {
+    if ($(".drop-menu").length == 0) {
+        setTimeout(addProjectExportButton, 50);
+    } else {
+        let menus = $("div.drop-menu");
+
+        console.log(menus)
+        let menu = undefined;
+        for (let i=0; i < menus.length; i++) {
+            if ($(menus[i]).text().trim().startsWith("Actions")) {
+                menu = $(menus[i]).find("hr")[1]
+            }
+        }
+        if (menu !== undefined) {
+            $("<hr>").insertBefore($(menu));
+            $("<a id='exportProjectProfiles' href='javascript:void(0)' draggable='false' title='" + _("appShortName") + " " + _("Export_Profiles") + "'>"+ _("Export_Profiles") + "</a>").insertBefore($(menu));
+            $('#exportProjectProfiles').on('click', function(){
+                $("#panel_overlay").show();
+                var progress = $(`<div id="exportprojectprogress" style="position: absolute; z-index: 9006; width: 500px; cursor: default; top: 50%; left: 50%; margin-left: -260px; margin-top: -72.4545px;" class="modal_lightbox"><div id="project_people_form" class="collaborators_form" style="cursor: default;">
+                    <div class="module modal" style="cursor: progress;">
+                        <div class="modal_inner" style="cursor: progress;">
+                            <div class="modal_bd padding_20" style="cursor: progress; text-align: center;">
+                                <br>
+                                <h3><strong>SmartCopy Project Export</strong></h3>
+                                <h4>Exporting Project Profiles - Please Wait...</h4>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>`)
+                progress.insertAfter($("#panel_overlay"));
+                project_id = getProject(tablink);
+                //let args = "?fields=name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,cause_of_death,burial,is_alive";
+                let url = "https://www.geni.com/api/project-" + project_id + "/profiles";
+                getProjectProfiles(url)
+            });
+        }
+    }
+}
+
+function getProjectProfiles(url) {
+    chrome.runtime.sendMessage({
+        method: "GET",
+        action: "xhttp",
+        url: url
+    }, function (response) {
+        if (response.source === "[]" || response.source === "") {
+            projectprofiles = [];
+            $("#panel_overlay").hide()
+            $("#exportprojectprogress").remove()
+        } else {
+            try {
+                //console.log(response.source)
+                projectprofiles = JSON.parse(response.source);
+            } catch (e) {
+                projectprofiles = [];
+                $("#panel_overlay").hide()
+                $("#exportprojectprogress").remove()
+            }
+            if (!exists(projectprofiles)|| !exists(projectprofiles["results"])) {
+                projectprofiles = [];
+                $("*").css("cursor", "default");
+                $("#panel_overlay").hide()
+                $("#exportprojectprogress").remove()
+            } else {
+                for (let i=0; i < projectprofiles["results"].length; i++) {
+
+                    projectExportResults.push(projectprofiles["results"][i]);
+                }
+                
+                if (projectprofiles["next_page"] !== undefined) {
+                    getProjectProfiles(projectprofiles["next_page"])
+                } else {
+                    let csv = doCSV(projectExportResults)
+                    $("#panel_overlay").hide()
+                    $("#exportprojectprogress").remove()
+                    downloadCSV(csv)
+                }
+            }
+        }
+        
+    });
+}
+
+function parse_object(obj, path) {
+    if (path == undefined)
+        path = "";
+
+    var type = $.type(obj);
+    var scalar = (type == "number" || type == "string" || type == "boolean" || type == "null");
+
+    if (type == "array" || type == "object") {
+        var d = {};
+        for (var i in obj) {
+
+            var newD = parse_object(obj[i], path + i + "/");
+            $.extend(d, newD);
+        }
+
+        return d;
+    }
+
+    else if (scalar) {
+        var d = {};
+        var endPath = path.substr(0, path.length-1);
+        d[endPath] = obj;
+        return d;
+    }
+
+    // ?
+    else return {};
+}
+
+function arrayFrom(json) {
+    var queue = [], next = json;
+    while (next !== undefined) {
+        if ($.type(next) == "array") {
+
+            // but don't if it's just empty, or an array of scalars
+            if (next.length > 0) {
+
+              var type = $.type(next[0]);
+              var scalar = (type == "number" || type == "string" || type == "boolean" || type == "null");
+
+              if (!scalar)
+                return next;
+            }
+        } if ($.type(next) == "object") {
+          for (var key in next)
+             queue.push(next[key]);
+        }
+        next = queue.shift();
+    }
+    // none found, consider the whole object a row
+    return [json];
+}
+
+function doCSV(json) {
+    var inArray = arrayFrom(projectExportResults);
+    var outArray = [];
+    for (var row in inArray)
+        outArray[outArray.length] = parse_object(inArray[row]);
+    let csv = $.csv.fromObjects(outArray, {separator: ","});
+    csv = csv.replaceAll("\/api\/", "\/");
+    return csv
+}
+
+function downloadCSV(csv) {
+    //Download the file as CSV
+    var downloadLink = document.createElement("a");
+    var blob = new Blob(["\ufeff", csv]);
+    var url = URL.createObjectURL(blob);
+    downloadLink.href = url;
+    downloadLink.download = "project-" + project_id + ".csv";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
 }
 
 function appendBio() {
@@ -1657,14 +1828,20 @@ function getSettings() {
         }
     });
 
+    chrome.storage.local.get('exportprojectsbutton', function (result) {
+        if (result.exportprojectsbutton !== undefined) {
+            exportprojectsonoff = result.exportprojectsbutton;
+        }
+    });
+
     chrome.storage.local.get('geniconsistency', function (result) {
-        //Save as last option setting as it delays content execution
         if (result.geniconsistency !== undefined) {
             geniconsistency = result.geniconsistency;
         } else {
-            chrome.storage.local.set({'geniconsistency': true});
-            geniconsistency = true;
+            chrome.storage.local.set({'geniconsistency': geniconsistency});
         }
+        //Save as last option setting as it delays content execution
+        getsettingsdone = true
     });
 }
 

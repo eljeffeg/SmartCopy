@@ -2082,6 +2082,10 @@ $(function () {
         chrome.storage.local.set({'addbiobutton': this.checked});
         $("#addbiochange").css("display", "block");
     });
+    $('#exportprojectsonoffswitch').on('click', function () {
+        chrome.storage.local.set({'exportprojectsbutton': this.checked});
+        $("#exportprojectschange").css("display", "block");
+    });
     $('#partneronoffswitch').on('click', function () {
         chrome.storage.local.set({'partnercheck': this.checked});
         if (this.checked) {
@@ -2609,6 +2613,13 @@ chrome.storage.local.get('addbiobutton', function (result) {
     var addbiobutton = result.addbiobutton;
     if (exists(addbiobutton)) {
         $('#addbioonoffswitch').prop('checked', addbiobutton);
+    }
+});
+
+chrome.storage.local.get('exportprojectsbutton', function (result) {
+    var exportprojectsbutton = result.exportprojectsbutton;
+    if (exists(exportprojectsbutton)) {
+        $('#exportprojectsonoffswitch').prop('checked', exportprojectsbutton);
     }
 });
 

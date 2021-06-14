@@ -56,8 +56,8 @@ function runContent() {
         } else if (isGeniProject(tablink)) {
             if (exportprojectsonoff) {
                 addProjectExportButton();
-                return
             }
+            return
         }
         var consistencydiv = $(document.createElement('div'));
         consistencydiv.attr('id', 'consistencyck');

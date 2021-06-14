@@ -1028,7 +1028,12 @@ var submitform = function () {
                             about += "*";
                         }
                     }
-                    profileout["about_me"] = about + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                    if (exists(refurl)) {
+                        profileout["about_me"] = about + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                    } else {
+                        profileout["about_me"] = about + "* Reference: " + recordtype + " - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                    }
+                    
                 } else {
                     if (about !== "") {
                         profileout["about_me"] = focusabout + "\n" + about;
@@ -1101,13 +1106,18 @@ var submitform = function () {
                             } else {
                                 focusprofileurl = "https://www.geni.com/" + focusid;
                             }
-                            about = about + "* Reference: [" + encodeURI(fdata.url) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                            if (exists(fdata.url)) {
+                                about = about + "* Reference: [" + encodeURI(fdata.url) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                            } else {
+                                about = about + "* Reference: " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                            }
+                            
                         }
                         if (about !== "") {
                             familyout["about_me"] = about;
                         }
                     }
-                    if (exists(familyout.photo)) {
+                    if (exists(familyout.photo) && exists(fdata.url)) {
                         if (fdata.url.indexOf('showRecord') !== -1) {
                             var shorturl = fdata.url.substring(0, fdata.url.indexOf('showRecord') + 10);
                         } else {

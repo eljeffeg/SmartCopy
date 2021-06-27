@@ -1409,7 +1409,7 @@ function placementUpdate() {
                 $(section2.find('[name="act"]')[0]).css('display', "table-row");
                 if (this.value === "child") {
                     $(section2.find('[name="parenttr"]')[0]).css('display', "table-row");
-                    if (myhspouse.length === 0) {
+                    if (myhspouse.length === 0 && $('.parentselector')[0].length === 0) {
                         $('.parentselector')
                             .append($("<option/>", {
                                 value: -1,
@@ -1435,8 +1435,7 @@ function placementUpdate() {
                 section1[0].outerHTML = "";
                 section2[0].outerHTML = "";
                 var section3 = $("#" + this.value + "val");
-                replacestring = $(section3[0]).html() + replacestring;
-                $(section3[0]).html(replacestring);
+                $(section3[0]).append(replacestring);
 
             }
             if ($("#unknownval").is(":empty")) {

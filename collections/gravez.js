@@ -75,8 +75,15 @@ function parseGravezMe(htmlstring, familymembers, relation) {
     if (deathField.text() == "") {
         deathField = parsed.find("h6:contains('Date of death')")
     }
+    
     if (deathField.text() != "") {
-        profiledata = addEvent(profiledata, "death", deathField.next("span").first().text().split("|")[1].trim(), "");
+        fullDeathDate = deathField.next("span").first().text();
+
+        let deathDate = fullDeathDate;
+        if (fullDeathDate.includes("|")){
+            deathDate = fullDeathDate.split("|")[1].trim();
+        }
+        profiledata = addEvent(profiledata, "death", deathDate, "");
     } 
 
     // Herbrew or English
@@ -86,7 +93,12 @@ function parseGravezMe(htmlstring, familymembers, relation) {
     }
     let burialDate = "";
     if (burialField.text() != "") {
-        burialDate = burialField.next("span").first().text().split("|")[1].trim();
+        fullBurialText = burialField.next("span").first().text();
+        if (fullBurialText.includes("|")) {
+            burialDate = fullBurialText.split("|")[1].trim();
+        } else {
+            burialDate = fullBurialText;
+        }
     }
     cemname = parsed.find(".location-wrap").find("span").first().text();
     

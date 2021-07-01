@@ -143,15 +143,13 @@ var NameParse = (function(){
                     }
                 }
 
-                if (this.is_initial(word)) {
+                if (firstName.contains(" ") && (word === "y" || word.toLowerCase() === "dit" || word.toLowerCase() === "dite" || word === "or")) {
                     //Look for last names that are conjunctions
-                    if (firstName.contains(" ") && (word === "y" || word.toLowerCase() === "dit" || word.toLowerCase() === "dite")) {
-                        var fnamesplit = firstName.split(" ");
-                        lastName = fnamesplit.pop() + " " + word + lastName;
-                        firstName = fnamesplit.join(" ");
-                    } else {
-                        middleName += " " + word.toLocaleUpperCase();
-                    }
+                    var fnamesplit = firstName.split(" ");
+                    lastName = fnamesplit.pop() + " " + word + lastName;
+                    firstName = fnamesplit.join(" ");
+                } else if (this.is_initial(word)) {
+                    middleName += " " + word.toLocaleUpperCase();
                 } else {
                     firstName += " " + this.fix_case(word);
                 }

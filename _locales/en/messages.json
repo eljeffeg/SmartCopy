@@ -376,5 +376,11 @@
     },
     "Add_Biography": {
         "message": "Add biography"
+    },
+    "Export_Profiles_button_on_Project_Actions": {
+        "message": "Export Profiles button on Project Actions"
+    },
+    "Export_Profiles": {
+        "message": "Export Profiles"
     }
 }

@@ -272,6 +272,8 @@ function userAccess() {
                             document.getElementById('grantbutton').addEventListener('click', userrestore, false);
                         }
                     }
+                    $(accessdialog).append('<div style="text-align:center"><br><a id="researchclick" href="#">Continue to Research this Person</a></div>')
+                    document.getElementById('researchclick').addEventListener('click', buildResearch, false);
                     chrome.runtime.sendMessage({
                         method: "GET",
                         action: "xhttp",
@@ -1026,7 +1028,12 @@ var submitform = function () {
                             about += "*";
                         }
                     }
-                    profileout["about_me"] = about + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                    if (exists(refurl)) {
+                        profileout["about_me"] = about + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                    } else {
+                        profileout["about_me"] = about + "* Reference: " + recordtype + " - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                    }
+                    
                 } else {
                     if (about !== "") {
                         profileout["about_me"] = focusabout + "\n" + about;
@@ -1099,13 +1106,18 @@ var submitform = function () {
                             } else {
                                 focusprofileurl = "https://www.geni.com/" + focusid;
                             }
-                            about = about + "* Reference: [" + encodeURI(fdata.url) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                            if (exists(fdata.url)) {
+                                about = about + "* Reference: [" + encodeURI(fdata.url) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                            } else {
+                                about = about + "* Reference: " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                            }
+                            
                         }
                         if (about !== "") {
                             familyout["about_me"] = about;
                         }
                     }
-                    if (exists(familyout.photo)) {
+                    if (exists(familyout.photo) && exists(fdata.url)) {
                         if (fdata.url.indexOf('showRecord') !== -1) {
                             var shorturl = fdata.url.substring(0, fdata.url.indexOf('showRecord') + 10);
                         } else {
@@ -2080,6 +2092,10 @@ $(function () {
         chrome.storage.local.set({'addbiobutton': this.checked});
         $("#addbiochange").css("display", "block");
     });
+    $('#exportprojectsonoffswitch').on('click', function () {
+        chrome.storage.local.set({'exportprojectsbutton': this.checked});
+        $("#exportprojectschange").css("display", "block");
+    });
     $('#partneronoffswitch').on('click', function () {
         chrome.storage.local.set({'partnercheck': this.checked});
         if (this.checked) {
@@ -2607,6 +2623,13 @@ chrome.storage.local.get('addbiobutton', function (result) {
     var addbiobutton = result.addbiobutton;
     if (exists(addbiobutton)) {
         $('#addbioonoffswitch').prop('checked', addbiobutton);
+    }
+});
+
+chrome.storage.local.get('exportprojectsbutton', function (result) {
+    var exportprojectsbutton = result.exportprojectsbutton;
+    if (exists(exportprojectsbutton)) {
+        $('#exportprojectsonoffswitch').prop('checked', exportprojectsbutton);
     }
 });
 

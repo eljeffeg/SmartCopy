@@ -134,5 +134,74 @@
                 "content": "$2"
             }
         }
+    },
+    "Research_this_Person": {
+        "message": "Investiga a esta persona"
+    },
+    "All_Collections": {
+        "message": "Todas las colecciones"
+    },
+    "Gravestones": {
+        "message": "Lápidas"
+    },
+    "Genealogies": {
+        "message": "Genealogías"
+    },
+    "Genealogy": {
+        "message": "Genealogía"
+    },
+    "Geni_Search": {
+        "message": "Geni Buscar"
+    },
+    "Google_Search": {
+        "message": "Google Buscar"
+    },
+    "Records": {
+        "message": "Registros"
+    },
+    "Messageboard": {
+        "message": "Tablero de mensajes"
+    },
+    "Newspapers": {
+        "message": "Periódicos"
+    },
+    "Books": {
+        "message": "Libros"
+    },
+    "Obituaries": {
+        "message": "Obituarios"
+    },
+    "Other_Resources": {
+        "message": "Otros recursos"
+    },
+    "Unable_to_create_research_links_on_this_profile": {
+        "message": "No se pueden crear enlaces de investigación en este perfil."
+    },
+    "Loading___": {
+        "message": "Cargando..."
+    },
+    "Ancestor_Graph": {
+        "message": "Gráfico de antepasados"
+    },
+    "Descendant_Graph": {
+        "message": "Gráfico descendiente"
+    },
+    "History_Search": {
+        "message": "Búsqueda de historial"
+    },
+    "Configuration": {
+        "message": "Configuración"
+    },
+    "Copy_Preferences": {
+        "message": "Copiar preferencias"
+    },
+    "Consistency_Checks": {
+        "message": "Comprobaciones de coherencia"
+    },
+    "Geni_Customization": {
+        "message": "Geni Personalización"
+    },
+    "Note_Dates_that_contain_Between_Before_and_After___": {
+        "message": "Nota: Las fechas que contienen Entre, Antes y Después no se comparan en las verificaciones de coherencia. Las fechas con Circa se consideran fechas exactas."
     }
 }

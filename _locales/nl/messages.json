@@ -1,0 +1,387 @@
+{
+
+    "appName": {
+        "message": "SmartCopy"
+    },
+    "appShortName": {
+        "message": "SmartCopy"
+    },
+    "appDesc": {
+        "message": "Hulpmiddel voor het kopiëren van genealogische gegevens naar Geni."
+    },
+    "consistencyCheck": {
+        "message": "Consistentie controle"
+    },
+    "contains_incorrect_uppercase_lowercase_in_name": {
+        "message": "$person$ bevat onjuist gebruik van hoofd/kleine letters in $pronoun$ naam ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_incorrect_uppercase_lowercase_in_name_default": {
+        "message": "$person$ bevat onjuist gebruik van hoofd/kleine letters in $pronoun$ name.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_patronym_in_first_name": {
+        "message": "$person$ bevat een patroniem/matroniem in $pronoun$ voornamen ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_patronym_in_first_name_default": {
+        "message": "$person$ bevat een patroniem/matroniem in $pronoun$ voornamen.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name": {
+        "message": "$person$ bevat een niet patroniem/matroniem in $pronoun$ patroniem ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name_default": {
+        "message": "$person$ bevat een niet patroniem/matroniem in $pronoun$ patroniem.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "living": {
+        "message": "levend"
+    },
+    "claimed": {
+        "message": "geclaimd (gebruiker)"
+    },
+    "fixCase": {
+        "message": "herstel hoofd/kleine letters"
+    },
+    "fixed": {
+        "message": "hersteld"
+    },
+    "fixName": {
+        "message": "herstel naam"
+    },
+    "fixSpace": {
+        "message": "herstel spatie"
+    },
+    "fixSuffix": {
+        "message": "herstel achtervoegsel"
+    },
+    "fixTitle": {
+        "message": "herstel titel"
+    },
+    "makePublic": {
+        "message": "maak openbaar"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$ familieleden geboren voor c.$year$ zijn aangemerkt als privé.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$ is geboren voor c.$year$ en is aangemerkt als privé.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "Research_this_Person": {
+        "message": "Onderzoek deze persoon"
+    },
+    "All_Collections": {
+        "message": "Alle collecties"
+    },
+    "Gravestones": {
+        "message": "Grafzerken"
+    },
+    "Genealogies": {
+        "message": "Genealogieën"
+    },
+    "Genealogy": {
+        "message": "Genealogie"
+    },
+    "Geni_Search": {
+        "message": "Geni zoeken"
+    },
+    "Google_Search": {
+        "message": "Google zoeken"
+    },
+    "Records": {
+        "message": "Records"
+    },
+    "Messageboard": {
+        "message": "Prikbord"
+    },
+    "Newspapers": {
+        "message": "Kranten"
+    },
+    "Books": {
+        "message": "Boeken"
+    },
+    "Obituaries": {
+        "message": "Overlijdensberichten"
+    },
+    "Other_Resources": {
+        "message": "Andere bronnen"
+    },
+    "Unable_to_create_research_links_on_this_profile": {
+        "message": "Kan geen onderzoek links aanmaken voor dit profiel."
+    },
+    "Loading___": {
+        "message": "Laden..."
+    },
+    "Ancestor_Graph": {
+        "message": "Vooroudergrafiek"
+    },
+    "Descendant_Graph": {
+        "message": "Afstammelingengrafiek"
+    },
+    "History_Search": {
+        "message": "Historie onderzoek"
+    },
+    "Configuration": {
+        "message": "Configuratie"
+    },
+    "Copy_Preferences": {
+        "message": "Copieer voorkeuren"
+    },
+    "Consistency_Checks": {
+        "message": "Consistentiecontroles"
+    },
+    "Geni_Customization": {
+        "message": "Geni Aanpassingen"
+    },
+    "Note_Dates_that_contain_Between_Before_and_After___": {
+        "message": "Opmerking: Datums die tussen, voor, of na bevatten worden niet vergeleken in consistentiecontroles. Data met Circa worden beschouwd als exacte data."
+    },
+    "Run_consistency_checks_when_viewing_Geni_profiles": {
+        "message": "Consistentiecontroles uitvoeren bij het bekijken van Geni-profielen."
+    },
+    "Age_difference_between_partners_is_significant": {
+        "message": "Leeftijdsverschil tussen partners is significant"
+    },
+    "Maiden_name_same_as_husbands_last_name": {
+        "message": "Achternaam bij geboorte is hetzelfde als de achternaam van de echtgenoot"
+    },
+    "Husband_and_wife_death_dates_the_same": {
+        "message": "Overlijdensdata van man en vrouw zijn gelijk"
+    },
+    "Husband_death_date_same_as_marriage_date": {
+        "message": "Overlijdensdatum van echtgenoot is gelijk aan huwelijksdatum"
+    },
+    "Wife_death_date_same_as_marriage_date": {
+        "message": "De overlijdensdatum van de vrouw is gelijk aan de huwelijksdatum."
+    },
+    "Born_after_marriage": {
+        "message": "Geboren na het huwelijk"
+    },
+    "Died_before_marriage": {
+        "message": "Overleden voor het huwelijk"
+    },
+    "Implausible_marriage_age_too_young": {
+        "message": "Onwaarschijnlijke huwelijksleeftijd, te jong"
+    },
+    "Siblings_ages_too_close_together": {
+        "message": "Leeftijd van broers/zussen te dicht bij elkaar"
+    },
+    "Born_before_parent_birth": {
+        "message": "Geboren voor geboorte van ouder"
+    },
+    "Born_after_parent_death": {
+        "message": "Geboren na dood van ouder"
+    },
+    "Death_before_baptism_date": {
+        "message": "Overleden voor doopdatum"
+    },
+    "Death_after_burial_date": {
+        "message": "Overleden na begrafenisdatum"
+    },
+    "Parent_too_young_for_childs_birth": {
+        "message": "Ouder te jong voor geboorte kind"
+    },
+    "Mother_too_old_for_childs_birth": {
+        "message": "Moeder te oud voor geboorte kind"
+    },
+    "Born_before_parent_marriage": {
+        "message": "Geboren voor huwelijk van ouders"
+    },
+    "Excessive_Age": {
+        "message": "Leeftijd onredelijk"
+    },
+    "Born_after_death": {
+        "message": "Geboorte na overlijden"
+    },
+    "Name_contains_double_space": {
+        "message": "Naam bevat dubbele spatie"
+    },
+    "Name_contains_alias": {
+        "message": "Naam bevat een alias"
+    },
+    "Name_contains_improper_use_of_uppercase_lowercase": {
+        "message": "Naam bevat onjuist gebruik van hoofd-/kleine letters"
+    },
+    "First_Name_ends_in_suffix_eg___": {
+        "message": "Voornamen eindigen met achtervoegsel (bijv. 'i','ii','iii','iv','jr','sr')"
+    },
+    "Salutation_or_relationship_in_title_eg___": {
+        "message": "Aanhef of relatie in titel (bijv. 'Mr', 'Mrs')"
+    },
+    "Salutation_or_relationship_in_suffix_eg___": {
+        "message": "Aanhef of relatie in achtervoegsel (eg. 'Mr', 'Mrs')"
+    },
+    "Relationship_cycle_in_immediate_family": {
+        "message": "Relatiekringloop in naaste familie"
+    },
+    "Check_date_formatting_for_inconsistent_values": {
+        "message": "Controleer datumopmaak op inconsistente waarden"
+    },
+    "Check_for_pending_data_conflict_resolution": {
+        "message": "Controleren op nog niet opgeloste dataconflicten"
+    },
+    "Self_check_profile_for_inconsistent_dates_and_values": {
+        "message": "Voer profiel zelfcontrole uit op inconsistente data en waarden."
+    },
+    "Check_name_fields_for_improper_values": {
+        "message": "Controleer naamvelden op onjuiste waarden"
+    },
+    "Check_name_fields_for_living_profiles": {
+        "message": "Profielen van levende personen uitsluiten van snelle oplossing "
+    },
+    "Check_profile_for_pending_data_conflicts": {
+        "message": "Profiel controleren op nog niet opgeloste dataconflicten"
+    },
+    "Check_date_values_for_irregular_formatting": {
+        "message": "Controleer datumwaarden op afwijkende opmaak"
+    },
+    "Check_when_location_is_missing_a_country": {
+        "message": "Controleer of landwaarde voor locatie ontbreekt"
+    },
+    "Maximum_year_to_be_private": {
+        "message": "Maximum jaar om privé te zijn:"
+    },
+    "Maximum_age": {
+        "message": "Maximum leeftijd:"
+    },
+    "Check_the_dates_of_children_against_their_parents": {
+        "message": "Controleer de data van de kinderen ten opzichte van hun ouders."
+    },
+    "Check_child_is_born_after_parent_marriage": {
+        "message": "Controleer of het kind geboren is na het huwelijk van de ouders"
+    },
+    "Age_the_parent_is_too_young_to_have_a_child": {
+        "message": "Leeftijd van de ouder is te jong om een kind te krijgen"
+    },
+    "Age_the_mother_is_too_old_to_have_a_child": {
+        "message": "Leeftijd van de moeder is te oud om een kind te krijgen"
+    },
+    "Check_the_values_of_partner_spouses_against_each_other": {
+        "message": "Toets de waarden van partner / echtgenoten ten opzichte van elkaar."
+    },
+    "Identify_possible_maiden_name_copy_issues": {
+        "message": "Identificeer mogelijke problemen bij het kopiëren van achternaam bij geboorte"
+    },
+    "Age_the_spouse_is_too_young_to_be_married": {
+        "message": "Leeftijd van de huwelijkspartner is te jong om getrouwd te zijn"
+    },
+    "Maximum_age_difference_between_spouses": {
+        "message": "Maximum leeftijdverschil tussen huwelijkspartners"
+    },
+    "Check_siblings_birth_are_over_": {
+        "message": "Controleer of geboortes van broers / zussen(excl.tweelingen) meer dan"
+    },
+    "_months_apart_excl_twins": {
+        "message": "maanden uit elkaar liggen."
+    },
+    "Future_options_to_add_features_to_Geni": {
+        "message": "Toekomstige opties om functies aan Geni toe te voegen."
+    },
+    "This_profile_is_not_in_the_World_Family_Tree": {
+        "message": "Dit profiel zit niet in de Geni wereldstamboom."
+    },
+    "Add_to_History": {
+        "message": "Voeg toe aan de historie"
+    },
+    "Show_History": {
+        "message": "Laat de historie zien"
+    },
+    "Clear_History": {
+        "message": "Maak historie leeg"
+    },
+    "Notice___Please_Read": {
+        "message": "Mededeling - Lees alstublieft"
+    },
+    "SmartCopy_will_no_longer_do_geo_location_lookups___": {
+        "message": "SmartCopy zal niet langer automatisch geo - locatie zoekopdrachten uitvoeren vanwege de kosten van Google 's service. Hoewel dit triest nieuws is, heeft Geni onlangs de mogelijkheid geboden om geolocatie zoekopdrachten <i>na</i> indiening te doen. Wanneer een locatie wordt opgegeven via het plaats veld, zal Geni de query doen en de locatie velden op de website vullen. Als alternatief kunt u uw eigen Google API-sleutel opgeven in de configuratie. U hebt ook nog steeds de optie om de locatiegegevens handmatig in SmartCopy in te vullen door op het wereldbolpictogram $globe_icon$ te klikken en als u Geni's geolocatie lookup wilt uitschakelen, kunt u dit doen in de SmartCopy - configuratie.",
+        "placeholders": {
+            "globe_icon": {
+                "content": "$1"
+            }
+        }
+    },
+    "Close": {
+        "message": "Sluit"
+    },
+    "Display_Add_Biography_button_in_About": {
+        "message": "Laat Biografie toevoegen knop zien in Over"
+    },
+    "Add_Biography": {
+        "message": "Biografie toevoegen"
+    },
+    "Export_Profiles_button_on_Project_Actions": {
+        "message": "Profielen exporteren knop op Project acties menu"
+    },
+    "Export_Profiles": {
+        "message": "Profielen exporteren"
+    }
+}

@@ -217,7 +217,7 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     // ---------------------- Family Data --------------------
     var siblingparents = [];
     var familydata = parsed.find(".familySection");
-    var memberfam = familydata.find(".factsSubtitle");
+    var memberfam = familydata.find("h3");
     var memberfam2 = familydata.find(".toggleSiblings");
     if (memberfam2.length > 0) {
         $(memberfam2[0]).html("siblings " + $(memberfam2[0]).html());

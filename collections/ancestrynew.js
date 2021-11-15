@@ -3,7 +3,7 @@ registerCollection({
     "reload": false,
     "recordtype": "Ancestry Genealogy",
     "prepareUrl": function(url) {
-        if (startsWithHTTP(url,"http://trees.ancestry.") || url.contains("/family-tree/tree/")) {
+        if (startsWithHTTP(url, "http://trees.ancestry.") || url.contains("/family-tree/tree/")) {
             if (url.endsWith("/family") || url.endsWith("/family/familyview") || url.endsWith("/family/pedigree")) {
                 document.querySelector('#loginspinner').style.display = "none";
                 setMessage(warningmsg, 'SmartCopy was unable to identify the Ancestry focus profile.  Please select a focus profile in the tree.');
@@ -15,7 +15,7 @@ registerCollection({
                 url = url.replace("pedigree?fpid=", "person/");
                 url = url.replace("pedigree?cfpid=", "person/");
                 if (!url.endsWith("/facts")) {
-                     url += "/facts";
+                    url += "/facts";
                 }
                 url = url.replace("trees.ancestry.", "person.ancestry.");
                 url = url.replace("&selnode=1", "");
@@ -25,7 +25,7 @@ registerCollection({
                 }
                 this.reload = true;
             }
-        } else if (startsWithHTTP(url,"http://person.ancestry.") || url.contains("/family-tree/person/")) {
+        } else if (startsWithHTTP(url, "http://person.ancestry.") || url.contains("/family-tree/person/")) {
             if (!url.contains("/facts")) {
                 url = url.replace("/story", "/facts");
                 url = url.replace("/gallery", "/facts");
@@ -48,7 +48,8 @@ registerCollection({
         return url;
     },
     "collectionMatch": function(url) {
-        return (startsWithHTTP(url,"http://person.ancestry.") || startsWithHTTP(url,"http://trees.ancestry.") || (startsWithHTTP(url,"http://www.ancestry.") && url.contains("/family-tree/")));
+        return (
+            startsWithHTTP(url, "http://person.ancestry.") || startsWithHTTP(url, "http://trees.ancestry.") || ((startsWithHTTP(url, "http://www.ancestry.") || startsWithHTTP(url, "http://www.ancestrylibrary.")) && url.contains("/family-tree/")));
     },
     "parseData": function(url) {
         if (url.contains("/fact")) {
@@ -74,6 +75,7 @@ registerCollection({
 });
 
 var ancestrymrglist = [];
+
 function parseAncestryNew(htmlstring, familymembers, relation) {
     relation = relation || "";
     if (!exists(htmlstring)) {
@@ -148,7 +150,10 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
             var data = parseAncestryNewDate(entry.next());
             var mid = parseAncestryNewId(entry.next().next().find("a").attr("href"));
             if (!$.isEmptyObject(data) && exists(mid)) {
-                ancestrymrglist.push({"id": mid, "event": data});
+                ancestrymrglist.push({
+                    "id": mid,
+                    "event": data
+                });
             }
         } else if (!familymembers && titlename === "Marriage" && exists(relation.title) && isPartner(relation.title)) {
             var url = entry.next().next().find("a").attr("href");
@@ -183,7 +188,7 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     }
 
     if (!familymembers && isPartner(relation.title) && !exists(profiledata["marriage"])) {
-        for (var i=0;i<ancestrymrglist.length;i++) {
+        for (var i = 0; i < ancestrymrglist.length; i++) {
             if (ancestrymrglist[i].id === relation.itemId) {
                 profiledata["marriage"] = ancestrymrglist[i].event;
                 break;
@@ -301,14 +306,19 @@ function parseAncestryNewDate(vitalinfo) {
     if (exists(dmatch)) {
         dateval = cleanDate(dmatch.trim());
         if (dateval !== "") {
-            data.push({date: dateval});
+            data.push({
+                date: dateval
+            });
         }
     }
     var lmatch = vitalinfo.find(".factItemLocation").text();
     if (exists(lmatch)) {
         var eventlocation = lmatch.trim().replace(/^in/, "").trim();
         if (eventlocation !== "") {
-            data.push({id: geoid, location: eventlocation});
+            data.push({
+                id: geoid,
+                location: eventlocation
+            });
             geoid++;
         }
     }
@@ -330,7 +340,15 @@ function getAncestryNewTreeFamily(famid, itemid, name, title, url) {
         halfsibling = true;
         title = "sibling";
     }
-    var subdata = {name: name, title: title, halfsibling: halfsibling, gender: gendersv, url: url, itemId: itemid, profile_id: famid};
+    var subdata = {
+        name: name,
+        title: title,
+        halfsibling: halfsibling,
+        gender: gendersv,
+        url: url,
+        itemId: itemid,
+        profile_id: famid
+    };
     if (!exists(alldata["family"][title])) {
         alldata["family"][title] = [];
     }
@@ -346,9 +364,13 @@ function getAncestryNewTreeFamily(famid, itemid, name, title, url) {
         action: "xhttp",
         url: url,
         variable: subdata
-    }, function (response) {
+    }, function(response) {
         var arg = response.variable;
-        var person = parseAncestryNew(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+        var person = parseAncestryNew(response.source, false, {
+            "title": arg.title,
+            "proid": arg.profile_id,
+            "itemId": arg.itemId
+        });
         if (person === "") {
             familystatus.pop();
             return;

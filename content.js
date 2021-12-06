@@ -169,8 +169,6 @@ function addProjectExportButton() {
         setTimeout(addProjectExportButton, 50);
     } else {
         let menus = $("div.drop-menu");
-
-        console.log(menus)
         let menu = undefined;
         for (let i = 0; i < menus.length; i++) {
             if ($(menus[i]).text().trim().startsWith("Actions")) {
@@ -188,7 +186,7 @@ function addProjectExportButton() {
                             <div class="modal_bd padding_20" style="cursor: progress; text-align: center;">
                                 <br>
                                 <h3><strong>SmartCopy Project Export</strong></h3>
-                                <h4>Exporting Project Profiles - Please Wait...</h4>
+                                <h4 id="SC_ExportCount">Exporting Project Profiles (Page 1) - Please Wait...</h4>
                                 <br>
                             </div>
                         </div>
@@ -235,6 +233,7 @@ function getProjectProfiles(url) {
                 }
 
                 if (projectprofiles["next_page"] !== undefined) {
+                    $("#SC_ExportCount").text("Exporting Project Profiles (Page " + projectprofiles["next_page"].substr(projectprofiles["next_page"].lastIndexOf("=")+1,projectprofiles["next_page"].length) + ") - Please Wait...")
                     getProjectProfiles(projectprofiles["next_page"])
                 } else {
                     let csv = doCSV(projectExportResults)

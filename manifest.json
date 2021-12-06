@@ -30,7 +30,7 @@
         "*://*.wikitree.com/",
         "*://*.billiongraves.com/",
         "*://billiongraves.com/",
-        "*://*.ancestrylibrary.com/"
+        "*://*.ancestrylibrary.com/",
         "*://*.ancestry.com/",
         "*://*.myheritage.com/",
         "*://historylink.herokuapp.com/",
@@ -38,7 +38,7 @@
         "*://*.gravez.me/",
         "*://gravez.me/",
         "*://*.toldot.ru/",
-        "*://toldot.ru",
+        "*://toldot.ru/",
         "*://*.yadvashem.org/",
         "*://yadvashem.org/"
     ]

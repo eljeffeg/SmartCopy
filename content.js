@@ -233,7 +233,7 @@ function getProjectProfiles(url) {
                 }
 
                 if (projectprofiles["next_page"] !== undefined) {
-                    $("#SC_ExportCount").text("Exporting Project Profiles (Page " + projectprofiles["next_page"].substr(projectprofiles["next_page"].lastIndexOf("=")+1,projectprofiles["next_page"].length) + ") - Please Wait...")
+                    $("#SC_ExportCount").text("Exporting Project Profiles (Page " + projectprofiles["next_page"].substr(projectprofiles["next_page"].lastIndexOf("=") + 1, projectprofiles["next_page"].length) + ") - Please Wait...")
                     getProjectProfiles(projectprofiles["next_page"])
                 } else {
                     let csv = doCSV(projectExportResults)
@@ -1696,11 +1696,11 @@ function formatName(namepart) {
 function updateQMessage() {
     if (consistencymessage !== "") {
         $("#consistencyck").html("<span style='float: right; margin-top: -1px; padding-left: 10px;'><img id='refreshcheck' src='" +
-            chrome.extension.getURL("images/content_update.png") +
+            chrome.runtime.getURL("images/content_update.png") +
             "' style='cursor: pointer; margin-right: 3px; width: 12px;'><img class='consistencyslide' src='" +
-            chrome.extension.getURL("images/content_close.png") +
+            chrome.runtime.getURL("images/content_close.png") +
             "' style='cursor: pointer; width: 18px;'></span><a href='https://www.geni.com/projects/SmartCopy/18783' target='_blank'><img src='" +
-            chrome.extension.getURL("images/icon.png") +
+            chrome.runtime.getURL("images/icon.png") +
             "' style='width: 16px; margin-top: -3px; padding-right: 5px;' title='SmartCopy'></a></img><strong>" +
             _("consistencyCheck") +
             ":</strong>" +
@@ -1720,7 +1720,7 @@ function updateQMessage() {
             }
             var url = "https://www.geni.com/api/" + id + "/update-basics";
             $("#case" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") +
-                " <img src='" + chrome.extension.getURL("images/content_check.png") +
+                " <img src='" + chrome.runtime.getURL("images/content_check.png") +
                 "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
@@ -1732,7 +1732,7 @@ function updateQMessage() {
         $('#makepublic').off();
         $('#makepublic').on('click', function () {
             $("#makepublic").replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
-                chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+                chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             var args = {
                 "public": true,
                 "is_alive": false
@@ -1758,7 +1758,7 @@ function updateQMessage() {
             };
             var url = "https://www.geni.com/api/" + id + "/update-basics";
             $("#fsuffix" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
-                chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+                chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -1776,7 +1776,7 @@ function updateQMessage() {
             }
             var url = "https://www.geni.com/api/" + id + "/update-basics";
             $("#space" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
-                chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+                chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -1792,7 +1792,7 @@ function updateQMessage() {
             args[name] = "";
             var url = "https://www.geni.com/api/" + id + "/update-basics";
             $("#clear" + name + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
-                chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+                chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -1880,7 +1880,7 @@ function getStatus(relation, gender) {
 }
 
 function concat(type) {
-    let icon = "<img src='" + chrome.extension.getURL("images/content_" + type + ".png") + "' style='width: 14px; padding-left: 6px; padding-right: 2px; margin-top: -3px;'>";
+    let icon = "<img src='" + chrome.runtime.getURL("images/content_" + type + ".png") + "' style='width: 14px; padding-left: 6px; padding-right: 2px; margin-top: -3px;'>";
     if (consistencymessage !== "") {
         return consistencymessage += icon;
     }

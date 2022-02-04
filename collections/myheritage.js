@@ -49,6 +49,9 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
     relation = relation || "";
     var splitdata = htmlstring.replace(/<img/ig, "<gmi").split("Immediate family");
     var parsed = $(splitdata[0]);
+    while (splitdata.length > 2) {
+        splitdata[1] += splitdata.pop();
+    }
     var aboutdata = "";
     var profiledata = {};
     var focusdaterange = "";

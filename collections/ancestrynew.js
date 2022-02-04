@@ -3,25 +3,27 @@ registerCollection({
     "reload": false,
     "recordtype": "Ancestry Genealogy",
     "prepareUrl": function(url) {
-        if (startsWithHTTP(url, "http://trees.ancestry.") || url.contains("/family-tree/tree/")) {
+        if (startsWithHTTP(url, "http://trees.ancestry.") || url.contains("/family-tree/tree/") || url.contains("/family-tree/person/tree/")) {
             if (url.endsWith("/family") || url.endsWith("/family/familyview") || url.endsWith("/family/pedigree")) {
                 document.querySelector('#loginspinner').style.display = "none";
                 setMessage(warningmsg, 'SmartCopy was unable to identify the Ancestry focus profile.  Please select a focus profile in the tree.');
                 return;
             } else {
+                url = url.replace("/family-tree/tree/", "/family-tree/person/tree/")
                 url = url.replace("/family/", "/");
                 url = url.replace("family?fpid=", "person/");
                 url = url.replace("family?cfpid=", "person/");
                 url = url.replace("pedigree?fpid=", "person/");
                 url = url.replace("pedigree?cfpid=", "person/");
-                if (!url.endsWith("/facts")) {
-                    url += "/facts";
-                }
+                url = url.split("&")[0];
                 url = url.replace("trees.ancestry.", "person.ancestry.");
-                url = url.replace("&selnode=1", "");
+                
                 url = url.replace("/community/potential", "");
                 if (isNaN(url.slice(-1))) {
                     url = url.substring(0, url.lastIndexOf('/'));
+                }
+                if (!url.endsWith("/facts")) {
+                    url += "/facts";
                 }
                 this.reload = true;
             }
@@ -85,7 +87,6 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     var par = parsed.find("#personCard");
     var focusperson = par.find(".userCardTitle").text();
     var focusdaterange = par.find(".userCardSubTitle").text().replace("&ndash;", " - ");
-
     $("#readstatus").html(escapeHtml(focusperson));
     var profiledata = {};
     var genderval = "unknown";

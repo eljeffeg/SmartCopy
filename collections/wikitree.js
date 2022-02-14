@@ -77,7 +77,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
     var genderval = "unknown";
     if (htmlstring.contains("www.wikitree.com/images/icons/female.gif")) {
         genderval = "female";
-    } else if (htmlstring.contains("www.wikitree.com/images/icons/female.gif")) {
+    } else if (htmlstring.contains("www.wikitree.com/images/icons/male.gif")) {
         genderval = "male";
     } else if (exists(relation.gender) && relation.gender !== "unknown") {
         genderval = relation.gender;

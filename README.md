@@ -1,6 +1,6 @@
 ### License
 
-Copyright (C) 2014-2021 jeffg2k
+Copyright (C) 2014-2022 jeffg2k
 
 All rights reserved.
 

@@ -980,10 +980,10 @@ function buildConsistency() {
             //Old private profiles
             if (namelist.length > 1) {
                 consistencymessage = concat("info") + _("numFamilyMembersBornBeforeYearAreSetAsPrivate", [publiclist.length, publicyear]) +
-                    "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[" + _("makePublic") + "]</a></sup>";
+                    "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' class='makepublic'>[" + _("makePublic") + "]</a></sup>";
             } else {
                 consistencymessage = concat("info") + _("personWasBornBeforeYearAndIsSetAsPrivate", [buildEditLink(publiclist[0]), publicyear]) +
-                    "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[" + _("makePublic") + "]</a></sup>";
+                    "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' class='makepublic'>[" + _("makePublic") + "]</a></sup>";
             }
         }
     }
@@ -1729,8 +1729,8 @@ function updateQMessage() {
                 data: $.param(args)
             }, function (response) {});
         });
-        $('#makepublic').off();
-        $('#makepublic').on('click', function () {
+        $('.makepublic').off();
+        $('.makepublic').on('click', function () {
             $("#makepublic").replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
                 chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             var args = {
@@ -1738,7 +1738,7 @@ function updateQMessage() {
                 "is_alive": false
             };
             for (let i = 0; i < publiclist.length; i++) {
-                var url = "https://www.geni.com/api/" + publiclist[i] + "/update-basics";
+                var url = "https://www.geni.com/api/" + publiclist[i] + "/update";
                 chrome.runtime.sendMessage({
                     method: "POST",
                     action: "xhttp",

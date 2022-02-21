@@ -9,6 +9,7 @@ registerCollection({
                 setMessage(warningmsg, 'SmartCopy was unable to identify the Ancestry focus profile.  Please select a focus profile in the tree.');
                 return;
             } else {
+                url = url.replace("family/familyview", "family")
                 url = url.replace("/family-tree/tree/", "/family-tree/person/tree/")
                 url = url.replace("/family/", "/");
                 url = url.replace("family?fpid=", "person/");

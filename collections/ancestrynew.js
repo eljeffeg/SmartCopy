@@ -243,7 +243,7 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
         for (var x = 0; x < person.length; x++) {
             var title = headtitle;
             var url = $(person[x]).attr("href");
-            if (title === "spouse & children") {
+            if (title === "spouse & children" || title === "spouse and children") {
                 if ($(person[x]).prop('outerHTML').contains("ResearchSpouse")) {
                     title = "spouse";
                 } else {

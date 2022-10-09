@@ -96,7 +96,7 @@ function buildFamilySearch(responsedata) {
     if (exists(responsedata.maiden_name) && responsedata.gender === "female" && responsedata.maiden_name !== responsedata.last_name) {
         lastname = wrapEncode(responsedata.maiden_name.replace(/'/g,"")).replace(/%22/g, "");
         if (exists(responsedata.last_name)) {
-            query += '&q.spouse_surname=' + wrapEncode(responsedata.last_name.replace(/'/g,"")).replace(/%22/g, "");
+            query += '&q.spouseSurname=' + wrapEncode(responsedata.last_name.replace(/'/g,"")).replace(/%22/g, "");
         }
     }
     query += '&q.surname=' + wrapEncode(lastname).replace(/%22/g, "");

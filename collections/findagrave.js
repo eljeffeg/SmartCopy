@@ -160,12 +160,12 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 if (title === "half siblings") {
                     title = "siblings";
                 }
-                var group = $(familyquery[i]).find(".name");
+                var group = $(familyquery[i]).find('.media-heading');
                 for (var x = 0; x < group.length; x++) {
                     var url = $(group[x]).attr("href");
                     if (exists(url)) {
                         var itemid = getFAGID(url);
-                        var name = NameParse.fix_case(url.substring(url.lastIndexOf('/') + 1).replace("-", " "));
+                        var name = NameParse.fix_case(url.substring(url.lastIndexOf('/') + 1).replace(/-/g, " "));
                         if (!exists(alldata["family"][title])) {
                             alldata["family"][title] = [];
                         }

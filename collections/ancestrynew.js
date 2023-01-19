@@ -66,7 +66,7 @@ registerCollection({
         if (parsed.text().contains("Please sign in for secure access to your Ancestry account")) {
             document.getElementById("smartcopy-container").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage(warningmsg, 'SmartCopy can work with the various country-based sites of Ancestry, but you must first sign into the main english website.<br/><a href="http://www.ancestry.com/" target="_blank">Please login to Ancestry.com</a>');
+            setMessage(warningmsg, 'SmartCopy can work with the various country-based sites of Ancestry, but you must first sign into the main english website.<br/><a href="https://www.ancestry.com/" target="_blank">Please login to Ancestry.com</a>');
             this.parseProfileData = "";
             return;
         }

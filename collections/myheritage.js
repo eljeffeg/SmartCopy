@@ -33,7 +33,7 @@ registerCollection({
         if (request.source.indexOf('SearchPlansPageManager') !== -1) {
             document.getElementById("smartcopy-container").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage(warningmsg, 'SmartCopy can work with the various country-based sites of MyHeritage, but you must first sign into the main english website.<br/><a href="http://www.myheritage.com/" target="_blank">Please login to MyHeritage.com</a>');
+            setMessage(warningmsg, 'SmartCopy can work with the various country-based sites of MyHeritage, but you must first sign into the main english website.<br/><a href="https://www.myheritage.com/" target="_blank">Please login to MyHeritage.com</a>');
             this.parseProfileData = "";
             return;
         }

@@ -277,7 +277,7 @@ function userAccess() {
                     chrome.runtime.sendMessage({
                         method: "GET",
                         action: "xhttp",
-                        url: "https://www.geni.com/api/" + focusid + "&fields=name",
+                        url: "https://www.geni.com/api/" + focusid + "&fields=name&access_token=" + accountinfo.access_token,
                         variable: ""
                     }, function (response) {
                         var responsedata = JSON.parse(response.source);
@@ -441,7 +441,7 @@ function loadPage(request) {
                     return;
                 }
             }
-            $("#focusname").html('<span id="genilinkdesc"><a href="' + 'http://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + getProfileName(focusname) + "</a></span>");
+            $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + getProfileName(focusname) + "</a></span>");
             if (focusrange !== "") {
                 $("#focusrange").text(focusrange);
             }
@@ -1029,9 +1029,9 @@ var submitform = function () {
                         }
                     }
                     if (exists(refurl)) {
-                        profileout["about_me"] = about + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                        profileout["about_me"] = about + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                     } else {
-                        profileout["about_me"] = about + "* Reference: " + recordtype + " - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                        profileout["about_me"] = about + "* Reference: " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                     }
                     
                 } else {
@@ -1170,7 +1170,7 @@ var submitform = function () {
                             }
                         }
                         if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "")) {
-                            var abouturl = "https://www.geni.com/api/" + pid + "?fields=about_me,nicknames" + "&access_token=" + accountinfo.access_token;
+                            var abouturl = "https://www.geni.com/api/" + pid + "?fields=about_me,nicknames&access_token=" + accountinfo.access_token;
                             submitstatus.push(updatetotal);
                             chrome.runtime.sendMessage({
                                 method: "GET",
@@ -1251,7 +1251,7 @@ function buildTree(data, action, sendid) {
                 return;
             }
         }
-        var posturl = "https://www.geni.com/api/" + sendid + "/" + action +  "?fields=id,unions,name" + "&access_token=" + accountinfo.access_token;
+        var posturl = "https://www.geni.com/api/" + sendid + "/" + action +  "?fields=id,unions,name&access_token=" + accountinfo.access_token;
         if (action === "add-photo" && permissions.indexOf("add-photo") === -1) {
             updateMessage(errormsg, "Geni permission to add photo denied on: " + sendid);
             console.log("Geni permission to add photo denied on: " + sendid);
@@ -1471,7 +1471,7 @@ function submitChildren() {
                     chrome.runtime.sendMessage({
                         method: "POST",
                         action: "xhttp",
-                        url: "https://www.geni.com/api/" + spouseinfo.union + "/update" + "?access_token=" + accountinfo.access_token,
+                        url: "https://www.geni.com/api/" + spouseinfo.union + "/update?access_token=" + accountinfo.access_token,
                         data: $.param(marriageupdate),
                         variable: ""
                     }, function (response) {
@@ -1552,7 +1552,7 @@ function buildTempSpouse(parentid) {
         chrome.runtime.sendMessage({
             method: "POST",
             action: "xhttp",
-            url: "https://www.geni.com/api/" + focusid + "/add-partner" + "?access_token=" + accountinfo.access_token,
+            url: "https://www.geni.com/api/" + focusid + "/add-partner?access_token=" + accountinfo.access_token,
             data: $.param({gender: tgender}),
             variable: {id: parentid}
         }, function (response) {

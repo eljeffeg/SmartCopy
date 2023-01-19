@@ -11,7 +11,7 @@ function buildResearch() {
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
-        url: "https://www.geni.com/api/" + focusid + "&fields=" + fields,
+        url: "https://www.geni.com/api/" + focusid + "&fields=" + fields + "&access_token=" + accountinfo.access_token,
         variable: ""
     }, function (response) {
         var responsedata = JSON.parse(response.source);
@@ -76,8 +76,8 @@ function buildGenealogy(responsedata) {
     }
     var query = firstname + " " + lastname;
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Genealogy.com</strong>';
-    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="http://www.genealogy.com/search/result?type=ftmcontent&keyword=' + query + '">Genealogy.com (' + _("Genealogies") + ')</a></li>';
-    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="http://www.genealogy.com/search/result?type=forumposts&keyword=' + query + '">Genealogy.com (' + _("MessageBoard") + ')</a></li>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.genealogy.com/search/result?type=ftmcontent&keyword=' + query + '">Genealogy.com (' + _("Genealogies") + ')</a></li>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.genealogy.com/search/result?type=forumposts&keyword=' + query + '">Genealogy.com (' + _("MessageBoard") + ')</a></li>';
     researchstring += '</div>';
     return researchstring;
 }
@@ -229,7 +229,7 @@ function buildTributes(responsedata) {
             }
         }
     }
-    var query = 'http://www.tributes.com/search/obituaries/?solr=&first=' + firstname + '&last=' + lastname + '&search_type=' + daterange;
+    var query = 'https://www.tributes.com/search/obituaries/?solr=&first=' + firstname + '&last=' + lastname + '&search_type=' + daterange;
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Tributes</strong>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">Tributes (' + _("Obituaries") + ')</a></li>';
     researchstring += '</div>';
@@ -260,7 +260,7 @@ function buildLegacy(responsedata) {
             }
         }
     }
-    var query = 'http://www.legacy.com/ns/obitfinder/obituary-search.aspx?daterange=' + daterange + '&firstname=' + firstname + '&lastname=' + lastname + '&countryid=0&stateid=all&affiliateid=all';
+    var query = 'https://www.legacy.com/ns/obitfinder/obituary-search.aspx?daterange=' + daterange + '&firstname=' + firstname + '&lastname=' + lastname + '&countryid=0&stateid=all&affiliateid=all';
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Legacy</strong>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">Legacy (' + _("Obituaries") + ')</a></li>';
     researchstring += '</div>';
@@ -308,7 +308,7 @@ function buildMyHeritage(responsedata) {
 }
 
 function buildRootsWeb(responsedata) {
-    var query = 'http://wc.rootsweb.ancestry.com/cgi-bin/igm.cgi?op=Search&includedb=&lang=en&ti=&skipdb=&period=All&fuzzy=Y&submit.x=Search&given=' + responsedata.first_name;
+    var query = 'https://wc.rootsweb.com/search?includedb=&lang=en&ti=&skipdb=&period=All&fuzzy=Y&submit.x=Search&given=' + responsedata.first_name;
     var lastname = "";
     if (exists(responsedata.last_name)) {
         lastname = responsedata.last_name;
@@ -340,7 +340,7 @@ function buildRootsWeb(responsedata) {
     var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>RootsWeb</strong>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">RootsWeb (' + _("Genealogies") + ')</a></li>';
 
-    query = 'http://boards.rootsweb.com/SearchResults.aspx?db=mb&gskw=%22' + responsedata.name.replace(/ /g, "+") + '%22';
+    query = 'https://www.ancestry.com/boards/search/results?author=&classification=ALL&keyword=' + responsedata.name.replace(/ /g, "+");
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">RootsWeb (' + _("MessageBoard") + ')</a></li>';
     researchstring += '</div>';
     return researchstring;

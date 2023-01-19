@@ -234,7 +234,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     var imagedata = parsed.find("#profileImage");
     if (exists(imagedata[0])) {
         var thumb = $(imagedata[0]).attr( "src" );
-        if (startsWithHTTP(thumb, "http://image") || thumb.contains("find-a-grave-prod/photos")) {
+        if (startsWithHTTP(thumb, "https://images") || thumb.contains("find-a-grave-prod/photos")) {
             var image = thumb.replace("photos250/", "");
             profiledata["thumb"] = thumb;
             profiledata["image"] = image;

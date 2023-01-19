@@ -1965,7 +1965,7 @@ function cleanDate(dateval) {
 
 function loadGeniData() {
     familystatus.push("about");
-    var abouturl = "https://www.geni.com/api/" + focusid + "?fields=about_me,nicknames";
+    var abouturl = "https://www.geni.com/api/" + focusid + "?fields=about_me,nicknames&access_token=" + accountinfo.access_token;
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",

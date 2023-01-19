@@ -93,7 +93,7 @@ function queryGeni() {
     }
     familystatus.push(1);
     var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,cause_of_death,burial,is_alive,marriage,divorce,claimed,public" + dconflict + "&actions=update,update-basics";
-    var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
+    var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;;
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -195,7 +195,7 @@ function addProjectExportButton() {
                 progress.insertAfter($("#panel_overlay"));
                 project_id = getProject(tablink);
                 //let args = "?fields=name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,cause_of_death,burial,is_alive";
-                let url = "https://www.geni.com/api/project-" + project_id + "/profiles";
+                let url = "https://www.geni.com/api/project-" + project_id + "/profiles?access_token=" + accountinfo.access_token;;
                 getProjectProfiles(url)
             });
         }
@@ -1062,7 +1062,7 @@ function partnerCheck(partners) {
                 //TODO if you get additional family members, compare this against her father's last name
                 messagestatus.push(wife);
                 var args = "fields=id,first_name,last_name,maiden_name,gender,deleted,public&actions=update,update-basics";
-                var url = "https://www.geni.com/api/" + wife + "/immediate-family?" + args;
+                var url = "https://www.geni.com/api/" + wife + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;
                 chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",
@@ -1718,7 +1718,7 @@ function updateQMessage() {
             for (let i = 0; i < nameparts.length; i++) {
                 args[nameparts[i]] = nameupdates[i];
             }
-            var url = "https://www.geni.com/api/" + id + "/update-basics";
+            var url = "https://www.geni.com/api/" + id + "/update-basics?access_token=" + accountinfo.access_token;
             $("#case" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") +
                 " <img src='" + chrome.runtime.getURL("images/content_check.png") +
                 "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
@@ -1738,7 +1738,7 @@ function updateQMessage() {
                 "is_alive": false
             };
             for (let i = 0; i < publiclist.length; i++) {
-                var url = "https://www.geni.com/api/" + publiclist[i] + "/update";
+                var url = "https://www.geni.com/api/" + publiclist[i] + "/update?access_token=" + accountinfo.access_token;
                 chrome.runtime.sendMessage({
                     method: "POST",
                     action: "xhttp",
@@ -1756,7 +1756,7 @@ function updateQMessage() {
                 "suffix": suffix,
                 "first_name": fnamesplit.join(" ")
             };
-            var url = "https://www.geni.com/api/" + id + "/update-basics";
+            var url = "https://www.geni.com/api/" + id + "/update-basics?access_token=" + accountinfo.access_token;
             $("#fsuffix" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
                 chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
@@ -1774,7 +1774,7 @@ function updateQMessage() {
             for (let i = 0; i < nameparts.length; i++) {
                 args[nameparts[i]] = getGeniData(id, nameparts[i]).replace(/  /g, " ").trim();
             }
-            var url = "https://www.geni.com/api/" + id + "/update-basics";
+            var url = "https://www.geni.com/api/" + id + "/update-basics?access_token=" + accountinfo.access_token;
             $("#space" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
                 chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
@@ -1790,7 +1790,7 @@ function updateQMessage() {
             var name = $(this)[0].name;
             var id = $(this)[0].id.replace("clear" + name, "");
             args[name] = "";
-            var url = "https://www.geni.com/api/" + id + "/update-basics";
+            var url = "https://www.geni.com/api/" + id + "/update-basics?access_token=" + accountinfo.access_token;
             $("#clear" + name + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
                 chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({

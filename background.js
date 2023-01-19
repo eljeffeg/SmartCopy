@@ -7,7 +7,7 @@
  *  variable : pass private variable into the callback
  *
  * The callback function is called upon completion of the request
- * http://stackoverflow.com/questions/7699615/cross-domain-xmlhttprequest-using-background-pages
+ * https://stackoverflow.com/questions/7699615/cross-domain-xmlhttprequest-using-background-pages
  *
  * Call to verify HistoryLink authentication to Geni & query Family Data
  * */
@@ -55,15 +55,13 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
                 xhr.open('GET', data.photo, true);
                 xhr.onload = function(){
                     const response = xhr.responseText;
-                    if (!response.includes("Error")) {
-                        let binary = ""
-                        for(i=0;i<response.length;i++){
-                            binary += String.fromCharCode(response.charCodeAt(i) & 0xff);
-                        }
-                        delete data.photo
-                        data.file = btoa(binary)
-                        xhttp.send(getUrlFromJson(data));
+                    let binary = ""
+                    for(i=0;i<response.length;i++){
+                        binary += String.fromCharCode(response.charCodeAt(i) & 0xff);
                     }
+                    delete data.photo
+                    data.file = btoa(binary)
+                    xhttp.send(getUrlFromJson(data));
                 }
                 xhr.onerror = function(error) {
                     var valrtn = {error: error, responseURL: xhr.responseURL};

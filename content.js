@@ -33,6 +33,7 @@ var messagestatus = [];
 var projectExportResults = [];
 var project_id;
 var getsettingsdone = false;
+var accountinfo;
 
 var _ = function (messageName, substitutions) {
     return chrome.i18n.getMessage(messageName, substitutions);
@@ -93,7 +94,7 @@ function queryGeni() {
     }
     familystatus.push(1);
     var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,cause_of_death,burial,is_alive,marriage,divorce,claimed,public" + dconflict + "&actions=update,update-basics";
-    var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;;
+    var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -195,7 +196,7 @@ function addProjectExportButton() {
                 progress.insertAfter($("#panel_overlay"));
                 project_id = getProject(tablink);
                 //let args = "?fields=name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,cause_of_death,burial,is_alive";
-                let url = "https://www.geni.com/api/project-" + project_id + "/profiles?access_token=" + accountinfo.access_token;;
+                let url = "https://www.geni.com/api/project-" + project_id + "/profiles?access_token=" + accountinfo.access_token;
                 getProjectProfiles(url)
             });
         }
@@ -1889,6 +1890,11 @@ function concat(type) {
 
 function getSettings() {
     geniconsistency = undefined;
+    chrome.storage.local.get('accountinfo', function (result) {
+        if (result.accountinfo !== undefined) {
+            accountinfo = result.accountinfo;
+        }
+    })
     chrome.storage.local.get('dataconflict', function (result) {
         if (result.dataconflict !== undefined) {
             dataconflictoption = result.dataconflict;

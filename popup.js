@@ -838,6 +838,7 @@ function loadLogin() {
 
         console.log("Logged In...");
         accountinfo = response;
+        chrome.storage.local.set({'accountinfo': accountinfo});
         
         if (exists(accountinfo.google_key) && accountinfo.google_key !== "" && accountinfo.google_key !== "invalid") {
             //This allows the server to issue the Google API Key if they ever change their payment model to something reasonable

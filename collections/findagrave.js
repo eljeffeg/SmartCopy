@@ -160,7 +160,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                 if (title === "half siblings") {
                     title = "siblings";
                 }
-                var group = $(familyquery[i]).find('.media-heading');
+                var group = $(familyquery[i]).find('a');
                 for (var x = 0; x < group.length; x++) {
                     var url = $(group[x]).attr("href");
                     if (exists(url)) {

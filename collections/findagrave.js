@@ -258,7 +258,8 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
 }
 
 function getFindAGraveName(focusperson) {
-    var personborn = focusperson.match("\<i\>(.*)\</i\>");
+    focusperson = focusperson.split("\<b class")[0].trim(); //filter veteran from name
+    let personborn = focusperson.match("\<i\>(.*)\</i\>");
     if (exists(personborn) && exists(personborn[0])) {
         focusperson = focusperson.replace(personborn[0], "");
         focusperson = focusperson + " (born " + personborn[1] + ")";

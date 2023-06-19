@@ -263,7 +263,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         if (itemid !== focusURLid) {
                             housearray.push({name: $(hv[x]).text(), url: hurl, title: title});
                         } else {
-                            focustitle = title;
+                            focustitle = title.trim();
                             if (focusgender === "unknown") {
                                 if (title === "wife") {
                                     genderval = "female";
@@ -306,7 +306,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
             if (title === "gender") {
                 if (exists($(row).find(".recordFieldValue").contents().get(0))) {
-                    genderval = $(row).find(".recordFieldValue").contents().get(0).nodeValue.toLowerCase();
+                    genderval = $(row).find(".recordFieldValue").contents().get(0).nodeValue.toLowerCase().trim();
                     profiledata["gender"] = genderval;
                     if (relation === "") {
                         focusgender = genderval;

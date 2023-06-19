@@ -210,9 +210,9 @@ function updateGenders() {
 }
 
 function reverseGender(gender) {
-    if (gender === "female") {
+    if (gender.trim() === "female") {
         return "male";
-    } else if (gender === "male") {
+    } else if (gender.trim() === "male") {
         return "female";
     }
     return "unknown";
@@ -1499,16 +1499,16 @@ function isHidden(value, geo) {
 
 function genderColor(gender) {
     var bgcolor = "#c5fac9";
-    if (gender === "male") {
+    if (gender.trim() === "male") {
         bgcolor = "#d1e3fb";
-    } else if (gender === "female") {
+    } else if (gender.trim() === "female") {
         bgcolor = "#fdd4e4";
     }
     return bgcolor;
 }
 
 function setGender(gender, value) {
-    if (gender === value) {
+    if (gender === value.trim()) {
         return "selected";
     }
     return "";

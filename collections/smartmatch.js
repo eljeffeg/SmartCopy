@@ -603,6 +603,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 for (var i=0; i < fielddata.length; i++) {
                     if (exists(fielddata.get(i))) {
                         valdate = fielddata.get(i).nodeValue;
+                        if (exists(valdate)) {
+                            valdate = valdate.trim();
+                        }
                         if (exists(valdate) && valdate.startsWith("0/0/")) {
                             valdate = valdate.replace("0/0/", "");
                         }

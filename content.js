@@ -33,6 +33,7 @@ var messagestatus = [];
 var projectExportResults = [];
 var project_id;
 var getsettingsdone = false;
+var accountinfo;
 
 var _ = function (messageName, substitutions) {
     return chrome.i18n.getMessage(messageName, substitutions);
@@ -93,7 +94,7 @@ function queryGeni() {
     }
     familystatus.push(1);
     var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,cause_of_death,burial,is_alive,marriage,divorce,claimed,public" + dconflict + "&actions=update,update-basics";
-    var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args;
+    var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -169,8 +170,6 @@ function addProjectExportButton() {
         setTimeout(addProjectExportButton, 50);
     } else {
         let menus = $("div.drop-menu");
-
-        console.log(menus)
         let menu = undefined;
         for (let i = 0; i < menus.length; i++) {
             if ($(menus[i]).text().trim().startsWith("Actions")) {
@@ -188,7 +187,7 @@ function addProjectExportButton() {
                             <div class="modal_bd padding_20" style="cursor: progress; text-align: center;">
                                 <br>
                                 <h3><strong>SmartCopy Project Export</strong></h3>
-                                <h4>Exporting Project Profiles - Please Wait...</h4>
+                                <h4 id="SC_ExportCount">Exporting Project Profiles (Page 1) - Please Wait...</h4>
                                 <br>
                             </div>
                         </div>
@@ -197,7 +196,7 @@ function addProjectExportButton() {
                 progress.insertAfter($("#panel_overlay"));
                 project_id = getProject(tablink);
                 //let args = "?fields=name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,cause_of_death,burial,is_alive";
-                let url = "https://www.geni.com/api/project-" + project_id + "/profiles";
+                let url = "https://www.geni.com/api/project-" + project_id + "/profiles?access_token=" + accountinfo.access_token;
                 getProjectProfiles(url)
             });
         }
@@ -235,6 +234,7 @@ function getProjectProfiles(url) {
                 }
 
                 if (projectprofiles["next_page"] !== undefined) {
+                    $("#SC_ExportCount").text("Exporting Project Profiles (Page " + projectprofiles["next_page"].substr(projectprofiles["next_page"].lastIndexOf("=") + 1, projectprofiles["next_page"].length) + ") - Please Wait...")
                     getProjectProfiles(projectprofiles["next_page"])
                 } else {
                     let csv = doCSV(projectExportResults)
@@ -981,10 +981,10 @@ function buildConsistency() {
             //Old private profiles
             if (namelist.length > 1) {
                 consistencymessage = concat("info") + _("numFamilyMembersBornBeforeYearAreSetAsPrivate", [publiclist.length, publicyear]) +
-                    "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[" + _("makePublic") + "]</a></sup>";
+                    "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' class='makepublic'>[" + _("makePublic") + "]</a></sup>";
             } else {
                 consistencymessage = concat("info") + _("personWasBornBeforeYearAndIsSetAsPrivate", [buildEditLink(publiclist[0]), publicyear]) +
-                    "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' id='makepublic'>[" + _("makePublic") + "]</a></sup>";
+                    "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' class='makepublic'>[" + _("makePublic") + "]</a></sup>";
             }
         }
     }
@@ -1063,7 +1063,7 @@ function partnerCheck(partners) {
                 //TODO if you get additional family members, compare this against her father's last name
                 messagestatus.push(wife);
                 var args = "fields=id,first_name,last_name,maiden_name,gender,deleted,public&actions=update,update-basics";
-                var url = "https://www.geni.com/api/" + wife + "/immediate-family?" + args;
+                var url = "https://www.geni.com/api/" + wife + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;
                 chrome.runtime.sendMessage({
                     method: "GET",
                     action: "xhttp",
@@ -1697,11 +1697,11 @@ function formatName(namepart) {
 function updateQMessage() {
     if (consistencymessage !== "") {
         $("#consistencyck").html("<span style='float: right; margin-top: -1px; padding-left: 10px;'><img id='refreshcheck' src='" +
-            chrome.extension.getURL("images/content_update.png") +
+            chrome.runtime.getURL("images/content_update.png") +
             "' style='cursor: pointer; margin-right: 3px; width: 12px;'><img class='consistencyslide' src='" +
-            chrome.extension.getURL("images/content_close.png") +
+            chrome.runtime.getURL("images/content_close.png") +
             "' style='cursor: pointer; width: 18px;'></span><a href='https://www.geni.com/projects/SmartCopy/18783' target='_blank'><img src='" +
-            chrome.extension.getURL("images/icon.png") +
+            chrome.runtime.getURL("images/icon.png") +
             "' style='width: 16px; margin-top: -3px; padding-right: 5px;' title='SmartCopy'></a></img><strong>" +
             _("consistencyCheck") +
             ":</strong>" +
@@ -1719,9 +1719,9 @@ function updateQMessage() {
             for (let i = 0; i < nameparts.length; i++) {
                 args[nameparts[i]] = nameupdates[i];
             }
-            var url = "https://www.geni.com/api/" + id + "/update-basics";
+            var url = "https://www.geni.com/api/" + id + "/update-basics?access_token=" + accountinfo.access_token;
             $("#case" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") +
-                " <img src='" + chrome.extension.getURL("images/content_check.png") +
+                " <img src='" + chrome.runtime.getURL("images/content_check.png") +
                 "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
@@ -1730,16 +1730,16 @@ function updateQMessage() {
                 data: $.param(args)
             }, function (response) {});
         });
-        $('#makepublic').off();
-        $('#makepublic').on('click', function () {
+        $('.makepublic').off();
+        $('.makepublic').on('click', function () {
             $("#makepublic").replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
-                chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+                chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             var args = {
                 "public": true,
                 "is_alive": false
             };
             for (let i = 0; i < publiclist.length; i++) {
-                var url = "https://www.geni.com/api/" + publiclist[i] + "/update-basics";
+                var url = "https://www.geni.com/api/" + publiclist[i] + "/update?access_token=" + accountinfo.access_token;
                 chrome.runtime.sendMessage({
                     method: "POST",
                     action: "xhttp",
@@ -1757,9 +1757,9 @@ function updateQMessage() {
                 "suffix": suffix,
                 "first_name": fnamesplit.join(" ")
             };
-            var url = "https://www.geni.com/api/" + id + "/update-basics";
+            var url = "https://www.geni.com/api/" + id + "/update-basics?access_token=" + accountinfo.access_token;
             $("#fsuffix" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
-                chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+                chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -1775,9 +1775,9 @@ function updateQMessage() {
             for (let i = 0; i < nameparts.length; i++) {
                 args[nameparts[i]] = getGeniData(id, nameparts[i]).replace(/  /g, " ").trim();
             }
-            var url = "https://www.geni.com/api/" + id + "/update-basics";
+            var url = "https://www.geni.com/api/" + id + "/update-basics?access_token=" + accountinfo.access_token;
             $("#space" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
-                chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+                chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -1791,9 +1791,9 @@ function updateQMessage() {
             var name = $(this)[0].name;
             var id = $(this)[0].id.replace("clear" + name, "");
             args[name] = "";
-            var url = "https://www.geni.com/api/" + id + "/update-basics";
+            var url = "https://www.geni.com/api/" + id + "/update-basics?access_token=" + accountinfo.access_token;
             $("#clear" + name + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
-                chrome.extension.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
+                chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -1881,7 +1881,7 @@ function getStatus(relation, gender) {
 }
 
 function concat(type) {
-    let icon = "<img src='" + chrome.extension.getURL("images/content_" + type + ".png") + "' style='width: 14px; padding-left: 6px; padding-right: 2px; margin-top: -3px;'>";
+    let icon = "<img src='" + chrome.runtime.getURL("images/content_" + type + ".png") + "' style='width: 14px; padding-left: 6px; padding-right: 2px; margin-top: -3px;'>";
     if (consistencymessage !== "") {
         return consistencymessage += icon;
     }
@@ -1890,6 +1890,11 @@ function concat(type) {
 
 function getSettings() {
     geniconsistency = undefined;
+    chrome.storage.local.get('accountinfo', function (result) {
+        if (result.accountinfo !== undefined) {
+            accountinfo = result.accountinfo;
+        }
+    })
     chrome.storage.local.get('dataconflict', function (result) {
         if (result.dataconflict !== undefined) {
             dataconflictoption = result.dataconflict;

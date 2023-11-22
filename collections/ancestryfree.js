@@ -25,7 +25,7 @@ registerCollection({
         }
     },
     "loadPage": function(request) {
-        var regex = new RegExp('(?<=window\.__PRELOADED_STATE__ \= ).*?(?=;.*?\<\/script>)', 'gs');
+        var regex = new RegExp('(?<=window\.__PRELOADED_STATE__ \= ).*?(?=;\\s*?<\/script>)', 'gs');
         var match = regex.exec(request.source);
         if (exists(match)) {
             var preload = JSON.parse(match[0]);

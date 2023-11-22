@@ -18,10 +18,10 @@ registerCollection({
         }
     },
     "loadPage": function(request) {
-        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-        var fperson = parsed.find("#bio-name");
+        let parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        let fperson = parsed.find("#bio-name");
         focusname = getFindAGraveName($(fperson[0]).html()).trim();
-        var title = parsed.filter('title').text().replace(" - Find A Grave Memorial", "");
+        let title = parsed.filter('title').text().replace(" - Find A Grave Memorial", "");
         if (title.contains("(")) {
             splitrange = title.split("(");
             focusrange = splitrange[1];
@@ -35,22 +35,22 @@ registerCollection({
 // Parse FindAGrave
 function parseFindAGrave(htmlstring, familymembers, relation) {
     relation = relation || "";
-    var parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));
-    var focusdaterange = "";
-    var title = parsed.filter('title').text().replace(" - Find A Grave Memorial", "");
+    let parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));
+    let focusdaterange = "";
+    let title = parsed.filter('title').text().replace(" - Find A Grave Memorial", "");
     if (title.contains("(")) {
         splitrange = title.split("(");
         focusdaterange = splitrange[1];
         focusdaterange = focusdaterange.replace(")","").trim();
     }
-    var fperson = parsed.find(".plus2").find("b");
+    let fperson = parsed.find(".plus2").find("b");
     if (!exists(fperson[0])) {
         //In case the Memorial has been merged
         fperson = parsed.find("#bio-name");
         if (exists(fperson[0]) && $(fperson[0]).html() === "Memorial has been merged.") {
-            var click = $(fperson[0]).next('table').find('a');
-            var urlset = click[0].outerHTML.match('href="(.*)"');
-            var url = "";
+            let click = $(fperson[0]).next('table').find('a');
+            let urlset = click[0].outerHTML.match('href="(.*)"');
+            let url = "";
             if (exists(urlset) && exists(urlset[1])) {
                 url = hostDomain(tablink) + urlset[1];
                 familystatus.push(familystatus.length);
@@ -60,8 +60,8 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                     url: url,
                     variable: relation
                 }, function (response) {
-                    var arg = response.variable;
-                    var person = parseFindAGrave(response.source, familymembers, response.variable);
+                    let arg = response.variable;
+                    let person = parseFindAGrave(response.source, familymembers, response.variable);
                     person = updateInfoData(person, arg);
                     databyid[arg.profile_id] = person;
                     alldata["family"][arg.title].push(person);
@@ -71,9 +71,9 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             return "";
         }
     }
-    var focusperson = getFindAGraveName($(fperson[0]).html()).trim();
+    let focusperson = getFindAGraveName($(fperson[0]).html()).trim();
     $("#readstatus").html(escapeHtml(focusperson));
-    var genderval = "unknown";
+    let genderval = "unknown";
         if (focusperson.contains("(born")) {
             genderval = "female";
         }
@@ -82,8 +82,8 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     } else if (exists(relation.genderval) && genderval === "unknown") {
         genderval = relation.genderval
     }
-    var aboutdata = "";
-    var profiledata = {name: focusperson, gender: genderval, status: relation.title};
+    let aboutdata = "";
+    let profiledata = {name: focusperson, gender: genderval, status: relation.title};
 
     if (familymembers) {
         loadGeniData();
@@ -94,26 +94,26 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
         profiledata["daterange"] = focusdaterange;
     }
     
-    abouttemp = parsed.find("#fullBio").html();
+    let abouttemp = parsed.find("#fullBio").html();
     if (exists(abouttemp)) {
         aboutdata = $($.parseHTML(abouttemp.replace(/<br>/g, "\n"))).text().trim();
     }
     profiledata = addEvent(profiledata, "birth", parsed.find("#birthDateLabel").text(), parsed.find("#birthLocationLabel").text());
     profiledata = addEvent(profiledata, "baptism", parsed.find("#baptismDateLabel").text(), parsed.find("#baptismLocationLabel").text());
     profiledata = addEvent(profiledata, "death", parsed.find("#deathDateLabel").text(), parsed.find("#deathLocationLabel").text());
-    cemetery = parsed.find("#burialLocationLabel").text();
+    let cemetery = parsed.find("#burialLocationLabel").text();
     if (cemetery === "") {
         cemetery = parsed.find("#cemeteryNameLabel").text();
-        placeinfo = parsed.find("#cemeteryNameLabel").closest("div").next();
-        cemeteryplace = [];
+        let placeinfo = parsed.find("#cemeteryNameLabel").closest("div").next();
+        let cemeteryplace = [];
         if (placeinfo.length > 0) {
             cemeteryplace = placeinfo[0].childNodes;
         }
         if (cemeteryplace.length > 0) {
             cemetery += ", ";
         }
-        for (var i = 0; i < cemeteryplace.length; i++) {
-            item = $(cemeteryplace[i]).text().trim();
+        for (let i = 0; i < cemeteryplace.length; i++) {
+            let item = $(cemeteryplace[i]).text().trim();
             if (item === ",") {
                 item += " ";
             }
@@ -123,23 +123,28 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     profiledata = addEvent(profiledata, "burial", parsed.find("#burialDateLabel").text(), cemetery.trim());
     
     // ---------------------- Family Data --------------------
-    var start = htmlstring.indexOf('paId: "') + 7;
-    var parentstrings = htmlstring.substring(start, start+50);
-    var pid = parentstrings.substring(0, parentstrings.indexOf('"'));
-    start = htmlstring.indexOf('maId: "') + 7;
-    parentstrings = htmlstring.substring(start, start+50);
-    var mid = parentstrings.substring(0, parentstrings.indexOf('"'));
+    let pid = "";
+    let mid = "";
+    let parentstrings = parsed.find("#parentsLabel").next().find("a");
+    for (const element of parentstrings) {
+        let parentstr = $(element).attr("href").replace("/memorial/", "").split("/")[0];
+        if (isNaN(parseInt(pid))) {
+            pid = parentstr;
+        } else if (isNaN(parseInt(mid))) {
+            mid = parentstr;
+        }
+    }
 
     if (!familymembers && (isNaN(parseInt(pid)) || isNaN(parseInt(mid)))) {
-        var familyquery = parsed.find(".member-family");
-        for (var i = 0; i < familyquery.length; i++) {
-            var title = $(familyquery[i]).prev().text().toLowerCase();
+        let familyquery = parsed.find(".member-family");
+        for (let i = 0; i < familyquery.length; i++) {
+            let title = $(familyquery[i]).prev().text().toLowerCase();
             if (isParent(title)) {
-                var group = $(familyquery[i]).find(".name");
-                for (var x = 0; x < group.length; x++) {
-                    var url = $(group[x]).attr("href");
+                let group = $(familyquery[i]).find(".name");
+                for (let x = 0; x < group.length; x++) {
+                    let url = $(group[x]).attr("href");
                     if (exists(url)) {
-                        var itemid = getFAGID(url);
+                        let itemid = getFAGID(url);
                         if (isNaN(parseInt(pid))) {
                             pid = itemid;
                         } else if (isNaN(parseInt(mid)) && pid != itemid) {
@@ -152,20 +157,20 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     }
 
     if (familymembers) {
-        var famid = 0;
-        var familyquery = parsed.find(".member-family");
-        for (var i = 0; i < familyquery.length; i++) {
-            var title = $(familyquery[i]).prev().text().toLowerCase();
+        let famid = 0;
+        let familyquery = parsed.find(".member-family");
+        for (let i = 0; i < familyquery.length; i++) {
+            let title = $(familyquery[i]).prev().text().toLowerCase();
             if (exists(title)) {
                 if (title === "half siblings") {
                     title = "siblings";
                 }
-                var group = $(familyquery[i]).find(".name");
-                for (var x = 0; x < group.length; x++) {
-                    var url = $(group[x]).attr("href");
+                let group = $(familyquery[i]).find('a');
+                for (let x = 0; x < group.length; x++) {
+                    let url = $(group[x]).attr("href");
                     if (exists(url)) {
-                        var itemid = getFAGID(url);
-                        var name = NameParse.fix_case(url.substring(url.lastIndexOf('/') + 1).replace("-", " "));
+                        let itemid = getFAGID(url);
+                        let name = NameParse.fix_case(url.substring(url.lastIndexOf('/') + 1).replace(/-/g, " "));
                         if (!exists(alldata["family"][title])) {
                             alldata["family"][title] = [];
                         }
@@ -182,7 +187,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                                 mid = itemid;
                             }
                         }
-                        var subdata = {name: name, title: title, genderval: genderval};
+                        let subdata = {name: name, title: title, genderval: genderval};
                         if (!url.startsWith("http")) {
                             url = "https://www.findagrave.com" + url;
                         }
@@ -211,7 +216,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             profiledata["parent_id"] = $.inArray(mid, unionurls);
         }
     } else if (isSibling(relation.title)) {
-        var siblingparents = [];
+        let siblingparents = [];
 
         if (pid !== "") {
             siblingparents.push(pid);
@@ -231,14 +236,14 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     parsed = $(htmlstring.replace(/<img/ig,"<gmi"));
 
     profiledata["alive"] = false; //assume deceased
-    var imagedata = parsed.find("#profileImage");
+    let imagedata = parsed.find("#profileImage");
     if (exists(imagedata[0])) {
-        var thumb = $(imagedata[0]).attr( "src" );
-        if (startsWithHTTP(thumb, "http://image") || thumb.contains("find-a-grave-prod/photos")) {
-            var image = thumb.replace("photos250/", "");
+        let thumb = $(imagedata[0]).attr( "src" );
+        if (startsWithHTTP(thumb, "https://images") || thumb.contains("find-a-grave-prod/photos")) {
+            let image = thumb.replace("photos250/", "");
             profiledata["thumb"] = thumb;
             profiledata["image"] = image;
-            var credit = parsed.find("#main-photo").next().find("a");
+            let credit = parsed.find("#main-photo").next().find("a");
             if (credit.length > 1) {
                 profiledata["imagecredit"] = $(credit).text().trim().replace('"', '').replace("'", "");
             }
@@ -258,7 +263,8 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
 }
 
 function getFindAGraveName(focusperson) {
-    var personborn = focusperson.match("\<i\>(.*)\</i\>");
+    focusperson = focusperson.split("\<b class")[0].trim(); //filter veteran from name
+    let personborn = focusperson.match("\<i\>(.*)\</i\>");
     if (exists(personborn) && exists(personborn[0])) {
         focusperson = focusperson.replace(personborn[0], "");
         focusperson = focusperson + " (born " + personborn[1] + ")";
@@ -287,7 +293,7 @@ function addEvent(profiledata, event, dateval, eventlocation) {
 }
 
 function getFAGID(url) {
-    var fagid = url.substring(url.lastIndexOf('memorial/') + 9).replace("#", "");
+    let fagid = url.substring(url.lastIndexOf('memorial/') + 9).replace("#", "");
     if (fagid.contains("/")) {
         fagid = fagid.substring(0, fagid.indexOf('/'));
     }
@@ -303,8 +309,8 @@ function getFindAGraveFamily(famid, url, subdata) {
         url: url,
         variable: subdata
     }, function (response) {
-        var arg = response.variable;
-        var person = parseFindAGrave(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+        let arg = response.variable;
+        let person = parseFindAGrave(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
         if (person === "") {
             familystatus.pop();
             return;

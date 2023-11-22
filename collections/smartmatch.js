@@ -63,7 +63,7 @@ registerCollection({
         if (request.source.indexOf('SearchPlansPageManager') !== -1) {
             document.getElementById("smartcopy-container").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage(warningmsg, 'SmartCopy can work with the various language sites of MyHeritage, but you must have an authenticated session with the English website.<br/><a href="http://www.myheritage.com/">Please login to MyHeritage.com</a>');
+            setMessage(warningmsg, 'SmartCopy can work with the various language sites of MyHeritage, but you must have an authenticated session with the English website.<br/><a href="https://www.myheritage.com/">Please login to MyHeritage.com</a>');
             this.parseProfileData = "";
         } else {
             var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
@@ -193,7 +193,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             if (!thumb.startsWith("https://recordsthumbnail.myheritageimages.com") && !thumb.startsWith("http://recordsthumbnail.myheritageimages.com")) {
                 var image = imageref[0].href;
                 if (startsWithHTTP(image, "https://www.findagrave.com")) {
-                    profiledata["image"] = thumb.replace("https://records.myheritageimages.com/wvrcontent/findagrave_photos", "http://image1.findagrave.com");
+                    profiledata["image"] = thumb.replace("https://records.myheritageimages.com/wvrcontent/findagrave_photos", "https://image1.findagrave.com");
                 } else if (startsWithHTTP(image, "https://billiongraves.com")) {
                     profiledata["image"] = thumb.replace("thumbnails", "images")
                 } else {
@@ -263,7 +263,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         if (itemid !== focusURLid) {
                             housearray.push({name: $(hv[x]).text(), url: hurl, title: title});
                         } else {
-                            focustitle = title;
+                            focustitle = title.trim();
                             if (focusgender === "unknown") {
                                 if (title === "wife") {
                                     genderval = "female";
@@ -306,7 +306,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             var title = $(row).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
             if (title === "gender") {
                 if (exists($(row).find(".recordFieldValue").contents().get(0))) {
-                    genderval = $(row).find(".recordFieldValue").contents().get(0).nodeValue.toLowerCase();
+                    genderval = $(row).find(".recordFieldValue").contents().get(0).nodeValue.toLowerCase().trim();
                     profiledata["gender"] = genderval;
                     if (relation === "") {
                         focusgender = genderval;
@@ -558,6 +558,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 title = "occupation";
             }
             if (title.startsWith('birth') || title.startsWith('death') || title.startsWith('burial') || title.startsWith('baptism')) {
+                if (title.includes("/")) {
+                    title = title.split("/")[0]
+                }
                 title = title.replace("date", "").replace("place","");
                 title = title.trim();
             }
@@ -600,6 +603,9 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 for (var i=0; i < fielddata.length; i++) {
                     if (exists(fielddata.get(i))) {
                         valdate = fielddata.get(i).nodeValue;
+                        if (exists(valdate)) {
+                            valdate = valdate.trim();
+                        }
                         if (exists(valdate) && valdate.startsWith("0/0/")) {
                             valdate = valdate.replace("0/0/", "");
                         }

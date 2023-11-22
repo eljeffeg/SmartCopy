@@ -79,10 +79,10 @@ function parseToldotRu(htmlstring, familymembers, relation) {
 
     // ---------------------- Profile Continued --------------------
     profiledata["alive"] = false; //assume deceased
-    const imagedata = parsed.find(".grave-photo").attr("href").replace("//", "http://");
+    const imagedata = parsed.find(".grave-photo").attr("href").replace("//", "https://");
     profiledata["image"] = imagedata;
 
-    const thumbImage = parsed.find(".grave-photo").find("gmi").attr("src").replace("//", "http://");
+    const thumbImage = parsed.find(".grave-photo").find("gmi").attr("src").replace("//", "https://");
     profiledata["thumb"] = thumbImage;
 
     const imagecredit = parsed.find("amp-img[alt='Photographer']");

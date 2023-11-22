@@ -3,29 +3,32 @@ registerCollection({
     "reload": false,
     "recordtype": "Ancestry Genealogy",
     "prepareUrl": function(url) {
-        if (startsWithHTTP(url,"http://trees.ancestry.") || url.contains("/family-tree/tree/")) {
+        if (startsWithHTTP(url, "http://trees.ancestry.") || url.contains("/family-tree/tree/") || url.contains("/family-tree/person/tree/")) {
             if (url.endsWith("/family") || url.endsWith("/family/familyview") || url.endsWith("/family/pedigree")) {
                 document.querySelector('#loginspinner').style.display = "none";
                 setMessage(warningmsg, 'SmartCopy was unable to identify the Ancestry focus profile.  Please select a focus profile in the tree.');
                 return;
             } else {
+                url = url.replace("family/familyview", "family")
+                url = url.replace("/family-tree/tree/", "/family-tree/person/tree/")
                 url = url.replace("/family/", "/");
                 url = url.replace("family?fpid=", "person/");
                 url = url.replace("family?cfpid=", "person/");
                 url = url.replace("pedigree?fpid=", "person/");
                 url = url.replace("pedigree?cfpid=", "person/");
-                if (!url.endsWith("/facts")) {
-                     url += "/facts";
-                }
+                url = url.split("&")[0];
                 url = url.replace("trees.ancestry.", "person.ancestry.");
-                url = url.replace("&selnode=1", "");
+                
                 url = url.replace("/community/potential", "");
                 if (isNaN(url.slice(-1))) {
                     url = url.substring(0, url.lastIndexOf('/'));
                 }
+                if (!url.endsWith("/facts")) {
+                    url += "/facts";
+                }
                 this.reload = true;
             }
-        } else if (startsWithHTTP(url,"http://person.ancestry.") || url.contains("/family-tree/person/")) {
+        } else if (startsWithHTTP(url, "http://person.ancestry.") || url.contains("/family-tree/person/")) {
             if (!url.contains("/facts")) {
                 url = url.replace("/story", "/facts");
                 url = url.replace("/gallery", "/facts");
@@ -48,7 +51,8 @@ registerCollection({
         return url;
     },
     "collectionMatch": function(url) {
-        return (startsWithHTTP(url,"http://person.ancestry.") || startsWithHTTP(url,"http://trees.ancestry.") || (startsWithHTTP(url,"http://www.ancestry.") && url.contains("/family-tree/")));
+        return (
+            startsWithHTTP(url, "http://person.ancestry.") || startsWithHTTP(url, "http://trees.ancestry.") || ((startsWithHTTP(url, "http://www.ancestry.") || startsWithHTTP(url, "http://www.ancestrylibrary.")) && url.contains("/family-tree/")));
     },
     "parseData": function(url) {
         if (url.contains("/fact")) {
@@ -62,7 +66,7 @@ registerCollection({
         if (parsed.text().contains("Please sign in for secure access to your Ancestry account")) {
             document.getElementById("smartcopy-container").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage(warningmsg, 'SmartCopy can work with the various country-based sites of Ancestry, but you must first sign into the main english website.<br/><a href="http://www.ancestry.com/" target="_blank">Please login to Ancestry.com</a>');
+            setMessage(warningmsg, 'SmartCopy can work with the various country-based sites of Ancestry, but you must first sign into the main english website.<br/><a href="https://www.ancestry.com/" target="_blank">Please login to Ancestry.com</a>');
             this.parseProfileData = "";
             return;
         }
@@ -74,6 +78,7 @@ registerCollection({
 });
 
 var ancestrymrglist = [];
+
 function parseAncestryNew(htmlstring, familymembers, relation) {
     relation = relation || "";
     if (!exists(htmlstring)) {
@@ -83,7 +88,6 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     var par = parsed.find("#personCard");
     var focusperson = par.find(".userCardTitle").text();
     var focusdaterange = par.find(".userCardSubTitle").text().replace("&ndash;", " - ");
-
     $("#readstatus").html(escapeHtml(focusperson));
     var profiledata = {};
     var genderval = "unknown";
@@ -148,7 +152,10 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
             var data = parseAncestryNewDate(entry.next());
             var mid = parseAncestryNewId(entry.next().next().find("a").attr("href"));
             if (!$.isEmptyObject(data) && exists(mid)) {
-                ancestrymrglist.push({"id": mid, "event": data});
+                ancestrymrglist.push({
+                    "id": mid,
+                    "event": data
+                });
             }
         } else if (!familymembers && titlename === "Marriage" && exists(relation.title) && isPartner(relation.title)) {
             var url = entry.next().next().find("a").attr("href");
@@ -183,7 +190,7 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     }
 
     if (!familymembers && isPartner(relation.title) && !exists(profiledata["marriage"])) {
-        for (var i=0;i<ancestrymrglist.length;i++) {
+        for (var i = 0; i < ancestrymrglist.length; i++) {
             if (ancestrymrglist[i].id === relation.itemId) {
                 profiledata["marriage"] = ancestrymrglist[i].event;
                 break;
@@ -217,7 +224,7 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     // ---------------------- Family Data --------------------
     var siblingparents = [];
     var familydata = parsed.find(".familySection");
-    var memberfam = familydata.find(".factsSubtitle");
+    var memberfam = familydata.find("h3");
     var memberfam2 = familydata.find(".toggleSiblings");
     if (memberfam2.length > 0) {
         $(memberfam2[0]).html("siblings " + $(memberfam2[0]).html());
@@ -236,8 +243,8 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
         for (var x = 0; x < person.length; x++) {
             var title = headtitle;
             var url = $(person[x]).attr("href");
-            if (title === "spouse & children") {
-                if ($(person[x]).prop('outerHTML').contains("ResearchSpouse")) {
+            if (title === "spouse & children" || title === "spouse and children") {
+                if ($(person[x]).find('h4').length === 1) {
                     title = "spouse";
                 } else {
                     title = "child";
@@ -301,14 +308,19 @@ function parseAncestryNewDate(vitalinfo) {
     if (exists(dmatch)) {
         dateval = cleanDate(dmatch.trim());
         if (dateval !== "") {
-            data.push({date: dateval});
+            data.push({
+                date: dateval
+            });
         }
     }
     var lmatch = vitalinfo.find(".factItemLocation").text();
     if (exists(lmatch)) {
         var eventlocation = lmatch.trim().replace(/^in/, "").trim();
         if (eventlocation !== "") {
-            data.push({id: geoid, location: eventlocation});
+            data.push({
+                id: geoid,
+                location: eventlocation
+            });
             geoid++;
         }
     }
@@ -330,7 +342,15 @@ function getAncestryNewTreeFamily(famid, itemid, name, title, url) {
         halfsibling = true;
         title = "sibling";
     }
-    var subdata = {name: name, title: title, halfsibling: halfsibling, gender: gendersv, url: url, itemId: itemid, profile_id: famid};
+    var subdata = {
+        name: name,
+        title: title,
+        halfsibling: halfsibling,
+        gender: gendersv,
+        url: url,
+        itemId: itemid,
+        profile_id: famid
+    };
     if (!exists(alldata["family"][title])) {
         alldata["family"][title] = [];
     }
@@ -346,9 +366,13 @@ function getAncestryNewTreeFamily(famid, itemid, name, title, url) {
         action: "xhttp",
         url: url,
         variable: subdata
-    }, function (response) {
+    }, function(response) {
         var arg = response.variable;
-        var person = parseAncestryNew(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+        var person = parseAncestryNew(response.source, false, {
+            "title": arg.title,
+            "proid": arg.profile_id,
+            "itemId": arg.itemId
+        });
         if (person === "") {
             familystatus.pop();
             return;

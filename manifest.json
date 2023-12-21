@@ -41,6 +41,8 @@
         "*://toldot.ru/",
         "*://*.yadvashem.org/",
         "*://yadvashem.org/",
-        "*://geneanet.org/"
+        "*://geneanet.org/",
+        "*://*.bezikaron.co.il/",
+        "*://bezikaron.co.il/"
     ]
 }

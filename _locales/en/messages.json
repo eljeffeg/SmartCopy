@@ -141,6 +141,18 @@
     "All_Collections": {
         "message": "All Collections"
     },
+    "Collections": {
+        "message": "Collections"
+    },
+    "Publications": {
+        "message": "Publications"
+    },
+    "Holocaust": {
+        "message": "Holocaust"
+    },
+    "Name_Search": {
+        "message": "Name Search"
+    },
     "Gravestones": {
         "message": "Gravestones"
     },

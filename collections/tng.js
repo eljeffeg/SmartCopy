@@ -68,7 +68,13 @@ function parseTNG(htmlstring, familymembers, relation) {
     }
 
     profiledata["birth"] = parseTNGDate(parsed, "Born");
+    if (profiledata["birth"].length === 0) {
+        profiledata["birth"] = parseTNGDate(parsed, "Birth");
+    }
     profiledata["death"] = parseTNGDate(parsed, "Died");
+    if (profiledata["death"].length === 0) {
+        profiledata["death"] = parseTNGDate(parsed, "Death");
+    }
 
     var occupation = getTNGFieldText(parsed, "OCCU");
     if (occupation !== "") {

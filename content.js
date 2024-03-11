@@ -49,11 +49,17 @@ function initializeContent() {
 function runContent() {
     if (getsettingsdone) {
         if (tablink.contains("www.geni.com/people/")) {
-            $($($("#overview_tab_content").find(".flt_r")[0]).find("a")[0]).on('click', function () {
-                if (addbioonoff) {
-                    addBioButton();
+            if ($("#overview_tab_content").length > 0) {
+                if ($("#overview_tab_content").find(".flt_r").length < 1) {
+                    setTimeout(runContent, 100);
+                    return
                 }
-            });
+                $($($("#overview_tab_content").find(".flt_r")[0]).find("a")[0]).on('click', function () {
+                    if (addbioonoff) {
+                        addBioButton();
+                    }
+                });
+            }
         } else if (isGeniProject(tablink)) {
             if (exportprojectsonoff) {
                 addProjectExportButton();

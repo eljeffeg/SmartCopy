@@ -340,7 +340,7 @@ function buildForm() {
                 scoreoccupation = true;
                 ck++;
             }
-            var occupation = alldata["profile"]["occupation"];
+            var occupation = alldata["profile"]["occupation"].trim();
             membersstring = membersstring +
                 '<tr id="occupation"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scoreoccupation) + '>' +
                 capFL(title) + ': </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="' + title + '" value="' + occupation + '" ' + isEnabled(occupation, scoreoccupation) + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
@@ -842,7 +842,7 @@ function buildForm() {
                         '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(displayname, scored) + '>Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" ' + isEnabled(displayname, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_display_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                         '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.nickName, scored) + '>Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" ' + isEnabled(nameval.nickName, scored) + '></td><td class="genisliderow"><img id="' + i + '_geni_nickimage" src="images/right.png" class="genislideimage"><input id="' + i + '_geni_nicknames" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 if (exists(members[member]["occupation"])) {
-                    var occupation = members[member]["occupation"];
+                    var occupation = members[member]["occupation"].trim();
                     membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored) + '>Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" value="' + occupation + '" ' + isEnabled(occupation, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 } else {
                     membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
@@ -1894,6 +1894,7 @@ function cleanDate(dateval) {
     dateval = dateval.replace(/after/i, "After");
     dateval = dateval.replace(/from/i, "After");
     dateval = dateval.replace(/^in /i, "");
+    dateval = dateval.replace(/\s+/g, ' ');
     if (dateval.contains(".")) {
         if (dateval.search(/\w\./) !== -1) {
             dateval = dateval.replace(/\./g,"");

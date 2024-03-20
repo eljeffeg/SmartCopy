@@ -10,7 +10,7 @@ registerCollection({
         return url;
     },
     "collectionMatch": function(url) {
-        return (startsWithMH(url,"person-") || startsWithMH(url,"member-") || startsWithMH(url,"site-family-tree-"));
+        return (startsWithMH(url,"person-") || startsWithMH(url,"member-") || startsWithMH(url,"site-family-tree-") || startsWithMH(url,"profile-"));
     },
     "parseData": function(url) {
         if (startsWithHTTP(url,"https://www.myheritage.com/site-family-tree-") && !url.endsWith("-info")) {
@@ -22,9 +22,9 @@ registerCollection({
                 focusURLid = focusURLid.substring(0, focusURLid.indexOf('-'));
             } else if (url.contains("rootIndivudalID=")) {
                 focusURLid = getParameterByName('rootIndivudalID', url);
-            } else {
+            } else if (url.contains("profile-")) {
                 focusURLid = url.substring(url.indexOf('-') + 1);
-                focusURLid = focusURLid.substring(0, focusURLid.indexOf('_'));
+                focusURLid = focusURLid.substring(focusURLid.indexOf('-') + 1, focusURLid.indexOf('/'))
             }
             getPageCode();
         }
@@ -37,8 +37,8 @@ registerCollection({
             this.parseProfileData = "";
             return;
         }
-        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-        var fperson = parsed.find("span.FL_LabelxxLargeBold");
+        const parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        const fperson = parsed.find("span.FL_LabelxxLargeBold");
         focusname = fperson.text();
         focusrange = "";
     },
@@ -47,40 +47,52 @@ registerCollection({
 
 function parseMyHeritage(htmlstring, familymembers, relation) {
     relation = relation || "";
-    var splitdata = htmlstring.replace(/<img/ig, "<gmi").split("Immediate family");
-    var parsed = $(splitdata[0]);
+    let splitdata = htmlstring.replace(/<img/ig, "<gmi").split("Immediate family");
+    let parsed = $(splitdata[0]);
     while (splitdata.length > 2) {
         splitdata[1] += splitdata.pop();
     }
-    var aboutdata = "";
-    var profiledata = {};
-    var focusdaterange = "";
-    var fperson = parsed.find("span.FL_LabelxxLargeBold");
-    var focusperson = fperson.text();
+
+    const header = parsed.find("div.profile_page_header");
+
+    const aboutdata = "";
+    const profiledata = {};
+    const focusdaterange = "";
+
+    let fperson = header.find("div.person_name");
+
+    const focusperson = fperson.text();
     $("#readstatus").html(escapeHtml(focusperson));
-    var genderval = "unknown";
+    let genderval = "unknown";
     if (htmlstring.contains("PK_Silhouette PK_SilhouetteSize192 PK_Silhouette_S_192_F_A_LTR") ||
         htmlstring.contains("PK_Silhouette PK_SilhouetteSize150 PK_Silhouette_S_150_F_A_LTR") ||
-        htmlstring.contains("PK_Silhouette PK_SilhouetteSize96 PK_Silhouette_S_96_F_A_LTR")) {
+        htmlstring.contains("PK_Silhouette PK_SilhouetteSize96 PK_Silhouette_S_96_F_A_LTR") ||
+        htmlstring.contains("profile_photo_element svg_silhouette svg_silhouette_F_A")) {
         genderval = "female";
     } else if (htmlstring.contains("PK_Silhouette PK_SilhouetteSize192 PK_Silhouette_S_192_M_A_LTR") ||
     htmlstring.contains("PK_Silhouette PK_SilhouetteSize150 PK_Silhouette_S_150_M_A_LTR") ||
-        htmlstring.contains("PK_Silhouette PK_SilhouetteSize96 PK_Silhouette_S_96_M_A_LTR")) {
+        htmlstring.contains("PK_Silhouette PK_SilhouetteSize96 PK_Silhouette_S_96_M_A_LTR") ||
+        htmlstring.contains("profile_photo_element svg_silhouette svg_silhouette_M_A"))  {
         genderval = "male";
     } else if (focusperson.contains("(born")) {
         genderval = "female";
     } else if (isPartner(relation.title)) {
         genderval = reverseGender(focusgender);
     }
-    var imagedata = parsed.find("#profilePhotoImg");
+
+    const photoWrapper = header.find(".profile_photo_wrapper");
+
+    const imagedata = photoWrapper.find(".profile_photo_element.actual_photo");
     if (exists(imagedata[0])) {
-        var imglink = $(imagedata[0]).attr('src');
-        if (exists(imglink[0])) {
-            var thumb = imglink;
-            var image = thumb;
+        const styleAttribute = $(photoWrapper[0]).attr('style');
+
+        if (exists(styleAttribute[0])) {
+            const imglink = styleAttribute.match(/url\((.*?)\)/)[1].replace(/['"]/g, '');
+            const thumb = imglink;
+            let image = thumb;
             if (!thumb.endsWith("spacer.gif")) {
                 if (htmlstring.contains("profilePhotoFullUrl")) {
-                    var imgtemp = htmlstring.match(/profilePhotoFullUrl = '(.*?)';/i);
+                    const imgtemp = htmlstring.match(/profilePhotoFullUrl = '(.*?)';/i);
                     if (exists(imgtemp) && imgtemp.length > 1) {
                         image = imgtemp[1];
                     }
@@ -101,17 +113,17 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
     if (focusdaterange !== "") {
         profiledata["daterange"] = focusdaterange;
     }
-    var burialdtflag = false;
-    var buriallcflag = false;
-    var deathdtflag = false;
+    const burialdtflag = false;
+    let buriallcflag = false;
+    let deathdtflag = false;
 
     fperson = parsed.find('tr');
     for (var i = 0; i < fperson.length; i++) {
-        var row = $(fperson[i]).find('td.FL_LabelBold');
+        const row = $(fperson[i]).find('td.FL_LabelBold');
         if (row.length > 0) {
-            var rowtitle = $(row[0]).text().toLowerCase();
-            var dateval = $(row[0]).next('td').text().trim();
-            var eventval = $(fperson[i]).find('span.map_callout_link');
+            const rowtitle = $(row[0]).text().toLowerCase();
+            let dateval = $(row[0]).next('td').text().trim();
+            const eventval = $(fperson[i]).find('span.map_callout_link');
 
             data = [];
             if (exists(dateval)) {
@@ -124,7 +136,7 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
                 }
             }
             if (exists(eventval) && eventval.length > 0) {
-                var eventlocation = $(eventval).text().trim();
+                const eventlocation = $(eventval).text().trim();
                 if (eventlocation !== "") {
                     data.push({id: geoid, location: eventlocation});
                     geoid++;
@@ -164,18 +176,18 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
         var famid = 0;
     }
 
-    var siblingparents = [];
+    const siblingparents = [];
     if (exists(splitdata[1])) {
         splitdata = splitdata[1].split("FirstColumn");
         parsed = $(splitdata[0]);
         // ---------------------- Family Data --------------------
         fperson = parsed.find('a.FL_LinkBold');
         for (var i = 0; i < fperson.length; i++) {
-            var member = $(fperson[i]);
-            var title = member.next('br').next('span.FL_LabelDimmed').text().trim();
+            const member = $(fperson[i]);
+            let title = member.next('br').next('span.FL_LabelDimmed').text().trim();
             title = title.replace("His", "").replace("Her", "").trim().toLowerCase();
-            var url = member.attr("href");
-            var itemid = "";
+            const url = member.attr("href");
+            let itemid = "";
             if (url.contains("#!profile-")) {
                 itemid = url.substring(url.indexOf('#!profile-') + 10);
                 itemid = itemid.substring(0, itemid.indexOf('-'));
@@ -189,12 +201,12 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
             if (exists(title)) {
                 if (familymembers) {
                     if (isParent(title) || isSibling(title) || isChild(title) || isPartner(title)) {
-                        var name = member.text().trim();
+                        const name = member.text().trim();
                         if (exists(url)) {
                             if (!exists(alldata["family"][title])) {
                                 alldata["family"][title] = [];
                             }
-                            var subdata = {name: name, title: title};
+                            const subdata = {name: name, title: title};
                             subdata["url"] = url;
                             subdata["itemId"] = itemid;
                             subdata["profile_id"] = famid;
@@ -257,8 +269,12 @@ function getMyHeritageFamily(famid, url, subdata) {
         url: url,
         variable: subdata
     }, function (response) {
-        var arg = response.variable;
-        var person = parseMyHeritage(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+        const arg = response.variable;
+        let person = parseMyHeritage(response.source, false, {
+            "title": arg.title,
+            "proid": arg.profile_id,
+            "itemId": arg.itemId
+        });
         if (person === "") {
             familystatus.pop();
             return;

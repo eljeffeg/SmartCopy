@@ -47,11 +47,12 @@ registerCollection({
 
 function parseMyHeritage(htmlstring, familymembers, relation) {
     relation = relation || "";
-    let splitdata = htmlstring.replace(/<img/ig, "<gmi").split("Immediate family");
-    let parsed = $(splitdata[0]);
-    while (splitdata.length > 2) {
-        splitdata[1] += splitdata.pop();
-    }
+    const parsed = $(htmlstring.replace(/<img/ig, "<gmi"));
+    // let splitdata = htmlstring.replace(/<img/ig, "<gmi").split("Immediate family");
+    // let parsed = $(splitdata[0]);
+    // while (splitdata.length > 2) {
+    //     splitdata[1] += splitdata.pop();
+    // }
 
     const header = parsed.find("div.profile_page_header");
 
@@ -191,17 +192,18 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
     }
 
     const siblingparents = [];
-    if (exists(splitdata[1])) {
-        splitdata = splitdata[1].split("FirstColumn");
-        parsed = $(splitdata[0]);
+    const immediateFamily = parsed.find("div.immediate_family");
+
+    if (exists(immediateFamily[0])) {
         // ---------------------- Family Data --------------------
-        fperson = parsed.find('a.FL_LinkBold');
-        for (var i = 0; i < fperson.length; i++) {
-            const member = $(fperson[i]);
-            let title = member.next('br').next('span.FL_LabelDimmed').text().trim();
-            title = title.replace("His", "").replace("Her", "").trim().toLowerCase();
-            const url = member.attr("href");
-            let itemid = "";
+        const relatives = immediateFamily[0].getElementsByClassName("family_relative")
+
+        relatives.forEach((value) => {
+            const name = value.getElementsByClassName("relative_name")[0].textContent.trim();
+            const relationship = value.getElementsByClassName("relative_relationship")[0].textContent.replace("His", "").replace("Her", "").trim().toLowerCase();
+            const years = value.getElementsByClassName("relative_years")[0].textContent.trim();
+            const url = ""; // How to get URLs?
+            let itemid;
             if (url.contains("#!profile-")) {
                 itemid = url.substring(url.indexOf('#!profile-') + 10);
                 itemid = itemid.substring(0, itemid.indexOf('-'));
@@ -209,24 +211,23 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
                 itemid = getParameterByName('rootIndivudalID', url);
             } else {
                 itemid = decodeURIComponent(url.substring(url.indexOf('-') + 1));
-                itemid = itemid.substring(0, itemid.indexOf('_'));
+                itemid = itemid.substring(focusURLid.indexOf('-') + 1, focusURLid.indexOf('/'))
             }
 
-            if (exists(title)) {
+            if (exists(relationship)) {
                 if (familymembers) {
-                    if (isParent(title) || isSibling(title) || isChild(title) || isPartner(title)) {
-                        const name = member.text().trim();
+                    if (isParent(relationship) || isSibling(relationship) || isChild(relationship) || isPartner(relationship)) {
                         if (exists(url)) {
-                            if (!exists(alldata["family"][title])) {
-                                alldata["family"][title] = [];
+                            if (!exists(alldata["family"][relationship])) {
+                                alldata["family"][relationship] = [];
                             }
-                            const subdata = {name: name, title: title};
+                            const subdata = {name: name, title: relationship};
                             subdata["url"] = url;
                             subdata["itemId"] = itemid;
                             subdata["profile_id"] = famid;
                             if (isParent(title)) {
                                 parentlist.push(itemid);
-                            } else if (isPartner(title)) {
+                            } else if (isPartner(relationship)) {
                                 myhspouse.push(famid);
                             }
                             unionurls[famid] = itemid;
@@ -235,15 +236,15 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
                         }
                     }
                 } else if (isChild(relation.title)) {
-                    if (isParent(title)) {
+                    if (isParent(relationship)) {
                         if (focusURLid !== itemid) {
                             childlist[relation.proid] = $.inArray(itemid, unionurls);
                             profiledata["parent_id"] = $.inArray(itemid, unionurls);
-                            break;
+                            return;
                         }
                     }
                 } else if (isSibling(relation.title)) {
-                    if (isParent(title)) {
+                    if (isParent(relationship)) {
                         siblingparents.push(itemid);
                     }
                 } else if (isPartner(relation.title)) {
@@ -252,8 +253,9 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
                     //marriage data - parse event tab
                 }
             }
-        }
+        });
     }
+
     if (exists(relation.title) && isSibling(relation.title) && siblingparents.length > 0) {
         profiledata["halfsibling"] = !recursiveCompare(parentlist, siblingparents);
     }

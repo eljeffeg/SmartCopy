@@ -117,56 +117,70 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
     let buriallcflag = false;
     let deathdtflag = false;
 
-    fperson = parsed.find('tr');
-    for (var i = 0; i < fperson.length; i++) {
-        const row = $(fperson[i]).find('td.FL_LabelBold');
-        if (row.length > 0) {
-            const rowtitle = $(row[0]).text().toLowerCase();
-            let dateval = $(row[0]).next('td').text().trim();
-            const eventval = $(fperson[i]).find('span.map_callout_link');
+    const events = header.find(".events").find(".event")
+    const eventsDic = []
 
-            data = [];
-            if (exists(dateval)) {
-                if (dateval.indexOf("(") !== -1) {
-                    dateval = dateval.substring(0, dateval.indexOf("("));
-                }
-                dateval = cleanDate(dateval);
-                if (dateval !== "") {
-                    data.push({date: dateval});
-                }
+    events.each(function(index, element) {
+        const label = element.getElementsByClassName("label")[0].textContent.replaceAll(":", "").trim();
+        const dateElements = element.getElementsByClassName("date");
+        let date = null;
+        if (dateElements && dateElements.length > 0) {
+            date = dateElements[0].textContent;
+        }
+
+        const placeElements = element.getElementsByClassName("place");
+        let place = null;
+        if (placeElements && placeElements.length > 0) {
+            place = placeElements[0].textContent;
+        }
+
+        eventsDic.push({label: label, date: date, place: place});
+    });
+
+    eventsDic.forEach((value) => {
+
+        let label = value.label.toLowerCase();
+        let date = value.date;
+        let place = value.place;
+
+        data = [];
+        if (exists(date)) {
+            if (date.indexOf("(") !== -1) {
+                date = date.substring(0, dateval.indexOf("("));
             }
-            if (exists(eventval) && eventval.length > 0) {
-                const eventlocation = $(eventval).text().trim();
-                if (eventlocation !== "") {
-                    data.push({id: geoid, location: eventlocation});
-                    geoid++;
-                }
-            }
-            if (rowtitle.startsWith("born")) {
-                if (!$.isEmptyObject(data)) {
-                    profiledata["birth"] = data;
-                }
-            } else if (rowtitle.startsWith("died")) {
-                if (!$.isEmptyObject(data)) {
-                    if (exists(getDate(data))) {
-                        deathdtflag = true;
-                    }
-                    profiledata["death"] = data;
-                }
-            } else if (rowtitle.startsWith("burial")) {
-                if (!$.isEmptyObject(data)) {
-                    if (exists(getLocation(data))) {
-                        buriallcflag = true;
-                    }
-                    profiledata["burial"] = data;
-                }
-            } else if (rowtitle.startsWith("baptism") || rowtitle.startsWith("christening")) {
-                if (!$.isEmptyObject(data)) {
-                    profiledata["baptism"] = data;
-                }
+            date = cleanDate(date);
+            if (dateval !== "") {
+                data.push({date: date});
             }
         }
-    }
+        if (exists(place) && place.length > 0) {
+            data.push({id: geoid, location: place});
+            geoid++;
+        }
+        if (label.startsWith("born")) {
+            if (!$.isEmptyObject(data)) {
+                profiledata["birth"] = data;
+            }
+        } else if (label.startsWith("died")) {
+            if (!$.isEmptyObject(data)) {
+                if (exists(getDate(data))) {
+                    deathdtflag = true;
+                }
+                profiledata["death"] = data;
+            }
+        } else if (label.startsWith("burial")) {
+            if (!$.isEmptyObject(data)) {
+                if (exists(getLocation(data))) {
+                    buriallcflag = true;
+                }
+                profiledata["burial"] = data;
+            }
+        } else if (label.startsWith("baptism") || label.startsWith("christening")) {
+            if (!$.isEmptyObject(data)) {
+                profiledata["baptism"] = data;
+            }
+        }
+    });
 
     profiledata["name"] = focusperson;
     profiledata["status"] = relation.title;

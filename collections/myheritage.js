@@ -20,11 +20,15 @@ registerCollection({
             if (url.contains("#!profile-")) {
                 focusURLid = url.substring(url.indexOf('#!profile-') + 10);
                 focusURLid = focusURLid.substring(0, focusURLid.indexOf('-'));
+            } else if (url.contains("/profile-")) {
+                focusURLid = url.substring(url.indexOf('/profile-') + 9)
+                focusURLid = focusURLid.substring(0, focusURLid.indexOf("/"))
+                focusURLid = focusURLid.substring(focusURLid.indexOf('-') + 1); // <Site-Id>-<Profile-Id>
             } else if (url.contains("rootIndivudalID=")) {
                 focusURLid = getParameterByName('rootIndivudalID', url);
-            } else if (url.contains("profile-")) {
+            } else {
                 focusURLid = url.substring(url.indexOf('-') + 1);
-                focusURLid = focusURLid.substring(focusURLid.indexOf('-') + 1, focusURLid.indexOf('/'))
+                focusURLid = focusURLid.substring(0, focusURLid.indexOf('_'));
             }
             getPageCode();
         }
@@ -65,20 +69,22 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
     const focusperson = fperson.text();
     $("#readstatus").html(escapeHtml(focusperson));
     let genderval = "unknown";
-    if (htmlstring.contains("PK_Silhouette PK_SilhouetteSize192 PK_Silhouette_S_192_F_A_LTR") ||
-        htmlstring.contains("PK_Silhouette PK_SilhouetteSize150 PK_Silhouette_S_150_F_A_LTR") ||
-        htmlstring.contains("PK_Silhouette PK_SilhouetteSize96 PK_Silhouette_S_96_F_A_LTR") ||
-        htmlstring.contains("profile_photo_element svg_silhouette svg_silhouette_F_A")) {
-        genderval = "female";
-    } else if (htmlstring.contains("PK_Silhouette PK_SilhouetteSize192 PK_Silhouette_S_192_M_A_LTR") ||
-    htmlstring.contains("PK_Silhouette PK_SilhouetteSize150 PK_Silhouette_S_150_M_A_LTR") ||
-        htmlstring.contains("PK_Silhouette PK_SilhouetteSize96 PK_Silhouette_S_96_M_A_LTR") ||
-        htmlstring.contains("profile_photo_element svg_silhouette svg_silhouette_M_A"))  {
-        genderval = "male";
-    } else if (focusperson.contains("(born")) {
-        genderval = "female";
-    } else if (isPartner(relation.title)) {
-        genderval = reverseGender(focusgender);
+
+    let photo_element = parsed.find(".profile_page_header").find(".person_photo").find(".profile_photo_element.svg_silhouette")
+    if (photo_element.length === 1) {
+        if (photo_element[0].classList.contains("svg_silhouette_F_A")) {
+            genderval = "female";
+        } else if (photo_element[0].classList.contains("svg_silhouette_M_A")) {
+            genderval = "male";
+        }
+    }
+
+    if (!genderval) {
+        if (focusperson.contains("(born")) {
+            genderval = "female";
+        } else if (isPartner(relation.title)) {
+            genderval = reverseGender(focusgender);
+        }
     }
 
     const photoWrapper = header.find(".profile_photo_wrapper");
@@ -147,10 +153,10 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
         data = [];
         if (exists(date)) {
             if (date.indexOf("(") !== -1) {
-                date = date.substring(0, dateval.indexOf("("));
+                date = date.substring(0, date.indexOf("("));
             }
             date = cleanDate(date);
-            if (dateval !== "") {
+            if (date !== "") {
                 data.push({date: date});
             }
         }
@@ -198,7 +204,7 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
         // ---------------------- Family Data --------------------
         const relatives = immediateFamily[0].getElementsByClassName("family_relative")
 
-        relatives.forEach((value) => {
+        for (let value of relatives) {
             const name = value.getElementsByClassName("relative_name")[0].textContent.trim();
             const relationship = value.getElementsByClassName("relative_relationship")[0].textContent.replace("His", "").replace("Her", "").trim().toLowerCase();
             const years = value.getElementsByClassName("relative_years")[0].textContent.trim();
@@ -225,7 +231,7 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
                             subdata["url"] = url;
                             subdata["itemId"] = itemid;
                             subdata["profile_id"] = famid;
-                            if (isParent(title)) {
+                            if (isParent(relationship)) {
                                 parentlist.push(itemid);
                             } else if (isPartner(relationship)) {
                                 myhspouse.push(famid);
@@ -253,7 +259,7 @@ function parseMyHeritage(htmlstring, familymembers, relation) {
                     //marriage data - parse event tab
                 }
             }
-        });
+        }
     }
 
     if (exists(relation.title) && isSibling(relation.title) && siblingparents.length > 0) {

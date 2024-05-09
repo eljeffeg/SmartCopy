@@ -16,11 +16,19 @@ registerCollection({
         }
     },
     "loadPage": function(request) {
-        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
-        focusname = parsed.find("h1[itemprop='name']").text();
-        let focus = parsed.find("h1[itemprop='name']").next("div")
-        if (focus.length > 0) {
-            focusrange = focus.text()
+        var data = getData(request.source);
+        focusname = data.name;
+
+        var dates = []
+        if (exists(data.birthDate)){
+            dates.push(parseBillionGravesDate(data.birthDate).getFullYear());
+        }
+        if (exists(data.deathDate)){
+            dates.push(parseBillionGravesDate(data.deathDate).getFullYear());
+        }
+
+        if (dates.length > 0) {
+            focusrange = dates.join("-")
         }
     },
     "parseProfileData": parseBillionGraves
@@ -34,13 +42,23 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     $("#experimentalmessage").show();
     relation = relation || "";
     var parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));
-    
-    var focusdaterange = "";
-    let focus = parsed.find("h1[itemprop='name']").next("div")
-    if (focus.length > 0) {
-        focusdaterange = focus.text()
+    var data = getData(htmlstring);
+
+    var dates = []
+    if (exists(data.birthDate)){
+        dates.push(parseBillionGravesDate(data.birthDate).getFullYear());
     }
-    var focusperson = parsed.find("h1[itemprop='name']").text();
+    if (exists(data.deathDate)){
+        dates.push(parseBillionGravesDate(data.deathDate).getFullYear());
+    }
+
+    var focusdaterange = "";
+    if (dates.length > 0) {
+        focusdaterange = dates.join("-")
+    }
+    
+
+    var focusperson = data.name;
     var genderval = "unknown";
     if (focusperson.contains("(born")) {
         genderval = "female";
@@ -66,16 +84,16 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     if (exists(abouttemp)) {
         aboutdata = $($.parseHTML(abouttemp.replace(/<br>/g, "\n"))).text().trim();
     }
-    profiledata = addEvent(profiledata, "birth", parsed.find("time[itemprop='birthDate']").text(), "");
-    profiledata = addEvent(profiledata, "death", parsed.find("time[itemprop='deathDate']").text(), "");
-    cemname = parsed.find(".CemeteryName").text();
-    cemeteryplace = parsed.find(".CemeteryAddress").html();
+    profiledata = addEvent(profiledata, "birth", parseBillionGravesDate(data.birthDate).toLocaleDateString("en-UK"), '');
+    profiledata = addEvent(profiledata, "death", parseBillionGravesDate(data.deathDate).toLocaleDateString("en-UK"), "");
+    cemname = data.deathPlace.name;
+    cemeteryplace = data.deathPlace.address;
     let locsplit = []
     if (exists(cemeteryplace)) {
-        let cemsplit = cemeteryplace.replace('"', "").split("<br>");
-        for (var i = 0; i < cemsplit.length; i++) {
-            if (cemsplit[i].trim() !== "") {
-                locsplit[i] = cemsplit[i].trim();
+        const cemAddressTypes = Object.keys(data.deathPlace.address).filter((key) => { return !key.startsWith("@")})
+        for (const cemAddressType in cemAddressTypes) {
+            if (cemeteryplace[cemAddressType[i]].trim() !== "") {
+                locsplit[i] = cemeteryplace[cemAddressType[i]].trim();
             }
         }
     }
@@ -87,10 +105,10 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     parsed = $(htmlstring.replace(/<img/ig,"<gmi"));
 
     profiledata["alive"] = false; //assume deceased
-    const imagedata = parsed.find("gmi");
+    const imagesdata = parsed.find("gmi");
     
-    for (var i = 0; i < imagedata.length; i++) {
-        let src = $(imagedata[i]).attr( "src" );
+    for (const imagedata in imagesdata) {
+        let src = $(imagedata).attr( "src" );
         if (src.startsWith("https://s3.amazonaws.com/images.billiongraves.com/headstones/images")) {
             // profiledata["image"] = src;
             // profiledata["thumb"] = src.replace("/images/", "/thumbnails/");
@@ -113,6 +131,14 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
         updateGeo();
     }
     return profiledata;
+}
+
+function getData(htmlstring) {
+    return JSON.parse(htmlstring.split('<script type="application/ld+json">')[1].split('</script>')[0]);
+}
+
+function parseBillionGravesDate(date) {
+    return new Date(date);
 }
 
 function addEvent(profiledata, event, dateval, eventlocation) {

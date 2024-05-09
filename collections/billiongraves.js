@@ -92,7 +92,7 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     if (exists(cemeteryplace)) {
         const cemAddressTypes = Object.keys(data.deathPlace.address).filter((key) => { return !key.startsWith("@")})
         for (const cemAddressType in cemAddressTypes) {
-            if (cemeteryplace[cemAddressType[i]].trim() !== "") {
+            if (cemeteryplace[cemAddressType[i]] && cemeteryplace[cemAddressType[i]].trim() !== "") {
                 locsplit[i] = cemeteryplace[cemAddressType[i]].trim();
             }
         }
@@ -107,8 +107,8 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     profiledata["alive"] = false; //assume deceased
     const imagesdata = parsed.find("gmi");
     
-    for (const imagedata in imagesdata) {
-        let src = $(imagedata).attr( "src" );
+    for (var i = 0; i < imagesdata.length; i++) {
+        let src = imagesdata[i].attributes["src"].value;
         if (src.startsWith("https://s3.amazonaws.com/images.billiongraves.com/headstones/images")) {
             // profiledata["image"] = src;
             // profiledata["thumb"] = src.replace("/images/", "/thumbnails/");

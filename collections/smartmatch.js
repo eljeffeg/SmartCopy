@@ -18,7 +18,7 @@ registerCollection({
     "parseData": function(url) {
         if (startsWithMH(url, "matchingresult") || startsWithMH(url, "research\\?")) {
             document.querySelector('#loginspinner').style.display = "none";
-            setMessage(warningmsg, 'Please select one of the Matches on this results page.');
+            setMessage(warningmsg, _('Please_select_one_of_the_Matches'));
         } else {
             focusURLid = getMHURLId(url);
             getPageCode();

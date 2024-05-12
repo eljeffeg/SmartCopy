@@ -7,7 +7,7 @@ var _ = function(messageName, substitutions) {
 
 
 function buildResearch() {
-    let fields = "name,first_name,last_name,maiden_name,birth,death,gender";
+    let fields = "name,first_name,last_name,maiden_name,birth,baptism,death,burial,gender";
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -32,6 +32,7 @@ function buildResearch() {
             researchstring += buildMyHeritage(responsedata);
             researchstring += buildNationalArchive(responsedata);
             researchstring += buildYadVashem(responsedata);
+            researchstring += buildOpenArchieven(responsedata);
             researchstring += "<div style='text-align: center; padding-top: 10px;'><strong>" + _("Other_Resources") + "</strong></div><div style='text-align: left; padding-left: 5px;'><li style='padding-left: 5px;'><a class='ctrllink' url='https://www.geni.com/projects/Genealogie-Zoekmachines-voor-de-Lage-Landen/24259'>Genealogy Search Engines for the Low Countries</a></li></div>";
         } else {
             researchstring = "<div><strong>" + _("Unable_to_create_research_links_on_this_profile") + "</strong>"
@@ -199,6 +200,7 @@ function buildBillionGraves(responsedata) {
 function buildGeneanet(responsedata) {
     let lastname = "";
     let firstname = "";
+	let searchname = "";
     if (responsedata.first_name) {
         firstname = responsedata.first_name;
     }
@@ -207,10 +209,16 @@ function buildGeneanet(responsedata) {
     } else if (exists(responsedata.maiden_name)) {
         lastname = responsedata.maiden_name;
     }
+    if (exists(responsedata.maiden_name)) {
+        searchname = responsedata.maiden_name;
+    } else if (exists(responsedata.last_name)) {
+        searchname = responsedata.last_name;
+    }
     
     let researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Geneanet</strong>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://en.geneanet.org/fonds/individus/?go=1&size=100&prenom=' + firstname + '&nom=' + lastname + '">Geneanet (' + _("Records") + ')</a></li>';
-    researchstring += '</div>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://en.geneanet.org/fonds/individus/?go=1&size=100&prenom=' + firstname + '&nom=' + searchname + '">Geneanet (' + _("Genealogies") + ')</a></li>';
+	researchstring += '</div>';
     return researchstring
 }
 
@@ -382,6 +390,45 @@ function buildYadVashem(responsedata) {
     researchstring += '</div>';
     return researchstring;
 }
+
+function buildOpenArchieven(responsedata) {
+    const current_date = moment();
+	let lastname = "";
+    let firstname = "";
+    if (responsedata.first_name) {
+        firstname = wrapEncode(responsedata.first_name.replace(/'/g,""));
+    }
+    if (exists(responsedata.maiden_name)) {
+        lastname = wrapEncode(responsedata.maiden_name.replace(/'/g,""));
+    }
+	else if (exists(responsedata.last_name)) {
+        lastname = wrapEncode(responsedata.last_name.replace(/'/g,""));
+    }
+    var query = 'https://www.openarchieven.nl/search.php?&number_show=10&sourcetype=&eventplace=&online=&relationtype=&sort=4&from=&until=&country=&eventtype&name=' + firstname.replace(/%22/g, "") + '+>' + lastname.replace(/%22/g, "");
+	if (exists(responsedata.birth) && exists(responsedata.birth.date) && exists(responsedata.birth.date.year)) {
+	  query += '+' + (responsedata.birth.date.year - 1)
+	}
+	else if (exists(responsedata.baptism) && exists(responsedata.baptism.date) && exists(responsedata.baptism.date.year)){
+	  query += '+' + (responsedata.baptism.date.year - 1)
+	}
+	else {
+	  query += '+1500'
+	}
+	if (exists(responsedata.burial) && exists(responsedata.burial.date) && exists(responsedata.burial.date.year)) {
+	  query += '-' + (responsedata.burial.date.year + 1)
+	}
+	else if (exists(responsedata.death) && exists(responsedata.death.date) && exists(responsedata.death.date.year)) {
+	  query += '-' + (responsedata.death.date.year + 1)
+	}
+	else {
+	  query += '-' + current_date.format('YYYY')
+	}	
+    var researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>OpenArchieven</strong>';
+    researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="' + query + '">Open Archieven (' + _("Records") + ')</a></li>';
+    researchstring += '</div>';
+    return researchstring;
+}
+
 
 function locationString(location) {
     let locationset = [];

@@ -207,7 +207,7 @@ function loginProcess() {
             } else {
                 console.log("Could not find collection on " + tablink);
                 document.querySelector('#loginspinner').style.display = "none";
-                setMessage(errormsg, 'SmartCopy does not currently support parsing this page / site / collection.');
+                setMessage(errormsg, _('SmartCopy_does_not_currently_support_parsing'));
             }
         }
     }
@@ -402,7 +402,7 @@ function loadPage(request) {
                             console.log(error);
                         }
                     }
-                    setMessage(warningmsg, 'SmartCopy is having difficulty reading the page.  Try refreshing the page.' + error);
+                    setMessage(warningmsg, _('SmartCopy_is_having_difficulty_reading_the_page') + error);
                 }
             }
             if (!profilechanged && focusURLid !== "") {
@@ -422,7 +422,7 @@ function loadPage(request) {
             document.getElementById("top-container").style.display = "block";
             document.getElementById("submitbutton").style.display = "none";
             document.getElementById("loading").style.display = "none";
-            setMessage(warningmsg, 'This website is not yet supported by SmartCopy.');
+            setMessage(warningmsg, _('This_website_is_not_yet_supported_by_SmartCopy.'));
         }
     } else {
         document.getElementById("top-container").style.display = "block";

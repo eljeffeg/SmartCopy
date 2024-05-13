@@ -21,10 +21,10 @@ registerCollection({
 
         var dates = []
         if (exists(data.birthDate)){
-            dates.push(parseBillionGravesDate(data.birthDate).getFullYear());
+            dates.push(parseDate(data.birthDate).year);
         }
         if (exists(data.deathDate)){
-            dates.push(parseBillionGravesDate(data.deathDate).getFullYear());
+            dates.push(parseDate(data.deathDate).year);
         }
 
         if (dates.length > 0) {
@@ -46,10 +46,10 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
 
     var dates = []
     if (exists(data.birthDate)){
-        dates.push(parseBillionGravesDate(data.birthDate).getFullYear());
+        dates.push(parseDate(data.birthDate).year);
     }
     if (exists(data.deathDate)){
-        dates.push(parseBillionGravesDate(data.deathDate).getFullYear());
+        dates.push(parseDate(data.deathDate).year);
     }
 
     var focusdaterange = "";
@@ -84,8 +84,8 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     if (exists(abouttemp)) {
         aboutdata = $($.parseHTML(abouttemp.replace(/<br>/g, "\n"))).text().trim();
     }
-    profiledata = addEvent(profiledata, "birth", parseBillionGravesDate(data.birthDate).toLocaleDateString("en-UK"), '');
-    profiledata = addEvent(profiledata, "death", parseBillionGravesDate(data.deathDate).toLocaleDateString("en-UK"), "");
+    profiledata = addEvent(profiledata, "birth", displayDate(parseDate(data.birthDate)), '');
+    profiledata = addEvent(profiledata, "death", displayDate(parseDate(data.deathDate)), "");
     cemname = data.deathPlace.name;
     cemeteryplace = data.deathPlace.address;
     let locsplit = []
@@ -137,8 +137,19 @@ function getData(htmlstring) {
     return JSON.parse(htmlstring.split('<script type="application/ld+json">')[1].split('</script>')[0]);
 }
 
-function parseBillionGravesDate(date) {
-    return new Date(date);
+function displayDate(vardate) {
+    let formattedDate = ""
+    if ("day" in vardate && "month" in vardate && "year" in vardate) {
+        let date = moment({year: vardate["year"], month: vardate["month"] - 1, day: vardate["day"]});
+        formattedDate = date.format("MMMM D, YYYY");
+    } else if ("month" in vardate && "year" in vardate) {
+        let date = moment({year: vardate["year"], month: vardate["month"] - 1})
+        formattedDate = date.format("MMMM YYYY");
+    } else if ("year" in vardate) {
+        let date = moment({year: vardate["year"]});
+        formattedDate = date.format("YYYY");
+    }
+    return formattedDate;
 }
 
 function addEvent(profiledata, event, dateval, eventlocation) {

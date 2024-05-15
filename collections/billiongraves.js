@@ -102,19 +102,12 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     profiledata = addEvent(profiledata, "burial", "", cemetery.trim());
 
     // ---------------------- Profile Continued --------------------
-    parsed = $(htmlstring.replace(/<img/ig,"<gmi"));
 
     profiledata["alive"] = false; //assume deceased
-    const imagesdata = parsed.find("gmi");
-    
-    for (var i = 0; i < imagesdata.length; i++) {
-        let src = imagesdata[i].attributes["src"].value;
-        if (src.startsWith("https://s3.amazonaws.com/images.billiongraves.com/headstones/images")) {
-            // profiledata["image"] = src;
-            // profiledata["thumb"] = src.replace("/images/", "/thumbnails/");
-            // Haven't figure out how to allow image loading
-        }
-    }
+    var imageUrl = data.image
+
+    // Get Image, to get a full image, ommit the last '&p1=128&p2=0' from:
+    // e.g. https://billiongraves.com/api/1.4/selectimage?tkn=med12345&p1=128&p2=0
 
     const imagecredit = parsed.find("amp-img[alt='Photographer']");
     if (exists(imagecredit)) {

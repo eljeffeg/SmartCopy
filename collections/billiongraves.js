@@ -84,8 +84,14 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     if (exists(abouttemp)) {
         aboutdata = $($.parseHTML(abouttemp.replace(/<br>/g, "\n"))).text().trim();
     }
-    profiledata = addEvent(profiledata, "birth", displayDate(parseDate(data.birthDate)), '');
-    profiledata = addEvent(profiledata, "death", displayDate(parseDate(data.deathDate)), "");
+
+    if (exists(data.birthDate)) {
+        profiledata = addEvent(profiledata, "birth", displayDate(parseDate(data.birthDate)), '');
+    }
+
+    if (exists(data.deathDate)) {
+        profiledata = addEvent(profiledata, "death", displayDate(parseDate(data.deathDate)), "");
+    }
     cemname = data.deathPlace.name;
     cemeteryplace = data.deathPlace.address;
     let locsplit = []

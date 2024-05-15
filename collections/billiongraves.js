@@ -110,7 +110,11 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     // ---------------------- Profile Continued --------------------
 
     profiledata["alive"] = false; //assume deceased
-    var imageUrl = data.image
+    if (exists(data.image)) {
+        const imageUrl = data.image;
+        profiledata["thumb"] = imageUrl;
+        profiledata["image"] = imageUrl.replace("&p1=128&p2=0", "");
+    }
 
     // Get Image, to get a full image, ommit the last '&p1=128&p2=0' from:
     // e.g. https://billiongraves.com/api/1.4/selectimage?tkn=med12345&p1=128&p2=0

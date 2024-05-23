@@ -102,6 +102,12 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
                 locsplit[i] = cemeteryplace[cemAddressType[i]].trim();
             }
         }
+        const addressComponents = ['addressLocality', 'addressRegion', 'addressCountry'];
+        addressComponents.forEach(component => {
+            if (cemeteryplace[component] && cemeteryplace[component].trim() !== "") {
+                locsplit.push(cemeteryplace[component].trim());
+            }
+        });
     }
     locsplit.unshift(cemname);
     const cemetery = locsplit.join(", ");

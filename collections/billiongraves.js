@@ -142,6 +142,7 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     return profiledata;
 }
 
+
 function getData(htmlstring) {
     return JSON.parse(htmlstring.split('<script type="application/ld+json">')[1].split('</script>')[0]);
 }
@@ -159,23 +160,4 @@ function displayDate(vardate) {
         formattedDate = date.format("YYYY");
     }
     return formattedDate;
-}
-
-function addEvent(profiledata, event, dateval, eventlocation) {
-    data = []
-    if (exists(dateval) && dateval.contains(" (")) {
-        dateval = dateval.split(" (")[0];
-    }
-    dateval = cleanDate(dateval);
-    if (dateval !== "unknown" && dateval !== "") {
-        data.push({date: dateval});
-    }
-    if (eventlocation !== "") {
-        data.push({id: geoid, location: eventlocation});
-        geoid++;
-    }
-    if (!$.isEmptyObject(data)) {
-        profiledata[event] = data;
-    }
-    return profiledata;
 }

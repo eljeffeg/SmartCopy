@@ -230,16 +230,7 @@ function parseYadVaShem(htmlstring, familymembers, relation) {
         updateGeo();
 
         familystatus.pop();
-        // let person = parseFindAGrave(response.source, familymembers, response.variable);
-        // person = updateInfoData(person, arg);
-        // databyid[arg.profile_id] = person;
-        // alldata["family"][arg.title].push(person);
-        // familystatus.pop();
     });
-
-
-
-    // ---------------------- Profile Continued --------------------
 
     return profiledata;
 }

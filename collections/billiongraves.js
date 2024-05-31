@@ -21,10 +21,10 @@ registerCollection({
 
         var dates = []
         if (exists(data.birthDate)){
-            dates.push(parseDate(data.birthDate).year);
+            dates.push(parseDate(data.birthDate, null, dateFormat).year);
         }
         if (exists(data.deathDate)){
-            dates.push(parseDate(data.deathDate).year);
+            dates.push(parseDate(data.deathDate, null, dateFormat).year);
         }
 
         if (dates.length > 0) {
@@ -34,6 +34,7 @@ registerCollection({
     "parseProfileData": parseBillionGraves
 });
 
+const dateFormat = "YYYY-MM-DD";
 
 // Parse FindAGrave
 function parseBillionGraves(htmlstring, familymembers, relation) {
@@ -46,10 +47,10 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
 
     var dates = []
     if (exists(data.birthDate)){
-        dates.push(parseDate(data.birthDate).year);
+        dates.push(parseDate(data.birthDate, null, dateFormat).year);
     }
     if (exists(data.deathDate)){
-        dates.push(parseDate(data.deathDate).year);
+        dates.push(parseDate(data.deathDate, null, dateFormat).year);
     }
 
     var focusdaterange = "";
@@ -86,11 +87,11 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     }
 
     if (exists(data.birthDate)) {
-        profiledata = addEvent(profiledata, "birth", displayDate(parseDate(data.birthDate)), '');
+        profiledata = addEvent(profiledata, "birth", displayDate(parseDate(data.birthDate, null, dateFormat)), '');
     }
 
     if (exists(data.deathDate)) {
-        profiledata = addEvent(profiledata, "death", displayDate(parseDate(data.deathDate)), "");
+        profiledata = addEvent(profiledata, "death", displayDate(parseDate(data.deathDate, null, dateFormat)), "");
     }
     cemname = data.deathPlace.name;
     cemeteryplace = data.deathPlace.address;

@@ -79,6 +79,106 @@ registerCollection({
 
 var ancestrymrglist = [];
 
+function evaluateBooleanExpressions(str) {
+    let retStr = str.replaceAll("'True'", "true");
+    retStr = retStr.replaceAll("'true'", "true");
+    retStr = retStr.replaceAll("True", "true");
+    retStr = retStr.replaceAll("'False'", "false");
+    retStr = retStr.replaceAll("'false'", "false");
+    retStr = retStr.replaceAll("False", "false");
+    retStr = retStr.replaceAll("true === true", "true");
+    retStr = retStr.replaceAll("true === false", "false");
+    retStr = retStr.replaceAll("false === true", "false");
+    retStr = retStr.replaceAll("false === false", "true");
+    retStr = retStr.replaceAll("\(true\)", "true");
+    retStr = retStr.replaceAll("\(false\)", "false");
+    retStr = retStr.replaceAll("true ? true : false", "true");
+    retStr = retStr.replaceAll("false ? true : false", "false");
+    retStr = retStr.replaceAll("\(true\)", "true");
+    retStr = retStr.replaceAll("\(false\)", "false");
+    retStr = retStr.replaceAll(/\u0026ndash;'/g, '-');
+    return retStr;
+}
+
+function extractPersonCardRawJson(inputString) {
+    return inputString.replace("var PersonCard = ", "").replace(/};[\s\S]*$/, '};');
+}
+
+function sanitizeAndParseJSON(inputString) {
+    let sanitizedString = inputString.replaceAll("\t", "").replaceAll("\n", "")
+
+    // Step 0: evaluate boolean expressions
+    sanitizedString = evaluateBooleanExpressions(sanitizedString)
+
+    // Step 0.5: remove two single quotes
+    sanitizedString = sanitizedString.replaceAll("'' +", "").replaceAll("+ ''", "");
+
+    // Step 1: Replace single quotes with double quotes for property names and string values
+    sanitizedString = sanitizedString.replace(/([a-zA-Z0-9_]+)\s*: '([^']*)'/g, '"$1":"$2"');
+
+    // Step 2: Replace unquoted true/false strings with actual booleans
+    sanitizedString = sanitizedString.replace(/:\s*'true'/g, ': true');
+    sanitizedString = sanitizedString.replace(/:\s*'false'/g, ': false');
+    sanitizedString = sanitizedString.replace(/:\s*'True'/g, ': true');
+    sanitizedString = sanitizedString.replace(/:\s*'False'/g, ': false');
+
+    // Step 3: Ensure all property names are double quoted
+    sanitizedString = sanitizedString.replace(/([a-zA-Z0-9_]+)\s*: /g, '"$1":');
+
+    // Step 4: Remove trailing commas (if any)
+    sanitizedString = sanitizedString.replace(/,(\s*})/g, '$1');
+
+    // Step 5: fix "(true")
+    sanitizedString = sanitizedString.replaceAll("(true)", "true").replaceAll("(false)", "false");
+
+    // Step 6: remove Modals
+    sanitizedString = sanitizedString.replaceAll(/,"modals":.*};/g, "}");
+
+    // Step 7: single quote again
+    sanitizedString = sanitizedString.replaceAll(/,"[A-Za-z]+": '.*'/g, "");
+
+    // Step 8: Sanitize HTML elements
+    sanitizedString = sanitizedString.replaceAll(/<.*>/g, "");
+
+    return JSON.parse(sanitizedString);
+}
+
+
+function extractPersonFacts(profiledata, personFacts) {
+    for(const personFact in personFacts) {
+        if (personFact.Value) {
+            const value = personFact.Value.trim();
+            switch (personFacts.TypeString) {
+                case "Name":
+                    profiledata["name"] = value;
+                    break;
+                case "Gender":
+                    const gen = value;
+                    if (isMale(gen) || isFemale(gen)) {
+                        profiledata["gender"] = gen;
+                    }
+                    break;
+                case "Birth":
+                    parseAncestryPersonFactDate(profiledata, personFact, "birth");
+                    break;
+                case "Marriage":
+                    parseAncestryPersonFactDate(profiledata, personFact, "marriage");
+                    break;
+                case "Death":
+                    parseAncestryPersonFactDate(profiledata, personFact, "death");
+                    break;
+                case "Burial":
+                    parseAncestryPersonFactDate(profiledata, personFact, "burial");
+                    break;
+            }
+        }
+    }
+}
+
+function extractPersonFamilyMember(profiledata, familyCategory, familyMember) {
+    
+}
+
 function parseAncestryNew(htmlstring, familymembers, relation) {
     relation = relation || "";
     if (!exists(htmlstring)) {
@@ -95,95 +195,192 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     var buriallcflag = false;
     var deathdtflag = false;
     var aboutdata = "";
-    var usercard = parsed.find("#researchListFacts").find(".userCardTitle");
-    if (usercard.length == 0) {
-        usercard = parsed.find("#toggleNameAndGenderButton").next().find(".userCardTitle");
+
+    let personCardScript;
+    let scripts = parsed.find(".personCardContainer").find("script");
+    for (let i = 0; i<scripts.length; i++) {
+        const script = scripts[i];
+        if (script.innerText && script.innerText.trim().startsWith("var PersonCard")) {
+            personCardScript = script.innerText.trim();
+            break;
+        }
     }
 
-    for (var i = 0; i < usercard.length; i++) {
-        var entry = $(usercard[i]);
-        var titlename = entry.text();
+    if (personCardScript) {
+        let personCardRawJson = extractPersonCardRawJson(personCardScript);
+        let personCard = sanitizeAndParseJSON(personCardRawJson);
 
-        if (titlename.contains(" — ")) {
-            var tsplit = titlename.split(" — ");
-            titlename = tsplit[1].trim();
-        }
+        if (personCard) {
+            if (isNonEmptyField(personCard, "gender")) {
+                let gen = personCard["gender"].trim();
+                if (isMale(gen) || isFemale(gen)) {
+                    genderval = gen;
+                }
+            }
 
-        var encodetitle = encodeURIComponent(titlename);
-        if (encodetitle.contains("%20%E2%80%94%20")) {
-            var splittitle = encodetitle.split("%20%E2%80%94%20");
-            titlename = splittitle[1];
-        }
-        if (titlename === "Birth") {
-            var data = parseAncestryNewDate(entry.next());
-            if (!$.isEmptyObject(data)) {
-                profiledata["birth"] = data;
+            // Dates
+            if (isNonEmptyField(personCard, "isLiving")) {
+                profiledata["alive"] = personCard["isLiving"];
             }
-        } else if (titlename === "Death") {
-            var data = parseAncestryNewDate(entry.next());
-            if (!$.isEmptyObject(data)) {
-                if (exists(getDate(data))) {
-                    deathdtflag = true;
-                }
-                profiledata["death"] = data;
+
+            parseAncestryPersonCardDate(profiledata, personCard, "birth");
+            parseAncestryPersonCardDate(profiledata, personCard, "death");
+            if (exists(profiledata["death"])) {
+                deathdtflag = true;
             }
-        } else if (titlename === "Baptism") {
-            var data = parseAncestryNewDate(entry.next());
-            if (!$.isEmptyObject(data)) {
-                profiledata["baptism"] = data;
-            }
-        } else if (titlename === "Burial") {
-            var data = parseAncestryNewDate(entry.next());
-            if (!$.isEmptyObject(data)) {
-                if (exists(getDate(data))) {
-                    burialdtflag = true;
-                }
-                if (exists(getLocation(data))) {
-                    buriallcflag = true;
-                }
-                profiledata["burial"] = data;
-            }
-        } else if (titlename === "Gender") {
-            var gen = entry.next().text().toLowerCase();
-            if (isMale(gen) || isFemale(gen)) {
-                genderval = gen;
-            }
-        } else if (familymembers && titlename === "Marriage") {
-            var data = parseAncestryNewDate(entry.next());
-            var mid = parseAncestryNewId(entry.next().next().find("a").attr("href"));
-            if (!$.isEmptyObject(data) && exists(mid)) {
-                ancestrymrglist.push({
-                    "id": mid,
-                    "event": data
-                });
-            }
-        } else if (!familymembers && titlename === "Marriage" && exists(relation.title) && isPartner(relation.title)) {
-            var url = entry.next().next().find("a").attr("href");
-            if (exists(url)) {
-                var sid = parseAncestryNewId(url);
-                if (sid === focusURLid) {
-                    var data = parseAncestryNewDate(entry.next());
-                    if (!$.isEmptyObject(data)) {
-                        profiledata["marriage"] = data;
+
+            parseAncestryPersonCardDate(profiledata, personCard, "baptism");
+            parseAncestryPersonCardDate(profiledata, personCard, "burial");
+            if (exists(profiledata["burial"])) {
+                for (const burialData in profiledata["burial"]) {
+                    if (isNonEmptyField(burialData, "location")) {
+                        buriallcflag = true;
                     }
-                }
-            }
-
-        } else if (!familymembers && titlename === "Marriage" && exists(relation.title) && isParent(relation.title)) {
-            var url = entry.next().next().find("a").attr("href");
-            if (exists(url)) {
-                var sid = parseAncestryNewId(url);
-                if (parentmarriageid === "") {
-                    parentmarriageid = sid;
-                } else if (sid !== parentmarriageid) {
-                    var data = parseAncestryNewDate(entry.next());
-                    if (!$.isEmptyObject(data)) {
-                        profiledata["marriage"] = data;
+                    if (isNonEmptyField(burialData, "date")) {
+                        burialdtflag = true;
                     }
                 }
             }
         }
     }
+
+
+    let personDetailsScript;
+    scripts = parsed.find(".personPageFacts").find("script");
+    for (let i = 0; i<scripts.length; i++) {
+        const script = scripts[i];
+        if (script.innerText && script.innerText.trim().startsWith("window.researchData = ")) {
+            personDetailsScript = script.innerText.trim().replace("window.researchData = ", "");
+            personDetailsScript = personDetailsScript.substring(0, personDetailsScript.length - 1)
+            break;
+        }
+    }
+
+    if (personDetailsScript) {
+        const personDetails = JSON.parse(personDetailsScript);
+
+        if (isNonEmptyField(personDetails, "PersonFacts")) {
+            extractPersonFacts(profiledata, personDetails["PersonFacts"]);
+
+            if (exists(profiledata["death"])) {
+                deathdtflag = true;
+            }
+
+            if (exists(profiledata["burial"])) {
+                for (const burialData in profiledata["burial"]) {
+                    if (isNonEmptyField(burialData, "location")) {
+                        buriallcflag = true;
+                    }
+                    if (isNonEmptyField(burialData, "date")) {
+                        burialdtflag = true;
+                    }
+                }
+            }
+        }
+
+        if (isNonEmptyField(personDetails, "ResearchFamily")) {
+            for (const familyCategory in personDetails.ResearchFamily) {
+                for (const familyMember in personDetails.ResearchFamily[familyCategory]) {
+                    extractPersonFamilyMember(profiledata, familyCategory, familyMember);
+                }
+            }
+        }
+
+
+    }
+
+    // else {
+        // Preivious behavior
+        var usercard = parsed.find(".factsSection").find(".userCardTitle");
+        if (usercard.length == 0) {
+            usercard = parsed.find("#toggleNameAndGenderButton").next().find(".userCardTitle");
+        }
+
+        for (var i = 0; i < usercard.length; i++) {
+            var entry = $(usercard[i]);
+            var titlename = entry.text();
+
+            if (titlename.contains(" — ")) {
+                var tsplit = titlename.split(" — ");
+                titlename = tsplit[1].trim();
+            }
+
+            var encodetitle = encodeURIComponent(titlename);
+            if (encodetitle.contains("%20%E2%80%94%20")) {
+                var splittitle = encodetitle.split("%20%E2%80%94%20");
+                titlename = splittitle[1];
+            }
+            if (titlename === "Birth") {
+                var data = parseAncestryNewDate(entry.next());
+                if (!$.isEmptyObject(data)) {
+                    profiledata["birth"] = data;
+                }
+            } else if (titlename === "Death") {
+                var data = parseAncestryNewDate(entry.next());
+                if (!$.isEmptyObject(data)) {
+                    if (exists(getDate(data))) {
+                        deathdtflag = true;
+                    }
+                    profiledata["death"] = data;
+                }
+            } else if (titlename === "Baptism") {
+                var data = parseAncestryNewDate(entry.next());
+                if (!$.isEmptyObject(data)) {
+                    profiledata["baptism"] = data;
+                }
+            } else if (titlename === "Burial") {
+                var data = parseAncestryNewDate(entry.next());
+                if (!$.isEmptyObject(data)) {
+                    if (exists(getDate(data))) {
+                        burialdtflag = true;
+                    }
+                    if (exists(getLocation(data))) {
+                        buriallcflag = true;
+                    }
+                    profiledata["burial"] = data;
+                }
+            } else if (titlename === "Gender") {
+                var gen = entry.next().text().toLowerCase();
+                if (isMale(gen) || isFemale(gen)) {
+                    genderval = gen;
+                }
+            } else if (familymembers && titlename === "Marriage") {
+                var data = parseAncestryNewDate(entry.next());
+                var mid = parseAncestryNewId(entry.next().next().find("a").attr("href"));
+                if (!$.isEmptyObject(data) && exists(mid)) {
+                    ancestrymrglist.push({
+                        "id": mid,
+                        "event": data
+                    });
+                }
+            } else if (!familymembers && titlename === "Marriage" && exists(relation.title) && isPartner(relation.title)) {
+                var url = entry.next().next().find("a").attr("href");
+                if (exists(url)) {
+                    var sid = parseAncestryNewId(url);
+                    if (sid === focusURLid) {
+                        var data = parseAncestryNewDate(entry.next());
+                        if (!$.isEmptyObject(data)) {
+                            profiledata["marriage"] = data;
+                        }
+                    }
+                }
+
+            } else if (!familymembers && titlename === "Marriage" && exists(relation.title) && isParent(relation.title)) {
+                var url = entry.next().next().find("a").attr("href");
+                if (exists(url)) {
+                    var sid = parseAncestryNewId(url);
+                    if (parentmarriageid === "") {
+                        parentmarriageid = sid;
+                    } else if (sid !== parentmarriageid) {
+                        var data = parseAncestryNewDate(entry.next());
+                        if (!$.isEmptyObject(data)) {
+                            profiledata["marriage"] = data;
+                        }
+                    }
+                }
+            }
+        }
+    // }
 
     if (!exists(profiledata["death"]) && parsed.find(".factDeath").text() === "Living") {
         profiledata["alive"] = true;
@@ -299,6 +496,51 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
     }
 
     return profiledata;
+}
+
+function isNonEmptyField(obj, field) {
+    return obj.hasOwnProperty(field) && obj[field] !== "";
+}
+
+function parseAncestryPersonCardDate(profileData, personCard, fieldName) {
+    let dateField = fieldName + "Date";
+    let placeField = fieldName + "Place";
+    parseAncestryDate(profileData, personCard, fieldName, dateField, placeField);
+}
+
+
+function parseAncestryPersonFactDate(profileData, obj, fieldName) {
+    let dateField = "Date";
+    let placeField = "Place";
+    parseAncestryDate(profileData, obj, fieldName, dateField, placeField);
+}
+
+
+function parseAncestryDate(profileData, obj, fieldName, dateField, placeField) {
+    let data = [];
+    if (isNonEmptyField(obj, dateField)) {
+        let date = cleanDate(obj[dateField].trim());
+        if (date !== "") {
+            data.push({
+                date: date
+            });
+        }
+    }
+
+    if (isNonEmptyField(obj, placeField)) {
+        let place = obj[placeField].trim();
+        if (place !== "") {
+            data.push({
+                id: geoid,
+                location: place
+            });
+            geoid++;
+        }
+    }
+
+    if (data.length > 0) {
+        profileData[fieldName] = data;
+    }
 }
 
 

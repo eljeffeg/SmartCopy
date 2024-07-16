@@ -291,96 +291,96 @@ function parseAncestryNew(htmlstring, familymembers, relation) {
 
     // else {
         // Preivious behavior
-        var usercard = parsed.find(".factsSection").find(".userCardTitle");
-        if (usercard.length == 0) {
-            usercard = parsed.find("#toggleNameAndGenderButton").next().find(".userCardTitle");
-        }
-
-        for (var i = 0; i < usercard.length; i++) {
-            var entry = $(usercard[i]);
-            var titlename = entry.text();
-
-            if (titlename.contains(" — ")) {
-                var tsplit = titlename.split(" — ");
-                titlename = tsplit[1].trim();
-            }
-
-            var encodetitle = encodeURIComponent(titlename);
-            if (encodetitle.contains("%20%E2%80%94%20")) {
-                var splittitle = encodetitle.split("%20%E2%80%94%20");
-                titlename = splittitle[1];
-            }
-            if (titlename === "Birth") {
-                var data = parseAncestryNewDate(entry.next());
-                if (!$.isEmptyObject(data)) {
-                    profiledata["birth"] = data;
-                }
-            } else if (titlename === "Death") {
-                var data = parseAncestryNewDate(entry.next());
-                if (!$.isEmptyObject(data)) {
-                    if (exists(getDate(data))) {
-                        deathdtflag = true;
-                    }
-                    profiledata["death"] = data;
-                }
-            } else if (titlename === "Baptism") {
-                var data = parseAncestryNewDate(entry.next());
-                if (!$.isEmptyObject(data)) {
-                    profiledata["baptism"] = data;
-                }
-            } else if (titlename === "Burial") {
-                var data = parseAncestryNewDate(entry.next());
-                if (!$.isEmptyObject(data)) {
-                    if (exists(getDate(data))) {
-                        burialdtflag = true;
-                    }
-                    if (exists(getLocation(data))) {
-                        buriallcflag = true;
-                    }
-                    profiledata["burial"] = data;
-                }
-            } else if (titlename === "Gender") {
-                var gen = entry.next().text().toLowerCase();
-                if (isMale(gen) || isFemale(gen)) {
-                    genderval = gen;
-                }
-            } else if (familymembers && titlename === "Marriage") {
-                var data = parseAncestryNewDate(entry.next());
-                var mid = parseAncestryNewId(entry.next().next().find("a").attr("href"));
-                if (!$.isEmptyObject(data) && exists(mid)) {
-                    ancestrymrglist.push({
-                        "id": mid,
-                        "event": data
-                    });
-                }
-            } else if (!familymembers && titlename === "Marriage" && exists(relation.title) && isPartner(relation.title)) {
-                var url = entry.next().next().find("a").attr("href");
-                if (exists(url)) {
-                    var sid = parseAncestryNewId(url);
-                    if (sid === focusURLid) {
-                        var data = parseAncestryNewDate(entry.next());
-                        if (!$.isEmptyObject(data)) {
-                            profiledata["marriage"] = data;
-                        }
-                    }
-                }
-
-            } else if (!familymembers && titlename === "Marriage" && exists(relation.title) && isParent(relation.title)) {
-                var url = entry.next().next().find("a").attr("href");
-                if (exists(url)) {
-                    var sid = parseAncestryNewId(url);
-                    if (parentmarriageid === "") {
-                        parentmarriageid = sid;
-                    } else if (sid !== parentmarriageid) {
-                        var data = parseAncestryNewDate(entry.next());
-                        if (!$.isEmptyObject(data)) {
-                            profiledata["marriage"] = data;
-                        }
-                    }
-                }
-            }
-        }
-    // }
+        // var usercard = parsed.find(".factsSection").find(".userCardTitle");
+        // if (usercard.length == 0) {
+        //     usercard = parsed.find("#toggleNameAndGenderButton").next().find(".userCardTitle");
+        // }
+        //
+        // for (var i = 0; i < usercard.length; i++) {
+        //     var entry = $(usercard[i]);
+        //     var titlename = entry.text();
+        //
+        //     if (titlename.contains(" — ")) {
+        //         var tsplit = titlename.split(" — ");
+        //         titlename = tsplit[1].trim();
+        //     }
+        //
+        //     var encodetitle = encodeURIComponent(titlename);
+        //     if (encodetitle.contains("%20%E2%80%94%20")) {
+        //         var splittitle = encodetitle.split("%20%E2%80%94%20");
+        //         titlename = splittitle[1];
+        //     }
+        //     if (titlename === "Birth") {
+        //         var data = parseAncestryNewDate(entry.next());
+        //         if (!$.isEmptyObject(data)) {
+        //             profiledata["birth"] = data;
+        //         }
+        //     } else if (titlename === "Death") {
+        //         var data = parseAncestryNewDate(entry.next());
+        //         if (!$.isEmptyObject(data)) {
+        //             if (exists(getDate(data))) {
+        //                 deathdtflag = true;
+        //             }
+        //             profiledata["death"] = data;
+        //         }
+        //     } else if (titlename === "Baptism") {
+        //         var data = parseAncestryNewDate(entry.next());
+        //         if (!$.isEmptyObject(data)) {
+        //             profiledata["baptism"] = data;
+        //         }
+        //     } else if (titlename === "Burial") {
+        //         var data = parseAncestryNewDate(entry.next());
+        //         if (!$.isEmptyObject(data)) {
+        //             if (exists(getDate(data))) {
+        //                 burialdtflag = true;
+        //             }
+        //             if (exists(getLocation(data))) {
+        //                 buriallcflag = true;
+        //             }
+        //             profiledata["burial"] = data;
+        //         }
+        //     } else if (titlename === "Gender") {
+        //         var gen = entry.next().text().toLowerCase();
+        //         if (isMale(gen) || isFemale(gen)) {
+        //             genderval = gen;
+        //         }
+        //     } else if (familymembers && titlename === "Marriage") {
+        //         var data = parseAncestryNewDate(entry.next());
+        //         var mid = parseAncestryNewId(entry.next().next().find("a").attr("href"));
+        //         if (!$.isEmptyObject(data) && exists(mid)) {
+        //             ancestrymrglist.push({
+        //                 "id": mid,
+        //                 "event": data
+        //             });
+        //         }
+        //     } else if (!familymembers && titlename === "Marriage" && exists(relation.title) && isPartner(relation.title)) {
+        //         var url = entry.next().next().find("a").attr("href");
+        //         if (exists(url)) {
+        //             var sid = parseAncestryNewId(url);
+        //             if (sid === focusURLid) {
+        //                 var data = parseAncestryNewDate(entry.next());
+        //                 if (!$.isEmptyObject(data)) {
+        //                     profiledata["marriage"] = data;
+        //                 }
+        //             }
+        //         }
+        //
+        //     } else if (!familymembers && titlename === "Marriage" && exists(relation.title) && isParent(relation.title)) {
+        //         var url = entry.next().next().find("a").attr("href");
+        //         if (exists(url)) {
+        //             var sid = parseAncestryNewId(url);
+        //             if (parentmarriageid === "") {
+        //                 parentmarriageid = sid;
+        //             } else if (sid !== parentmarriageid) {
+        //                 var data = parseAncestryNewDate(entry.next());
+        //                 if (!$.isEmptyObject(data)) {
+        //                     profiledata["marriage"] = data;
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        // }
 
     if (!exists(profiledata["death"]) && parsed.find(".factDeath").text() === "Living") {
         profiledata["alive"] = true;

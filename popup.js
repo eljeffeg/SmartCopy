@@ -16,8 +16,6 @@ var _ = function(messageName, substitutions) {
     return chrome.i18n.getMessage(messageName, substitutions);
 };
 
-
-
 document.addEventListener('DOMContentLoaded', function () {
   Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
     if ( el.hasAttribute('data-i18n') ){
@@ -321,33 +319,37 @@ function useradd() {
         variable: ""
     }, function (response) {
     });
-    chrome.tabs.query({"currentWindow": true, "status": "complete", "windowType": "normal", "active": true}, function (tabs) {
-        var tab = tabs[0];
-        chrome.tabs.update(tab.id, {url: "https://www.geni.com/threads/new/" + focusid.replace("profile-g", "") + "?return_here=true"}, function (tab1) {
-            var listener = function(tabId, changeInfo, tab) {
-                if (tabId == tab1.id && changeInfo.status === 'complete') {
-                    // remove listener, so only run once
-                    chrome.tabs.onUpdated.removeListener(listener);
-                    chrome.tabs.executeScript(tab1.id, {
-                        code: "document.getElementById('thread_subject').value='SmartCopy Invite';" +
-                            "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, which is a browser extension that " +
-                            "allows Geni users to copy information and profiles from various sources into Geni.\\n\\n" +
-                            "The extension can be downloaded here: https://historylink.herokuapp.com/smartcopy\\n" +
-                            "More information and discussion can be found in the Geni project: https://www.geni.com/projects/SmartCopy/18783\\n\\n" +
-                            "Before using SmartCopy, please read the cautionary notes in the Project Description. " +
-                            "SmartCopy can be a powerful tool to help us build the world tree, but it could also quickly create duplication and introduce bad data - be responsible.\\n\\n" +
-                            "*********************************************************\\n" +
-                            "Users granted rights to SmartCopy are expected to review for and avoid creating duplicates, merge or delete profiles when duplicates are created, and attempt to work through relationship conflicts that may arise (get curator assistance if necessary).\\n" +
-                            "*********************************************************" +
-                            "';"
-                    }, function () {
-                        window.close();
-                    })
-                }
-            };
-            chrome.tabs.onUpdated.addListener(listener);
+        chrome.tabs.query({"currentWindow": true, "status": "complete", "windowType": "normal", "active": true}, function (tabs) {
+            var tab = tabs[0];
+            chrome.tabs.update(tab.id, {url: "https://www.geni.com/threads/new/" + focusid.replace("profile-g", "") + "?return_here=true"}, function (tab1) {
+                var listener = function(tabId, changeInfo, tab) {
+                    if (tabId == tab1.id && changeInfo.status === 'complete') {
+                        // remove listener, so only run once
+                        chrome.tabs.onUpdated.removeListener(listener);
+                        chrome.scripting.executeScript(
+                            {
+                                target: {tabID: tab1.id}, 
+
+                                code: "document.getElementById('thread_subject').value='SmartCopy Invite';" +
+                                "document.getElementById('msg_body').value='I have granted you tree-building rights with SmartCopy, which is a browser extension that " +
+                                "allows Geni users to copy information and profiles from various sources into Geni.\\n\\n" +
+                                "The extension can be downloaded here: https://historylink.herokuapp.com/smartcopy\\n" +
+                                "More information and discussion can be found in the Geni project: https://www.geni.com/projects/SmartCopy/18783\\n\\n" +
+                                "Before using SmartCopy, please read the cautionary notes in the Project Description. " +
+                                "SmartCopy can be a powerful tool to help us build the world tree, but it could also quickly create duplication and introduce bad data - be responsible.\\n\\n" +
+                                "*********************************************************\\n" +
+                                "Users granted rights to SmartCopy are expected to review for and avoid creating duplicates, merge or delete profiles when duplicates are created, and attempt to work through relationship conflicts that may arise (get curator assistance if necessary).\\n" +
+                                "*********************************************************" +
+                                "';"
+                            }
+                        , function () {
+                            window.close();
+                        });
+                    }
+                };
+                chrome.tabs.onUpdated.addListener(listener);
+            });
         });
-    });
 }
 
 function userrevoke() {
@@ -378,7 +380,9 @@ function updateLinks(focusprofile) {
 chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     if (request.action == "getSource") {
         loadPage(request);
+        return true;
     }
+    return false;
 });
 
 function loadPage(request) {
@@ -525,7 +529,7 @@ function loadPage(request) {
                 geniliving = genifocusdata.get("is_alive");
                 $("#genilinkdesc").attr('title', "Geni: " + genifocusdata.get("name") + dateinfo);
 
-                console.log("Parsing Family...");
+                console.log("Parsing Family... {}", request);
                 // generic call
                 if (collection.parseProfileData) {
                     collection.parseProfileData(request.source, true);
@@ -537,6 +541,7 @@ function loadPage(request) {
                     $("#familymembers").attr('disabled', 'disabled');
                     setMessage(warningmsg, 'Use of SmartCopy for copying Family Members to Geni is managed.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
                 }
+                console.log("Finished parsing family...");
             });
         } else {
             loadSelectPage(request);
@@ -555,7 +560,7 @@ function loadSelectPage(request) {
         '<tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong>Geni ID or URL:</strong></td></tr>' +
         '<tr><td style="padding-right: 5px;"><input type="text" style="width: 100%;" id="changeprofile"></td></tr>' +
         '<tr><td style="padding-top: 5px;"><button id="changefocus">Set Destination</button></td></tr></table>');
-    var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
+    var parsed = $('<div>').html(JSON.stringify(request).replace(/<img[^>]*>/ig, ""));
     var focusperson = parsed.find(".individualInformationName").text().trim();
     if (focusperson == "<Private>") {
         focusperson = parsed.find("#BreadcrumbsFinalText").text().trim();
@@ -790,8 +795,9 @@ function getPageCode() {
                 loadPage(response);
             });
         } else if (collection.parseProfileData) {
-            chrome.tabs.executeScript(null, {
-                file: "getPagesSource.js"
+            chrome.scripting.executeScript({
+                target: {tabId: getTabId()},
+                files: ["getPagesSource.js"]
             }, function () {
                 if (chrome.runtime.lastError) {
                     setMessage(errormsg, 'There was an error injecting script : \n' + chrome.runtime.lastError.message);
@@ -805,18 +811,20 @@ function getPageCode() {
 
 var loginprocessing = true;
 var logincount = 0;
+
 function loadLogin() {
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: smartcopyurl + "/accountlogin?version=" + chrome.runtime.getManifest().version
-    }, function (responseText) {
+    }, function (resp) {
+        console.log("Callback for login: {}", resp);
         try {
-            var response = JSON.parse(responseText.source);
+            var response =  JSON.parse(resp.source);
         } catch(err) {
-            console.log('Problem getting account information.');
+            console.log('Problem getting account information. {}', err);
             if (loginprocessing) {
-                chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon_warn.png" });
+                chrome.runtime.sendMessage({ action : "icon", path: "images/icon_warn.png" });
                 console.log("Logged Out... Redirecting to Geni for authorization.");
                 loginprocessing = false;
                 var frame = $("#loginframe");
@@ -839,7 +847,7 @@ function loadLogin() {
         console.log("Logged In...");
         accountinfo = response;
         chrome.storage.local.set({'accountinfo': accountinfo});
-        
+            
         if (exists(accountinfo.google_key) && accountinfo.google_key !== "" && accountinfo.google_key !== "invalid") {
             //This allows the server to issue the Google API Key if they ever change their payment model to something reasonable
             google_api = accountinfo.google_key;
@@ -1332,7 +1340,7 @@ function buildTree(data, action, sendid) {
                 data: $.param(data),
                 variable: {id: id, relation: action.replace("add-", ""), data: data}
             });
-            submitstatus.pop();
+                submitstatus.pop();
         }
         
     } else if (!$.isEmptyObject(data) && exists(sendid) && devblocksend) {
@@ -1960,7 +1968,7 @@ $(function () {
                 method: "GET",
                 action: "xhttp",
                 url: url,
-                variable: {api_value: api_value}
+                    variable: {api_value: api_value}
             }, function (response) {
                 var result = JSON.parse(response.source);
                 if (exists(result.error_message)) {
@@ -2407,6 +2415,30 @@ $(function () {
         this.className += " active";
     });
 });
+
+function isDictionary(object) {
+    return object instanceof Object && object.constructor === Object;
+}
+
+// utility
+function createQuery(queryObject, keyPrefix) {
+    if (queryObject == null || !Object.keys(queryObject).length) return "";
+    keyPrefix = keyPrefix ? (keyPrefix + "_") : "";
+
+    const queryKeys = Object.keys(queryObject);
+    const queryArray = queryKeys.map(key => {
+        const value = queryObject[key];
+        if (value) {
+            if (isDictionary(value)) {
+                return createQuery(value, keyPrefix + key + "_");
+            }
+            return keyPrefix + encodeURIComponent(key) + "=" + encodeURI(String(value));
+        }
+        return "";
+    });
+
+    return queryArray.filter(Boolean).join("&");
+}
 
 chrome.storage.local.get('geonotice', function(result) {
     geonotice = result.geonotice;

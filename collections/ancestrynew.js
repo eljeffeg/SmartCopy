@@ -156,6 +156,7 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
                 break;
             case 'Death':
                 profiledata["death"] = setFactData(fact);
+                if (fact.Date) deathdtflag = true;
                 break;
             case 'Marriage':
                 // TODO handle marriage 

@@ -1735,7 +1735,7 @@ function parseForm(fs) {
     return objentry;
 }
 
-function parseDate(fulldate, update) {
+function parseDate(fulldate, update, customdateformat) {
     var vardate = {};
     if (update) {
         vardate["circa"] = false;
@@ -1796,7 +1796,9 @@ function parseDate(fulldate, update) {
             }
         }
     }
-    var dt = moment(fulldate.trim(), getDateFormat(fulldate.trim()));
+
+    var dateformat = customdateformat ? customdateformat : getDateFormat(fulldate.trim());
+    var dt = moment(fulldate.trim(), dateformat);
     //TODO Probably need to do some more checking below to make sure it doesn't improperly default dates
     if (isNaN(fulldate)) {
         var splitd = [];

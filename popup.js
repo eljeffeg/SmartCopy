@@ -809,6 +809,12 @@ function getPageCode() {
     }
 }
 
+async function getTabId() {
+    let queryOptions = { active: true, currentWindow: true };
+    let tabs = await chrome.tabs.query(queryOptions);
+    return tabs[0].id;
+  }
+
 var loginprocessing = true;
 var logincount = 0;
 

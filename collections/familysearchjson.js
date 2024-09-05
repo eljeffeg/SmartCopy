@@ -233,7 +233,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
     // ---------------------- Family Data --------------------
     if (familymembers) {
         familystatus.push(famid);
-        var url = hostDomain(tablink) + "/service/tree/tree-data/family-members/person/" + focusURLid + "?includePhotos=true&locale=en";
+        var url = hostDomain(tablink) + "/service/tree/tree-data/r9/family-members/person/" + focusURLid + "?includePhotos=true&locale=en";
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",

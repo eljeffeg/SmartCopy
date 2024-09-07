@@ -473,7 +473,7 @@
     },
 
     "_year_age_difference_between_": {
-    "message": " year age difference between "
+        "message": " year age difference between "
     },
     "Birth_Surname_of_": {
         "message": "Birth Surname of "
@@ -650,34 +650,34 @@
         "message": " location without a country"
     },
     "his": {
-        "message": "zijn"
+        "message": "his"
     },
     "her": {
-        "message": "haar"
+        "message": "her"
     },
     "their": {
-        "message": "hun"
+        "message": "their"
     },
     "mother": {
-        "message": "moeder"
+        "message": "mother"
     },
     "father": {
-        "message": "vader"
+        "message": "father"
     },
     "parent": {
-        "message": "ouder"
+        "message": "parent"
     },
     "brother": {
         "message": "brother"
     },
     "sibling": {
-        "message": "broer of zus"
+        "message": "sibling"
     },
     "wife": {
-        "message": "vrouw"
+        "message": "wife"
     },
     "husband": {
-        "message": "man"
+        "message": "husband"
     },
     "partner": {
         "message": "partner"

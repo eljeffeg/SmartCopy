@@ -1369,7 +1369,7 @@ function selfCheck(familyset, children) {
             var person_burial = unixDate(person, "burial");
             var conflicts = getGeniData(person, "data_conflict");
             if (dataconflictoption && conflicts) {
-                consistencymessage = concat("info") + getGeniData(person, "name") + _("_has_pending_") + "<a_href='https://www.geni.com/merge/resolve/" + getGeniData(person, "guid") + "'>"+_("data_conflicts")+"</a>.";
+                consistencymessage = concat("info") + getGeniData(person, "name") + _("_has_pending_") + "<a href='https://www.geni.com/merge/resolve/" + getGeniData(person, "guid") + "'>"+_("data_conflicts")+"</a>.";
             }
             var private_bdate = person_bdate;
             if (isNaN(private_bdate) && !children) {

@@ -24,12 +24,16 @@ function getUrlFromJson(obj) {
 }
 
 function getJsonFromUrl(query) {
-    var result = {};
-    query.split("&").forEach(function(part) {
-      var item = part.split("=");
-      result[item[0]] = decodeURIComponent(item[1]);
-    });
-    return result;
+    if (typeof query === 'string') {
+        var result = {};
+        query.split("&").forEach(function(part) {
+        var item = part.split("=");
+        result[item[0]] = decodeURIComponent(item[1]);
+        });
+        return result;
+    } else {
+        return query;
+    }
 }
 
 // listen for messages - if they include photo URLs, intercept and get them

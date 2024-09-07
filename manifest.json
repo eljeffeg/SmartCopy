@@ -26,7 +26,7 @@
         "matches": ["*://www.geni.com/*"],
         "js": ["jquery.js", "jquery.csv.min.js", "moment.js", "parse-names.js", "shared.js", "content.js"]
     }],
-    "permissions": ["scripting", "activeTab", "storage", "tabs", "declarativeNetRequest", "offscreen"],
+    "permissions": ["scripting", "activeTab", "storage", "tabs", "declarativeNetRequestWithHostAccess", "offscreen"],
     "sandbox": {
         "pages": ["sandbox.html"]
     },

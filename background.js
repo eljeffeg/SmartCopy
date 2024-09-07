@@ -123,35 +123,35 @@ function exists(object) {
     return (typeof object !== "undefined" && object !== null);
 }
 
-const rule = {
-    id: 1,
-    priority: 1,
-    action: {
-        type: "modifyHeaders",
-        responseHeaders: [
-            {
-            header: 'X-Frame-Options',
-            operation: 'remove'
-            },
-            {
-                header: 'Frame-Options',
-                operation: 'remove'    
-            }
-        ],
-    },
-    condition: {
-        urlFilter: "https://www.geni.com/platform/oauth/*",
-        resourceTypes: ['sub_frame']
-    }
-};
+const iframeHosts = [
+    'www.geni.com',
+  ];
 
-chrome.declarativeNetRequest.updateDynamicRules({removeRuleIds: [1]}, () => {
-    if (chrome.runtime.lastError) {
-        console.error('Error updating rules:  ' + chrome.runtime.lastError);
-    } else {
-        console.log('Rule updated successfully');
-    }
-});
+chrome.runtime.onInstalled.addListener(() => {
+    const RULE = {
+      id: 1,
+      condition: {
+        initiatorDomains: [chrome.runtime.id],
+        requestDomains: iframeHosts,
+        resourceTypes: ['main_frame', 'sub_frame'],
+      },
+      action: {
+        type: 'modifyHeaders',
+        responseHeaders: [
+          {header: 'X-Frame-Options', operation: 'remove'},
+          {header: 'Frame-Options', operation: 'remove'},
+          // Uncomment the following line to suppress `frame-ancestors` error
+          // {header: 'Content-Security-Policy', operation: 'remove'},
+        ],
+      },
+    };
+    chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: [RULE.id],
+      addRules: [RULE],
+    });
+    console.log("Header rule installed");
+  });
+
 
 let creating; // A global promise to avoid concurrency issues
 async function setupOffscreenDocument(path) {

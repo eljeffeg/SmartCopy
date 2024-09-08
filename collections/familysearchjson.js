@@ -249,9 +249,9 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                 return;
             }
             var source = JSON.parse(response.source);
-            if (source["parents"]) {
-                var jsonrel = source["parents"];
-                var parentset;
+            var jsonrel = source["parents"];
+            var parentset;
+            if (jsonrel) {
                 for (var x = 0; x < jsonrel.length; x++) {
                     if (jsonrel[x]["children"]) {
                         var childset = jsonrel[x]["children"];
@@ -304,16 +304,19 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         }
                     }
                 }
-                var jsonrel = source["spouses"];
+            }
+            
+            var jsonrel = source["spouses"];
+            if (jsonrel) {
                 for (var x = 0; x < jsonrel.length; x++) {
-                    var spouse = "";
-                    var image = "";
-                    if (jsonrel[x]["spouse2"] && jsonrel[x]["spouse2"]["id"] !== focusURLid) {
-                        spouse = jsonrel[x]["spouse2"]["id"];
-                        image = jsonrel[x]["spouse2"]["portraitUrl"] || "";
-                    } else if (jsonrel[x]["spouse1"] && jsonrel[x]["spouse1"]["id"] !== focusURLid) {
-                        spouse = jsonrel[x]["spouse1"]["id"];
-                        image = jsonrel[x]["spouse1"]["portraitUrl"] || "";
+                    var spouse = jsonrel[x]["id"];
+                    var image = jsonrel[x]["portraitUrl"] || "";
+                    if (jsonrel[x]["parent2"] && jsonrel[x]["parent2"]["id"] !== focusURLid) {
+                        spouse = jsonrel[x]["parent2"]["id"];
+                        image = jsonrel[x]["parent2"]["portraitUrl"] || "";
+                    } else if (jsonrel[x]["parent1"] && jsonrel[x]["parent1"]["id"] !== focusURLid) {
+                        spouse = jsonrel[x]["parent1"]["id"];
+                        image = jsonrel[x]["parent1"]["portraitUrl"] || "";
                     }
                     if (spouse !== "") {
                         var data = parseFSJSONUnion(jsonrel[x]["event"]);
@@ -325,7 +328,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         }
                     }
                 }
-
+    
                 // ---------------------- Children --------------------
                 if (fsspouselist.length > 0) {
                     for (var x = 0; x < fsspouselist.length; x++) {
@@ -351,12 +354,12 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                             var arg = response.variable;
                             var childset = JSON.parse(response.source);
                             for (var i = 0; i < childset.length; i++) {
-                                 var child = childset[i]["child"];
-                                 var itemid = child["id"];
-                                 var image = child["portraitUrl"] || "";
-                                 childlist[famid] = $.inArray(arg.spouse, unionurls);
-                                 processFamilySearchJSON(itemid, "child", famid, image);
-                                 famid++;
+                                    var child = childset[i]["child"];
+                                    var itemid = child["id"];
+                                    var image = child["portraitUrl"] || "";
+                                    childlist[famid] = $.inArray(arg.spouse, unionurls);
+                                    processFamilySearchJSON(itemid, "child", famid, image);
+                                    famid++;
                             }
                             familystatus.pop();
                         });

@@ -117,7 +117,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             if (item === ",") {
                 item += " ";
             }
-            if (item !== "Add to Map") {
+            if (item !== "Add to Map" && !item.includes("Show Map")) {
                 cemetery += item;
             }
         }

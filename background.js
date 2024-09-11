@@ -39,6 +39,7 @@ function getJsonFromUrl(query) {
 // listen for messages - if they include photo URLs, intercept and get them
 chrome.runtime.onMessage.addListener( function(request, sender, callback) {
     if (request.action == "xhttp") {
+        delay(190);// see https://www.nginx.com/blog/rate-limiting-nginx/
         const method = request.method ? request.method.toUpperCase() : 'GET';
         if (method == 'POST') {
             fetch(request.url, {
@@ -50,11 +51,17 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
             }).then((response) => {
                 if (!response.ok) {
                     console.error("Unable to get XMLHttpRequest: " + request.url);
-                    var valrtn = {error: response.error, variable: request.variable, responseURL: response.responseURL};
+                    var valrtn = {error: response.error, variable: request.variable, responseURL: request.url};
+                    console.log("valrtn ",valrtn);
                     callback(valrtn);
                 } else {
-                    const responseText = response.text();
-                    var valrtn = {source: responseText, variable: request.variable, responseURL: response.responseURL};
+                    return response.text();
+                }
+                })   
+                    //const responseText = response.text();
+                    .then((responseText)=> {
+                    var valrtn = {source: responseText, variable: request.variable, responseURL: request.url};
+                    console.log("valrtn ",valrtn);
                     callback(valrtn);
                     const jsData = getJsonFromUrl(request);
                     if (jsData.photo !== undefined) {
@@ -80,8 +87,8 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
                             }
                         });
                     }
-                }
-            });
+                })
+            
         } else {
             // pass this request through - note that all receivers need to change for fetch response
             var vartn = {variable: request.variable};
@@ -184,3 +191,10 @@ async function setupOffscreenDocument(path) {
     creating = null;
   }
 }
+function delay(ms){
+    let currDate = new Date().getTime();
+    let dateNow = currDate;
+    while(dateNow<currDate+ms){
+      dateNow = new Date().getTime();
+    }
+  }

@@ -20,6 +20,10 @@ var focusnicknames = "";
 var parentmarriageid = "";
 var geounique = [];
 var geocleanup = [];
+var husbandlastname ="";
+var wifelastname ="";
+const datelimit = 1000;
+const sepgeneanet ="·";
 
 function updateGeo() {
     if (familystatus.length > 0) {
@@ -233,9 +237,16 @@ function buildForm() {
     }
     if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
         if (focusgender === "male") {
+            // nameval.birthName = nameval.lastName;
+                husbandlastname = nameval.lastName;
+                console.log("Husbandlastname  :" + husbandlastname);
+    //    } else if (focusgender === "female" && setBirthName("focus", nameval.lastName, mnameonoff)) {
+         } else if (focusgender === "female" ) {
             nameval.birthName = nameval.lastName;
-        } else if (focusgender === "female" && setBirthName("focus", nameval.lastName, mnameonoff)) {
-            nameval.birthName = nameval.lastName;
+		// } else if (focusgender === "female" && setBirthName("focus", nameval.lastName, mnameonoff)) {
+	       //     nameval.birthName = nameval.lastName;
+            wifelastname = nameval.lastName;
+            console.log("Wifelastname  :" + wifelastname);
             nameval.lastName = "";
         }
     }
@@ -262,14 +273,14 @@ function buildForm() {
     if (exists(alldata["profile"]["birth"]) && exists(alldata["profile"]["birth"][0]) && exists(alldata["profile"]["birth"][0]["date"])) {
         var dt = moment(alldata["profile"]["birth"][0]["date"], getDateFormat(alldata["profile"]["birth"][0]["date"]));
         var year = dt.get('year');
-        if (year < 1600) {
+        if (year < datelimit) {
             expand = false;
             
         }
     } else if (exists(alldata["profile"]["death"]) && exists(alldata["profile"]["death"][0]) && exists(alldata["profile"]["death"][0]["date"])) {
         var dt = moment(alldata["profile"]["death"][0]["date"], getDateFormat(alldata["profile"]["death"][0]["date"]));
         var year = dt.get('year');
-        if (year < 1600) {
+        if (year < datelimit) {
             expand = false;
         }
     }
@@ -704,10 +715,26 @@ function buildForm() {
             }
             if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
                 if (members[member].gender === "male") {
-                    nameval.birthName = nameval.lastName;
+                    //nameval.birthName = nameval.lastName;
                 } else if (members[member].gender === "female" && setBirthName(relationship, nameval.lastName, mnameonoff)) {
                     nameval.birthName = nameval.lastName;
-                    nameval.lastName = "";
+                   // nameval.lastName = "";
+                  //  console.log("Husband  : " + husbandlastname);
+                  //  console.log("WifeLN  : " + wifelastname);
+                  //  console.log("relationship  : " + relationship);
+                    if (relationship !== "child") {
+                    nameval.lastName = husbandlastname + wifelastname;
+                    }
+                    if (nameval.lastName === nameval.birthName) {
+                    nameval.lastName ="";
+                    }
+                    
+                    console.log("Parent   :" + nameval.lastName );
+             //       }
+             //       if (relationship === "partner") {
+             //       nameval.lastName = husbandlastname;
+             //       console.log("partner");
+                    
                 } else if (members[member].gender === "unknown" && relationship !== "parent") {
                     nameval.birthName = nameval.lastName;
                 }
@@ -748,7 +775,7 @@ function buildForm() {
             if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
                 var dt = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"]));
                 var year = dt.get('year');
-                if (year < 1600) {
+                if (year < datelimit) {
                     checkunknown = " disabled";
                     scored = false;
                     expand = false;
@@ -757,7 +784,7 @@ function buildForm() {
             } else if (exists(members[member]["death"]) && exists(members[member]["death"][0]) && exists(members[member]["death"][0]["date"])) {
                 var dt = moment(members[member]["death"][0]["date"], getDateFormat(members[member]["death"][0]["date"]));
                 var year = dt.get('year');
-                if (year < 1600) {
+                if (year < datelimit) {
                     checkunknown = " disabled";
                     scored = false;
                     expand = false;

@@ -255,7 +255,8 @@ var NameParse = (function(){
             var nickfirst = nickParts.join(" ");
             nickfirst = nickfirst.replace("(","");
             nickfirst = nickfirst.replace(")","");
-            nickfirst = nickfirst.replace(/"/g,'');
+            //nickfirst = nickfirst.replace("\""/g,'');
+            //nickfirst = nickfirst.replace("*"/g,'');
             nickfirst = this.fix_case(nickfirst.trim());
             nickName = nickfirst + " " + lastName.trim();
             if (birthName !== "") {
@@ -266,7 +267,22 @@ var NameParse = (function(){
             }
         }
 
-        // return the various parts in an array
+      
+    // Ajout pour traiter partiellement les specificités des prénoms composés français
+    //console.log("Data1 :",firstName);   
+       firstName = firstName.replace(/\*/g,"");
+       firstName = firstName.replace(/\./g,"");
+       firstName = firstName.replace(/\!/g,"");
+      // console.log("Data2 :",firstName);
+        if (sepgeneanet !== "") {
+              	if (firstName.trim() === "Marie" || firstName.trim() === "Jean") {
+        		if (middleName.trim() !=="Joseph") {
+        		firstName = firstName + " " + middleName ;
+        		middleName = "" ;
+        		}
+           }
+       }
+         // return the various parts in an array
         return {
             "prefix": prefix || "",
             "salutation": salutation || "",
@@ -326,7 +342,11 @@ var NameParse = (function(){
         }
         //ignore periods and commas
         word = word.replace(/\./g,"");
-        word = word.replace(/,/g,"");
+        word = word.replace(/\,/g,"");
+        word = word.replace(/\*/g,"");
+        word = word.replace(/\!/g,"");
+        //passage caractere special geneanet.js a eliminer apres emploi
+        word = word.replace(sepgeneanet,"");
         return word;
     };
 
@@ -362,6 +382,9 @@ var NameParse = (function(){
         word = word.replace(/\s*\/\s*/g,'/');
         word = word.replace(/“/g, '"');
         word = word.replace(/”/g, '"');
+        word = word.replace(/\,/g, ' ');
+        //word = word.replace(/\"/g, '');
+        //word = word.replace(/\*/g, ' ');
         return word;
     }
 
@@ -390,8 +413,8 @@ var NameParse = (function(){
     // detect compound last names like "Von Fange"
     NameParse.is_compound_lastName = function (word) {
         word = word.toLocaleLowerCase();
-        // these are some common prefixes that identify a compound last names - what am I missing?
-        var words = ['vere','von','van','de','der','del','della','di','da', 'do', 'pietro','vanden','du','st.','st','la','le','lo', 'las', 'los', 'ter','o', 'y', "o'",'mc','mac','fitz'];
+        // these are some common prefixes that identify a compound last names - what am I missing? - rajout de  · (geneanet) 4/9/2023
+        var words = ['vere','von','van','de','der','del','della','di','da', 'do', 'pietro','vanden','du','st.','st','la','le','lo', 'las', 'los', 'ter','o', 'y', "o'",'mc','mac','fitz',sepgeneanet];
         return (words.indexOf(word) >= 0);
     };
 
@@ -423,6 +446,8 @@ var NameParse = (function(){
         word = this.safe_ucfirst("-",word);
         // uppercase words split by periods, like "J.P."
         word = this.safe_ucfirst(".",word);
+        // uppercase words split by periods' like "d'Albis"
+        word = this.safe_ucfirst("'",word);
         return word;
     };
 

@@ -318,7 +318,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         spouse = jsonrel[x]["parent1"]["id"];
                         image = jsonrel[x]["parent1"]["portraitUrl"] || "";
                     }
-                    if (spouse !== "") {
+                    if (spouse) {
                         var data = parseFSJSONUnion(jsonrel[x]["event"]);
                         var valid = processFamilySearchJSON(spouse, "spouse", famid, image, data);
                         if (valid) {

@@ -32,6 +32,10 @@ function exists(object) {
     return (typeof object !== "undefined" && object !== null);
 }
 
+function isValidDate(object) {
+    return d instanceof Date && !isNaN(d);
+}
+
 function startsWithHTTP(url, match) {
     //remove protocol and comapre
     url = url.replace("https://", "").replace("http://", "");

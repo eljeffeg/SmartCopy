@@ -117,7 +117,9 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             if (item === ",") {
                 item += " ";
             }
-            cemetery += item;
+            if (item !== "Add to Map" && !item.includes("Show Map")) {
+                cemetery += item;
+            }
         }
     }
     profiledata = addEvent(profiledata, "burial", parsed.find("#burialDateLabel").text(), cemetery.trim());

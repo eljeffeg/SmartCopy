@@ -1,5 +1,4 @@
 {
-
     "appName": {
         "message": "SmartCopy"
     },
@@ -27,7 +26,7 @@
         }
     },
     "contains_incorrect_uppercase_lowercase_in_name_default": {
-        "message": "$person$ bevat onjuist gebruik van hoofd/kleine letters in $pronoun$ name.",
+        "message": "$person$ bevat onjuist gebruik van hoofd/kleine letters in $pronoun$ naam.",
         "placeholders": {
             "person": {
                 "content": "$1"
@@ -141,6 +140,18 @@
     },
     "All_Collections": {
         "message": "Alle collecties"
+    },
+    "Collections": {
+        "message": "Collecties"
+    },
+    "Publications": {
+        "message": "Publicaties"
+    },
+    "Holocaust": {
+        "message": "Holocaust"
+    },
+    "Name_Search": {
+        "message": "Zoek namen"
     },
     "Gravestones": {
         "message": "Grafzerken"
@@ -296,10 +307,10 @@
         "message": "Controleer naamvelden op onjuiste waarden"
     },
     "Check_name_fields_for_living_profiles": {
-        "message": "Profielen van levende personen uitsluiten van snelle oplossing "
+        "message": "Profielen van levenden uitsluiten van snelle oplossing "
     },
     "Check_profile_for_pending_data_conflicts": {
-        "message": "Profiel controleren op nog niet opgeloste dataconflicten"
+        "message": "Profiel controleren op niet opgeloste dataconflicten"
     },
     "Check_date_values_for_irregular_formatting": {
         "message": "Controleer datumwaarden op afwijkende opmaak"
@@ -314,34 +325,34 @@
         "message": "Maximum leeftijd:"
     },
     "Check_the_dates_of_children_against_their_parents": {
-        "message": "Controleer de data van de kinderen ten opzichte van hun ouders."
+        "message": "Controleer datums van kinderen ten opzichte ouders."
     },
     "Check_child_is_born_after_parent_marriage": {
-        "message": "Controleer of het kind geboren is na het huwelijk van de ouders"
+        "message": "Kind geboren na het huwelijk ouders?"
     },
     "Age_the_parent_is_too_young_to_have_a_child": {
-        "message": "Leeftijd van de ouder is te jong om een kind te krijgen"
+        "message": "Ouder is te jong om een kind te krijgen"
     },
     "Age_the_mother_is_too_old_to_have_a_child": {
-        "message": "Leeftijd van de moeder is te oud om een kind te krijgen"
+        "message": "Moeder is te oud om een kind te krijgen"
     },
     "Check_the_values_of_partner_spouses_against_each_other": {
-        "message": "Toets de waarden van partner / echtgenoten ten opzichte van elkaar."
+        "message": "Toets de waarden van partners/echtgenoten t.o.v. elkaar."
     },
     "Identify_possible_maiden_name_copy_issues": {
-        "message": "Identificeer mogelijke problemen bij het kopiëren van achternaam bij geboorte"
+        "message": "Mogelijke kopieerproblemen van achternaam bij geboorte"
     },
     "Age_the_spouse_is_too_young_to_be_married": {
-        "message": "Leeftijd van de huwelijkspartner is te jong om getrouwd te zijn"
+        "message": "Huwelijkspartner is te jong om getrouwd te zijn"
     },
     "Maximum_age_difference_between_spouses": {
         "message": "Maximum leeftijdverschil tussen huwelijkspartners"
     },
     "Check_siblings_birth_are_over_": {
-        "message": "Controleer of geboortes van broers / zussen(excl.tweelingen) meer dan"
+        "message": "Geboortes broers/zussen(excl.tweelingen) meer dan"
     },
     "_months_apart_excl_twins": {
-        "message": "maanden uit elkaar liggen."
+        "message": "maanden verschil."
     },
     "Future_options_to_add_features_to_Geni": {
         "message": "Toekomstige opties om functies aan Geni toe te voegen."
@@ -373,15 +384,304 @@
         "message": "Sluit"
     },
     "Display_Add_Biography_button_in_About": {
-        "message": "Laat Biografie toevoegen knop zien in Over"
+        "message": "Biografie toevoegen bij Over bewerken"
     },
     "Add_Biography": {
         "message": "Biografie toevoegen"
     },
     "Export_Profiles_button_on_Project_Actions": {
-        "message": "Profielen exporteren knop op Project acties menu"
+        "message": "Keuze Profielen exporteren in Project Acties menu"
     },
     "Export_Profiles": {
         "message": "Profielen exporteren"
-    }
+    },
+
+
+	"SmartCopy_does_not_currently_support_parsing": {
+		"message": "SmartCopy ondersteunt momenteel het parsen van deze pagina / site / collectie niet."
+	},
+	"SmartCopy_is_having_difficulty_reading_the_page": {
+		"message": "SmartCopy heeft problemen met het lezen van de pagina. Probeer de pagina te verversen."
+	},
+	"This_website_is_not_yet_supported_by_SmartCopy": {
+		"message": "Deze website wordt nog niet ondersteund door SmartCopy."
+	},
+
+	"Selection": {
+		"message": "Selectie"
+	},
+	"Simplify_form_by_hiding_unused_fields": {
+		"message": "Vereenvoudig formulier: verberg ongebruikte velden"
+	},
+	"Enable_photo_checkbox_auto_selection": {
+		"message": "Fotoselectie automatisch inschakelen"
+	},
+	"Reminder_user_responsible": {
+		"message": "Let op: De gebruiker is verantwoordelijk voor<br>het verkrijgen van toestemming van de fotograaf<br>bij het kopiëren van afbeeldingen"
+	},
+	"Exclude_private_profile_auto_select": {
+		"message": "<privé> profielen niet auto-selecteren"
+	},
+	"Est_burial_date_from_death_if_location": {
+		"message": "Schat begrafenis uit overlijden als locatie gevuld"
+	},
+		"This_change_will_take_effect_at_next_use": {
+		"message": "Deze wijziging wordt van kracht bij het volgende gebruik."
+	},
+	"Location": {
+		"message": "Locatie"
+	},
+	"Enable_Geolocation": {
+		"message": "Geolocatie inschakelen"
+	},
+	"API_Key": {
+		"message": "API Sleutel"
+	},
+	"Location_fields_auto_select_one_select_all": {
+		"message": "Locatie selecteer 1 veld, selecteer alles"
+	},
+	"Naming": {
+		"message": "Namen"
+	},
+	"Auto_populate_empty_birth_name_fields": {
+		"message": "Lege geboortenaam velden automatisch vullen"
+	},
+	"Parse_for_middle_names_automatically": {
+		"message": "Automatisch zoeken naar patroniemen"
+	},
+	"Auto_adjust_the_names_for_mixed_case": {
+		"message": "Namen aanpassen voor hoofdletter gebruik"
+	},
+	"Force_compound_lastname_to_lowercase": {
+		"message": "Zet samengestelde achternaam om naar kleine letters"
+	},
+	"Default_children_to_likely_Geni_parent": {
+		"message": "Koppel kinderen aan waarschijnlijke Geni-ouder"
+	},
+	"Default_deceased_profiles_to_public": {
+		"message": "Overleden profielen standaard openbaar"
+	},
+	"Add_reference_to_Geni_s_About_section": {
+		"message": "Verwijzing toevoegen aan Geni's Over sectie"
+	},
+	"Display_the_Geni_side_data_by_default": {
+		"message": "Standaard de Geni-gegevens weergeven"
+	},
+
+	"Please_select_one_of_the_Matches": {
+		"message": "Selecteer een van de overeenkomsten op deze resultatenpagina."
+	},
+
+	"_year_age_difference_between_": {
+		"message": " jaar leeftijdsverschil tussen "
+	},
+	"Birth_Surname_of_": {
+		"message": "Geboorte achternaam van "
+	},
+	"_is_the_same_as_the_last_name_of_": {
+		"message": " is hetzelfde als de achternaam van "
+	},
+	"Death_date_of_": {
+		"message": "Overlijdensdatum van "
+	},
+	"_is_the_same_as_the_death_date_of_": {
+		"message": " is hetzelfde als de overlijdensdatum van "
+	},
+	"_is_the_same_as_": {
+		"message": " is hetzelfde als "
+	},
+	"_marriage_date": {
+		"message": " huwelijksdatum"
+	},
+	"_born_after_": {
+		"message": " geboren na "
+	},
+	"_died_before_": {
+		"message": " overleden voor "
+	},
+	"_years_old_for_": {
+		"message": " jaar oud voor "
+	},
+	"_marriage": {
+		"message": " huwelijk"
+	},
+	"Birth_date_of_": {
+		"message": "Geboortedatum van "
+	},
+	"_and_": {
+		"message": " en "
+	},
+	"_are_within_": {
+		"message": " liggen binnen "
+	},
+	"_months": {
+		"message": " maanden"
+	},
+	"_born_before_the_birth_of_": {
+		"message": " geboren voor de geboorte van "
+	},
+	"death": {
+		"message": "overlijden"
+	},
+	"_born_after_the_death_of_": {
+		"message": " geboren na het overlijden van "
+	},
+	"_is_under_": {
+		"message": " is under "
+	},
+	"_years_old_for_the_birth_of_": {
+		"message": " jaar oud voor de geboorte van "
+	},
+	"_is_over_": {
+		"message": " is meer dan "
+	},
+	"_born_before_the_marriage_of_": {
+		"message": " geboorte voor het huwelijk van "
+	},
+	"_parents_": {
+		"message": " ouders "
+	},
+	"_has_pending_": {
+		"message": " heeft lopende "
+	},
+	"data_conflicts": {
+		"message": "dataconflicten"
+	},
+	"The_age_of_": {
+		"message": "De leeftijd van "
+	},
+	"_exceeds_": {
+		"message": " is groter dan "
+	},
+	"_years": {
+		"message": " jaar"
+	},
+	"_is_after_": {
+		"message": " is na "
+	},
+	"_death_date": {
+		"message": " overlijdensdatum"
+	},
+	"Baptism_date_of_": {
+		"message": "Doopdatum van "
+	},
+	"_is_before_": {
+		"message": " is voor "
+	},
+	"_birth_date": {
+		"message": " geboortedatum"
+	},
+	"_burial_date": {
+		"message": " begraafdatum"
+	},
+	"_contains_a_double_space_in_": {
+		"message": " bevat een dubbele spatie in "
+	},
+	"first_name": {
+		"message": "voornaam"
+	},
+	"_contains_a_double_or_trailing_space_in_": {
+		"message": " bevat een dubbele or achterliggende spatie in "
+	},
+	"_names": {
+		"message": " namen"
+	},
+	"_contains_an_alias_in_": {
+		"message": " bevat een alias in "
+	},
+	"_appears_to_contain_a_suffix_in_": {
+		"message": " lijkt een achtervoegsel te bevatten in "
+	},
+	"Move_Suffix": {
+		"message": "Verplaats achtervoegsel"
+	},
+	"_contains_improper_use_of_salutation_in_": {
+		"message": " bevat onjuist gebruik van aanhef in "
+	},
+	"_title": {
+		"message": " titel"
+	},
+	"Remove_salutation": {
+		"message": "Verwijder aanhef"
+	},
+	"_contains_improper_use_of_relationship_in_": {
+		"message": " bevat onjuist gebruik van relatie in "
+	},
+    "_suffix": {
+        "message": " achtervoegsel"
+    },
+	"Remove_relationship": {
+		"message": "Verwijder relatie"
+	},
+	"_contains_improper_use_of_a_numbering_scheme_in_": {
+		"message": " bevat onjuist gebruik van een nummerschema in "
+	},
+	"Remove_numeric": {
+		"message": "Verwijder numeriek gedeelte"
+	},
+	"_is_in_a_relationship_cycle_within_the_immediate_family": {
+		"message": " is in een relatiecyclus binnen de naaste familie"
+	},
+	"_contains_an_invalid_": {
+		"message": " bevat een onjuiste "
+	},
+	"_date_month_greater_than_12": {
+		"message": " datum: maand groter dan 12."
+	},
+	"_date_day_greater_than_31": {
+		"message": " datum: dag groter dan 31."
+	},
+	"_date": {
+		"message": " datum"
+	},
+	"_contains_an_incomplete_": {
+		"message": " bevat een onvolledige "
+	},
+	"_date_missing_month": {
+		"message": " datum: ontbrekende maand."
+	},
+	"_date_missing_year": {
+		"message": " datum: ontbrekend jaar."
+	},
+	"_contains_a_": {
+		"message": " bevat een "
+	},
+	"_location_without_a_country": {
+		"message": " lokatie zonder een land."
+	},
+	"his": {
+		"message": "zijn"
+	},
+	"her": {
+		"message": "haar"
+	},
+	"their": {
+		"message": "hun"
+	},
+	"mother": {
+		"message": "moeder"
+	},
+	"father": {
+		"message": "vader"
+	},
+	"parent": {
+		"message": "ouder"
+	},
+	"brother": {
+		"message": "brother"
+	},
+	"sibling": {
+		"message": "broer of zus"
+	},
+	"wife": {
+		"message": "vrouw"
+	},
+	"husband": {
+		"message": "man"
+	},
+	"partner": {
+		"message": "partner"
+	}
 }
+
+

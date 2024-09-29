@@ -1,3 +1,4 @@
+/*jshint esversion: 6 */
 tablink = window.location.href;
 var consistencymessage = "";
 var year = 31557600; //365.25
@@ -34,6 +35,7 @@ var projectExportResults = [];
 var project_id;
 var getsettingsdone = false;
 var accountinfo;
+var GeniTaal="en";
 
 var _ = function (messageName, substitutions) {
     return chrome.i18n.getMessage(messageName, substitutions);
@@ -41,6 +43,7 @@ var _ = function (messageName, substitutions) {
 
 function initializeContent() {
     if (isGeni(tablink) || isGeniProject(tablink)) {
+        getGeniLanguage();
         getSettings();
         runContent();
     }
@@ -64,7 +67,7 @@ function runContent() {
             if (exportprojectsonoff) {
                 addProjectExportButton();
             }
-            return
+            return;
         }
         var consistencydiv = $(document.createElement('div'));
         consistencydiv.attr('id', 'consistencyck');
@@ -84,8 +87,23 @@ function runContent() {
         queryGeni();
     } else {
         setTimeout(runContent, 50);
-        return
+        return;
     }
+}
+
+function getGeniLanguage() {
+	// determine Geni user language from the translation of the Actions menu (used for language to generate biography in)
+	let menus = $("div.drop-menu");
+    for (let i = 0; i < menus.length; i++) {
+	  if ($(menus[i]).text().trim().startsWith("Acties")) {
+		GeniTaal = "nl";
+		i = menus.length;
+	  }
+	  else if ($(menus[i]).text().trim().startsWith("Toiminnot")) {
+		GeniTaal = "fi";
+		i = menus.length;
+	  }
+	}
 }
 
 function queryGeni() {
@@ -178,8 +196,8 @@ function addProjectExportButton() {
         let menus = $("div.drop-menu");
         let menu = undefined;
         for (let i = 0; i < menus.length; i++) {
-            if ($(menus[i]).text().trim().startsWith("Actions")) {
-                menu = $(menus[i]).find("hr")[1]
+	        if ($(menus[i]).text().trim().startsWith(_("Actions"))) {
+                menu = $(menus[i]).find("hr")[1];
             }
         }
         if (menu !== undefined) {
@@ -198,12 +216,12 @@ function addProjectExportButton() {
                             </div>
                         </div>
                     </div>
-                </div>`)
+                </div>`);
                 progress.insertAfter($("#panel_overlay"));
                 project_id = getProject(tablink);
                 //let args = "?fields=name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,cause_of_death,burial,is_alive";
                 let url = "https://www.geni.com/api/project-" + project_id + "/profiles?access_token=" + accountinfo.access_token;
-                getProjectProfiles(url)
+                getProjectProfiles(url);
             });
         }
     }
@@ -217,22 +235,22 @@ function getProjectProfiles(url) {
     }, function (response) {
         if (response.source === "[]" || response.source === "") {
             projectprofiles = [];
-            $("#panel_overlay").hide()
-            $("#exportprojectprogress").remove()
+            $("#panel_overlay").hide();
+            $("#exportprojectprogress").remove();
         } else {
             try {
                 //console.log(response.source)
                 projectprofiles = JSON.parse(response.source);
             } catch (e) {
                 projectprofiles = [];
-                $("#panel_overlay").hide()
-                $("#exportprojectprogress").remove()
+                $("#panel_overlay").hide();
+                $("#exportprojectprogress").remove();
             }
             if (!exists(projectprofiles) || !exists(projectprofiles["results"])) {
                 projectprofiles = [];
                 $("*").css("cursor", "default");
-                $("#panel_overlay").hide()
-                $("#exportprojectprogress").remove()
+                $("#panel_overlay").hide();
+                $("#exportprojectprogress").remove();
             } else {
                 for (let i = 0; i < projectprofiles["results"].length; i++) {
 
@@ -240,13 +258,13 @@ function getProjectProfiles(url) {
                 }
 
                 if (projectprofiles["next_page"] !== undefined) {
-                    $("#SC_ExportCount").text("Exporting Project Profiles (Page " + projectprofiles["next_page"].substr(projectprofiles["next_page"].lastIndexOf("=") + 1, projectprofiles["next_page"].length) + ") - Please Wait...")
-                    getProjectProfiles(projectprofiles["next_page"])
+                    $("#SC_ExportCount").text("Exporting Project Profiles (Page " + projectprofiles["next_page"].substr(projectprofiles["next_page"].lastIndexOf("=") + 1, projectprofiles["next_page"].length) + ") - Please Wait...");
+                    getProjectProfiles(projectprofiles["next_page"]);
                 } else {
-                    let csv = doCSV(projectExportResults)
-                    $("#panel_overlay").hide()
-                    $("#exportprojectprogress").remove()
-                    downloadCSV(csv)
+                    let csv = doCSV(projectExportResults);
+                    $("#panel_overlay").hide();
+                    $("#exportprojectprogress").remove();
+                    downloadCSV(csv);
                 }
             }
         }
@@ -316,7 +334,7 @@ function doCSV(json) {
         separator: ","
     });
     csv = csv.replaceAll("\/api\/", "\/");
-    return csv
+    return csv;
 }
 
 function downloadCSV(csv) {
@@ -354,6 +372,63 @@ function dateFormat(dateval) {
     } else {
         return " in " + eventdate;
     }
+}
+
+function dateFormatDutch(dateval) {
+  var maandNamen = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+  var eventdate = " ";
+  if (exists(dateval.range)) {
+    if (dateval.range == 'after') {
+      eventdate += "na ";
+    } else if (dateval.range == 'between') {
+      eventdate += "tussen ";
+    }
+	else if (dateval.range == 'before') {
+	  eventdate += "voor ";
+	}
+  }
+  if (exists(dateval.circa)) {
+    eventdate += "circa ";
+  }
+  if (eventdate == " ") {
+	if (exists(dateval.day)) {
+		eventdate += "op ";
+	}
+	else {
+		eventdate += "in ";
+	}
+  }
+  if (exists(dateval.day)) {
+    eventdate += dateval.day + " ";
+  }
+  if (exists(dateval.month)) {
+    eventdate += maandNamen[dateval.month - 1] + " ";
+  }
+  else if (exists(dateval.day)) {
+	  eventdate += "? "; 
+  }
+  if (exists(dateval.year)) {
+    eventdate += dateval.year;
+  }
+  if (exists(dateval.end_day) || exists(dateval.end_month) || exists(dateval.end_year)) {
+    eventdate += " en ";
+    if (exists(dateval.end_circa)) {
+      eventdate += "circa ";
+	}
+    if (exists(dateval.end_day)) {
+      eventdate += dateval.end_day + " ";
+    }
+    if (exists(dateval.end_month)) {
+      eventdate += maandNamen[dateval.end_month - 1] + " ";
+    }
+	else if (exists(dateval.day)) {
+	  eventdate += "? ";
+    }
+    if (exists(dateval.end_year)) {
+      eventdate += dateval.end_year;
+    }
+  }
+  return eventdate;
 }
 
 function dateFormatFinnish(dateval) {
@@ -407,7 +482,9 @@ function getSelection() {
 function buildProfile() {
     if (biography == null) {
         //In case edit is clicked twice - only need to build this once.
-        switch (chrome.i18n.getUILanguage()) {
+		// switch (chrome.i18n.getUILanguage())
+		// use Geni user language instead (to easily generate biographies in different languages
+        switch (GeniTaal) {
             case "nl":
                 buildProfileDutch();
                 break;
@@ -432,7 +509,7 @@ function buildProfileDefault() {
     var death = getGeniData(focus, "death");
     var deathcause = getGeniData(focus, "cause_of_death");
     var burial = getGeniData(focus, "burial");
-    var occupation = getGeniData(focus, "occupation")
+    var occupation = getGeniData(focus, "occupation");
 
     if (birth !== "") {
         bio += "was born";
@@ -458,7 +535,7 @@ function buildProfileDefault() {
             if (exists(birth.location)) {
                 var birthloc = birth.location.formatted_location;
                 if (birthloc === baploc) {
-                    bio += " there"
+                    bio += " there";
                 } else if (birthloc === baploc.replace(bap.location.place_name + ", ", "")) {
                     bio += " in " + bap.location.place_name;
                 } else {
@@ -518,7 +595,7 @@ function buildProfileDefault() {
         if (getGeniData(partners[i], "status") !== "partner") {
             bio += " married ";
         } else {
-            bio += " partnered with "
+            bio += " partnered with ";
         }
         bio += buildWikiLink(partners[i]);
         if (getGeniData(partners[i], "status") !== "partner") {
@@ -529,7 +606,7 @@ function buildProfileDefault() {
                 bio += " in " + getGeniData(partners[i], "marriage", "location")["formatted_location"];
             }
             if (getGeniData(partners[i], "divorce") !== "") {
-                bio += " and they divorced"
+                bio += " and they divorced";
                 if (getGeniData(partners[i], "divorce", "date") !== "") {
                     bio += dateFormat(getGeniData(partners[i], "divorce", "date"));
                 }
@@ -609,20 +686,27 @@ function buildProfileDefault() {
 }
 
 function buildProfileDutch() {
-    var focus = getFocus();
+    const current_date = moment();
+	var focus = getFocus();
     var parents = getParents();
     var partners = getPartners();
-    var bio = "==Biography==\n'''" + getGeniData(focus, "name") + "''' ";
+    var bio = "==Biografie==\n'''" + getGeniData(focus, "name") + "''' ";
     var birth = getGeniData(focus, "birth");
     var bap = getGeniData(focus, "baptism");
+	var living = getGeniData(focus, "is_alive");
     var death = getGeniData(focus, "death");
     var deathcause = getGeniData(focus, "cause_of_death");
     var burial = getGeniData(focus, "burial");
-    var occupation = getGeniData(focus, "occupation")
+    var occupation = getGeniData(focus, "occupation");
+	// add warning for data conflicts to the biography
+	var conflicts = getGeniData(focus, "data_conflict");
+	if (conflicts) {
+		bio += "\n\nLET OP: er is een data conflict!\n\n";
+	}
     if (birth !== "") {
         bio += "werd geboren";
         if (exists(birth.date)) {
-            bio += dateFormat(birth.date);
+            bio += dateFormatDutch(birth.date);
         }
         if (exists(birth.location)) {
             bio += " in " + birth.location.formatted_location;
@@ -637,14 +721,14 @@ function buildProfileDutch() {
         bio += "werd";
 
         if (exists(bap.date)) {
-            bio += dateFormat(bap.date);
+            bio += dateFormatDutch(bap.date);
         }
         if (exists(bap.location)) {
             var baploc = bap.location.formatted_location;
             if (exists(birth.location)) {
                 var birthloc = birth.location.formatted_location;
                 if (birthloc === baploc) {
-                    bio += " daar gedoopt"
+                    bio += " daar gedoopt";
                 } else if (birthloc === baploc.replace(bap.location.place_name + ", ", "")) {
                     bio += " gedoopt in " + bap.location.place_name;
                 } else {
@@ -692,27 +776,41 @@ function buildProfileDutch() {
         } else {
             bio += getGeniData(focus, "first_name") + " ";
         }
-        bio += "was een " + occupation + ". ";
+		// ocupation can be current when living
+		if (!living) {
+			bio +="was ";
+		}
+		else
+		{
+			bio +="is ";
+		}
+        bio += occupation + ". ";
     }
     for (let i = 0; i < partners.length; i++) {
         bio += "\n\n" + getGeniData(focus, "first_name");
-        if (getGeniData(partners[i], "status") !== "partner") {
+        if ((getGeniData(partners[i], "status") !== "partner") && (getGeniData(partners[i], "status") !== "ex_partner")) {
             bio += " trouwde ";
-        } else {
-            bio += " partner van "
+        } 
+		else {
+		  if (getGeniData(partners[i], "status") == "partner") {
+			bio += " partner van";
+		  }
+		  else {
+			bio += " ex-partner van ";
+		  }
         }
         bio += buildWikiLink(partners[i]);
         if (getGeniData(partners[i], "status") !== "partner") {
             if (getGeniData(partners[i], "marriage", "date") !== "") {
-                bio += dateFormat(getGeniData(partners[i], "marriage", "date"));
+                bio += dateFormatDutch(getGeniData(partners[i], "marriage", "date"));
             }
             if (getGeniData(partners[i], "marriage", "location") !== "") {
                 bio += " in " + getGeniData(partners[i], "marriage", "location")["formatted_location"];
             }
             if (getGeniData(partners[i], "divorce") !== "") {
-                bio += " en ze zijn gescheiden"
+                bio += " en ze zijn gescheiden";
                 if (getGeniData(partners[i], "divorce", "date") !== "") {
-                    bio += dateFormat(getGeniData(partners[i], "divorce", "date"));
+                    bio += dateFormatDutch(getGeniData(partners[i], "divorce", "date"));
                 }
                 if (getGeniData(partners[i], "divorce", "location") !== "") {
                     bio += " in " + getGeniData(partners[i], "divorce", "location")["formatted_location"];
@@ -729,6 +827,19 @@ function buildProfileDutch() {
             bio += ". ";
         }
     }
+	// there can be children even when no partner
+    if (partners.length == 0) {
+		var children = getChildren(focus);
+        if (children.length > 0) {
+            bio += "\nKind(eren):\n" + buildWikiLink(children[0]);
+            for (let x = 1; x < children.length; x++) {
+                bio += ";\n" + buildWikiLink(children[x]);
+            }
+            bio += ". ";
+        }
+    }
+		
+
     if (death !== "" || burial !== "") {
         bio += "\n\n";
         if (getGeniData(focus, "gender") === "male") {
@@ -740,9 +851,9 @@ function buildProfileDutch() {
         }
     }
     if (death !== "") {
-        bio += "overleden";
+        bio += "is overleden";
         if (exists(death.date)) {
-            bio += dateFormat(death.date);
+            bio += dateFormatDutch(death.date);
         }
         if (exists(death.location)) {
             bio += " in " + death.location.formatted_location;
@@ -763,10 +874,10 @@ function buildProfileDutch() {
         bio += "werd";
 
         if (exists(burial.date)) {
-            bio += dateFormat(burial.date);
+            bio += dateFormatDutch(burial.date);
         }
         if (exists(burial.location)) {
-            var burloc = burial.location.formatted_location;
+            var burloc = burial.location.formatted_location;	
             if (exists(death.location)) {
                 var deathloc = death.location.formatted_location;
                 if (deathloc === burloc) {
@@ -782,7 +893,8 @@ function buildProfileDutch() {
         }
         bio += ". ";
     }
-    bio += "\n----\n";
+	// added generated date
+    bio += "\n''(Biografie gegenereerd op " + current_date.format('DD-MM-YYYY') + ")''\n----\n";
     biography = bio;
 }
 
@@ -797,7 +909,7 @@ function buildProfileFinnish() {
     var death = getGeniData(focus, "death");
     var deathcause = getGeniData(focus, "cause_of_death");
     var burial = getGeniData(focus, "burial");
-    var occupation = getGeniData(focus, "occupation")
+    var occupation = getGeniData(focus, "occupation");
 
     if (birth !== "") {
         bio += "syntyi";
@@ -823,7 +935,7 @@ function buildProfileFinnish() {
             if (exists(birth.location)) {
                 var birthloc = birth.location.formatted_location;
                 if (birthloc === baploc) {
-                    bio += " siellä"
+                    bio += " siellä";
                 } else if (birthloc === baploc.replace(bap.location.place_name + ", ", "")) {
                     bio += ", " + bap.location.place_name;
                 } else {
@@ -870,7 +982,7 @@ function buildProfileFinnish() {
         if (getGeniData(partners[i], "status") !== "partner") {
             bio += " avioitui ";
         } else {
-            bio += " hänen kumppaninsa oli "
+            bio += " hänen kumppaninsa oli ";
         }
         bio += buildWikiLink(partners[i]);
         if (getGeniData(partners[i], "status") !== "partner") {
@@ -882,7 +994,7 @@ function buildProfileFinnish() {
                 bio += ", " + getGeniData(partners[i], "marriage", "location")["formatted_location"];
             }
             if (getGeniData(partners[i], "divorce") !== "") {
-                bio += " he erosivat"
+                bio += " he erosivat";
                 if (getGeniData(partners[i], "divorce", "date") !== "") {
                     bio += dateFormatFinnish(getGeniData(partners[i], "divorce", "date"));
                 }
@@ -980,7 +1092,7 @@ function buildConsistency() {
             genifocusdata = genifamilydata[publiclist[i]];
             let permissions = genifocusdata.get("actions");
             if (permissions.indexOf("update") !== -1) {
-                namelist.push(getGeniData(publiclist[i], "name"))
+                namelist.push(getGeniData(publiclist[i], "name"));
             }
         }
         if (namelist.length > 0) {
@@ -1060,7 +1172,7 @@ function partnerCheck(partners) {
         }
         if (husband_bdate + (spouse_age_dif * year) < wife_bdate || husband_bdate - (spouse_age_dif * year) > wife_bdate) {
             //Age different between partners is significant
-            consistencymessage = concat("warn") + "More than " + spouse_age_dif + " year age difference between " + buildEditLink(wife) + " and " +
+            consistencymessage = concat("warn") + _("More_than_") + spouse_age_dif + _("_year_age_difference_between_") + buildEditLink(wife) + _("_and_") +
                 getPronoun(getGeniData(wife, "gender")) + " " + getStatus(hstatus, getGeniData(husband, "gender")) + " " + buildEditLink(husband) + ".";
         }
         if (samenameoption && validName(getGeniData(wife, "maiden_name")) && getGeniData(wife, "maiden_name") === getGeniData(husband, "last_name")) {
@@ -1126,7 +1238,7 @@ function partnerCheck(partners) {
                                     wifefamily["focus"].maiden_name !== wifefather.last_name &&
                                     wifefamily["focus"].maiden_name !== wifefather.maiden_name &&
                                     fatherfirstcheck)) {
-                                consistencymessage = concat("info") + "Birth Surname of " + buildEditLink(wife) + " is the same as the last name of " +
+                                consistencymessage = concat("info") + _("Birth_Surname_of_") + buildEditLink(wife) + _("_is_the_same_as_the_last_name_of_") +
                                     getPronoun(getGeniData(wife, "gender")) + " " + getStatus(hstatus, getGeniData(husband, "gender")) + " " + buildEditLink(husband) + ".";
                             }
                         }
@@ -1137,18 +1249,18 @@ function partnerCheck(partners) {
         }
         if (isNaN(husband_ddate) && husband_ddate === wife_ddate) {
             //Husband and wife death dates the same
-            consistencymessage = concat("info") + "Death date of " + buildEditLink(husband) + " is the same as the death date of " +
+            consistencymessage = concat("info") + _("Death_date_of_") + buildEditLink(husband) + _("_is_the_same_as_the_death_date_of_") +
                 getPronoun(getGeniData(husband, "gender")) + " " + getStatus(wstatus, getGeniData(wife, "gender")) + " " + buildEditLink(wife) + ".";
         }
         if (isNaN(husband_ddate) && husband_ddate === union_mdate) {
             //Husband death date same as marriage date
-            consistencymessage = concat("info") + "Death date of " + buildEditLink(husband) + " is the same as " + getPronoun(getGeniData(husband, "gender")) +
-                " marriage date.";
+            consistencymessage = concat("info") + _("Death_date_of_") + buildEditLink(husband) + _("_is_the_same_as_") + getPronoun(getGeniData(husband, "gender")) +
+                _("_marriage_date") + ".";
         }
         if (isNaN(wife_ddate) && wife_ddate === union_mdate) {
             //Wife death date same as marriage date
-            consistencymessage = concat("info") + "Death date of " + buildEditLink(wife) + " is the same as " + getPronoun(getGeniData(wife, "gender")) +
-                " marriage date.";
+            consistencymessage = concat("info") + _("Death_date_of_") + buildEditLink(wife) + _("_is_the_same_as_") + getPronoun(getGeniData(wife, "gender")) +
+                _("_marriage date.");
         }
 
         for (let i = 0; i < partners.length; i++) {
@@ -1157,13 +1269,13 @@ function partnerCheck(partners) {
             var partner_mdate = unixDate(partners[i], "marriage");
             if (partner_bdate > partner_mdate) {
                 //Born after marriage
-                consistencymessage = concat("error") + buildEditLink(partners[i]) + " born after " + getPronoun(getGeniData(partners[i], "gender")) + " marriage date.";
+                consistencymessage = concat("error") + buildEditLink(partners[i]) + _("_born_after_") + getPronoun(getGeniData(partners[i], "gender")) + _("_marriage_date") + ".";
             } else if (partner_ddate < partner_mdate) {
                 //Died before marriage
-                consistencymessage = concat("error") + buildEditLink(partners[i]) + " died before " + getPronoun(getGeniData(partners[i], "gender")) + " marriage date.";
+                consistencymessage = concat("error") + buildEditLink(partners[i]) + _("_died_before_") + getPronoun(getGeniData(partners[i], "gender")) + _("_marriage_date") + ".";
             } else if (partner_bdate + (marriageage_young * year) > partner_mdate) {
                 //Implausible marriage age, too young
-                consistencymessage = concat("warn") + buildEditLink(partners[i]) + " is under " + marriageage_young + " years old for " + getPronoun(getGeniData(partners[i], "gender")) + " marriage.";
+                consistencymessage = concat("warn") + buildEditLink(partners[i]) + _("_is_under_") + marriageage_young + _("_years_old_for_") + getPronoun(getGeniData(partners[i], "gender")) + _("_marriage");
             }
         }
     }
@@ -1187,8 +1299,8 @@ function siblingCheck(siblings) {
                         //Exclude Twins - 48hrs to account birth going into a second day
                     } else {
                         //Siblings ages too close together
-                        consistencymessage = concat("warn") + "Birth date of " + buildEditLink(siblings[i]) + " and " + getPronoun(getGeniData(siblings[i], "gender")) +
-                            " " + siblingName(getGeniData(siblings[j], "gender")) + " " + buildEditLink(siblings[j]) + " are within " + termlimit + " months.";
+                        consistencymessage = concat("warn") + _("Birth_date_of_") + buildEditLink(siblings[i]) + _("_and_") + getPronoun(getGeniData(siblings[i], "gender")) +
+                            " " + siblingName(getGeniData(siblings[j], "gender")) + " " + buildEditLink(siblings[j]) + _("_are_within_") + termlimit + _("_months") + ".";
                     }
                 }
             }
@@ -1215,24 +1327,24 @@ function childCheck(parents, children) {
                 var sibling_bdate = unixDate(children[x], "birth");
                 if (sibling_bdate < parent_bdate) {
                     //Born before parent birth
-                    consistencymessage = concat("error") + buildEditLink(children[x]) + " born before the birth of " +
+                    consistencymessage = concat("error") + buildEditLink(children[x]) + _("_born_before_the_birth_of_") +
                         getPronoun(getGeniData(children[x], "gender")) + " " + parentName(getGeniData(parents[i], "gender")) + " " + buildEditLink(parents[i]) + ".";
                 } else if (sibling_bdate > adj_parent_ddate && !containsRange(children[x], "birth", parents[i], "death")) {
                     //Born after parent death
-                    consistencymessage = concat("error") + buildEditLink(children[x]) + " born after the death of " +
+                    consistencymessage = concat("error") + buildEditLink(children[x]) + _("_born_after_the_death_of_") +
                         getPronoun(getGeniData(children[x], "gender")) + " " + parentName(getGeniData(parents[i], "gender")) + " " + buildEditLink(parents[i]) + ".";
                 } else if (sibling_bdate < parent_bdate + (birthage_young * year) + pregnancy) {
                     //Parent too young for child's birth
-                    consistencymessage = concat("warn") + buildEditLink(parents[i]) + " is under " + birthage_young + " years old for the birth of " + getPronoun(getGeniData(parents[i], "gender")) +
+                    consistencymessage = concat("warn") + buildEditLink(parents[i]) + _("_is_under_") + birthage_young + _("_years_old_for_the_birth_of_") + getPronoun(getGeniData(parents[i], "gender")) +
                         " child " + buildEditLink(children[x]) + ".";
                 } else if (isFemale(getGeniData(parents[i], "gender")) && sibling_bdate > parent_bdate + (birthage_old * year)) {
                     //Mother too old for child's birth
-                    consistencymessage = concat("warn") + buildEditLink(parents[i]) + " is over " + birthage_old + " years old for the birth of " + getPronoun(getGeniData(parents[i], "gender")) +
+                    consistencymessage = concat("warn") + buildEditLink(parents[i]) + _("_is_over_") + birthage_old + _("_years_old_for_the_birth_of_") + getPronoun(getGeniData(parents[i], "gender")) +
                         " child " + buildEditLink(children[x]) + ".";
                 } else if (wedlock && i === wedcheck && sibling_bdate < parent_mdate && !containsRange(parents[i], "marriage", children[x], "birth")) {
                     //Born before parent marriage
-                    consistencymessage = concat("info") + buildEditLink(children[x]) + " born before the marriage of " +
-                        getPronoun(getGeniData(children[x], "gender")) + " parents " + buildEditLink(parents[0]) + " and " + buildEditLink(parents[1]) + ".";
+                    consistencymessage = concat("info") + buildEditLink(children[x]) + _("_born_before_the_marriage_of_") +
+                        getPronoun(getGeniData(children[x], "gender")) + _("_parents_") + buildEditLink(parents[0]) + _("_and_") + buildEditLink(parents[1]) + ".";
                 }
             }
         }
@@ -1257,7 +1369,7 @@ function selfCheck(familyset, children) {
             var person_burial = unixDate(person, "burial");
             var conflicts = getGeniData(person, "data_conflict");
             if (dataconflictoption && conflicts) {
-                consistencymessage = concat("info") + getGeniData(person, "name") + " has pending <a href='https://www.geni.com/merge/resolve/" + getGeniData(person, "guid") + "'>data conflicts</a>.";
+                consistencymessage = concat("info") + getGeniData(person, "name") + _("_has_pending_") + "<a href='https://www.geni.com/merge/resolve/" + getGeniData(person, "guid") + "'>"+_("data_conflicts")+"</a>.";
             }
             var private_bdate = person_bdate;
             if (isNaN(private_bdate) && !children) {
@@ -1274,23 +1386,23 @@ function selfCheck(familyset, children) {
             if (agecheckoption) {
                 if (person_bdate + longevity_error * year < person_ddate) {
                     //Excessive Age Error
-                    consistencymessage = concat("error") + "The age of " + buildEditLink(person) + " exceeds " + longevity_error + " years.";
+                    consistencymessage = concat("error") + _("The_age_of_") + buildEditLink(person) + _("_exceeds_") + longevity_error + _("_years") + ".";
                 } else if (person_bdate + longevity_warn * year < person_ddate) {
                     //Excessive Age Warning
-                    consistencymessage = concat("warn") + "The age of " + buildEditLink(person) + " exceeds " + longevity_warn + " years.";
+                    consistencymessage = concat("warn") + _("The_age_of_") + buildEditLink(person) + _("_exceeds_") + longevity_warn + _("_years") + ".";
                 }
                 if (person_bdate > person_ddate && !containsRange(person, "birth", person, "death")) {
                     //Born after death
-                    consistencymessage = concat("error") + "Birth date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " death date.";
+                    consistencymessage = concat("error") + _("Birth_date_of_") + buildEditLink(person) + _("_is_after_") + getPronoun(getGeniData(person, "gender")) + _("_death_date") + ".";
                 } else if (person_bapdate > person_ddate && !containsRange(person, "baptism", person, "death")) {
                     //Baptism after death
-                    consistencymessage = concat("error") + "Baptism date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " death date.";
+                    consistencymessage = concat("error") + _("Baptism_date_of_") + buildEditLink(person) + _("_is_after_") + getPronoun(getGeniData(person, "gender")) + _("_death_date") + ".";
                 } else if (person_bapdate < person_bdate && !containsRange(person, "birth", person, "baptism")) {
                     //Baptism before birth
-                    consistencymessage = concat("error") + "Baptism date of " + buildEditLink(person) + " is before " + getPronoun(getGeniData(person, "gender")) + " birth date.";
+                    consistencymessage = concat("error") + _("Baptism_date_of_") + buildEditLink(person) + _("_is_before_") + getPronoun(getGeniData(person, "gender")) + _("_birth_date")+".";
                 } else if (person_ddate > person_burial && !containsRange(person, "death", person, "burial")) {
                     //Death is after Burial
-                    consistencymessage = concat("error") + "Death date of " + buildEditLink(person) + " is after " + getPronoun(getGeniData(person, "gender")) + " burial date.";
+                    consistencymessage = concat("error") + _("Death_date_of_") + buildEditLink(person) + _("_is_after_") + getPronoun(getGeniData(person, "gender")) + _("_burial_date") + ".";
                 }
             }
 
@@ -1325,7 +1437,7 @@ function checkSpace(person, quickfix) {
             }
         }
         //Name contains double space
-        consistencymessage = concat("info") + buildEditLink(person) + " contains a double space in " +
+        consistencymessage = concat("info") + buildEditLink(person) + _("_contains_a_double_space_in_") +
             getPronoun(getGeniData(person, "gender")) + " name.";
         genifocusdata = genifamilydata[person];
         let permissions = genifocusdata.get("actions");
@@ -1353,8 +1465,8 @@ function checkSpace(person, quickfix) {
                             // skip first found language with any names as these have been handled above in default language name checks
                             var name = names[lang][namevalues[i]];
                             if (improperSapce(name)) {
-                                consistencymessage = concat("info") + buildEditLink(person) + " contains a double or trailing space in " +
-                                    getPronoun(getGeniData(person, "gender")) + " names (" + lang + ").";
+                                consistencymessage = concat("info") + buildEditLink(person) + _("_contains_a_double_or_trailing_space_in_") +
+                                    getPronoun(getGeniData(person, "gender")) + _("_names")+" (" + lang + ").";
                                 break;
                             }
                         }
@@ -1379,8 +1491,8 @@ function checkAlias(person, quickfix) {
                         firstName.split("'").length > 2) {
 
                         // Name contains alias
-                        consistencymessage = concat("info") + buildEditLink(person) + " contains an alias in " +
-                            getPronoun(getGeniData(person, "gender")) + " first name (" + lang + ").";
+                        consistencymessage = concat("info") + buildEditLink(person) + _("_contains_an_alias_in_") +
+                            getPronoun(getGeniData(person, "gender")) + " " + _("first_name") +" (" + lang + ").";
                     }
                 }
             }
@@ -1390,8 +1502,8 @@ function checkAlias(person, quickfix) {
         getGeniData(person, "first_name").split("'").length > 2) {
 
         //Name contains alias
-        consistencymessage = concat("info") + buildEditLink(person) + " contains an alias in " + getPronoun(getGeniData(person, "gender")) +
-            " first name.";
+        consistencymessage = concat("info") + buildEditLink(person) + _("_contains_an_alias_in_") + getPronoun(getGeniData(person, "gender")) +
+            " "+ _("first_name") + ".";
     }
 }
 
@@ -1446,8 +1558,8 @@ function checkSuffixInFirstName(person, quickfix) {
     var fnamesplit = getGeniData(person, "first_name").split(" ");
     if (fnamesplit.length > 1 && NameParse.is_suffix(fnamesplit[fnamesplit.length - 1]) && getGeniData(person, "suffix") === "") {
         //First Name contain suffix
-        consistencymessage = concat("info") + buildEditLink(person) + " appears to contain a suffix in " +
-            getPronoun(getGeniData(person, "gender")) + " first name.";
+        consistencymessage = concat("info") + buildEditLink(person) + _("_appears_to_contain_a_suffix_in_") +
+            getPronoun(getGeniData(person, "gender")) + _("_first_name") + ".";
         genifocusdata = genifamilydata[person];
         let permissions = genifocusdata.get("actions");
         if (permissions.indexOf("update-basics") !== -1) {
@@ -1468,8 +1580,8 @@ function checkTitle(person, quickfix) {
         let permissions = genifocusdata.get("actions");
         if (title === "mr" || title === "mrs" || title === "miss" || title === "ms") {
             // Salutation in title
-            consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in " +
-                getPronoun(getGeniData(person, "gender")) + " title.";
+            consistencymessage = concat("info") + buildEditLink(person) + _("contains_improper_use_of_salutation_in_") +
+                getPronoun(getGeniData(person, "gender")) + _("_title") + ".";
 
             if (permissions.indexOf("update-basics") !== -1) {
                 if (quickfix) {
@@ -1481,8 +1593,8 @@ function checkTitle(person, quickfix) {
             }
         } else if (isChild(title) || isPartner(title) || isParent(title) || title === "grandmother" || title === "grandfather") {
             // Relationship in title
-            consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of relationship in " +
-                getPronoun(getGeniData(person, "gender")) + " title.";
+            consistencymessage = concat("info") + buildEditLink(person) + _("_contains_improper_use_of_relationship_in_") +
+                getPronoun(getGeniData(person, "gender")) + _("_title") + ".";
             if (permissions.indexOf("update-basics") !== -1) {
                 if (quickfix) {
                     consistencymessage += "<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='cleartitle" +
@@ -1500,8 +1612,8 @@ function checkMaidenName(person, quickfix) {
             parseInt(getGeniData(person, "maiden_name")) > 5)) {
 
         //Numbering scheme
-        consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of a numbering scheme in " +
-            getPronoun(getGeniData(person, "gender")) + " birth surname.";
+        consistencymessage = concat("info") + buildEditLink(person) + _("_contains_improper_use_of_a_numbering_scheme_in_") +
+            getPronoun(getGeniData(person, "gender")) + _("_birth_surname.");
         genifocusdata = genifamilydata[person];
         let permissions = genifocusdata.get("actions");
         if (permissions.indexOf("update-basics") !== -1) {
@@ -1523,8 +1635,8 @@ function checkSuffix(person, quickfix) {
         let permissions = genifocusdata.get("actions");
         if (suffix === "mr" || suffix === "mrs" || suffix === "miss" || suffix === "ms") {
             //Salutation in suffix
-            consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of salutation in " +
-                getPronoun(getGeniData(person, "gender")) + " suffix.";
+            consistencymessage = concat("info") + buildEditLink(person) + _("_contains_improper_use_of_salutation_in_") +
+                getPronoun(getGeniData(person, "gender")) + _("_suffix.");
             if (permissions.indexOf("update-basics") !== -1) {
                 if (quickfix) {
                     consistencymessage += "<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix" +
@@ -1535,8 +1647,8 @@ function checkSuffix(person, quickfix) {
             }
         } else if (suffix.startsWith("#") || (!isNaN(suffix) && suffix > 5)) {
             //Numbering scheme
-            consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of a numbering scheme in " +
-                getPronoun(getGeniData(person, "gender")) + " suffix.";
+            consistencymessage = concat("info") + buildEditLink(person) + _("_contains_improper_use_of_a_numbering_scheme_in_") +
+                getPronoun(getGeniData(person, "gender")) + _("_suffix.");
             if (permissions.indexOf("update-basics") !== -1) {
                 if (quickfix) {
                     consistencymessage += "<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix" +
@@ -1547,8 +1659,8 @@ function checkSuffix(person, quickfix) {
             }
         } else if (isChild(suffix) || isPartner(suffix) || isParent(suffix) || suffix === "grandmother" || suffix === "grandfather") {
             //Relationship in suffix
-            consistencymessage = concat("info") + buildEditLink(person) + " contains improper use of relationship in " +
-                getPronoun(getGeniData(person, "gender")) + " suffix.";
+            consistencymessage = concat("info") + buildEditLink(person) + _("_contains_improper_use_of_relationship_in_") +
+                getPronoun(getGeniData(person, "gender")) + _("_suffix.");
             if (permissions.indexOf("update-basics") !== -1) {
                 if (quickfix) {
                     consistencymessage += "<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='clearsuffix" +
@@ -1575,7 +1687,7 @@ function relationshipCheck(group1, group2) {
             for (let x = 0; x < group2.length; x++) {
                 if (group1[i] === group2[x]) {
                     //relationship cycle within immediate family
-                    consistencymessage = concat("warn") + buildEditLink(group1[i]) + " is in a relationship cycle within the immediate family.";
+                    consistencymessage = concat("warn") + buildEditLink(group1[i]) + _("_is_in_a_relationship_cycle_within_the_immediate_family") + ".";
                 }
             }
         }
@@ -1587,26 +1699,26 @@ function checkDate(person, type) {
         var obj = getGeniData(person, type, "date");
         if (exists(obj.month) && parseInt(obj.month) > 12) {
             //Month greater than 12
-            consistencymessage = concat("error") + buildEditLink(person) + " contains an invalid " + type + " date, month greater than 12.";
+            consistencymessage = concat("error") + buildEditLink(person) + _("_contains_an_invalid_") + type + _("_date_month_greater_than_12");
         } else if (exists(obj.day) && parseInt(obj.day) > 31) {
             //Day greater than 31
-            consistencymessage = concat("error") + buildEditLink(person) + " contains an invalid " + type + " date, day greater than 31.";
+            consistencymessage = concat("error") + buildEditLink(person) + _("_contains_an_invalid_") + type + _("_date_day_greater_than_31");
         } else if (exists(obj.formatted_date) && obj.formatted_date.contains("error")) {
             //Geni error in Date
-            consistencymessage = concat("error") + buildEditLink(person) + " contains an invalid " + type + " date.";
+            consistencymessage = concat("error") + buildEditLink(person) + _("_contains_an_invalid_") + type + _("_date")+".";
         } else if (exists(obj.year) && exists(obj.day) && !exists(obj.month)) {
             //Year and Day without Month
-            consistencymessage = concat("info") + buildEditLink(person) + " contains an incomplete " + type + " date, missing month.";
+            consistencymessage = concat("info") + buildEditLink(person) + _("_contains_an_incomplete_") + type + _("_date_missing_month");
         } else if (!exists(obj.year) && (exists(obj.month) || exists(obj.day))) {
             //Month or Day without any year
-            consistencymessage = concat("info") + buildEditLink(person) + " contains an incomplete " + type + " date, missing year.";
+            consistencymessage = concat("info") + buildEditLink(person) + _("_contains_an_incomplete_") + type + _("_date_missing_year");
         }
     }
     if (selfcheckoption && locationcheckoption) {
         var obj = getGeniData(person, type, "location");
         if (obj !== "" && !exists(obj.place_name) && !exists(obj.country)) {
             //Location with no country
-            consistencymessage = concat("info") + buildEditLink(person) + " contains a " + type + " location without a country.";
+            consistencymessage = concat("info") + buildEditLink(person) + _("_contains_a_") + type + _("_location_without_a_country") + ".";
         }
     }
 }
@@ -1840,46 +1952,46 @@ function displayCheck(visible) {
 
 function getPronoun(gender) {
     if (isFemale(gender)) {
-        return "her";
+        return _("her");
     } else if (isMale(gender)) {
-        return "his";
+        return _("his");
     } else {
-        return "their";
+        return _("their");
     }
 }
 
 function parentName(gender) {
     if (isFemale(gender)) {
-        return "mother";
+        return _("mother");
     } else if (isMale(gender)) {
-        return "father";
+        return _("father");
     } else {
-        return "parent";
+        return _("parent");
     }
 }
 
 function siblingName(gender) {
     if (isFemale(gender)) {
-        return "sister";
+        return _("sister");
     } else if (isMale(gender)) {
-        return "brother";
+        return _("brother");
     } else {
-        return "sibling";
+        return _("sibling");
     }
 }
 
 function getStatus(relation, gender) {
-    if (relation === "partner") {
+    if (relation === _("partner")) {
         return relation;
-    } else if (relation === "mother") {
-        return "wife";
-    } else if (relation === "father") {
-        return "husband";
+    } else if (relation === _("mother")) {
+        return _("wife");
+    } else if (relation === _("father")) {
+        return _("husband");
     } else {
         if (isFemale(gender)) {
-            return "wife";
+            return _("wife");
         } else if (isMale(gender)) {
-            return "husband";
+            return _("husband");
         } else {
             return relation;
         }
@@ -1900,7 +2012,7 @@ function getSettings() {
         if (result.accountinfo !== undefined) {
             accountinfo = result.accountinfo;
         }
-    })
+    });
     chrome.storage.local.get('dataconflict', function (result) {
         if (result.dataconflict !== undefined) {
             dataconflictoption = result.dataconflict;
@@ -2055,7 +2167,7 @@ function getSettings() {
             });
         }
         //Save as last option setting as it delays content execution
-        getsettingsdone = true
+        getsettingsdone = true;
     });
 }
 

@@ -1,7 +1,7 @@
 //Development Global Variables
 var devblocksend = false; //Blocks the sending data to Geni, prints output to console instead
 var locationtest = false; //Verbose parsing of location data
-var verboselogs = true;
+var verboselogs = false;
 
 //Common Global Variables
 var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true;
@@ -1045,9 +1045,9 @@ var submitform = function () {
                         }
                     }
                     if (exists(refurl)) {
-                        profileout["about_me"] = about + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                        profileout["about_me"] = about + "* Update with: [" + encodeURI(refurl) + " " + recordtype + "] - [https://github.com/pquenee/SmartCopy SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                     } else {
-                        profileout["about_me"] = about + "* Reference: " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                        profileout["about_me"] = about + "* Reference: " + recordtype + " - [https://github.com/pquenee/SmartCopy SmartCopy]: ''" + moment.utc().format("DD MMM YYYY, H:mm:ss") + " UTC''\n";
                     }
                     
                 } else {
@@ -1123,9 +1123,9 @@ var submitform = function () {
                                 focusprofileurl = "https://www.geni.com/" + focusid;
                             }
                             if (exists(fdata.url)) {
-                                about = about + "* Reference: [" + encodeURI(fdata.url) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                                about = about + "* Create with: [" + encodeURI(fdata.url) + " " + recordtype + "] - [https://github.com/pquenee/SmartCopy SmartCopy]: ''" + moment.utc().format("DD MMM YYYY, H:mm:ss") + " UTC''\n";
                             } else {
-                                about = about + "* Reference: " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                                about = about + "* Reference: " + recordtype + " - [https://github.com/pquenee/SmartCopy SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                             }
                             
                         }
@@ -1345,6 +1345,7 @@ function buildTree(data, action, sendid) {
                 submitstatus.pop();
             });
         } else {
+            //console.log("Envoi rqv3 add-photo",data,posturl);
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",

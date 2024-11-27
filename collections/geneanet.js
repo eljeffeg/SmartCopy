@@ -1,3 +1,4 @@
+var verboselogs = false;
 registerCollection({
     "reload": false,
     "experimental": true,
@@ -25,12 +26,20 @@ registerCollection({
     "loadPage": function(request) {
         var parsed = $(request.source.replace(/<img /ig, "<track "));
         var nameTab = parsed.find(".with_tabs.name");
-        focusname = nameTab.find("a:not(:has(track))").first().text() + " " + sepgeneanet +" " + nameTab.find("a:not(:has(track))").first().next().text();
+        focusname = nameTab.find("a:not(:has(track))").first().text() + " " + sepgeneanet +" " + 
+        departicule(nameTab.find("a:not(:has(track))").first().next().text());
+        if (verboselogs) {
+          console.log("FocusName   : ",focusname);
+         }
         if (focusname.trim() === sepgeneanet) {
          var nameTab = parsed.find("em[style=\"font-size:14px\"]");
-      //console.log("nameTab   : ",nameTab);
+         if (verboselogs) {
+          console.log("nameTab2   : ",nameTab);
+         }
      	 focusname=nameTab.find("a:not(:has(track))").first().text() + " " + sepgeneanet +" " + nameTab.find("a:not(:has(track))").first().next().text();
-      //console.log("focusname   : ",focusname);
+        if (verboselogs) {
+       console.log("focusname   : ",focusname);
+        }
   }
     },
     "parseProfileData": parseGeneanet
@@ -79,14 +88,18 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
   }
   var aboutdata = "";
    var givenName = nameTab.find("a:not(:has(track))").first().text();
-  //console.log("Given name1  :",givenName);
+   if (verboselogs) {
+    console.log("Given name1  :",givenName);
+   }
   givenName = givenName.replace(/\!/g,"");
   givenName = givenName.replace(/\*/g,"");
   givenName = givenName.replace(/\"/g,"");
   givenName = givenName.replace(/\./g,"");
-  //console.log("Given name2  :",givenName);
-  var familyName = nameTab.find("a:not(:has(track))").first().next().text();
-   //console.log("Family name  :",familyName);
+  if (verboselogs) {
+    console.log("Given name2  :",givenName);
+  }
+  var familyName = departicule(nameTab.find("a:not(:has(track))").first().next().text());
+  
 //   on intercale  un séparateur  - un ou plusieurs caractères  - pour servir de marqueur entre les prénoms et le nom éventuellement composé (firstname et lastname)
 //  var focusperson = givenName + " · " + familyName;
   var focusperson = givenName + " " + sepgeneanet + " " + familyName;
@@ -96,17 +109,29 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
    var nameTab = parsed.find("em[style=\"font-size:14px\"]");
       //console.log("nameTabP   : ",nameTab);
      	 focusperson=nameTab.find("a:not(:has(track))").first().text() + " " + sepgeneanet +" " + nameTab.find("a:not(:has(track))").first().next().text();
-      //console.log("focusperson   : ",focusperson);
+        if (verboselogs) {
+      console.log("focusperson   : ",focusperson);
+        }
   }
 
   $("#readstatus").html(escapeHtml(focusperson));
 
   var profiledata = {name: focusperson, gender: genderval, status: relation.title};
 
-  var img = $(nameTab).closest("table").prev().find("track").attr("src");
-  if (exists(img)) {
+   var img = $(nameTab).closest("table").prev().find("track").attr("src");
+ 
+  /*La référence photo du profil est local (//gw... ) les références aux profils familiaux sont normaux (https://gw...)
+  The photo reference of the profile is local (//gw...) the references to family profiles are normal (https://gw...)
+  */
+   if (exists(img)) {
+    if(img.substring(0, 2) == "//"){
+    img = "https:" + img ;
+  }
       profiledata["thumb"] = img;
       profiledata["image"] = img.replace("/medium", "/normal");
+      if (verboselogs) {
+        console.log("IMG :",img);
+      }
   }
 
   fullBirth = parsed.find("ul li:contains('Born ')");
@@ -159,9 +184,13 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
     var parents = $(parsed).find('h2:has(span:contains("Parents")) + ul li');
     // traite le cas du format "Parents photo"
     if (parents.length === 0) {
-    //console.log("Parsed   :" + $(parsed));
+      if (verboselogs) {
+      console.log("Parsed   :" + $(parsed));
+      }
     parents = $(parsed).find('h2:has(span:contains("Parents")) + div div div table td ul li');
-    //console.log("Parents  :" + parents);
+    if (verboselogs) {
+      console.log("Parents  :" + parents);
+    }
     }
     
     if (exists(parents[0])) {
@@ -258,6 +287,16 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
   return profiledata;
 }
 
+// Cas des particules honteuses (de)
+function departicule(nomStr){
+if (nomStr.match(/\(de\)/gi)){
+  nomStr = "de " + nomStr.replace("(de)", '') ;
+}
+if (verboselogs) {
+  console.log("Nom reconfiguré  :",nomStr);
+}
+return nomStr;
+}
 function parseGeneanetDate(vitalstring, type) {
   vitalstring = vitalstring.replace(/,$/, "").trim();
   vitalstring = vitalstring.replace(/possibly/, "").trim(); // TODO synonyme about

@@ -197,11 +197,13 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
     }
 
     // ---------------------- Family Data --------------------
-
-    for(var i = 0; i < personFacts.ResearchFamily.Children.length; i++) {
-        var child = personFacts.ResearchFamily.Children[i];
-        if (familymembers && exists (child.ClickUrl)) {
-            await getAncestryNewTreeFamily(famid++, child.Id, child.FullName.trim(), "child", child.ClickUrl);
+    for(var x = 0; x < personFacts.ResearchFamily.Children.length; x++) {
+        var children = personFacts.ResearchFamily.Children[x];
+        for(var i = 0; i < children.length; i++) {
+            var child = children[i]
+            if (familymembers && exists (child.ClickUrl)) {
+                await getAncestryNewTreeFamily(famid++, child.Id, child.FullName.trim(), "child", child.ClickUrl);
+            }
         }
     }
     for(var i = 0; i < personFacts.ResearchFamily.HalfSiblings.length; i++) {

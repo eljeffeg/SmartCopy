@@ -1287,8 +1287,7 @@ function buildTree(data, action, sendid) {
                 variable: {id: id, relation: action.replace("add-", ""), data: data}
             }, function (response) {
                 try {
-                    if (response) {
-                    var result = JSON.parse(response.source);
+                    var result = typeof response.source == 'string' ? JSON.parse(response.source) : response.source;
                     if (verboselogs) {
                         console.log("Geni Response: " + response.source);
                     }
@@ -1296,7 +1295,6 @@ function buildTree(data, action, sendid) {
                         noerror = false;
                         updateMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + 'Error Response: "' + result.error.message + '"');
                     }
-                 }
                 } catch (e) {
                     noerror = false;
                     var extrainfo = "";

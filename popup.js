@@ -550,16 +550,22 @@ function loadPage(request) {
 }
 
 function loadSelectPage(request) {
+    var SmartCopy_was_unable = traduction("SmartCopy_was_unable_to_determine_the_Geni_profile","SmartCopy was unable to determine the Geni profile");
+    var Set_Geni_Destination_Profile = traduction("Set_Geni_Destination_Profile","Set Geni Destination Profile");
+    var Relatives = traduction("Relatives","Relatives");
+    var Set_Destination = traduction("Set_Destination","Set Destination");
+    var History_Text = traduction("History","History");
+    //var Relatives = 
     //document.getElementById("smartcopy-container").style.display = "none";
     document.getElementById("loading").style.display = "none";
-    setMessage(infomsg, 'SmartCopy was unable to determine the Geni profile to use as a copy destination.<br/><br/>' +
-        '<strong><span id="changetext" title="Select the profile on Geni that matches the focus person on this page.">Set Geni Destination Profile</span></strong>' +
-        '<table style="width: 100%;"><tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong><span id="optionrel" style="display: none;">Relatives &&nbsp;</span><span id="optionsc">SmartCopy&nbsp;</span>History:</strong></td></tr>' +
+    setMessage(infomsg, SmartCopy_was_unable +'<br/><br/>' +
+        '<strong><span id="changetext" title="Select the profile on Geni that matches the focus person on this page.">' + Set_Geni_Destination_Profile + '</span></strong>' +
+        '<table style="width: 100%;"><tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong><span id="optionrel" style="display: none;">'+ Relatives + '&&nbsp;</span><span id="optionsc">SmartCopy&nbsp;</span>'+History_Text+'</strong></td></tr>' +
         '<tr id="optionrowldr"><td colspan="2" style="width: 100%; text-align: left; font-size: 90%; padding-left: 20px;">Loading Geni Relatives <img src="images/spinnerlg.gif" style="height: 16px; margin-bottom: -4px;"></td></tr>' +
         '<tr id="optionrow" style="display: none;"><td id="focusoption" style="width: 100%; text-align: left;"></td></tr>' +
         '<tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong>Geni ID or URL:</strong></td></tr>' +
         '<tr><td style="padding-right: 5px;"><input type="text" style="width: 100%;" id="changeprofile"></td></tr>' +
-        '<tr><td style="padding-top: 5px;"><button id="changefocus">Set Destination</button></td></tr></table>');
+        '<tr><td style="padding-top: 5px;"><button id="changefocus">'+Set_Destination+'</button></td></tr></table>');
     var parsed = $('<div>').html(JSON.stringify(request).replace(/<img[^>]*>/ig, ""));
     var focusperson = parsed.find(".individualInformationName").text().trim();
     if (focusperson == "<Private>") {
@@ -597,8 +603,9 @@ function loadSelectPage(request) {
             profilechanged = true;
             loadPage(request);
         } else {
+            var Invalid_Profile = chrome.i18n.getMessage("Invalid_Profile");
             var invalidtext = $("#changetext")[0];
-            $(invalidtext).text("Invalid Profile Id - Try Again");
+            $(invalidtext).text(Invalid_Profile);
             invalidtext.style.color = 'red';
         }
     }
@@ -644,7 +651,8 @@ function loadSelectPage(request) {
             $($('#focusoption')[0]).html(selectsrt);
         });
     } else {
-        var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select from History</option>';
+        var Select_from_History = chrome.i18n.getMessage("Select_from_History");
+        var selectsrt = '<select id="focusselect" style="width: 100%;"><option>'+ Select_from_History +'</option>';
         selectsrt += buildHistorySelect();
         selectsrt += '</select>';
         $('#optionrowldr').css("display", "none");
@@ -956,13 +964,15 @@ $(function () {
 
 var showhistorycheck = true;
 $(function () {
+    var show_history = traduction("Show_History","Show History");
+    var hide_history = traduction("Hide_History","Hide History");
     $('#showhistory').on('click', function () {
         $('#historybox').slideToggle();
         showhistorycheck = !showhistorycheck;
         if (showhistorycheck) {
-            $('#showhistory').text("Show History");
+            $('#showhistory').text(show_history);
         } else {
-            $('#showhistory').text("Hide History");
+            $('#showhistory').text(hide_history);
         }
     });
 });
@@ -1606,11 +1616,17 @@ function submitWait() {
         } else {
             focusprofileurl = "https://www.geni.com/" + focusid;
         }
-        $("#updating").html('<div style="text-align: center; font-size: 110%;"><strong>Geni Tree Updated</strong></div>' +
-            '<div style="text-align: center; padding:5px; color: #a75ccd">Reminder: Please review for duplicates<br>and merge when able.</div>' +
-            '<div style="text-align: center; padding:5px;"><b>View Profile:</b> ' +
-            '<a href="https://www.geni.com/family-tree/index/' + focusid.replace("profile-g", "") + '" target="_blank">tree view</a>, ' +
-            '<a href="' + focusprofileurl + '" target="_blank">profile view</a></div>');
+        var Geni_Tree_Updated = traduction("Geni_Tree_Updated","Geni Tree Updated");
+        var Reminder_Duplicate = traduction("Reminder_Duplicate","Reminder: Please review for duplicates<br>and merge when able.");
+        var View_Profile = traduction("View_Profile","View Profile:");
+        var Tree_View = traduction("Tree_View","tree view");
+        var View_Profil = traduction("View_Profil","profile view");
+
+        $("#updating").html('<div style="text-align: center; font-size: 110%;"><strong>'+Geni_Tree_Updated+'</strong></div>' +
+            '<div style="text-align: center; padding:5px; color: #a75ccd">'+Reminder_Duplicate+'</div>' +
+            '<div style="text-align: center; padding:5px;"><b>'+View_Profile+' </b> ' +
+            '<a href="https://www.geni.com/family-tree/index/' + focusid.replace("profile-g", "") + '" target="_blank">'+Tree_View+'</a>, ' +
+            '<a href="' + focusprofileurl + '" target="_blank">'+View_Profil+'</a></div>');
         if (noerror) {
             document.getElementById("message").style.display = "none";
             $('#updating').css('margin-bottom', "15px");
@@ -2762,3 +2778,11 @@ chrome.storage.local.get('addphoto', function (result) {
         $('#photoonoffswitch').prop('checked', addphotochecked);
     }
 });
+function traduction(cle,defaut){
+    var rep ="";
+if (rep =chrome.i18n.getMessage(cle)){
+    return rep;
+}else{
+    return defaut
+}
+}

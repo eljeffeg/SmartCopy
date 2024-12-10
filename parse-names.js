@@ -180,7 +180,8 @@ var NameParse = (function(){
                 var checkmiddle = firstName.trim().split(" ");
                 if ((middleName.trim() === "") && (checkmiddle.length > 1)) {
                     middleName = checkmiddle.pop();
-                    while (checkmiddle.length > 2) {
+                   // initialement à 2
+                    while (checkmiddle.length > 1) {
                         middleName = checkmiddle.pop() + " " + middleName;
                     }
                     firstName = checkmiddle.join(" ");
@@ -273,7 +274,7 @@ var NameParse = (function(){
        firstName = firstName.replace(/\*/g,"");
        firstName = firstName.replace(/\./g,"");
        firstName = firstName.replace(/\!/g,"");
-      // console.log("Data2 :",firstName);
+       
         if (sepgeneanet !== "") {
               	if (firstName.trim() === "Marie" || firstName.trim() === "Jean") {
         		if (middleName.trim() !=="Joseph") {

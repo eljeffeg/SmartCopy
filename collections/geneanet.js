@@ -26,21 +26,48 @@ registerCollection({
     "loadPage": function(request) {
         var parsed = $(request.source.replace(/<img /ig, "<track "));
         var nameTab = parsed.find(".with_tabs.name");
-        focusname = nameTab.find("a:not(:has(track))").first().text() + " " + sepgeneanet +" " + 
-        departicule(nameTab.find("a:not(:has(track))").first().next().text());
-        if (verboselogs) {
+       // var genderval = "unknown";
+        var genderImg = nameTab.find("track").first();
+        var focusfirstName = nameTab.find("a:not(:has(track))").first().text();
+        var focuslastName = departicule(nameTab.find("a:not(:has(track))").first().next().text());
+          if(focuslastName+focuslastName ==""){
+            nameTab = parsed.find("em[style=\"font-size:14px\"]");
+            focusfirstName = nameTab.find("a:not(:has(track))").first().text();
+            focuslastName = departicule(nameTab.find("a:not(:has(track))").first().next().text());
+          }
+         if (genderImg.attr("title") === "M") {
+          focusname = focusfirstName + " " + sepgeneanet +" " + focuslastName;
+              // genderval = "male";
+          } else if (genderImg.attr("title") === "F") {
+// Retrouver un nom marital (le premier qui se présente)
+            var spouses = $(parsed).find('h2:has(span:contains("Spouses")) + ul.fiche_union > li');
+            var nomMaris = $(spouses[0]).find("a:not(:has(track))").first().text().split(' ');
+            var Nommarital ="";
+             if (exists(nomMaris)) {
+                Nommarital = nomMaris[nomMaris.length-1];
+           // console.log("Nommarital ",nomMaris,Nommarital);
+             focusname = focusfirstName + " " + sepgeneanet +" " + Nommarital  + " (" +
+              focuslastName+")";
+            } else {
+              focusname = focusfirstName + " " + sepgeneanet +" " + focuslastName;
+            }
+          }
+         if (verboselogs) {
           console.log("FocusName   : ",focusname);
          }
-        if (focusname.trim() === sepgeneanet) {
+ /*       if (focusname.trim() === sepgeneanet) {
          var nameTab = parsed.find("em[style=\"font-size:14px\"]");
          if (verboselogs) {
           console.log("nameTab2   : ",nameTab);
          }
      	 focusname=nameTab.find("a:not(:has(track))").first().text() + " " + sepgeneanet +" " + nameTab.find("a:not(:has(track))").first().next().text();
+       
+          }
+*/
         if (verboselogs) {
        console.log("focusname   : ",focusname);
         }
-  }
+  
     },
     "parseProfileData": parseGeneanet
 });
@@ -72,7 +99,6 @@ if(exists(tmr[0])) {
 function parseGeneanet1(htmlstring, familymembers, relation) {
   relation = relation || "";
   var parsed = $(htmlstring.replace(/<img /ig,"<track "));
-
   var nameTab = parsed.find(".with_tabs.name");
   var genderval = "unknown";
   var genderImg = nameTab.find("track").first();
@@ -88,22 +114,35 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
   }
   var aboutdata = "";
    var givenName = nameTab.find("a:not(:has(track))").first().text();
-   if (verboselogs) {
-    console.log("Given name1  :",givenName);
-   }
-  givenName = givenName.replace(/\!/g,"");
-  givenName = givenName.replace(/\*/g,"");
-  givenName = givenName.replace(/\"/g,"");
-  givenName = givenName.replace(/\./g,"");
-  if (verboselogs) {
-    console.log("Given name2  :",givenName);
-  }
+   cleanName(givenName);
   var familyName = departicule(nameTab.find("a:not(:has(track))").first().next().text());
+  //console.log("Noms vides  ?:",(givenName+familyName));
+  if ((givenName+familyName) ===""){
+ 
+    var nameTab = parsed.find("em[style=\"font-size:14px\"]");
+    givenName = nameTab.find("a:not(:has(track))").first().text();
+    familyName = departicule(nameTab.find("a:not(:has(track))").first().next().text());
+  }
+  var focusperson = "";
+  var Nommarital = "";
+  if (genderval == "female") {
+    var spouses = $(parsed).find('h2:has(span:contains("Spouses")) + ul.fiche_union > li');
+    var nomMaris = $(spouses[0]).find("a:not(:has(track))").first().text().split(' ');
+    //console.log("Female ",spouses,nomMaris);
+    if (exists(nomMaris)) {
+      Nommarital = departicule(nomMaris[nomMaris.length-1]);
+      focusperson = givenName + " " + sepgeneanet + " " + Nommarital +" ("+ familyName +")";
+    } else {
+      focusperson = givenName + " " + sepgeneanet + " " + familyName;
+    }
+  } else {
+    focusperson = givenName + " " + sepgeneanet + " " + familyName;
+    }
   
 //   on intercale  un séparateur  - un ou plusieurs caractères  - pour servir de marqueur entre les prénoms et le nom éventuellement composé (firstname et lastname)
 //  var focusperson = givenName + " · " + familyName;
-  var focusperson = givenName + " " + sepgeneanet + " " + familyName;
-  if (focusperson.trim() === sepgeneanet) {
+//  var focusperson = givenName + " " + sepgeneanet + " " + familyName;
+ /* if (focusperson.trim() === sepgeneanet) {
    //   $(nameTab).html($(nameTab).html().replace("<em>", '"').replace("<\/em>", '"'));
    //   focusperson = $(nameTab).text().trim();
    var nameTab = parsed.find("em[style=\"font-size:14px\"]");
@@ -113,7 +152,8 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
       console.log("focusperson   : ",focusperson);
         }
   }
-
+*/
+        
   $("#readstatus").html(escapeHtml(focusperson));
 
   var profiledata = {name: focusperson, gender: genderval, status: relation.title};
@@ -287,13 +327,17 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
   return profiledata;
 }
 
-// Cas des particules honteuses (de)
+// Cas des particules honteuses (de) et des indications entre parentheses
 function departicule(nomStr){
 if (nomStr.match(/\(de\)/gi)){
   nomStr = "de " + nomStr.replace("(de)", '') ;
 }
+// enleve les parenthese [(|)]/g
+// enleve toute indication entre parenthese
+const regex = /\(.*?\)/g ;
+nomStr = nomStr.replace(regex,"");
 if (verboselogs) {
-  console.log("Nom reconfiguré  :",nomStr);
+  
 }
 return nomStr;
 }
@@ -351,8 +395,10 @@ function parseGeneanetDate(vitalstring, type) {
       }
       console.log ("date georgien : ",dateval);
     }
+
     if (dateval.startsWith("in ")) {
-      momentval = moment(dateval.replace("in ", ""), "YYYY", true);
+     
+      momentval = moment(dateval.match((/\d{4,}/)), "YYYY", true);
       date_format = "YYYY";
     } else {
     // Ancien format obsolete modif quenee
@@ -397,7 +443,7 @@ function processGeneanetFamily(person, title, famid) {
     }
     var nameTab = $(person).find("a:not(:has(track))").first();
     $(nameTab).html($(nameTab).html().replace("<em>", '"').replace("<\/em>", '"'));
-    var name =  $(nameTab).text();
+    var name =  departicule($(nameTab).text());
     var itemid = getGeneanetItemId(url);
     if (isParent(title)) {
       parentlist.push(itemid);
@@ -467,4 +513,17 @@ function getGeneanetItemId(url) {
     } else {
         return "";
     }
+}
+function cleanName(givenName){
+  if (verboselogs) {
+    //console.log("Given name1  :",givenName);
+   }
+  givenName = givenName.replace(/\!/g,"");
+  givenName = givenName.replace(/\*/g,"");
+  givenName = givenName.replace(/\"/g,"");
+  givenName = givenName.replace(/\./g,"");
+  if (verboselogs) {
+    //console.log("Given name2  :",givenName);
+  }
+  return givenName;
 }

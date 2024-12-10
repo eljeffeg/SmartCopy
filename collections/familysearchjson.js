@@ -95,6 +95,9 @@ registerCollection({
 function parseFamilySearchJSON(htmlstring, familymembers, relation) {
     relation = relation || "";
     var parsed = null;
+    //console.log("htmlstring  :",htmlstring,familymembers,relation.title);
+    // No partner
+    if(!(htmlstring =="" && relation.title == "spouse" )) {
     try {
         var parsed = JSON.parse(htmlstring);
     } catch(err) {
@@ -104,7 +107,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
         setMessage(errormsg, 'SmartCopy was unable to retrieve the FamilySearch data.  Please refresh the page and try again.');
         console.log(err);
     }
-
+    }
     if (!exists(parsed)) {
         return "";
     }
@@ -318,7 +321,9 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         spouse = jsonrel[x]["parent1"]["id"];
                         image = jsonrel[x]["parent1"]["portraitUrl"] || "";
                     }
-                    if (spouse !== "") {
+                   
+                    // en cas d'absence d'époux, spouse est null, et n'est cas comparable à "" 
+                    if (spouse !== null) {
                         var data = parseFSJSONUnion(jsonrel[x]["event"]);
                         var valid = processFamilySearchJSON(spouse, "spouse", famid, image, data);
                         if (valid) {
@@ -343,6 +348,11 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                             url: url,
                             variable: subdata
                         }, function (response) {
+                            
+                            if (response.status === undefined) {
+                                familystatus.pop();
+                                return ;
+                            }
                             if (response.status == 400) {
                                 setMessage(warningmsg, "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
                                     "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
@@ -482,7 +492,8 @@ function getFamilySearchJSON(famid, url, subdata) {
     }, function (response) {
         var arg = response.variable;
         var person = parseFamilySearchJSON(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
-        if (person === "") {
+        
+        if (person === undefined) {
             familystatus.pop();
             return;
         }

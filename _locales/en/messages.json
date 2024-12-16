@@ -456,7 +456,7 @@
     "message": "Auto-adjust the names for mixed-case"
     },
     "Force_compound_lastname_to_lowercase": {
-    "message": "Force compound lasstname to lowercase"
+    "message": "Force compound lastname to lowercase"
     },
     "Default_children_to_likely_Geni_parent": {
     "message": "Default children to likely Geni parent"

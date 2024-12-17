@@ -222,8 +222,8 @@
     "Age_difference_between_partners_is_significant": {
         "message": "Age difference between partners is significant"
     },
-    "Maiden_name_same_as_husbands_last_name": {
-        "message": "Maiden name same as husband's last name"
+    "Maiden_name_same_as_husbands__name": {
+        "message": "Maiden name same as husband's  name"
     },
     "Husband_and_wife_death_dates_the_same": {
         "message": "Husband and wife death dates the same"
@@ -456,7 +456,7 @@
     "message": "Auto-adjust the names for mixed-case"
     },
     "Force_compound_lastname_to_lowercase": {
-    "message": "Force compound lastname to lowercase"
+    "message": "Force compound lasstname to lowercase"
     },
     "Default_children_to_likely_Geni_parent": {
     "message": "Default children to likely Geni parent"

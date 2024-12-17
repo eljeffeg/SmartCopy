@@ -520,6 +520,9 @@ function getFamilySearchJSON(famid, url, subdata) {
 }
 
 function processFamilySearchJSON(itemid, title, famid, image, data) {
+    if (itemid ==="UNKNOWN"){
+        return false;
+    }
     if (itemid === focusURLid) {
         return false;
     }

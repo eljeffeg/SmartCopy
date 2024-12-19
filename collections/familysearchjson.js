@@ -321,7 +321,6 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         spouse = jsonrel[x]["parent1"]["id"];
                         image = jsonrel[x]["parent1"]["portraitUrl"] || "";
                     }
-                   
                     // en cas d'absence d'époux, spouse est null, et n'est cas comparable à "" 
                     if (spouse !== null) {
                         var data = parseFSJSONUnion(jsonrel[x]["event"]);
@@ -348,7 +347,6 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                             url: url,
                             variable: subdata
                         }, function (response) {
-                            
                             if (response.status === undefined) {
                                 familystatus.pop();
                                 return ;
@@ -492,7 +490,6 @@ function getFamilySearchJSON(famid, url, subdata) {
     }, function (response) {
         var arg = response.variable;
         var person = parseFamilySearchJSON(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
-        
         if (person === undefined) {
             familystatus.pop();
             return;
@@ -520,6 +517,7 @@ function getFamilySearchJSON(famid, url, subdata) {
 }
 
 function processFamilySearchJSON(itemid, title, famid, image, data) {
+    // Case of one of the two parents unknown (not referenced)
     if (itemid ==="UNKNOWN"){
         return false;
     }

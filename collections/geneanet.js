@@ -118,7 +118,6 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
   var familyName = departicule(nameTab.find("a:not(:has(track))").first().next().text());
   //console.log("Noms vides  ?:",(givenName+familyName));
   if ((givenName+familyName) ===""){
- 
     var nameTab = parsed.find("em[style=\"font-size:14px\"]");
     givenName = nameTab.find("a:not(:has(track))").first().text();
     familyName = departicule(nameTab.find("a:not(:has(track))").first().next().text());
@@ -337,7 +336,6 @@ if (nomStr.match(/\(de\)/gi)){
 const regex = /\(.*?\)/g ;
 nomStr = nomStr.replace(regex,"");
 if (verboselogs) {
-  
 }
 return nomStr;
 }
@@ -395,9 +393,7 @@ function parseGeneanetDate(vitalstring, type) {
       }
       console.log ("date georgien : ",dateval);
     }
-
     if (dateval.startsWith("in ")) {
-     
       momentval = moment(dateval.match((/\d{4,}/)), "YYYY", true);
       date_format = "YYYY";
     } else {

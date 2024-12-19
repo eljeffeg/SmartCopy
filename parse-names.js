@@ -218,7 +218,6 @@ var NameParse = (function(){
                 middleName = "";
             }
         }
-
         if (birthName !== "") {
             var birthsplit = birthName.split(" ");
             birthName = "";
@@ -232,7 +231,6 @@ var NameParse = (function(){
             }
             birthName = this.removeIgnoredChars(birthName);
         }
-
         if (suffix !== false && suffix !== "" && lastName === "" && birthName === "") {
             //For names like John Ma, where the last name is detected as a suffix
             suffix = "";
@@ -274,7 +272,6 @@ var NameParse = (function(){
        firstName = firstName.replace(/\*/g,"");
        firstName = firstName.replace(/\./g,"");
        firstName = firstName.replace(/\!/g,"");
-       
         if (sepgeneanet !== "") {
               	if (firstName.trim() === "Marie" || firstName.trim() === "Jean") {
         		if (middleName.trim() !=="Joseph") {

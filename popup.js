@@ -550,22 +550,17 @@ function loadPage(request) {
 }
 
 function loadSelectPage(request) {
-    var SmartCopy_was_unable = traduction("SmartCopy_was_unable_to_determine_the_Geni_profile", "SmartCopy was unable to determine the Geni profile");
-    var Set_Geni_Destination_Profile = traduction("Set_Geni_Destination_Profile", "Set Geni Destination Profile");
-    var Relatives = traduction("Relatives", "Relatives");
-    var Set_Destination = traduction("Set_Destination", "Set Destination");
-    var History_Text = traduction("History", "History");
     //var Relatives = 
     //document.getElementById("smartcopy-container").style.display = "none";
     document.getElementById("loading").style.display = "none";
-    setMessage(infomsg, SmartCopy_was_unable + '<br/><br/>' +
-        '<strong><span id="changetext" title="Select the profile on Geni that matches the focus person on this page.">' + Set_Geni_Destination_Profile + '</span></strong>' +
-        '<table style="width: 100%;"><tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong><span id="optionrel" style="display: none;">' + Relatives + '&&nbsp;</span><span id="optionsc">SmartCopy&nbsp;</span>' + History_Text + '</strong></td></tr>' +
+    setMessage(infomsg, _("SmartCopy_was_unable_to_determine_the_Geni_profile", "SmartCopy was unable to determine the Geni profile") + '<br/><br/>' +
+        '<strong><span id="changetext" title="Select the profile on Geni that matches the focus person on this page.">' + _("Set_Geni_Destination_Profile", "Set Geni Destination Profile") + '</span></strong>' +
+        '<table style="width: 100%;"><tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong><span id="optionrel" style="display: none;">' + _("Relatives", "Relatives") + '&&nbsp;</span><span id="optionsc">SmartCopy&nbsp;</span>' + _("History", "History") + '</strong></td></tr>' +
         '<tr id="optionrowldr"><td colspan="2" style="width: 100%; text-align: left; font-size: 90%; padding-left: 20px;">Loading Geni Relatives <img src="images/spinnerlg.gif" style="height: 16px; margin-bottom: -4px;"></td></tr>' +
         '<tr id="optionrow" style="display: none;"><td id="focusoption" style="width: 100%; text-align: left;"></td></tr>' +
         '<tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong>Geni ID or URL:</strong></td></tr>' +
         '<tr><td style="padding-right: 5px;"><input type="text" style="width: 100%;" id="changeprofile"></td></tr>' +
-        '<tr><td style="padding-top: 5px;"><button id="changefocus">' + Set_Destination + '</button></td></tr></table>');
+        '<tr><td style="padding-top: 5px;"><button id="changefocus">' + _("Set_Destination", "Set Destination") + '</button></td></tr></table>');
     var parsed = $('<div>').html(JSON.stringify(request).replace(/<img[^>]*>/ig, ""));
     var focusperson = parsed.find(".individualInformationName").text().trim();
     if (focusperson == "<Private>") {
@@ -964,15 +959,13 @@ $(function () {
 
 var showhistorycheck = true;
 $(function () {
-    var show_history = traduction("Show_History", "Show History");
-    var hide_history = traduction("Hide_History", "Hide History");
     $('#showhistory').on('click', function () {
         $('#historybox').slideToggle();
         showhistorycheck = !showhistorycheck;
         if (showhistorycheck) {
-            $('#showhistory').text(show_history);
+            $('#showhistory').text(_("Show_History", "Show History"));
         } else {
-            $('#showhistory').text(hide_history);
+            $('#showhistory').text(_("Hide_History", "Hide History"));
         }
     });
 });
@@ -1616,11 +1609,11 @@ function submitWait() {
         } else {
             focusprofileurl = "https://www.geni.com/" + focusid;
         }
-        var Geni_Tree_Updated = traduction("Geni_Tree_Updated", "Geni Tree Updated");
-        var Reminder_Duplicate = traduction("Reminder_Duplicate", "Reminder: Please review for duplicates<br>and merge when able.");
-        var View_Profile = traduction("View_Profile", "View Profile:");
-        var Tree_View = traduction("Tree_View", "tree view");
-        var View_Profil = traduction("View_Profil", "profile view");
+        var Geni_Tree_Updated = _("Geni_Tree_Updated", "Geni Tree Updated");
+        var Reminder_Duplicate = _("Reminder_Duplicate", "Reminder: Please review for duplicates<br>and merge when able.");
+        var View_Profile = _("View_Profile", "View Profile:");
+        var Tree_View = _("Tree_View", "tree view");
+        var View_Profil = _("View_Profil", "profile view");
 
         $("#updating").html('<div style="text-align: center; font-size: 110%;"><strong>' + Geni_Tree_Updated + '</strong></div>' +
             '<div style="text-align: center; padding:5px; color: #a75ccd">' + Reminder_Duplicate + '</div>' +
@@ -2778,11 +2771,3 @@ chrome.storage.local.get('addphoto', function (result) {
         $('#photoonoffswitch').prop('checked', addphotochecked);
     }
 });
-function traduction(cle, defaut) {
-    var rep = "";
-    if (rep = chrome.i18n.getMessage(cle)) {
-        return rep;
-    } else {
-        return defaut
-    }
-}

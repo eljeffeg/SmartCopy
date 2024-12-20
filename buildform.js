@@ -27,7 +27,6 @@ const datelimit = 1000;
 const sepgeneanet = "·";
 
 function updateGeo() {
- 
     if (familystatus.length > 0) {
         setTimeout(updateGeo, 50);
     } else if (!captcha) {
@@ -234,13 +233,11 @@ function buildForm() {
     var div = $("#profiletable");
     var membersstring = $(div[0]).html();
     var nameval = NameParse.parse(focusname, mnameonoff);
-    
     if (focusgender === "unknown" && alldata["profile"].gender !== "unknown") {
         focusgender = alldata["profile"].gender;
     }
     if (focusgender === "male") {
         husbandlastname = nameval.lastName;
-       
         if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
             nameval.birthName = nameval.lastName;
         }
@@ -257,9 +254,7 @@ function buildForm() {
     }
     wifelastname = nameval.birthName;
        
-       
     }
-  
     if (exists(alldata["profile"].nicknames)) {
         if (nameval.nickName !== "") {
             nameval.nickName += ",";
@@ -285,7 +280,7 @@ function buildForm() {
         var year = dt.get('year');
         if (year < datelimit) {
             expand = false;
-            
+
         }
     } else if (exists(alldata["profile"]["death"]) && exists(alldata["profile"]["death"][0]) && exists(alldata["profile"]["death"][0]["date"])) {
         var dt = moment(alldata["profile"]["death"][0]["date"], getDateFormat(alldata["profile"]["death"][0]["date"]));
@@ -723,7 +718,6 @@ function buildForm() {
             if (exists(members[member].alive)) {
                 living = members[member].alive;
             }
-           
            // if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
                 if (members[member].gender === "male") {
                     if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
@@ -740,8 +734,6 @@ function buildForm() {
                           }
                      }
 
-         
-                    
                            if (isParent(relationship)) {
                            nameval.lastName = husbandlastname + wifelastname; // l'un ou lautre, nom du mari ou de la femme
                             }
@@ -1586,7 +1578,6 @@ function isChecked(value, score, force) {
 }
 
 function setBirthName(relation, lastname, mnameonoff) {
-   
     if (relation === "focus") {
         var obj = alldata["family"];
         for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
@@ -1607,7 +1598,6 @@ function setBirthName(relation, lastname, mnameonoff) {
                 var person = obj[relationship];
                 for (var i = 0; i < person.length; i++) {
                     var nameval = NameParse.parse(person[i].name, mnameonoff);
-                   
                     if (person[i].gender === "male" && nameval.lastName === lastname) {
                         return false;
                     }
@@ -1621,7 +1611,6 @@ function setBirthName(relation, lastname, mnameonoff) {
                 var person = obj[relationship];
                 for (var i = 0; i < person.length; i++) {
                     var nameval = NameParse.parse(person[i].name, mnameonoff);
-                   
                     if (person[i].gender === "male" && nameval.lastName === lastname) {
                         return false;
                     }

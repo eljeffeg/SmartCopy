@@ -243,7 +243,8 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
             url: url,
             variable: profiledata
         }, function (response) {
-            if (response.status == 400) {
+            //if (response.status == 400) {
+            if(!exists(response)) {
                 setMessage(warningmsg, "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
                     "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
                 document.getElementById("top-container").style.display = "block";
@@ -347,11 +348,13 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                             url: url,
                             variable: subdata
                         }, function (response) {
-                            if (response.status === undefined) {
+                            //if (response.status === undefined) { modif QP 2024
+                            if(!exists(response)){
                                 familystatus.pop();
                                 return ;
                             }
-                            if (response.status == 400) {
+                            //if (response.status == 400) {
+                            if(response.source == "" || response.source == undefined){
                                 setMessage(warningmsg, "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
                                     "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
                                 document.getElementById("top-container").style.display = "block";

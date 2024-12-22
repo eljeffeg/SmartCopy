@@ -23,7 +23,7 @@ var geocleanup = [];
 //ajout QP
 var husbandlastname = "";
 var wifelastname = "";
-const datelimit = 1000;
+var datelimit = 1600;
 const sepgeneanet = "·";
 
 function updateGeo() {

@@ -200,6 +200,17 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
             aboutdata += "===Individual Note===\n" + notes;
       }
   }
+//jobs
+var jobs = parsed.find(".row.clearfix + ul li:last").text().trim();
+if (jobs ==""){
+  jobs = parsed.find(".row.clearfix + + ul li:last").text().trim();
+}
+if (jobs.includes('Born') || jobs.includes('Baptized') || jobs.includes('Deceased') || jobs.includes('Buried')){
+jobs = "";
+}
+if (jobs !== ""){
+  profiledata["occupation"] = jobs;
+}
 
   familyNote = parsed.find("h3:contains('Family Note')");
   if (exists(familyNote)) {

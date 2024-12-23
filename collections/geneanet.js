@@ -201,10 +201,15 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
       }
   }
 //jobs
-var jobs = parsed.find(".row.clearfix + ul li:last").text().trim();
-if (jobs ==""){
-  jobs = parsed.find(".row.clearfix + + ul li:last").text().trim();
+var jobs = "";
+var jobs1 = parsed.find(".row.clearfix + ul li:last").html();
+var jobs2 = parsed.find(".row.clearfix + + ul li:last").html();
+if(jobs1 !== undefined) {
+  jobs = jobs1.replace(/<br>/g," ").trim();
 }
+if(jobs2 !== undefined) {
+  jobs = jobs2.replace(/<br>/g," ").trim();
+  }
 if (jobs.includes('Born') || jobs.includes('Baptized') || jobs.includes('Deceased') || jobs.includes('Buried')){
 jobs = "";
 }
@@ -353,7 +358,7 @@ return nomStr;
 function parseGeneanetDate(vitalstring, type) {
   vitalstring = vitalstring.replace(/,$/, "").trim();
   vitalstring = vitalstring.replace(/possibly/, "").trim(); // TODO synonyme about
-  //console.log("Test fonctionnel   : ",vitalstring);
+  vitalstring = vitalstring.replace(/,\naged.*/,"").trim();
   // Example matches:
   // in 1675
   // about 1675

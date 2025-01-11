@@ -322,8 +322,8 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         spouse = jsonrel[x]["parent1"]["id"];
                         image = jsonrel[x]["parent1"]["portraitUrl"] || "";
                     }
-                    // en cas d'absence d'époux, spouse est null, et n'est cas comparable à "" 
-                    if (spouse !== null) {
+                    // In case of absence of spouse, spouse is null, and is not comparable to "", but the existence test is even better
+                    if (spouse) {
                         var data = parseFSJSONUnion(jsonrel[x]["event"]);
                         var valid = processFamilySearchJSON(spouse, "spouse", famid, image, data);
                         if (valid) {
@@ -405,22 +405,27 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
 
 function parseFSJSONUnion(eventinfo) {
     var data = [];
-
     if (eventinfo && eventinfo["type"] && eventinfo["type"].toLowerCase() === "marriage") {
         var dateval = "";
+       //I don't know if these two scenarios still exist, in doubt ... (standardDate and or originalDate)
         if (eventinfo["standardDate"]) {
             dateval = eventinfo["standardDate"];
         } else if (eventinfo["originalDate"]) {
             dateval = eventinfo["originalDate"];
+        }else if (eventinfo.details.date) {     // addition following debugging 
+            dateval = eventinfo.details.date.normalizedText;
         }
         if (dateval !== "") {
             data.push({date: cleanDate(dateval)});
         }
         var eventlocation = "";
+        //idem
         if (eventinfo["standardPlace"]) {
             eventlocation = eventinfo["standardPlace"].trim();
         } else if (eventinfo["originalPlace"]) {
             eventlocation = eventinfo["originalPlace"].trim();
+        } else if (eventinfo.details.place){ // addition following debugging 
+            eventlocation = eventinfo.details.place.normalizedText.trim()
         }
         if (eventlocation !== "") {
             data.push({id: geoid, location: eventlocation});

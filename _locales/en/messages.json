@@ -759,5 +759,92 @@
     },
     "Children":{
     "message":"Children"
+    },
+    "expand_all":{
+        "message":"expand all"
+    },
+    "collapse_all":{
+        "message":"collapse all"
+    },
+    "Title":{
+        "message":"Title:"
+    },
+    "FFirst_Name":{
+        "message":"First Name:"
+    },
+    "Middle_Name":{
+        "message":"Middle Name:"
+    },
+    "Last_Name":{
+        "message":"Last Name:"
+    },
+    "Birth_Name":{
+        "message":"Birth Name:"
+    },
+    "Suffix":{
+        "message":"Suffix:"
+    },
+    "Display_Name":{
+        "message":"Display Name:"
+    },
+    "Also_Known_As":{
+        "message":"Also Known As:"
+    },
+    "Occupation":{
+        "message":"Occupation:"
+    },
+    "Gender":{
+        "message":"Gender:"
+    },
+    "Vital":{
+        "message":"Vital:"
+    },
+    "Privacy":{
+        "message":"Privacy:"
+    },
+    "About":{
+        "message":"About:"
+    },
+    "Male":{
+        "message":"Male"
+    },
+    "Female":{
+        "message":"Female"
+    },
+    "Deceased":{
+        "message":"Deceased"
+    },
+    "LLiving":{
+        "message":"Living"
+    },
+    "Public":{
+        "message":"Public"
+    },
+    "Private":{
+        "message":"Private"
+    },
+    "Auto":{
+        "message":"Auto"
+    },
+    "Unknown":{
+        "message":"Unknown"
+    },
+    "Action":{
+        "message":"Action:"
+    },
+    "Hide_Unused_Fields":{
+        "message":"Hide Unused Fields"
+    },
+    "Show_All_Fields":{
+        "message":"Show All Fields"
+    },
+    "Update":{
+        "message":"Update:"
+    },
+    "Add":{
+        "message":"Add"
+    },
+    "Add_Profile":{
+        "message":"Add Profile"
     }
 }

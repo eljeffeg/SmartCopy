@@ -897,10 +897,10 @@ var expandAll = function () {
         }
         if (window[this.name]) {
             $(expandmembers[i]).slideDown();
-            $(this).text("collapse all");
+            $(this).text(_("collapse_all","collapse all"));
         } else {
             $(expandmembers[i]).slideUp();
-            $(this).text("expand all");
+            $(this).text(_("expand_all","expand all"));
         }
     }
     window[this.name] = !window[this.name];
@@ -1051,9 +1051,9 @@ var submitform = function () {
                         }
                     }
                     if (exists(refurl)) {
-                        profileout["about_me"] = about + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - " +  SC_Project + ": ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                        profileout["about_me"] = about + "\n" + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - " +  SC_Project + ": ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                     } else {
-                        profileout["about_me"] = about + "* Reference: " + recordtype + " - " +  SC_Project + ": ''" + moment.utc().format("DD MMM YYYY, H:mm:ss") + " UTC''\n";
+                        profileout["about_me"] = about + "\n" + "* Reference: " + recordtype + " - " +  SC_Project + ": ''" + moment.utc().format("DD MMM YYYY, H:mm:ss") + " UTC''\n";
                     }
 
                 } else {
@@ -1129,9 +1129,9 @@ var submitform = function () {
                                 focusprofileurl = "https://www.geni.com/" + focusid;
                             }
                             if (exists(fdata.url)) {
-                                about = about + "* Reference : [" + encodeURI(fdata.url) + " " + recordtype + "] - " + SC_Project + ": ''" + moment.utc().format("DD MMM YYYY, H:mm:ss") + " UTC''\n";
+                                about = about + "\n" + "* Reference : [" + encodeURI(fdata.url) + " " + recordtype + "] - " + SC_Project + ": ''" + moment.utc().format("DD MMM YYYY, H:mm:ss") + " UTC''\n";
                             } else {
-                                about = about + "* Reference : " + recordtype + " - " + SC_Project + ": ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                                about = about + "\n" + "* Reference : " + recordtype + " - " + SC_Project + ": ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
                             }
 
                         }
@@ -2774,3 +2774,4 @@ chrome.storage.local.get('addphoto', function (result) {
         $('#photoonoffswitch').prop('checked', addphotochecked);
     }
 });
+

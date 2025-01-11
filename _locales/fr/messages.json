@@ -759,5 +759,92 @@
     },
     "Children":{
     "message":"Enfants"
-    }
+    },
+    "expand_all":{
+    "message": "tout développer"
+    },
+    "collapse_all":{
+    "message": "tout réduire"
+    },
+    "Title":{
+    "message": "Titre:"    
+},
+"FFirst_Name":{
+    "message":"Prénom: "
+},
+"Middle_Name":{
+    "message":"Autres prénoms:"
+},
+"Last_Name":{
+    "message":"Patronyme:"
+},
+"Birth_Name":{
+    "message":"Nom de naissance:"
+},
+"Suffix":{
+    "message":"Suffixe:"
+},
+"Display_Name":{
+    "message":"Nom d'usage:"
+},
+"Also_Known_As":{
+    "message":"Alias:"
+},
+"Occupation":{
+    "message":"Profession:"
+},
+"Gender":{
+    "message":"Genre:"
+},
+"Vital":{
+    "message":"Existence:"
+},
+"Privacy":{
+    "message":"Confidentialité:"
+},
+"About":{
+    "message":"A Propos:"
+},
+"Male":{
+    "message":"Homme"
+},
+"Female":{
+    "message":"Femme"
+},
+"Deceased":{
+    "message":"Décédé(e)"
+},
+"LLiving":{
+    "message":"Vivant(e)"
+},
+"Public":{
+    "message":"Publique"
+},
+"Private":{
+    "message":"Privée"
+},
+"Auto":{
+    "message":"Auto"
+},
+"Unknown":{
+    "message":"Inconnu"
+},
+"Action":{
+    "message":"Action:"
+},
+"Hide_Unused_Fields":{
+    "message":"Masquer les champs inutilisés"
+},
+"Show_All_Fields":{
+    "message":"Afficher tous les champs"
+},
+"Update":{
+    "message":"Mise à jour:"
+},
+"Add":{
+    "message":"Ajout"
+},
+"Add_Profile":{
+    "message":"Ajouter le profil"
+}   
 }

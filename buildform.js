@@ -25,6 +25,7 @@ var husbandlastname = "";
 var wifelastname = "";
 var datelimit = 1600;
 const sepgeneanet = "·";
+var contemporary = true;
 
 function updateGeo() {
     if (familystatus.length > 0) {
@@ -292,25 +293,25 @@ function buildForm() {
     if (expand) {
         if (namescore && mnameonoff) {
             membersstring +=
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_title" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".title") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_first_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".first_name") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext" checked>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '"></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_middle_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".middle_name") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_last_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".last_name") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_maiden_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".maiden_name") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_suffix" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".suffix") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_display_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".display_name") + '" disabled></td></tr>' +
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" disabled></td><td class="genisliderow"><img src="images/append.png" class="genislideimage"><input id="focus_geni_nicknames" type="text" class="formtext genislideinput" value="' + genifocusdata.get("nicknames") + '" disabled></td></tr>';
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext"> '+_("Title","Title:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_title" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".title") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">'+_("FFirst_Name","First Name:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_first_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".first_name") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext" checked>'+_("Middle_Name","Middle Name:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '"></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_middle_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".middle_name") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">'+_("Last_Name","Last Name:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_last_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".last_name") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">'+_("Birth_Name","Birth Name:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_maiden_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".maiden_name") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">'+_("Suffix","Suffix:")+' </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_suffix" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".suffix") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">'+_("Display_Name","Display Name:")+' </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_display_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".display_name") + '" disabled></td></tr>' +
+                '<tr><td class="profilediv"><input type="checkbox" class="checknext">'+_("Also_Known_As","Also Known As:")+' </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" disabled></td><td class="genisliderow"><img src="images/append.png" class="genislideimage"><input id="focus_geni_nicknames" type="text" class="formtext genislideinput" value="' + genifocusdata.get("nicknames") + '" disabled></td></tr>';
             x += 1;
         } else {
             membersstring +=
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_title" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".title") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_first_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".first_name") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_middle_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".middle_name") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_last_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".last_name") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_maiden_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".maiden_name") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_suffix" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".suffix") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_display_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".display_name") + '" disabled></td></tr>' +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" disabled><td class="genisliderow"><img src="images/append.png" class="genislideimage"><input id="focus_geni_nicknames" type="text" class="formtext genislideinput" value="' + genifocusdata.get("nicknames") + '" disabled></td></td></tr>';
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Title","Title:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_title" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".title") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">'+_("FFirst_Name","First Name:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_first_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".first_name") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Middle_Name","Middle Name:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_middle_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".middle_name") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Last_Name","Last Name:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_last_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".last_name") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Birth_Name","Birth Name:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_maiden_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".maiden_name") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Suffix","Suffix:")+' </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_suffix" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".suffix") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Display_Name","Display Name:")+' </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_display_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".display_name") + '" disabled></td></tr>' +
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Also_Known_As","Also Known As:")+' </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" disabled><td class="genisliderow"><img src="images/append.png" class="genislideimage"><input id="focus_geni_nicknames" type="text" class="formtext genislideinput" value="' + genifocusdata.get("nicknames") + '" disabled></td></td></tr>';
         }
         $(div[0]).html(membersstring);
         if (exists(alldata["profile"]["thumb"])) {
@@ -364,21 +365,21 @@ function buildForm() {
         } else {
             membersstring = $(div[0]).html();
             membersstring = membersstring +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Occupation","Occupation:")+' </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         }
         if (genigender === "unknown" && focusgender !== "unknown") {
             var gender = focusgender;
             sepx++;
             membersstring = $(div[0]).html();
-            membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, true) + '>Gender: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, true) + '>' +
-                '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + capFL(genifocusdata.get("gender")) + '" disabled></td></tr>';
+            membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, true) + '>'+_("Gender","Gender:")+' </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, true) + '>' +
+                '<option value="male" ' + setGender("male", gender) + '>'+_("Male","Male")+'</option><option value="female" ' + setGender("female", gender) + '>'+_("Female","Female")+'</option><option value="unknown" ' + setGender("unknown", gender) + '>'+_("Unknown","Unknown")+'</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + capFL(genifocusdata.get("gender")) + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         } else {
             var gender = focusgender;
             membersstring = $(div[0]).html();
-            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, false) + '>Gender: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, false) + '>' +
-                '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + capFL(genifocusdata.get("gender")) + '" disabled></td></tr>';
+            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, false) + '>'+_("Gender","Gender:")+' </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, false) + '>' +
+                '<option value="male" ' + setGender("male", gender) + '>'+_("Male","Male")+'</option><option value="female" ' + setGender("female", gender) + '>'+_("Female","Female")+'</option><option value="unknown" ' + setGender("unknown", gender) + '>'+_("Unknown","Unknown")+'</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + capFL(genifocusdata.get("gender")) + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         }
         var living = false;
@@ -401,27 +402,35 @@ function buildForm() {
                     if (exists(birthval.year) && birthval.year < agelimit) {
                         living = false;
                     }
+                    if (exists(birthval.year) && birthval.year < agelimit - 25) {
+                        console.log("Birth et limit",birthval.year,agelimit - 25);
+                        contemporary = false;
+                    }
+                    if (exists(deathval.year) && deathval.year < agelimit - 25) {
+                        console.log("Birth et limit",deathval.year,agelimit - 25);
+                        contemporary = false;
+                    }
                 }
             }
         }
         membersstring = $(div[0]).html();
         if (geniliving && !living) {
             sepx++;
-            membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, true) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, true) + '>' +
-                '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
+            membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, true) + '>'+_("Vital","Vital:")+' </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, true) + '>' +
+                '<option value=false ' + setLiving("deceased", living) + '>'+_("Deceased","Deceased:")+'</option><option value=true ' + setLiving("living", living) + '>'+_("LLiving","Living:")+'</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
         } else {
             if (!geniliving && living) {
                 living = geniliving;
             }
-            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, false) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, false) + '>' +
-                '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
+            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, false) + '>'+_("Vital","Vital:")+' </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, false) + '>' +
+                '<option value=false ' + setLiving("deceased", living) + '>'+_("Deceased","Deceased:")+'</option><option value=true ' + setLiving("living", living) + '>'+_("LLiving","Living:")+'</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
         }
         if ($('#privacyonoffswitch').prop('checked') && !living) {
-            membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
-            '<option value="">Auto</option><option value=true selected>Public</option><option value=false>Private</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
+            membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Privacy","Privacy:")+' </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
+            '<option value="">'+_("Auto","Auto:")+'</option><option value=true selected>'+_("Public","Public:")+'</option><option value=false>'+_("Private","Private:")+'</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
         } else {
-            membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
-            '<option value="" selected>Auto</option><option value=true>Public</option><option value=false>Private</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
+            membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Privacy","Privacy:")+' </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
+            '<option value="" selected>'+_("Auto","Auto:")+'</option><option value=true>'+_("Public","Public:")+'</option><option value=false>'+_("Private","Private:")+'</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
         }
         $(div[0]).html(membersstring);
         if (exists(alldata["profile"].about)) {
@@ -432,11 +441,11 @@ function buildForm() {
     //            scoreabout = false;
     //        }
             var about = alldata["profile"].about;
-            membersstring = membersstring + '<tr><td colspan="3" style="padding: 0px;"><div class="profilediv" style="width: 100%;"><input type="checkbox" class="checknext" ' + isChecked(about, scoreabout) + '>About:<img class="genisliderow" src="images/append.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scoreabout) + '>' + about + '</textarea></div></td></tr>';
+            membersstring = membersstring + '<tr><td colspan="3" style="padding: 0px;"><div class="profilediv" style="width: 100%;"><input type="checkbox" class="checknext" ' + isChecked(about, scoreabout) + '>'+_("About","About:")+'<img class="genisliderow" src="images/append.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scoreabout) + '>' + about + '</textarea></div></td></tr>';
             $(div[0]).html(membersstring);
         } else {
             membersstring = $(div[0]).html();
-            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="3" style="padding: 0px;"><div class="profilediv" style="width: 100%;"><input type="checkbox" class="checknext">About:<img class="genisliderow" src="images/append.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
+            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="3" style="padding: 0px;"><div class="profilediv" style="width: 100%;"><input type="checkbox" class="checknext">'+_("About","About:")+'<img class="genisliderow" src="images/append.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
             $(div[0]).html(membersstring);
         }
         if (sepx === 0) {
@@ -562,7 +571,7 @@ function buildForm() {
                     if (geoqueryCheck()) {
                         locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                     }
-                    locationval = locationval + '<img class="geopin" title="" src="images/clearpin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td><td></td></tr>' +
+                    locationval = locationval + '<img class="geopin" title="" src="images/clearpin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;'+_("Unknown","Unknown")+'</div></td><td></td></tr>' +
                         '<tr class="geoplace hiddenrow' + geoplacehidden + '" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location_string") + '" disabled></td></tr>' +
                         '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.place_name") + '" disabled></td></tr>' +
                         '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.city") + '" disabled></td></tr>' +
@@ -586,7 +595,7 @@ function buildForm() {
                 if (geoqueryCheck()) {
                     membersstring = membersstring + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                 }
-                membersstring = membersstring + '<img class="geopin" title="" src="images/clearpin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td><td></td></tr>' +
+                membersstring = membersstring + '<img class="geopin" title="" src="images/clearpin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;'+_("Unknown","Unknown")+'</div></td><td></td></tr>' +
                     '<tr class="geoplace hiddenrow' + geoplacehidden + '" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location_string") + '" disabled></td></tr>' +
                     '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.place_name") + '" disabled></td></tr>' +
                     '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" disabled></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.city") + '" disabled></td></tr>' +
@@ -717,6 +726,8 @@ function buildForm() {
             }
             if (exists(members[member].alive)) {
                 living = members[member].alive;
+            } else if ((relationship == "child" || relationship == "partner" )&& contemporary){   
+                living = true ;
             }
            // if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
                 if (members[member].gender === "male") {
@@ -782,6 +793,10 @@ function buildForm() {
             if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
                 var dt = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"]));
                 var year = dt.get('year');
+                if(year< moment.utc().format("YYYY") - 120)
+                    {
+                    contemporary = false;
+                    }
                 if (year < datelimit) {
                     checkunknown = " disabled";
                     scored = false;
@@ -826,13 +841,13 @@ function buildForm() {
                 membersstring += '<tr name="unk" style="display: table-row;"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Relation:</span><span id="unknownrel' + i + '">' + buildUnknown(gender) + '</span></td></tr>';
             }
             var showimg = "images/show.png";
-            var showtitle = "Show All Fields";
+            var showtitle = _("Show_All_Fields","Show All Fields");
             if (expand) {
                 if (!$('#hideemptyonoffswitch').prop('checked')) {
                     showimg = "images/hide.png";
-                    showtitle = "Hide Unused Fields";
+                    showtitle = _("Hide_Unused_Fields","Hide Unused Fields");
                 }
-                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 24px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i) + '</span></td></tr></span>';
+                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 24px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">'+_("Action","Action:")+'</span><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i) + '</span></td></tr></span>';
 
                 if (isChild(relationship) || relationship === "unknown") {
                     var parentrel = "Parent";
@@ -867,36 +882,36 @@ function buildForm() {
                 let regex = new RegExp('value="' + namelang + '">', "gm");
                 membersstring += '<tr><td colspan="2"></td><td>' + $(langtarget).html().replace(regex, "value='" + namelang + "' selected>"); + '</td></tr>'
                 membersstring +=
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.prefix, scored) + '>Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" ' + isEnabled(nameval.prefix, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_title" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored) + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_first_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.middleName, scored) + '>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '" ' + isEnabled(nameval.middleName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_middle_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.lastName, scored) + '>Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" ' + isEnabled(nameval.lastName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_last_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.birthName, scored) + '>Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" ' + isEnabled(nameval.birthName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_maiden_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.suffix, scored) + '>Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" ' + isEnabled(nameval.suffix, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_suffix" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(displayname, scored) + '>Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" ' + isEnabled(displayname, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_display_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.nickName, scored) + '>Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" ' + isEnabled(nameval.nickName, scored) + '></td><td class="genisliderow"><img id="' + i + '_geni_nickimage" src="images/right.png" class="genislideimage"><input id="' + i + '_geni_nicknames" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.prefix, scored) + '>'+_("Title","Title:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" ' + isEnabled(nameval.prefix, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_title" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored) + '>'+_("FFirst_Name","First Name:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_first_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.middleName, scored) + '>'+_("Middle_Name","Middle Name:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '" ' + isEnabled(nameval.middleName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_middle_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.lastName, scored) + '>'+_("Last_Name","Last Name:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" ' + isEnabled(nameval.lastName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_last_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.birthName, scored) + '>'+_("Birth_Name","Birth Name:")+'</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" ' + isEnabled(nameval.birthName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_maiden_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.suffix, scored) + '>'+_("Suffix","Suffix:")+' </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" ' + isEnabled(nameval.suffix, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_suffix" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(displayname, scored) + '>'+_("Display_Name","Display Name:")+' </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" ' + isEnabled(displayname, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_display_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.nickName, scored) + '>'+_("Also_Known_As","Also Known As:")+' </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" ' + isEnabled(nameval.nickName, scored) + '></td><td class="genisliderow"><img id="' + i + '_geni_nickimage" src="images/right.png" class="genislideimage"><input id="' + i + '_geni_nicknames" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 if (exists(members[member]["occupation"])) {
                     var occupation = members[member]["occupation"].trim();
-                    membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored) + '>Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" value="' + occupation + '" ' + isEnabled(occupation, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                    membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored) + '>'+_("Occupation","Occupation:")+' </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" value="' + occupation + '" ' + isEnabled(occupation, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 } else {
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Occupation","Occupation:")+' </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 }
-                membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect genderselect" update="' + i + '" relationship="' + relationship + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
-                    '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_gender" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, scored) + '>Vital: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect livingselect" update="' + i + '"  style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, scored) + '>' +
-                    '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_is_alive" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>'+_("Gender","Gender:")+' </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect genderselect" update="' + i + '" relationship="' + relationship + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
+                    '<option value="male" ' + setGender("male", gender) + '>'+_("Male","Male")+'</option><option value="female" ' + setGender("female", gender) + '>'+_("Female","Female")+'</option><option value="unknown" ' + setGender("unknown", gender) + '>'+_("Unknown","Unknown")+'</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_gender" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, scored) + '>'+_("Vital","Vital:")+' </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect livingselect" update="' + i + '"  style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, scored) + '>' +
+                    '<option value=false ' + setLiving("deceased", living) + '>'+_("Deceased","Deceased:")+'</option><option value=true ' + setLiving("living", living) + '>'+_("LLiving","Living:")+'</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_is_alive" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 if ($('#privacyonoffswitch').prop('checked') && !living) {
-                    membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" update="' + i + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
-                        '<option value="">Auto</option><option value=true selected>Public</option><option value=false>Private</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                    membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Privacy","Privacy:")+' </td><td style="float:right; padding: 0;"><select class="formselect" update="' + i + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
+                        '<option value="">'+_("Auto","Auto:")+'</option><option value=true selected>'+_("Public","Public:")+'</option><option value=false>'+_("Private","Private:")+'</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 } else {
-                    membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" update="' + i + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
-                        '<option value="" selected>Auto</option><option value=true>Public</option><option value=false>Private</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                    membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">'+_("Privacy","Privacy:")+' </td><td style="float:right; padding: 0;"><select class="formselect" update="' + i + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
+                        '<option value="" selected>'+_("Auto","Auto:")+'</option><option value=true>'+_("Public","Public:")+'</option><option value=false>'+_("Private","Private:")+'</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 }
                 if (exists(members[member].about)) {
                     var about = members[member].about;
-                    membersstring = membersstring + '<tr><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scored) + '>About:<img id="' + i + '_geni_about" class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scored) + '>' + about + '</textarea></div></td></tr>';
+                    membersstring = membersstring + '<tr><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scored) + '>'+_("About","About:")+'<img id="' + i + '_geni_about" class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scored) + '>' + about + '</textarea></div></td></tr>';
                 } else {
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext">About:<img id="' + i + '_geni_about" class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
+                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext">'+_("About","About:")+'<img id="' + i + '_geni_about" class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
                 }
                 for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
                     var title = listvalues[list];
@@ -980,7 +995,7 @@ function buildForm() {
                             if (geoqueryCheck()) {
                                 locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
                             }
-                            locationval = locationval + '<img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
+                            locationval = locationval + '<img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;'+_("Unknown","Unknown")+'</div></td></tr>' +
                                 '<tr class="geoplace hiddenrow' + geoplacehidden + '" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + Abbr(capFL(title)) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                                 '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                                 '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_city" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -1003,7 +1018,7 @@ function buildForm() {
                         if (geoqueryCheck()) {
                             membersstring = membersstring + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
                         }
-                        membersstring = membersstring + '<img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
+                        membersstring = membersstring + '<img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;'+_("Unknown","Unknown")+'</div></td></tr>' +
                             '<tr class="geoplace hiddenrow' + geoplacehidden + '" style="display: ' + isHidden(hidden, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + Abbr(capFL(title)) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                             '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                             '<tr class="geoloc hiddenrow' + geolochidden + '" style="display: ' + isHidden(hidden, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_city" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -1418,7 +1433,7 @@ function updateClassResponse() {
             if (value.attr("src") === "images/hide.png") {
                 $(this).closest("table").find(".hiddenrow").css("display", "none");
                 value.attr("src", "images/show.png");
-                value.attr("title", "Show All Fields");
+                value.attr("title", _("Show_All_Fields","Show All Fields"));
             } else {
                 if (geoqueryCheck()) {
                     $(this).closest("table").find(".hiddenrow").not(".geoplace").css("display", "table-row");
@@ -1426,7 +1441,7 @@ function updateClassResponse() {
                     $(this).closest("table").find(".hiddenrow").not(".geoloc").css("display", "table-row");
                 }
                 value.attr("src", "images/hide.png");
-                value.attr("title", "Hide Unused Fields");
+                value.attr("title", _("Hide_Unused_Fields","Hide Unused Fields"));
             }
         });
     });
@@ -1472,7 +1487,7 @@ function placementUpdate() {
                         $('.parentselector')
                             .append($("<option/>", {
                                 value: -1,
-                                text: "Unknown"
+                                text: _("Unknown","Unknown")
                             }));
                     }
                 }
@@ -1623,7 +1638,7 @@ function setBirthName(relation, lastname, mnameonoff) {
 
 function buildUnknown(gender) {
     var pselect = "";
-    pselect += '<option value="unknown" selected>Unknown</option>';
+    pselect += '<option value="unknown" selected>'+_("Unknown","Unknown")+'</option>';
     if (gender === "unknown") {
         pselect += '<option value="parent">Parent</option>';
         pselect += '<option value="sibling">Sibling</option>';
@@ -1677,21 +1692,21 @@ function buildAction(relationship, gender, id) {
             if (!genifamilydata.hasOwnProperty(node)) continue;
             var familymem = genifamilydata[node];
             if (relationship === "father" && familymem.get("relation") === "father") {
-                pselect += '<option value="' + familymem.get("id") + '" selected>Update: ' + familymem.get("name") + '</option>';
+                pselect += '<option value="' + familymem.get("id") + '" selected>'+_("Update","Update:")+' ' + familymem.get("name") + '</option>';
                 genibuildaction[familymem.get("id")] = id;
                 selected = false;
             } else if (relationship === "mother" && familymem.get("relation") === "mother") {
-                pselect += '<option value="' + familymem.get("id") + '" selected>Update: ' + familymem.get("name") + '</option>';
+                pselect += '<option value="' + familymem.get("id") + '" selected>'+_("Update","Update:")+' '+ familymem.get("name") + '</option>';
                 genibuildaction[familymem.get("id")] = id;
                 selected = false;
             } else if (relationship === "brother" && familymem.get("relation") === "brother") {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                pselect += '<option value="' + familymem.get("id") + '">'+_("Update","Update:")+' ' + familymem.get("name") + '</option>';
             } else if (relationship === "sister" && familymem.get("relation") === "sister") {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                pselect += '<option value="' + familymem.get("id") + '">'+_("Update","Update:")+' '+ familymem.get("name") + '</option>';
             } else if (relationship === "son" && familymem.get("relation") === "son") {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                pselect += '<option value="' + familymem.get("id") + '">'+_("Update","Update:")+' ' + familymem.get("name") + '</option>';
             } else if (relationship === "daughter" && familymem.get("relation") === "daughter") {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                pselect += '<option value="' + familymem.get("id") + '">'+_("Update","Update:")+' '+ familymem.get("name") + '</option>';
             } else if ((isPartner(familymem.get("relation")) && isPartner(relationship)) ||
                 (isChild(familymem.get("relation")) && relationship === "child") ||
                 (isSibling(familymem.get("relation")) && relationship === "sibling") ||
@@ -1699,14 +1714,14 @@ function buildAction(relationship, gender, id) {
                 (familymem.get("relation") === "child" && isChild(relationship)) ||
                 (familymem.get("relation") === "sibling" && isSibling(relationship)) ||
                 (familymem.get("relation") === "parent" && isParent(relationship))) {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                pselect += '<option value="' + familymem.get("id") + '">'+_("Update","Update:")+' ' + familymem.get("name") + '</option>';
             }
         }
     }
     if (selected) {
-        pselect = '<option value="add" selected>Add Profile</option>' + pselect;
+        pselect = '<option value="add" selected>'+_("Add_Profile","Add Profile")+'</option>' + pselect;
     } else {
-        pselect = '<option value="add">Add Profile</option>' + pselect;
+        pselect = '<option value="add">'+_("Add_Profile","Add Profile")+'</option>' + pselect;
     }
     pselect = '<select name="action" class="actionselect">' + pselect;
     pselect += '</select>';
@@ -1740,7 +1755,7 @@ function buildParentSelect(id) {
     } else if (id == -1 && geniparent && genispouse.length === 1) {
         geniselect = " selected";
     } else if (id == -1) {
-        pselect += '<option value="-1" selected>Unknown</option>';
+        pselect += '<option value="-1" selected>'+_("Unknown","Unknown")+'</option>';
     }
     for (var key in myhspouse) if (myhspouse.hasOwnProperty(key)) {
         if (exists(databyid[myhspouse[key]])) {
@@ -1850,6 +1865,9 @@ function updateInfoData(person, arg) {
                 var agelimit = moment.utc().format("YYYY") - 95;
                 if (exists(birthval.year) && birthval.year >= agelimit) {
                     person["alive"] = true;
+                    contemporary = true;
+                } else {
+                    contemporary = false;
                 }
             }
         }
@@ -1879,6 +1897,9 @@ function updateInfoData(person, arg) {
                 var agelimit = moment.utc().format("YYYY") - 95;
                 if (exists(birthval.year) && birthval.year >= agelimit) {
                     person["alive"] = true;
+                    contemporary = true;
+                } else {
+                    contemporary = false;
                 }
             }
         }
@@ -2165,7 +2186,7 @@ function setGeniFamilyData(id, profile) {
     $("#" + id + "_geni_about").attr('src', isAppend(profile));
     $("#" + id + "_geni_occupation").val(getGeniData(profile, "occupation"));
     $("#" + id + "_geni_occupation").prev().attr('src', getGeniLock(profile, "occupation"));
-    $("#" + id + "_geni_gender").val(capFL(getGeniData(profile, "gender")));
+    $("#" + id + "_geni_gender").val(isGender(getGeniData(profile, "gender")));
     $("#" + id + "_geni_gender").prev().attr('src', getGeniLock(profile, "gender"));
     $("#" + id + "_geni_is_alive").val(isAlive(getGeniData(profile, "is_alive")));
     $("#" + id + "_geni_is_alive").prev().attr('src', getGeniLock(profile, "living"));
@@ -2195,22 +2216,34 @@ function setGeniFamilyData(id, profile) {
     }
 
 }
+function isGender(genre){
+    if (genre === "") {
+        return "";
+    } else if (genre ==="male") {
+        return _("Male","Male");
+    } else if (genre ==="female")  {
+        return _("Female","Female:");
+    }
+      else  {
+        return _("Unknown","Unknown");
+      }
+    }
 
 function isAlive(alive) {
     if (alive === "") {
         return "";
     } else if (alive) {
-        return "Living";
+        return _("LLiving","Living:");
     } else {
-        return "Deceased";
+        return _("Deceased","Deceased:");
     }
 }
 
 function isPublic(privacy) {
     if (privacy) {
-        return "Public";
+        return _("Public","Public:");
     } else {
-        return "Private";
+        return _("Private","Private:");
     }
 }
 

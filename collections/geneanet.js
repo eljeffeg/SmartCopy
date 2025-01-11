@@ -530,10 +530,7 @@ function cleanName(givenName){
   if (verboselogs) {
     //console.log("Given name1  :",givenName);
    }
-  givenName = givenName.replace(/\!/g,"");
-  givenName = givenName.replace(/\*/g,"");
-  givenName = givenName.replace(/\"/g,"");
-  givenName = givenName.replace(/\./g,"");
+  givenName = givenName.replace(/\!|\*|_|\.|\"/g,"");
   if (verboselogs) {
     //console.log("Given name2  :",givenName);
   }

@@ -406,8 +406,23 @@ function buildForm() {
                         console.log("Birth et limit",birthval.year,agelimit - 25);
                         contemporary = false;
                     }
-                    if (exists(deathval.year) && deathval.year < agelimit - 25) {
-                        console.log("Birth et limit",deathval.year,agelimit - 25);
+                }
+            }
+        } else if (alldata["profile"]["death"]){
+            var deathdate = null;
+            for (var b = 0; b < alldata["profile"]["death"].length; b++) {
+                if (exists(alldata["profile"]["death"][b].date) && alldata["profile"]["death"][b].date.trim() !== "") {
+                    deathdate = alldata["profile"]["death"][b].date;
+                    break;
+                }
+                if (deathdate !== null) {
+                    var deathval = parseDate(deathdate, false);
+                    var agelimit = moment.utc().format("YYYY") - 95;
+                    if (exists(deathval.year)) {
+                        living = false;
+                    }
+                    if (exists(deathval.year) && deathval.year < agelimit - 10) {
+                        console.log("Death et limit",deathval.year,agelimit - 10);
                         contemporary = false;
                     }
                 }

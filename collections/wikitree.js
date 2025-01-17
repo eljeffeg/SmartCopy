@@ -340,9 +340,16 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 function parseWikiEvent(vitalstring) {
     var data = [];
     var vitalinfo = vitalstring.trim().replace("[location unknown]", "").replace("[date unknown]", "");
-    var datesplit = vitalinfo.split(" in ");
+    var datesplit = vitalinfo.split("in ");
     if (datesplit.length > 0) {
-        var dateval = datesplit[0].trim();
+        var dateval ="";
+        var datevalbrut = datesplit[0].trim();
+        var datevalbrutsplit = datevalbrut.split("at ");
+        if (datevalbrutsplit.length > 0) {
+            dateval = datevalbrutsplit[0].trim();
+        } else {
+            dateval = datevalbrut ;
+        }
         dateval = cleanDate(dateval);
         if (dateval !== "") {
             data.push({date: dateval});

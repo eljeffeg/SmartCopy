@@ -486,6 +486,14 @@ function processMarriage(person, subdata) {
         if (exists(marriageinfo)) {
             subdata["marriage"] = parseGeneanetDate(marriageinfo.text(), "marriage");
         }
+        var pos = $(person).text().search("divorced");
+        if (pos > 0){
+          console.log("Divorce",$(person).text().slice(pos));
+          var divorceinfo = $(person).text().slice(pos + 8); // 8 ="divorced" lenght
+          if (exists(divorceinfo)) {
+            subdata["divorce"] = parseGeneanetDate(divorceinfo, "divorce");
+        }
+        } 
     }
     return subdata;
 }
@@ -530,7 +538,7 @@ function cleanName(givenName){
   if (verboselogs) {
     //console.log("Given name1  :",givenName);
    }
-  givenName = givenName.replace(/\!|\*|_|\.|\"/g,"");
+  givenName = givenName.replace(/\!|\*|_|\.|\"/g," ");
   if (verboselogs) {
     //console.log("Given name2  :",givenName);
   }

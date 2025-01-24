@@ -122,7 +122,7 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
          })
         }
        // load the photo from the given URL
-        async function GetPhoto (jsData){
+async function GetPhoto (jsData){
 
     /* 
     Réécriture du 23 nov 2024.
@@ -136,13 +136,18 @@ The "text()" property of fetch does not behave like xhr.responseText
 try {
      const photoResponse = await fetch(jsData.photo, {
         method: 'GET',
- /*       headers: {
-            "Content-Type" : "text/plain; charset=UTF-8"
-        }*/
+        mode: "cors",
+        headers: {
+            "Content-Type" : "application/xml",
+        //   "Access-Control-Allow-Origin": "*",
+        //   "Access-Control-Allow-Methods": "GET",
+        //   "Access-Control-Max-Age": "86400",
+        },
+        //credentials: "include",
        // superflu jusqu'à preuve du contraire - superfluous until proven otherwise
     });
-        if (!photoResponse.ok) {
-            throw new Error(`Erreur HTTP : ${photoResponse.status}`);
+    if (!photoResponse.ok) {
+            throw new Error(`Erreur Photo : ${photoResponse.status}`);
           }
      const photoreader =  photoResponse.body.getReader();    
          let binary = "";
@@ -169,8 +174,8 @@ try {
             binary += photoarray[i];
           } */   
 }
-catch(error) {
-    console.error('Erreur GetPhoto : $(error)');
+catch({name, stat}) {
+    console.error(name, stat);
 }
 }
 async function evalObject(expression, callback) {

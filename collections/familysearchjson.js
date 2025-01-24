@@ -269,17 +269,17 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                                     profiledata["thumb"] = image;
                                 }
                                 var parents = parentset.split("_");
-                                var data = parseFSJSONUnion(jsonrel[x]["event"]);
+                                var [data_m,data_d] = parseFSJSONUnion(jsonrel[x]["event"]);
                                 for (var y=0; y < parents.length; y++) {
                                     var parentid = parents[y];
                                     var image = "";
-                                    if (jsonrel[x]["husband"] && jsonrel[x]["husband"]["id"] === parentid) {
-                                        image = jsonrel[x]["husband"]["portraitUrl"] || "";
-                                    } else if (jsonrel[x]["wife"] && jsonrel[x]["wife"]["id"] === parentid) {
-                                        image = jsonrel[x]["wife"]["portraitUrl"] || "";
+                                    if (jsonrel[x]["parent1"] && jsonrel[x]["parent1"]["id"] === parentid) {
+                                        image = jsonrel[x]["parent1"]["portraitUrl"] || "";
+                                    } else if (jsonrel[x]["parent2"] && jsonrel[x]["parent2"]["id"] === parentid) {
+                                        image = jsonrel[x]["parent2"]["portraitUrl"] || "";
                                     }
                                     if (y === 0) {
-                                        processFamilySearchJSON(parentid, "parents", famid, image, data);
+                                        processFamilySearchJSON(parentid, "parents", famid, image, data_m,data_d);
                                     } else {
                                         processFamilySearchJSON(parentid, "parents", famid, image);
                                     }
@@ -324,8 +324,9 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                     }
                     // In case of absence of spouse, spouse is null, and is not comparable to "", but the existence test is even better
                     if (spouse) {
-                        var data = parseFSJSONUnion(jsonrel[x]["event"]);
-                        var valid = processFamilySearchJSON(spouse, "spouse", famid, image, data);
+                        var [data_m,data_d] = parseFSJSONUnion(jsonrel[x]["event"]);
+                        var valid = processFamilySearchJSON(spouse, "spouse", famid, image, data_m,data_d);
+                        console.log("valid :",valid);
                         if (valid) {
                             fsspouselist.push(spouse);
                             myhspouse.push(famid);
@@ -404,9 +405,14 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
 }
 
 function parseFSJSONUnion(eventinfo) {
-    var data = [];
+    
+    var data_m = [];
+    var data_d = [];
+    var dateval = "";
+    var eventlocation = "";
+//console.log("Eventinfo",eventinfo);
     if (eventinfo && eventinfo["type"] && eventinfo["type"].toLowerCase() === "marriage") {
-        var dateval = "";
+        
        //I don't know if these two scenarios still exist, in doubt ... (standardDate and or originalDate)
         if (eventinfo["standardDate"]) {
             dateval = eventinfo["standardDate"];
@@ -416,23 +422,49 @@ function parseFSJSONUnion(eventinfo) {
             dateval = eventinfo.details.date.normalizedText;
         }
         if (dateval !== "") {
-            data.push({date: cleanDate(dateval)});
+            data_m.push({date: cleanDate(dateval)});
         }
-        var eventlocation = "";
+        
         //idem
         if (eventinfo["standardPlace"]) {
             eventlocation = eventinfo["standardPlace"].trim();
         } else if (eventinfo["originalPlace"]) {
             eventlocation = eventinfo["originalPlace"].trim();
         } else if (eventinfo.details.place){ // addition following debugging 
+            if (eventinfo.details.place.normalizedText){
             eventlocation = eventinfo.details.place.normalizedText.trim()
+            }
+            if (eventinfo.details.place.originalText && eventlocation == "" ){
+                eventlocation = eventinfo.details.place.originalText.trim()
+            }
+            if (eventlocation == ""){
+                console.log("LocalizedText",eventinfo.details.place.localizedText);
+            }
         }
         if (eventlocation !== "") {
-            data.push({id: geoid, location: eventlocation});
+            data_m.push({id: geoid, location: eventlocation});
             geoid++;
         }
     }
-    return data;
+    if (eventinfo && eventinfo["type"] && eventinfo["type"].toLowerCase() === "divorce") {
+        dateval = "";
+        eventlocation = "";
+        if (eventinfo.details.date) {    
+            dateval = eventinfo.details.date.normalizedText;
+        }
+        if (dateval !== "") {
+            data_d.push({date: cleanDate(dateval)});
+        }
+       
+        if (eventinfo.details.place){ 
+            eventlocation = eventinfo.details.place.normalizedText.trim()
+        }
+        if (eventlocation !== "") {
+            data_d.push({id: geoid, location: eventlocation});
+            geoid++;
+        }
+    }
+    return [data_m,data_d];
 }
 
 function parseFSJSONDate(eventinfo) {
@@ -508,6 +540,9 @@ function getFamilySearchJSON(famid, url, subdata) {
         if (arg.marriage) {
             person["marriage"] = arg.marriage;
         }
+        if (arg.divorce) {
+            person["divorce"] = arg.divorce;
+        }
         if (arg.parent_id) {
             person["parent_id"] = arg.parent_id;
         }
@@ -524,7 +559,7 @@ function getFamilySearchJSON(famid, url, subdata) {
     });
 }
 
-function processFamilySearchJSON(itemid, title, famid, image, data) {
+function processFamilySearchJSON(itemid, title, famid, image, data_m,data_d) {
     // Case of one of the two parents unknown (not referenced)
     if (itemid ==="UNKNOWN"){
         return false;
@@ -541,8 +576,11 @@ function processFamilySearchJSON(itemid, title, famid, image, data) {
     }
 
     var subdata = {title: title, url: url, itemId: itemid, profile_id: famid};
-    if (!$.isEmptyObject(data)) {
-        subdata["marriage"] = data;
+    if (!$.isEmptyObject(data_m)) {
+        subdata["marriage"] = data_m;
+    }
+    if (!$.isEmptyObject(data_d)) {
+        subdata["divorce"] = data_d;
     }
     if (title === "halfsibling") {
         subdata["halfsibling"] = true;

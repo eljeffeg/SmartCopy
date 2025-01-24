@@ -177,6 +177,8 @@ var NameParse = (function(){
             }
 
             if (detectMiddleName) {
+                const rgx =/\./g ;
+                firstName = firstName.replace(rgx,' ' );  //cas rare de point separateur au lieu de l'espace dans geneanet
                 var checkmiddle = firstName.trim().split(" ");
                 if ((middleName.trim() === "") && (checkmiddle.length > 1)) {
                     middleName = checkmiddle.pop();

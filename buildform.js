@@ -742,7 +742,9 @@ function buildForm() {
             if (exists(members[member].alive)) {
                 living = members[member].alive;
             } else if ((relationship == "child" || relationship == "partner" )&& contemporary){   
+                if(!exists(members[member].death)){
                 living = true ;
+                }
             }
            // if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
                 if (members[member].gender === "male") {
@@ -808,7 +810,7 @@ function buildForm() {
             if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
                 var dt = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"]));
                 var year = dt.get('year');
-                if(year< moment.utc().format("YYYY") - 120)
+                if(year< moment.utc().format("YYYY") - 150)
                     {
                     contemporary = false;
                     }

@@ -1006,6 +1006,8 @@ var submitform = function () {
         document.getElementById("updating").style.display = "block";
         setMessage(warningmsg, 'Leaving this window before completion could result in an incomplete data copy.');
 
+        const  formattime ="MMM D YYYY, H:mm:ss"  ;
+        const UTC = " UTC''\n" ;
         var about = "";
         var sourcecheck = $('#sourceonoffswitch').prop('checked');
         var fs = $('#profiletable');
@@ -1035,8 +1037,8 @@ var submitform = function () {
                 if (exists(alldata["profile"].url)) {
                     refurl = alldata["profile"].url;
                 }
-                if (!focusabout.contains("Create from: [" + encodeURI(refurl) + " " + recordtype + "] by " + SC_Project + ":") &&
-                    !focusabout.contains("Update from: [" + encodeURI(refurl) + " " + recordtype + "] by " + SC_Project + ":") &&
+                if (!focusabout.contains("Updated from: [" + encodeURI(refurl) + " " + recordtype + "] by " + SC_Project + ":") &&
+                    !focusabout.contains("Updated from: [" + encodeURI(refurl) + " " + recordtype + "] by " + SC_Project + ":") &&
                     !focusabout.contains("Reference: [" + encodeURI(refurl) + " " + recordtype + "] - " + SC_Project + ":")) {
                         if (focusabout !== "") {
                         about = focusabout + "\n" + about;
@@ -1051,9 +1053,9 @@ var submitform = function () {
                         }
                     }
                     if (exists(refurl)) {
-                        profileout["about_me"] = about + "\n" + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - " +  SC_Project + ": ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                        profileout["about_me"] = about + "\n" + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - " +  SC_Project + ": ''" + moment.utc().format(formattime) + UTC;
                     } else {
-                        profileout["about_me"] = about + "\n" + "* Reference: " + recordtype + " - " +  SC_Project + ": ''" + moment.utc().format("DD MMM YYYY, H:mm:ss") + " UTC''\n";
+                        profileout["about_me"] = about + "\n" + "* Reference: " + recordtype + " - " +  SC_Project + ": ''" + moment.utc().format(formattime) + UTC;
                     }
 
                 } else {
@@ -1129,9 +1131,9 @@ var submitform = function () {
                                 focusprofileurl = "https://www.geni.com/" + focusid;
                             }
                             if (exists(fdata.url)) {
-                                about = about + "\n" + "* Reference : [" + encodeURI(fdata.url) + " " + recordtype + "] - " + SC_Project + ": ''" + moment.utc().format("DD MMM YYYY, H:mm:ss") + " UTC''\n";
+                                about = about + "\n" + "* Reference : [" + encodeURI(fdata.url) + " " + recordtype + "] - " + SC_Project + ": ''" + moment.utc().format(formattime) + UTC;
                             } else {
-                                about = about + "\n" + "* Reference : " + recordtype + " - " + SC_Project + ": ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                                about = about + "\n" + "* Reference : " + recordtype + " - " + SC_Project + ": ''" + moment.utc().format(formattime) + UTC;
                             }
 
                         }
@@ -1149,7 +1151,7 @@ var submitform = function () {
                         if (exists(familyout.author) && familyout.author !== "") {
                             description = familyout.author + ", ";
                         }
-                        photosubmit[familyout.profile_id] = { photo: familyout.photo, title: fdata.name, attribution: description + "Source: " + shorturl };
+                        photosubmit[familyout.profile_id] = { photo: familyout.photo, title: fdata.name.displayname, attribution: description + "Source: " + shorturl };
                         delete familyout.photo;
                         delete familyout.author;
                     }
@@ -1281,10 +1283,10 @@ function buildTree(data, action, sendid) {
             return;
         }
         if (verboselogs) {
-            console.log("Post URL: " + posturl);
+            console.log("Post URL: " + posturl+ " | "+ action);
             console.log("Post Data: " + JSON.stringify(data));
         }
-        if (action !== "add-photo") {
+        if (action !== "add-photo") {   // action = update ,add-child etc
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -1304,9 +1306,7 @@ function buildTree(data, action, sendid) {
                 } catch (e) {
                     noerror = false;
                     var extrainfo = "";
-                    if (response.variable.relation === "photo") {
-                        extrainfo = "The photo may be too large. "
-                    }
+                    
                     if (response.variable.relation === "update" && response.variable.data !== undefined) {
                         submitstatus.pop();
                         document.querySelector('#message').style.display = "none";
@@ -1351,14 +1351,34 @@ function buildTree(data, action, sendid) {
                 submitstatus.pop();
             });
         } else {
-            //console.log("Envoi rqv3 add-photo",data,posturl);
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
                 url: posturl,
                 data: $.param(data),
                 variable: { id: id, relation: action.replace("add-", ""), data: data }
-            });
+            }, function (response) {
+                try {
+                    var result = JSON.parse(response.source);
+                    if (verboselogs) {
+                        console.log("Geni Response Add Photo: " + response.source);
+                    }
+                    if (exists(result.error) && exists(result.error.message)) {
+                        noerror = false;
+                        updateMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + 'Error Response: "' + result.error.message + '"');
+                    }
+                } catch (e) {
+                    noerror = false;
+                    var extrainfo = "";
+                    
+                    if (response.variable.relation === "photo") {
+                        extrainfo = "The photo may be too large. "
+                    }
+                    
+                    updateMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + extrainfo + 'Error Response: "' + e.message + '"');
+                
+                }
+        });
             submitstatus.pop();
         }
 

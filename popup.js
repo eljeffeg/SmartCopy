@@ -1131,9 +1131,9 @@ var submitform = function () {
                                 focusprofileurl = "https://www.geni.com/" + focusid;
                             }
                             if (exists(fdata.url)) {
-                                about = about + "\n" + "* Reference : [" + encodeURI(fdata.url) + " " + recordtype + "] - " + SC_Project + ": ''" + moment.utc().format(formattime) + UTC;
+                                about = about + "\n" + "* Reference: [" + encodeURI(fdata.url) + " " + recordtype + "] - " + SC_Project + ": ''" + moment.utc().format(formattime) + UTC;
                             } else {
-                                about = about + "\n" + "* Reference : " + recordtype + " - " + SC_Project + ": ''" + moment.utc().format(formattime) + UTC;
+                                about = about + "\n" + "* Reference: " + recordtype + " - " + SC_Project + ": ''" + moment.utc().format(formattime) + UTC;
                             }
 
                         }

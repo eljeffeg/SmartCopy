@@ -779,7 +779,7 @@ function updateMessage(color, messagetext) {
     $(message).html(messagehtml + messagetext);
 }
 
-function getPageCode() {
+async function getPageCode() {
     if (loggedin && exists(accountinfo)) {
         document.querySelector('#message').style.display = "none";
         document.querySelector('#loginspinner').style.display = "none";
@@ -795,8 +795,9 @@ function getPageCode() {
                 loadPage(response);
             });
         } else if (collection.parseProfileData) {
+            const tabId = await getTabId();
             chrome.scripting.executeScript({
-                target: {tabId: getTabId()},
+                target: {tabId: tabId},
                 files: ["getPagesSource.js"]
             }, function () {
                 if (chrome.runtime.lastError) {
@@ -1300,9 +1301,14 @@ function buildTree(data, action, sendid) {
                     if (response.variable.relation === "photo") {
                         extrainfo = "The photo may be too large. "
                     }
+                    if (response.variable.relation === "update" && response.variable.data !== undefined) {
+                        submitstatus.pop();
+                        document.querySelector('#message').style.display = "none";
+                        return
+                    }
                     updateMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + extrainfo + 'Error Response: "' + e.message + '"');
                     console.log(e); //error in the above string(in this case,yes)!
-                    console.log(response.source);
+                    console.log(response)
                 }
                 var id = response.variable.id;
                 var relation = response.variable.relation;

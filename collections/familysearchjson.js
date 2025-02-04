@@ -233,16 +233,14 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
     // ---------------------- Family Data --------------------
     if (familymembers) {
         familystatus.push(famid);
-        var url = hostDomain(tablink) + "/service/tree/tree-data/family-members/person/" + focusURLid + "?includePhotos=true&locale=en";
+        var url = hostDomain(tablink) + "/service/tree/tree-data/r9/family-members/person/" + focusURLid + "?includePhotos=true&locale=en";
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
             url: url,
             variable: profiledata
         }, function (response) {
-            var arg = response.variable;
-            var source = JSON.parse(response.source);
-            if (!exists(source["data"])) {
+            if (response.status == 400) {
                 setMessage(warningmsg, "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
                     "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
                 document.getElementById("top-container").style.display = "block";
@@ -250,16 +248,18 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                 document.getElementById("loading").style.display = "none";
                 return;
             }
-            if (source["data"]["parents"]) {
-                var jsonrel = source["data"]["parents"];
-                var parentset;
+            var source = JSON.parse(response.source);
+            var jsonrel = source["parents"];
+            var parentset;
+            if (jsonrel) {
                 for (var x = 0; x < jsonrel.length; x++) {
                     if (jsonrel[x]["children"]) {
                         var childset = jsonrel[x]["children"];
                         for (var i = 0; i < childset.length; i++) {
-                            if (childset[i]["id"] === focusURLid) {
+                            let child = childset[i]["child"];
+                            if (child["id"] === focusURLid) {
                                 parentset = jsonrel[x]["coupleId"];
-                                var image = childset[i]["portraitUrl"] || "";
+                                var image = child["portraitUrl"] || "";
                                 if (image !== "" && image.startsWith("http")) {
                                     profiledata["image"] = image;
                                     profiledata["thumb"] = image;
@@ -291,30 +291,34 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         var childset = jsonrel[x]["children"];
                         var coupleid = jsonrel[x]["coupleId"];
                         for (var i = 0; i < childset.length; i++) {
-                            if (childset[i]["id"] !== focusURLid) {
+                            let child = childset[i]["child"];
+                            if (child["id"] !== focusURLid) {
                                 var relation = "sibling";
                                 if (parentset !== coupleid) {
                                     relation = "halfsibling"
                                 }
-                                var image = childset[i]["portraitUrl"] || "";
-                                processFamilySearchJSON(childset[i]["id"], relation, famid, image);
+                                var image = child["portraitUrl"] || "";
+                                processFamilySearchJSON(child["id"], relation, famid, image);
                                 famid++;
                             }
                         }
                     }
                 }
-                var jsonrel = source["data"]["spouses"];
+            }
+            
+            var jsonrel = source["spouses"];
+            if (jsonrel) {
                 for (var x = 0; x < jsonrel.length; x++) {
-                    var spouse = "";
-                    var image = "";
-                    if (jsonrel[x]["spouse2"] && jsonrel[x]["spouse2"]["id"] !== focusURLid) {
-                        spouse = jsonrel[x]["spouse2"]["id"];
-                        image = jsonrel[x]["spouse2"]["portraitUrl"] || "";
-                    } else if (jsonrel[x]["spouse1"] && jsonrel[x]["spouse1"]["id"] !== focusURLid) {
-                        spouse = jsonrel[x]["spouse1"]["id"];
-                        image = jsonrel[x]["spouse1"]["portraitUrl"] || "";
+                    var spouse = jsonrel[x]["id"];
+                    var image = jsonrel[x]["portraitUrl"] || "";
+                    if (jsonrel[x]["parent2"] && jsonrel[x]["parent2"]["id"] !== focusURLid) {
+                        spouse = jsonrel[x]["parent2"]["id"];
+                        image = jsonrel[x]["parent2"]["portraitUrl"] || "";
+                    } else if (jsonrel[x]["parent1"] && jsonrel[x]["parent1"]["id"] !== focusURLid) {
+                        spouse = jsonrel[x]["parent1"]["id"];
+                        image = jsonrel[x]["parent1"]["portraitUrl"] || "";
                     }
-                    if (spouse !== "") {
+                    if (spouse) {
                         var data = parseFSJSONUnion(jsonrel[x]["event"]);
                         var valid = processFamilySearchJSON(spouse, "spouse", famid, image, data);
                         if (valid) {
@@ -324,14 +328,14 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                         }
                     }
                 }
-
+    
                 // ---------------------- Children --------------------
                 if (fsspouselist.length > 0) {
                     for (var x = 0; x < fsspouselist.length; x++) {
                         var spouse = fsspouselist[x];
                         familystatus.push(famid);
                         //https://familysearch.org/tree-data/family-members/couple/LKKN-H49_LH2H-51B/children?focusPersonId=LH2H-51B&includePhotos=true&locale=en
-                        var url = hostDomain(tablink) + "/service/tree/tree-data/family-members/couple/" + spouse + "_" + focusURLid + "/children?focusPersonId=" + focusURLid + "&includePhotos=true&locale=en";
+                        var url = hostDomain(tablink) + "/service/tree/tree-data/r9/family-members/couple/" + spouse + "_" + focusURLid + "/children?focusPersonId=" + focusURLid + "&includePhotos=true&locale=en";
                         var subdata = {spouse: spouse};
                         chrome.runtime.sendMessage({
                             method: "GET",
@@ -339,9 +343,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                             url: url,
                             variable: subdata
                         }, function (response) {
-                            var arg = response.variable;
-                            var source = JSON.parse(response.source);
-                            if (!exists(source["data"])) {
+                            if (response.status == 400) {
                                 setMessage(warningmsg, "There was a problem retrieving FamilySearch data.<br>Please verify you are logged in " +
                                     "<a href='https://familysearch.org' target='_blank'>https://familysearch.org</a>");
                                 document.getElementById("top-container").style.display = "block";
@@ -349,13 +351,15 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                                 document.getElementById("loading").style.display = "none";
                                 return;
                             }
-                            var childset = source["data"];
+                            var arg = response.variable;
+                            var childset = JSON.parse(response.source);
                             for (var i = 0; i < childset.length; i++) {
-                                 var itemid = childset[i]["id"];
-                                 var image = childset[i]["portraitUrl"] || "";
-                                 childlist[famid] = $.inArray(arg.spouse, unionurls);
-                                 processFamilySearchJSON(itemid, "child", famid, image);
-                                 famid++;
+                                    var child = childset[i]["child"];
+                                    var itemid = child["id"];
+                                    var image = child["portraitUrl"] || "";
+                                    childlist[famid] = $.inArray(arg.spouse, unionurls);
+                                    processFamilySearchJSON(itemid, "child", famid, image);
+                                    famid++;
                             }
                             familystatus.pop();
                         });

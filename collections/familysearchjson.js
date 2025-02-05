@@ -4,12 +4,12 @@ registerCollection({
     "recordtype": "FamilySearch Genealogy",
     "prepareUrl": function(url) {
         url = url.replace("://www.", "://");
-        if (startsWithHTTP(url,"https://familysearch.org/pal:")) {
+        if (startsWithHTTP(url,"https://familysearch.org/"+ lgurl +"/pal:")) {
             var urlparts= url.split('?');
             focusURLid = urlparts[0].substring(url.lastIndexOf('/') + 1);
             url = hostDomain(url) + "/service/tree/tree-data/person/" + focusURLid + "/all?locale=en";
             this.reload = true;
-        } else if (startsWithHTTP(url,"https://familysearch.org/tree/") && !startsWithHTTP(url, "https://familysearch.org/tree/find")) {
+        } else if (startsWithHTTP(url,"https://familysearch.org/"+ lgurl +"/tree/") && !startsWithHTTP(url, "https://familysearch.org/"+ lgurl +"/tree/find")) {
             focusURLid = getParameterByName('person', url);
             if (focusURLid === "") {
                 url = url.replace("/details", "").replace("/memories", "").replace("/landscape", "").replace("/portrait", "").replace("/fanchart", "").replace("/descendancy", "");
@@ -20,12 +20,12 @@ registerCollection({
             }
             url = hostDomain(url) + "/service/tree/tree-data/person/" + focusURLid + "/all?locale=en";
             this.reload = true;
-        } else if (startsWithHTTP(url,"https://familysearch.org/ark:") && !url.contains("/1:1:")) {
+        } else if (startsWithHTTP(url,"https://familysearch.org/"+ lgurl +"/ark:") && !url.contains("/1:1:")) {
             var urlparts= url.split('?');
             focusURLid = urlparts[0].substring(url.lastIndexOf(':') + 1);
             url = hostDomain(url) + "/service/tree/tree-data/person/" + focusURLid + "/all?locale=en";
             this.reload = true;
-        } else if (startsWithHTTP(url,"https://familysearch.org/service/tree/tree-data/")) {
+        } else if (startsWithHTTP(url,"https://familysearch.org/"+ lgurl +"/service/tree/tree-data/")) {
             var focussplit = url.split("/");
             if (focussplit.length > 1) {
                 focusURLid = focussplit[focussplit.length - 2];
@@ -35,16 +35,17 @@ registerCollection({
     },
     "collectionMatch": function(url) {
         url = url.replace("://www.", "://");
+        lgurl = url.match(/org\/[a-z]{2}/)[0].replace(/org\//,'');//2 5 2024 new url of FS
         return (
-                startsWithHTTP(url,"https://familysearch.org/service/tree") ||
-                startsWithHTTP(url,"https://familysearch.org/tree-data") ||
-                startsWithHTTP(url,"https://familysearch.org/tree/") ||
-                startsWithHTTP(url,"https://familysearch.org/pal:") ||
-                (startsWithHTTP(url,"https://familysearch.org/ark:") && !url.contains("/1:1:") && !url.contains("/2:2:"))
+                startsWithHTTP(url,"https://familysearch.org/"+ lgurl +"/service/tree") ||
+                startsWithHTTP(url,"https://familysearch.org/"+ lgurl +"/tree-data") ||
+                startsWithHTTP(url,"https://familysearch.org/"+ lgurl +"/tree/") ||
+                startsWithHTTP(url,"https://familysearch.org/"+ lgurl +"/pal:") ||
+                (startsWithHTTP(url,"https://familysearch.org/"+ lgurl +"/ark:") && !url.contains("/1:1:") && !url.contains("/2:2:"))
             );
     },
     "parseData": function(url) {
-        if (startsWithHTTP(url, "https://familysearch.org/tree/find")) {
+        if (startsWithHTTP(url, "https://familysearch.org/"+ lgurl +"/tree/find")) {
             document.querySelector('#loginspinner').style.display = "none";
             setMessage(warningmsg, 'SmartCopy does not work on Search pages.  Please select one of the Profile pages on this site.');
         } else {

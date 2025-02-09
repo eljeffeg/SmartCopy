@@ -133,24 +133,3 @@ function parseGravezMe(htmlstring, familymembers, relation) {
     return profiledata;
 }
 
-function addEvent(profiledata, event, dateval, eventlocation) {
-    data = []
-
-    dateval = cleanDate(dateval.replace("/","-"));
-    if (dateval !== "unknown" && dateval !== "") {
-        dt = moment(dateval, "DD-MM-YYYY", true);
-        if (dt.isValid()) {
-            dateval = dt.format('MMMM D, YYYY');
-        }
-        data.push({date: dateval});
-    }
-    if (eventlocation !== "") {
-        data.push({id: geoid, location: eventlocation});
-        geoid++;
-    }
-    if (!$.isEmptyObject(data)) {
-        profiledata[event] = data;
-    }
-    return profiledata;
-}
-

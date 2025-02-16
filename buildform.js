@@ -26,6 +26,7 @@ var wifelastname = "";
 var datelimit = 1600;
 const sepgeneanet = "·";
 var contemporary = true;
+prefixs.push(sepgeneanet);
 
 function updateGeo() {
     if (familystatus.length > 0) {
@@ -1657,24 +1658,24 @@ function buildUnknown(gender) {
     var pselect = "";
     pselect += '<option value="unknown" selected>'+_("Unknown","Unknown")+'</option>';
     if (gender === "unknown") {
-        pselect += '<option value="parent">Parent</option>';
-        pselect += '<option value="sibling">Sibling</option>';
-        pselect += '<option value="partner">Spouse</option>';
-        pselect += '<option value="child">Child</option>';
+        pselect += '<option value="parent">'+_("PParent","Parent")+'</option>';
+        pselect += '<option value="sibling">'+_("SSibling","Sibling")+'</option>';
+        pselect += '<option value="partner">'+_("Spouse","Spouse")+'</option>';
+        pselect += '<option value="child">'+_("Child","Child")+'</option>';
     } else if (gender === "male") {
-        pselect += '<option value="parent">Father</option>';
-        pselect += '<option value="sibling">Brother</option>';
+        pselect += '<option value="parent">'+_("FFather","Father")+'</option>';
+        pselect += '<option value="sibling">'+_("BBrother","Brother")+'</option>';
         if (focusgender !== "male") {
-            pselect += '<option value="partner">Husband</option>';
+            pselect += '<option value="partner">'+_("HHusband","Husband")+'</option>';
         }
-        pselect += '<option value="child">Son</option>';
+        pselect += '<option value="child">'+_("Son","Son")+'</option>';
     } else if (gender === "female") {
-        pselect += '<option value="parent">Mother</option>';
-        pselect += '<option value="sibling">Sister</option>';
+        pselect += '<option value="parent">'+_("MMother","Mother")+'</option>';
+        pselect += '<option value="sibling">'+_("Sister","Sister")+'</option>';
         if (focusgender !== "female") {
-            pselect += '<option value="partner">Wife</option>';
+            pselect += '<option value="partner">'+_("WWife","Wife")+'</option>';
         }
-        pselect += '<option value="child">Daughter</option>';
+        pselect += '<option value="child">'+_("Daughter","Daughter")+'</option>';
     }
 
     pselect = '<select name="unknownsel" class="unknownselect" gender="' + gender + '">' + pselect;
@@ -1948,7 +1949,7 @@ function cleanDate(dateval) {
         */
         dateval = "";
     }
-    if (dateval.contains("(aged")) {
+    if (dateval.contains("(aged")||dateval.contains("(âgé(") ) {
         dateval = dateval.replace(/ \(.*\)/gm, "");
     }
 
@@ -2020,7 +2021,13 @@ function cleanDate(dateval) {
     } else if (dateval.search(/\D, \d/) !== -1) {
         dateval = dateval.replace(",", "");
     }
-
+    if (dateval.search(/\d{1,2} \w{3,9} \d{4}/) !== -1){ //date française
+        const dateStr = dateval ; // Format d'origine
+        const date = new Date(dateStr); // Convertir en objet Date
+        // Options pour formater la date
+        const options = { month: 'long', day: 'numeric', year: 'numeric' };
+        dateval = date.toLocaleDateString('en-US', options);
+    }
     /*
     TODO Trying to set the format to MMM D YYYY, can produce Jan 1 YYYY if no month or day is present
     var momentval = moment(dateval.replace("Circa ", ""), getDateFormat(dateval.replace("Circa ", "")), true);

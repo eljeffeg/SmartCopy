@@ -36,6 +36,7 @@ var project_id;
 var getsettingsdone = false;
 var accountinfo;
 var GeniTaal="en";
+var sepgeneanet; //for operation on geni outside popup - Global Constant declared in buildform.js and not yet declared at this stage.must be declared to be identified as undefined.It's crazy isn't it
 
 var _ = function (messageName, substitutions) {
     return chrome.i18n.getMessage(messageName, substitutions);

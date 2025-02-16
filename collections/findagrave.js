@@ -98,9 +98,9 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     if (exists(abouttemp)) {
         aboutdata = $($.parseHTML(abouttemp.replace(/<br>/g, "\n"))).text().trim();
     }
-        profiledata = addEvent(profiledata, "birth", parsed.find("#birthDateLabel").text(), parsed.find("#birthLocationLabel").text().replace(regsaut, '').trim());
-    profiledata = addEvent(profiledata, "baptism", parsed.find("#baptismDateLabel").text(), parsed.find("#baptismLocationLabel").text().replace(regsaut, '').trim());
-    profiledata = addEvent(profiledata, "death", parsed.find("#deathDateLabel").text(), parsed.find("#deathLocationLabel").text().replace(regsaut, '').trim());
+        profiledata = addEvent(profiledata, "birth", convDateFrench(parsed.find("#birthDateLabel").text()), parsed.find("#birthLocationLabel").text().replace(regsaut, '').trim());
+    profiledata = addEvent(profiledata, "baptism", convDateFrench(parsed.find("#baptismDateLabel").text()), parsed.find("#baptismLocationLabel").text().replace(regsaut, '').trim());
+    profiledata = addEvent(profiledata, "death", convDateFrench(parsed.find("#deathDateLabel").text()), parsed.find("#deathLocationLabel").text().replace(regsaut, '').trim());
     let cemetery = parsed.find("#burialLocationLabel").text().replace(regsaut, '').trim();
     if (cemetery === "") {
         cemetery = parsed.find("#cemeteryNameLabel").text();
@@ -122,7 +122,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             }
         }
     }
-    profiledata = addEvent(profiledata, "burial", parsed.find("#burialDateLabel").text(), cemetery.trim());
+    profiledata = addEvent(profiledata, "burial", convDateFrench(parsed.find("#burialDateLabel").text()), cemetery.trim());
     
     // ---------------------- Family Data --------------------
     let pid = "";
@@ -282,6 +282,7 @@ function addEvent(profiledata, event, dateval, eventlocation) {
     }
     dateval = cleanDate(dateval);
     if (dateval !== "unknown" && dateval !== "") {
+        convDateFrench(dateval);
         data.push({date: dateval});
     }
     if (eventlocation !== "") {
@@ -323,4 +324,36 @@ function getFindAGraveFamily(famid, url, subdata) {
         alldata["family"][arg.title].push(person);
         familystatus.pop();
     });
+}
+//Annule les abreviations de nom de mois genereées par FAG
+function convDateFrench(datefrench){
+    const mois = {
+        "jan." :"january" ,
+        "févr." :"february",
+        "mars" :"march",
+        "avr." :"april",
+        "mai" :"may",
+        "juin" :"june",
+        "juill." :"july",
+        "août" :"august",
+        "sept." :"september",
+        "oct." :"october",
+        "nov." :"november",
+        "déc." :"december",
+        "jan" :"january" ,
+        "fév" :"february",
+        "mar" :"march",
+        "avr" :"april",
+        "mai" :"may",
+        "jun" :"june",
+        "jul" :"july",
+        "aoû" :"august",
+        "sep" :"september",
+        "oct" :"october",
+        "nov" :"november",
+        "déc" :"december"
+    }
+const regmois = /(jan\.|févr\.|mars|avr\.|mai|juin|juill\.|août|sept\.|oct\.|nov\.|déc\.|jan|fév|mar|avr|mai|jun|jul|aoû|sep|oct|nov|déc)/i
+datefrench = datefrench.replace(regmois,(match)=>mois[match.toLowerCase()]||match);
+    return datefrench;
 }

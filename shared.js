@@ -222,25 +222,25 @@ function isMale(title) {
 function isSibling(relationship) {
     if (!exists(relationship)) { return false; }
     relationship = relationship.toLowerCase().replace(" (implied)", "");
-    return (relationship === "siblings" || relationship === "sibling" || relationship === "brother" || relationship === "sister" || relationship === "bro" || relationship === "sis");
+    return (relationship === "siblings" || relationship === "sibling" || relationship === "brother" || relationship === "sister" || relationship === "bro" || relationship === "sis"|| relationship === "frères et sœurs");
 }
 
 function isChild(relationship) {
     if (!exists(relationship)) { return false; }
     relationship = relationship.toLowerCase().replace(" (implied)", "");
-    return (relationship === "children" || relationship === "child" || relationship === "son" || relationship === "daughter" || relationship === "dau");
+    return (relationship === "children" || relationship === "child" || relationship === "son" || relationship === "daughter" || relationship === "dau"|| relationship === "enfants");
 }
 
 function isParent(relationship) {
     if (!exists(relationship)) { return false; }
     relationship = relationship.toLowerCase().replace(" (implied)", "");
-    return (relationship === "parents" || relationship === "father" || relationship === "mother" || relationship === "parent" || relationship === "moth" || relationship === "fath");
+    return (relationship === "parents" || relationship === "father" || relationship === "mother" || relationship === "parent" || relationship === "moth" || relationship === "fath"|| relationship === "parents");
 }
 
 function isPartner(relationship) {
     if (!exists(relationship)) { return false; }
     relationship = relationship.toLowerCase().replace(" (implied)", "");
-    return (relationship === "spouse" || relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner" || relationship === "ex_husband" || relationship === "ex_wife" || relationship === "ex_partner" || relationship === "spouses");
+    return (relationship === "spouse" || relationship === "wife" || relationship === "husband" || relationship === "partner" || relationship === "ex-husband" || relationship === "ex-wife" || relationship === "ex-partner" || relationship === "ex_husband" || relationship === "ex_wife" || relationship === "ex_partner" || relationship === "spouses"|| relationship === "conjoints"|| relationship === "conjoint");
 }
 
 function getGeniData(profile, value, subvalue) {
@@ -266,7 +266,11 @@ function getUnionData(union, value) {
 }
 
 function getFocus() {
+    if (genifamily["focus"].id === undefined) {
+    return "";
+    } else {
     return genifamily["focus"].id;
+    }
 }
 
 function getParents() {

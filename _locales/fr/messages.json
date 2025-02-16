@@ -12,32 +12,26 @@
         "message": "Vérifications de cohérence"
     },
     "contains_incorrect_uppercase_lowercase_in_name": {
-        "message": "$person$ a une typographie non conforme dans sa dénomination $pronoun$  ($lang$).",
+        "message": "$person$ a une mauvaise typographie de son nom ($lang$).",
         "placeholders": {
             "person": {
                 "content": "$1"
             },
-            "pronoun": {
-                "content": "$2"
-            },
             "lang": {
-                "content": "$3"
+                "content": "$2"
             }
         }
     },
     "contains_incorrect_uppercase_lowercase_in_name_default": {
-        "message": "$person$ a une typographie non conforme dans sa dénomination $pronoun$ .",
+        "message": "$person$ a une mauvaise typographie de son nom .",
         "placeholders": {
             "person": {
                 "content": "$1"
-            },
-            "pronoun": {
-                "content": "$2"
             }
         }
     },
     "contains_patronym_in_first_name": {
-        "message": "$person$ contains a patro/matronym in $pronoun$ first name ($lang$).",
+        "message": "$person$ contient un patronyme dans $pronoun$ prénom ($lang$).",
         "placeholders": {
             "person": {
                 "content": "$1"
@@ -51,7 +45,7 @@
         }
     },
     "contains_patronym_in_first_name_default": {
-        "message": "$person$ contains a patro/matronym in $pronoun$ first name.",
+        "message": "$person$ contient un patronyme dans $pronoun$ prénom.",
         "placeholders": {
             "person": {
                 "content": "$1"
@@ -62,7 +56,7 @@
         }
     },
     "contains_non_patronym_in_middle_name": {
-        "message": "$person$ contains a non-patro/matronym in $pronoun$ middle name ($lang$).",
+        "message": "$person$ contient un non-patro/matronyme dans $pronoun$ middle name ($lang$).",
         "placeholders": {
             "person": {
                 "content": "$1"
@@ -93,7 +87,7 @@
         "message": "revendiqué"
     },
     "fixCase": {
-        "message": "fixez la case"
+        "message": "fixez la casse"
     },
     "fixed": {
         "message": "fixé"
@@ -846,5 +840,47 @@
 },
 "Add_Profile":{
     "message":"Ajouter le profil"
-}   
+},
+"Unknown_Relations":{
+        "message":"Relations Indéterminées"
+},
+    "MMother": {
+        "message": "Mère"
+    },
+    "FFather": {
+        "message": "Père"
+    },
+    "Parent": {
+        "message": "Parent"
+    },
+    "BBrother": {
+        "message": "Frère"
+    },
+    "Sister": {
+        "message": "Soeur"
+    },
+    "SSibling": {
+        "message": "Fratrie"
+    },
+    "WWife": {
+        "message": "Femme"
+    },
+    "HHusband": {
+        "message": "Mari"
+    },
+    "Partner": {
+        "message": "Partenaire"
+    },
+    "Spouse": {
+        "message": "Epoux Epouse"
+    },
+    "Son": {
+        "message": "Fils"
+    },
+    "Daughter": {
+        "message": "Fille"
+    },
+    "Child": {
+        "message": "Enfant"
+    }     
 }

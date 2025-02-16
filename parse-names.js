@@ -3,6 +3,7 @@
 // ported to JavaScript by Mark Pemburn (pemburnia.com)
 // released under Apache 2.0 license
 
+var prefixs = ['vere','von','van','de','der','del','della','di','da', 'do', 'pietro','vanden','du','st.','st','la','le','lo', 'las', 'los', 'ter','o', 'y', "o'",'mc','mac','fitz']
 var NameParse = (function(){
     function NameParse() {
         return NameParse;
@@ -346,7 +347,10 @@ var NameParse = (function(){
         word = word.replace(/\*/g,"");
         word = word.replace(/\!/g,"");
         //passage caractere special geneanet.js a eliminer apres emploi
+        if(sepgeneanet === undefined){
+        } else {
         word = word.replace(sepgeneanet,"");
+        }
         return word;
     };
 
@@ -414,8 +418,9 @@ var NameParse = (function(){
     NameParse.is_compound_lastName = function (word) {
         word = word.toLocaleLowerCase();
         // these are some common prefixes that identify a compound last names - what am I missing? - rajout de  · (geneanet) 4/9/2023
-        var words = ['vere','von','van','de','der','del','della','di','da', 'do', 'pietro','vanden','du','st.','st','la','le','lo', 'las', 'los', 'ter','o', 'y', "o'",'mc','mac','fitz',sepgeneanet];
-        return (words.indexOf(word) >= 0);
+    //    var words = ['vere','von','van','de','der','del','della','di','da', 'do', 'pietro','vanden','du','st.','st','la','le','lo', 'las', 'los', 'ter','o', 'y', "o'",'mc','mac','fitz',sepgeneanet];
+    
+        return (prefixs.indexOf(word) >= 0);
     };
 
     // single letter, possibly followed by a period
@@ -427,11 +432,21 @@ var NameParse = (function(){
 
     // detect mixed case words like "McDonald"
     // returns false if the string is all one case
+    // with avoiding compound nouns. (de MACHIN)
     NameParse.is_camel_case = function (word) {
+        if(this.is_compound_lastName(word)){
+        return true;
+        }
         word = this.removeIgnoredChars(word);
+        if (word.includes(" ")){
+            //console.log("Is_camel ",word);
+            const words = word.split(' ');
+            return(words[1].toUpperCase == words[1] || false);   
+        } else {
         var ucReg = word.toUpperCase();
         var lcReg = word.toLowerCase();
         return (word.length === 1 || (lcReg !== word && ucReg !== word) || ucReg === lcReg);
+        }
     };
 
     // ucfirst words split by dashes or periods

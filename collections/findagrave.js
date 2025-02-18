@@ -6,7 +6,7 @@ registerCollection({
     "collectionMatch": function(url) {
         return (startsWithHTTP(url, "https://www.findagrave.com") ||
             startsWithHTTP(url, "https://findagrave.com") ||
-            startsWithHTTP(url, "https://forum.findagrave.com"));
+            startsWithHTTP(url, "https://forum.findagrave.com")||startsWithHTTP(url, "https://fr.findagrave.com")); //TODO filter with all lang prefix
     },
     "parseData": function(url) {
         if (url.contains("page=gsr")) {
@@ -30,7 +30,7 @@ registerCollection({
     },
     "parseProfileData": parseFindAGrave
 });
-
+const regsaut = /[\r\n\t]+/g ;
 
 // Parse FindAGrave
 function parseFindAGrave(htmlstring, familymembers, relation) {
@@ -98,10 +98,10 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
     if (exists(abouttemp)) {
         aboutdata = $($.parseHTML(abouttemp.replace(/<br>/g, "\n"))).text().trim();
     }
-    profiledata = addEvent(profiledata, "birth", parsed.find("#birthDateLabel").text(), parsed.find("#birthLocationLabel").text());
-    profiledata = addEvent(profiledata, "baptism", parsed.find("#baptismDateLabel").text(), parsed.find("#baptismLocationLabel").text());
-    profiledata = addEvent(profiledata, "death", parsed.find("#deathDateLabel").text(), parsed.find("#deathLocationLabel").text());
-    let cemetery = parsed.find("#burialLocationLabel").text();
+        profiledata = addEvent(profiledata, "birth", parsed.find("#birthDateLabel").text(), parsed.find("#birthLocationLabel").text().replace(regsaut, '').trim());
+    profiledata = addEvent(profiledata, "baptism", parsed.find("#baptismDateLabel").text(), parsed.find("#baptismLocationLabel").text().replace(regsaut, '').trim());
+    profiledata = addEvent(profiledata, "death", parsed.find("#deathDateLabel").text(), parsed.find("#deathLocationLabel").text().replace(regsaut, '').trim());
+    let cemetery = parsed.find("#burialLocationLabel").text().replace(regsaut, '').trim();
     if (cemetery === "") {
         cemetery = parsed.find("#cemeteryNameLabel").text();
         let placeinfo = parsed.find("#cemeteryNameLabel").closest("div").next();
@@ -275,6 +275,25 @@ function getFindAGraveName(focusperson) {
     return focusperson;
 }
 
+function addEvent(profiledata, event, dateval, eventlocation) {
+    data = []
+    if (exists(dateval) && dateval.contains(" (")) {
+        dateval = dateval.split(" (")[0];
+    }
+    dateval = cleanDate(dateval);
+    if (dateval !== "unknown" && dateval !== "") {
+        data.push({date: dateval});
+    }
+    if (eventlocation !== "") {
+        eventlocation = eventlocation.replace(regsaut, '').trim();
+        data.push({id: geoid, location: eventlocation});
+        geoid++;
+    }
+    if (!$.isEmptyObject(data)) {
+        profiledata[event] = data;
+    }
+    return profiledata;
+}
 
 function getFAGID(url) {
     let fagid = url.substring(url.lastIndexOf('memorial/') + 9).replace("#", "");

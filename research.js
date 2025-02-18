@@ -15,7 +15,7 @@ function buildResearch() {
         variable: ""
     }, function (response) {
         let responsedata = JSON.parse(response.source);
-        let focusname = responsedata.name;
+        focusname = responsedata.name; // Use of global variable required for use of history QP 
         let accessdialog = document.querySelector('#useraccess');
         let researchstring = "<div style='font-size: 115%;'><strong>" + _("Research_this_Person") + "</strong><div style='font-size: 85%; font-style: italic;'>" + focusname + "</div></div><div style='padding-top: 2px; padding-bottom: 5px;'>";
         if (exists(responsedata.first_name)) {

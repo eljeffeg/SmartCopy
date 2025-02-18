@@ -366,6 +366,9 @@
     "Show_History": {
         "message": "Show History"
     },
+    "Hide_History": {
+        "message": "Hide History"
+    },
     "Clear_History": {
         "message": "Clear History"
     },
@@ -453,7 +456,7 @@
     "message": "Auto-adjust the names for mixed-case"
     },
     "Force_compound_lastname_to_lowercase": {
-    "message": "Force compound lasstname to lowercase"
+    "message": "Force compound lastname to lowercase"
     },
     "Default_children_to_likely_Geni_parent": {
     "message": "Default children to likely Geni parent"
@@ -681,5 +684,167 @@
     },
     "partner": {
         "message": "partner"
+    },
+    "Submit": {
+        "message": "Submit"
+    },
+    "Profile_Data": {
+        "message": "Profile Data"
+    },
+    "ExperimentalMessage": {
+        "message": "SmartCopy use on this website is experimental and may not be fully supported. Please be cautions and review the data thoroughly before submitting. Report issues in the"
+    },
+    "SmartCopy_discussion_at_Geni": {
+        "message" :"SmartCopy discussion at Geni"
+    },
+    "SmartCopy_was_unable_to_determine_the_Geni_profile": {
+        "message":"SmartCopy was unable to determine the Geni profile to use as a copy destination."
+    },
+    "Set_Geni_Destination_Profile":{
+        "message":"Set Geni Destination Profile" 
+    },
+    "Relatives":{
+        "message" : "Relatives"
+    },
+    "Select_from_History": {
+        "message": "Select from History"
+    },
+    "Invalid_Profile": {
+        "message": "Invalid Profile Id - Try Again"
+    },
+    "Set_Destination": {
+        "message": "Set Destination"
+    },
+    "History": {
+        "message": "History :"
+    },
+    "Reading_Family_Data": {
+        "message": "Reading Family Data ..."
+    },
+    "Updating_Geni": {
+        "message": "Updating Geni"
+    },
+    "Geni_Tree_Updated": {
+        "message": "Geni Tree Updated"
+    },
+    "Reminder_Duplicate": {
+        "message": "Reminder: Please review for duplicates<br>and merge when able."
+    },
+    "View_Profile":{
+    "message":"View Profile :"
+    },
+    "Tree_View":{
+    "message":"tree view"
+    },
+    "View_Profil":{
+    "message":"profile view"
+    },
+    "Geni_Data":{
+    "message":"Geni_Data"
+    },
+    "Update_Profile":{
+    "message":"Update Profile"
+    },
+    "Family_Members":{
+    "message":"Family Members"
+    },
+    "Parents":{
+    "message":"Parents"
+    },
+    "Siblings":{
+    "message":"Siblings"
+    },
+    "Partners":{
+    "message":"Partners"
+    },
+    "Children":{
+    "message":"Children"
+    },
+    "expand_all":{
+        "message":"expand all"
+    },
+    "collapse_all":{
+        "message":"collapse all"
+    },
+    "Title":{
+        "message":"Title:"
+    },
+    "FFirst_Name":{
+        "message":"First Name:"
+    },
+    "Middle_Name":{
+        "message":"Middle Name:"
+    },
+    "Last_Name":{
+        "message":"Last Name:"
+    },
+    "Birth_Name":{
+        "message":"Birth Name:"
+    },
+    "Suffix":{
+        "message":"Suffix:"
+    },
+    "Display_Name":{
+        "message":"Display Name:"
+    },
+    "Also_Known_As":{
+        "message":"Also Known As:"
+    },
+    "Occupation":{
+        "message":"Occupation:"
+    },
+    "Gender":{
+        "message":"Gender:"
+    },
+    "Vital":{
+        "message":"Vital:"
+    },
+    "Privacy":{
+        "message":"Privacy:"
+    },
+    "About":{
+        "message":"About:"
+    },
+    "Male":{
+        "message":"Male"
+    },
+    "Female":{
+        "message":"Female"
+    },
+    "Deceased":{
+        "message":"Deceased"
+    },
+    "LLiving":{
+        "message":"Living"
+    },
+    "Public":{
+        "message":"Public"
+    },
+    "Private":{
+        "message":"Private"
+    },
+    "Auto":{
+        "message":"Auto"
+    },
+    "Unknown":{
+        "message":"Unknown"
+    },
+    "Action":{
+        "message":"Action:"
+    },
+    "Hide_Unused_Fields":{
+        "message":"Hide Unused Fields"
+    },
+    "Show_All_Fields":{
+        "message":"Show All Fields"
+    },
+    "Update":{
+        "message":"Update:"
+    },
+    "Add":{
+        "message":"Add"
+    },
+    "Add_Profile":{
+        "message":"Add Profile"
     }
 }

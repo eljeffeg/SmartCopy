@@ -1,4 +1,3 @@
-var verboselogs = false;
 registerCollection({
     "reload": false,
     "experimental": true,
@@ -26,79 +25,15 @@ registerCollection({
     "loadPage": function(request) {
         var parsed = $(request.source.replace(/<img /ig, "<track "));
         var nameTab = parsed.find(".with_tabs.name");
-       // var genderval = "unknown";
-        var genderImg = nameTab.find("track").first();
-        var focusfirstName = nameTab.find("a:not(:has(track))").first().text();
-        var focuslastName = departicule(nameTab.find("a:not(:has(track))").first().next().text());
-          if(focuslastName+focuslastName ==""){
-            nameTab = parsed.find("em[style=\"font-size:14px\"]");
-            focusfirstName = nameTab.find("a:not(:has(track))").first().text();
-            focuslastName = departicule(nameTab.find("a:not(:has(track))").first().next().text());
-          }
-         if (genderImg.attr("title") === "M") {
-          focusname = focusfirstName + " " + sepgeneanet +" " + focuslastName;
-              // genderval = "male";
-          } else if (genderImg.attr("title") === "F") {
-// Retrouver un nom marital (le premier qui se présente)
-            var spouses = $(parsed).find('h2:has(span:contains("Spouses")) + ul.fiche_union > li');
-            var nomMaris = $(spouses[0]).find("a:not(:has(track))").first().text().split(' ');
-            var Nommarital ="";
-             if (exists(nomMaris)) {
-                Nommarital = nomMaris[nomMaris.length-1];
-           // console.log("Nommarital ",nomMaris,Nommarital);
-             focusname = focusfirstName + " " + sepgeneanet +" " + Nommarital  + " (" +
-              focuslastName+")";
-            } else {
-              focusname = focusfirstName + " " + sepgeneanet +" " + focuslastName;
-            }
-          }
-         if (verboselogs) {
-          console.log("FocusName   : ",focusname);
-         }
- /*       if (focusname.trim() === sepgeneanet) {
-         var nameTab = parsed.find("em[style=\"font-size:14px\"]");
-         if (verboselogs) {
-          console.log("nameTab2   : ",nameTab);
-         }
-     	 focusname=nameTab.find("a:not(:has(track))").first().text() + " " + sepgeneanet +" " + nameTab.find("a:not(:has(track))").first().next().text();
-       
-          }
-*/
-        if (verboselogs) {
-       console.log("focusname   : ",focusname);
-        }
-  
+        focusname = nameTab.find("a:not(:has(track))").first().text() + " " + nameTab.find("a:not(:has(track))").first().next().text();
     },
     "parseProfileData": parseGeneanet
 });
-function parseGeneanet(htmlstring, familymembers, relation){
-var parsed = $(htmlstring.replace(/<img /ig,"<track "));
-tmr = parsed.find("span:contains('429 Too Many Requests')");
-if(exists(tmr[0])) {
-  console.log("TMR",tmr[0]);
-  // trop de requete : rejet par nginx, traité par un délai dans le workers (backgroud.js)
-  // TODO faire une identification par défaut
-  //return
-}
-// TODO Affichage du tonnelier (geneanet en panne, réessayer ultérieurement)
-//enpanne = parsed.find("class:contains('container_error')");
-//enpanne = $(parse)
-//if(exists(enpanne)){
-//  console.log("Panne",enpanne);
-  //return
-//}
-//if (false) {
-//console.log("Too Many Requests",tooManyRq.variable);
-//parseGeneanet1(parsed, familymembers, relation);
-//} 
-//else {
-  return parseGeneanet1(htmlstring, familymembers, relation);
-//}
-}
 
-function parseGeneanet1(htmlstring, familymembers, relation) {
+function parseGeneanet(htmlstring, familymembers, relation) {
   relation = relation || "";
   var parsed = $(htmlstring.replace(/<img /ig,"<track "));
+
   var nameTab = parsed.find(".with_tabs.name");
   var genderval = "unknown";
   var genderImg = nameTab.find("track").first();
@@ -113,64 +48,22 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
     focusgender = genderval;
   }
   var aboutdata = "";
-   var givenName = nameTab.find("a:not(:has(track))").first().text();
-   cleanName(givenName);
-  var familyName = departicule(nameTab.find("a:not(:has(track))").first().next().text());
-  //console.log("Noms vides  ?:",(givenName+familyName));
-  if ((givenName+familyName) ===""){
-    var nameTab = parsed.find("em[style=\"font-size:14px\"]");
-    givenName = nameTab.find("a:not(:has(track))").first().text();
-    familyName = departicule(nameTab.find("a:not(:has(track))").first().next().text());
+  var givenName = nameTab.find("a:not(:has(track))").first().text();
+  var familyName = nameTab.find("a:not(:has(track))").first().next().text();
+  var focusperson = givenName + " " + familyName;
+  if (focusperson.trim() === "") {
+      $(nameTab).html($(nameTab).html().replace("<em>", '"').replace("<\/em>", '"'));
+      focusperson = $(nameTab).text().trim();
   }
-  var focusperson = "";
-  var Nommarital = "";
-  if (genderval == "female") {
-    var spouses = $(parsed).find('h2:has(span:contains("Spouses")) + ul.fiche_union > li');
-    var nomMaris = $(spouses[0]).find("a:not(:has(track))").first().text().split(' ');
-    //console.log("Female ",spouses,nomMaris);
-    if (exists(nomMaris)) {
-      Nommarital = departicule(nomMaris[nomMaris.length-1]);
-      focusperson = givenName + " " + sepgeneanet + " " + Nommarital +" ("+ familyName +")";
-    } else {
-      focusperson = givenName + " " + sepgeneanet + " " + familyName;
-    }
-  } else {
-    focusperson = givenName + " " + sepgeneanet + " " + familyName;
-    }
-  
-//   on intercale  un séparateur  - un ou plusieurs caractères  - pour servir de marqueur entre les prénoms et le nom éventuellement composé (firstname et lastname)
-//  var focusperson = givenName + " · " + familyName;
-//  var focusperson = givenName + " " + sepgeneanet + " " + familyName;
- /* if (focusperson.trim() === sepgeneanet) {
-   //   $(nameTab).html($(nameTab).html().replace("<em>", '"').replace("<\/em>", '"'));
-   //   focusperson = $(nameTab).text().trim();
-   var nameTab = parsed.find("em[style=\"font-size:14px\"]");
-      //console.log("nameTabP   : ",nameTab);
-     	 focusperson=nameTab.find("a:not(:has(track))").first().text() + " " + sepgeneanet +" " + nameTab.find("a:not(:has(track))").first().next().text();
-        if (verboselogs) {
-      console.log("focusperson   : ",focusperson);
-        }
-  }
-*/
-        
+
   $("#readstatus").html(escapeHtml(focusperson));
 
   var profiledata = {name: focusperson, gender: genderval, status: relation.title};
 
-   var img = $(nameTab).closest("table").prev().find("track").attr("src");
- 
-  /*La référence photo du profil est local (//gw... ) les références aux profils familiaux sont normaux (https://gw...)
-  The photo reference of the profile is local (//gw...) the references to family profiles are normal (https://gw...)
-  */
-   if (exists(img)) {
-    if(img.substring(0, 2) == "//"){
-    img = "https:" + img ;
-  }
+  var img = $(nameTab).closest("table").prev().find("track").attr("src");
+  if (exists(img)) {
       profiledata["thumb"] = img;
       profiledata["image"] = img.replace("/medium", "/normal");
-      if (verboselogs) {
-        console.log("IMG :",img);
-      }
   }
 
   fullBirth = parsed.find("ul li:contains('Born ')");
@@ -200,22 +93,6 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
             aboutdata += "===Individual Note===\n" + notes;
       }
   }
-//jobs
-var jobs = "";
-var jobs1 = parsed.find(".row.clearfix + ul li:last").html();
-var jobs2 = parsed.find(".row.clearfix + + ul li:last").html();
-if(jobs1 !== undefined) {
-  jobs = jobs1.replace(/<br>/g," ").trim();
-}
-if(jobs2 !== undefined) {
-  jobs = jobs2.replace(/<br>/g," ").trim();
-  }
-if (jobs.includes('Born') || jobs.includes('Baptized') || jobs.includes('Deceased') || jobs.includes('Buried')){
-jobs = "";
-}
-if (jobs !== ""){
-  profiledata["occupation"] = jobs;
-}
 
   familyNote = parsed.find("h3:contains('Family Note')");
   if (exists(familyNote)) {
@@ -237,17 +114,6 @@ if (jobs !== ""){
     var famid = 0;
 
     var parents = $(parsed).find('h2:has(span:contains("Parents")) + ul li');
-    // traite le cas du format "Parents photo"
-    if (parents.length === 0) {
-      if (verboselogs) {
-      console.log("Parsed   :" + $(parsed));
-      }
-    parents = $(parsed).find('h2:has(span:contains("Parents")) + div div div table td ul li');
-    if (verboselogs) {
-      console.log("Parents  :" + parents);
-    }
-    }
-    
     if (exists(parents[0])) {
       processGeneanetFamily(parents[0], "father", famid);
       famid++;
@@ -281,8 +147,7 @@ if (jobs !== ""){
             return true;
         }
     });
-  // bug corrige  - test sur siblings[0] au lieu de siblings[1]
-    if (exists(siblings[0])) {
+    if (exists(siblings[1])) {
         for (i=0; i<siblings.length; i++) {
             processGeneanetFamily(siblings[i], "sibling", famid);
             famid++;
@@ -342,23 +207,8 @@ if (jobs !== ""){
   return profiledata;
 }
 
-// Cas des particules honteuses (de) et des indications entre parentheses
-function departicule(nomStr){
-if (nomStr.match(/\(de\)/gi)){
-  nomStr = "de " + nomStr.replace("(de)", '') ;
-}
-// enleve les parenthese [(|)]/g
-// enleve toute indication entre parenthese
-const regex = /\(.*?\)/g ;
-nomStr = nomStr.replace(regex,"");
-if (verboselogs) {
-}
-return nomStr;
-}
 function parseGeneanetDate(vitalstring, type) {
   vitalstring = vitalstring.replace(/,$/, "").trim();
-  vitalstring = vitalstring.replace(/possibly/, "").trim(); // TODO synonyme about
-  vitalstring = vitalstring.replace(/,\naged.*/,"").trim();
   // Example matches:
   // in 1675
   // about 1675
@@ -368,22 +218,12 @@ function parseGeneanetDate(vitalstring, type) {
   // 30 September 1675, Crouy sur Cosson, 41, France     // Marriage version
   // 30 September 1675 (Saturday) - Crouy sur Cosson, 41, France
   // before September 1675 - Crouy sur Cosson, 41, France
-  // Modif QUENEE - nouvelles données GENEANET
-  // March 15, 1617 (Wednesday) - Hauville, 27350, Eure, Haute-Normandie, FRANCE
-  // March&nbsp;15,&nbsp;1617 (Wednesday) - Hauville, 27350, Eure, Haute-Normandie, FRANCE
-  //console.log("Date string : ",vitalstring,type);
   var data;
   var matches;
-  if (vitalstring.match(/^\(\d{1,2}\// )) {
-    vitalstring ="";
-  }
   if (type === "marriage") {
-  // effacement de la premiere virgule modif quenee
-      vitalstring = vitalstring.replace(",","");
     matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\))?(?:,\s+(.+))?/i);
   } else {
-//                                                  modif ici (,)   
-    matches = vitalstring.match(/(about|before|after)?([\w\s,]+\w)(?:\s+\(\w+\))?(?:\s+-\s+(.+))?/i);
+    matches = vitalstring.match(/(about|before|after)?([\w\s]+\w)(?:\s+\(\w+\))?(?:\s+-\s+(.+))?/i);
   }
   if (exists(matches)) {
     data = [];
@@ -394,28 +234,11 @@ function parseGeneanetDate(vitalstring, type) {
     // Parse stricly, and try harder if it fails
     var momentval;
     var date_format;
-    // cas des dates révolutionnaires
-    if (dateval.match(/^\d{1,2} /)){
-      console.log ("Date revol : ",dateval);
-      try {
-        dateval = vitalstring.match(/\((.*?)\)/)[1];
-      } catch (err) {
-        console.log("Erreur de reprise de dateval : ",err,vitalstring,matches );
-      }
-      try {
-      matches[3] = vitalstring.match(/\)(.*)/)[1];
-      } catch (err) {
-        console.log("Erreur de reprise de loc : ",err,vitalstring,matches );
-      }
-      console.log ("date georgien : ",dateval);
-    }
     if (dateval.startsWith("in ")) {
-      momentval = moment(dateval.match((/\d{4,}/)), "YYYY", true);
+      momentval = moment(dateval.replace("in ", ""), "YYYY", true);
       date_format = "YYYY";
     } else {
-    // Ancien format obsolete modif quenee
-      //momentval = moment(dateval, "D MMMM YYYY", true);
-      momentval = moment(dateval.replace(",",""), "MMMM D YYYY", true);
+      momentval = moment(dateval, "D MMMM YYYY", true);
       date_format = "MMM D YYYY";
       if (!momentval.isValid()) {
         momentval = moment(dateval, "MMMM YYYY", true);
@@ -455,7 +278,7 @@ function processGeneanetFamily(person, title, famid) {
     }
     var nameTab = $(person).find("a:not(:has(track))").first();
     $(nameTab).html($(nameTab).html().replace("<em>", '"').replace("<\/em>", '"'));
-    var name =  departicule($(nameTab).text());
+    var name =  $(nameTab).text();
     var itemid = getGeneanetItemId(url);
     if (isParent(title)) {
       parentlist.push(itemid);
@@ -478,22 +301,11 @@ function processGeneanetFamily(person, title, famid) {
 }
 
 function processMarriage(person, subdata) {
-   //console.log("Info Mariage  :",$(person).text());
-   //console.log("Info M2  :",$(person).text().startsWith("Married",0),$(person).text().startsWith("Married",1),$(person).text().startsWith("Married",2));
-   // modif pour évacuer un saut de ligne inaproprié (quenee) corige geneanet 5/9/2024
-    if ($(person).text().startsWith("Married",1) && !$(person).text().startsWith("Married to",1)) {
+    if ($(person).text().startsWith("Married") && !$(person).text().startsWith("Married to")) {
         var marriageinfo = $(person).find("em").first();
         if (exists(marriageinfo)) {
             subdata["marriage"] = parseGeneanetDate(marriageinfo.text(), "marriage");
         }
-        var pos = $(person).text().search("divorced");
-        if (pos > 0){
-          console.log("Divorce",$(person).text().slice(pos));
-          var divorceinfo = $(person).text().slice(pos + 8); // 8 ="divorced" lenght
-          if (exists(divorceinfo)) {
-            subdata["divorce"] = parseGeneanetDate(divorceinfo, "divorce");
-        }
-        } 
     }
     return subdata;
 }
@@ -533,14 +345,4 @@ function getGeneanetItemId(url) {
     } else {
         return "";
     }
-}
-function cleanName(givenName){
-  if (verboselogs) {
-    //console.log("Given name1  :",givenName);
-   }
-  givenName = givenName.replace(/\!|\*|_|\.|\"/g," ");
-  if (verboselogs) {
-    //console.log("Given name2  :",givenName);
-  }
-  return givenName;
 }

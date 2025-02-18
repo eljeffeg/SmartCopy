@@ -175,7 +175,8 @@
                                 <tr>
                                     <td style="padding: 3px 6px 0 25px; width: 58px;">
                                         <div class="onoffswitch">
-                                            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="birthonoffswitch">
+                                            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="birthonoffswitch"
+                                                checked>
                                             <label class="onoffswitch-label" for="birthonoffswitch">
                                                 <span class="onoffswitch-inner"></span>
                                                 <span class="onoffswitch-switch"></span>
@@ -650,7 +651,7 @@
                 <div id='focusname' style="font-size: large; font-weight: bold;"></div>
                 <div id='focusrange' style="font-size: small; margin-bottom: 5px; margin-top: 1px;" ></div>
             </td><td style="vertical-align: top;">
-                <button type="button" id="submitbutton" class="cta cta-blue" style="float: right;"><span data-i18n="Submit">Submit</span></button>
+                <button type="button" id="submitbutton" class="cta cta-blue" style="float: right;">Submit</button>
             </td>
             </tr>
         </table>
@@ -675,7 +676,7 @@
 
     <form id="formdata">
         <div id="genislider" title="Geni Data" class="ctx" style="display: none; z-index:99; cursor: pointer; position: fixed; top: 44%; left: -8px; height:70px; width: 0;"><img src="images/openmenu.png" alt="Open Menu" style="width: 10px; padding-top:22px; height: 25px; margin-left: -2px;"></div>
-        <div class='colorbox' id='experimentalmessage' style="display: none; width: 93%; margin: 0 5px 10px; background-color:#f8ff86;"><span data-i18n = "ExperimentalMessage">SmartCopy use on this website is experimental and may not be fully supported. Please be cautions and review the data thoroughly before submitting. Report issues in the</span> <a href="https://www.geni.com/discussions?discussion_type=project-18783" target="_blank"><span data-i18n = "SmartCopy_discussion_at_Geni">SmartCopy discussion at Geni</span></span></a>.</div>
+        <div class='colorbox' id='experimentalmessage' style="display: none; width: 93%; margin: 0 5px 10px; background-color:#f8ff86;">SmartCopy use on this website is experimental and may not be fully supported. Please be cautions and review the data thoroughly before submitting. Report issues in the <a href="https://www.geni.com/discussions?discussion_type=project-18783" target="_blank">SmartCopy discussion at Geni</a>.</div>
         <div class="shadoweffect" id="treematches" style="margin: 0 4px 6px; display: none;">
             <table><tr>
                 <td style="vertical-align: top;">
@@ -712,9 +713,9 @@
         </div>
         <div id="profiledata" style="display: none; text-align: center;">
             <table style="margin-bottom: 10px; width: 100%;">
-                <tr><td><strong><span data-i18n="Profile_Data">Profile Data</span></strong></td></tr>
+                <tr><td><strong>Profile Data</strong></td></tr>
                 <tr><td id="profileexpand">
-                    <div class="shadoweffect" style="padding-top: 12px; margin-right: 1px; margin-left: 1px; font-weight: bold;" id="profileshadowdiv"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall"><span data-i18n="Update_Profile">Update Profile</span><img id="focusshowhide" alt="Show" src="images/show.png" class="showhide" title="Show All Fields" style="width: 24px; padding-left: 6px; margin-bottom: -8px; cursor: pointer;"><span id="updateslide" style="font-size: 130%; cursor: pointer; float: right; padding: 0px 4px;"><img src="images/dropdown.png" alt="Dropdown" style="width: 11px;"></span><span class="genisliderow" style="float: right; font-size: 80%; font-weight: normal; margin-right: 100px; margin-top: 5px;"><span data-i18n="Geni_Data">Geni Data</span></span>
+                    <div class="shadoweffect" style="padding-top: 12px; margin-right: 1px; margin-left: 1px; font-weight: bold;" id="profileshadowdiv"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall">Update Profile<img id="focusshowhide" alt="Show" src="images/show.png" class="showhide" title="Show All Fields" style="width: 24px; padding-left: 6px; margin-bottom: -8px; cursor: pointer;"><span id="updateslide" style="font-size: 130%; cursor: pointer; float: right; padding: 0px 4px;"><img src="images/dropdown.png" alt="Dropdown" style="width: 11px;"></span><span class="genisliderow" style="float: right; font-size: 80%; font-weight: normal; margin-right: 100px; margin-top: 5px;">Geni Data</span>
                         <fieldset id="profilefield" class="fieldeffect">
                             <table style="width: 100%; border-spacing: 0; border-collapse: collapse;" id="profiletable">
                             </table>
@@ -726,35 +727,35 @@
 
         <div id="familydata" style="display: none; margin-top: 10px; text-align: center;">
             <table style="margin-bottom: 10px; width: 100%;">
-                <tr><td><strong><span data-i18n="Family_Members">Family Members</span></strong></td></tr>
+                <tr><td><strong>Family Members</strong></td></tr>
                 <tr><td >
                     <div class="shadoweffect" style="padding-top: 4px; margin-right: 1px; margin-left: 1px;">
                         <div id="parent" style="display: none; margin-top: 8px;">
-                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addparentck"><span data-i18n="Parents">Parents</span></span><span id="parentcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandparent" style="color: #000;"><span data-i18n="expand_all">expand all</span></a>)</span><span id="parentsearch" style="float: right; padding-right: 5px;"><a href="https://www.geni.com/search/advanced" id="genisearch" target="_blank"><img src="images/search.png" alt="Search Geni for Parents" title="Search Geni for Parents" style="height: 16px; margin-bottom: -4px;" border="0"></a></span>
+                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addparentck">Parents</span><span id="parentcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandparent" style="color: #000;">expand all</a>)</span><span id="parentsearch" style="float: right; padding-right: 5px;"><a href="https://www.geni.com/search/advanced" id="genisearch" target="_blank"><img src="images/search.png" alt="Search Geni for Parents" title="Search Geni for Parents" style="height: 16px; margin-bottom: -4px;" border="0"></a></span>
                             <fieldset class="fieldeffect">
                                 <div id="parentval" class="familydiv"></div>
                             </fieldset>
                         </div>
                         <div id="sibling" style="display: none; margin-top: 8px;">
-                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addsiblingck"><span data-i18n="Siblings">Siblings</span></span><span id="siblingcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandsibling" style="color: #000;"><span data-i18n="expand_all">expand all</span></a>)</span>
+                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addsiblingck">Siblings</span><span id="siblingcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandsibling" style="color: #000;">expand all</a>)</span>
                             <fieldset class="fieldeffect">
                                 <div id="siblingval" class="familydiv"></div>
                             </fieldset>
                         </div>
                         <div id="partner" style="display: none; margin-top: 8px;">
-                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addpartnerck"><span data-i18n="Partners">Partners</span></span><span id="partnercount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandpartner" style="color: #000;"><span data-i18n="expand_all">expand all</span></a>)</span>
+                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addpartnerck">Partners</span><span id="partnercount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandpartner" style="color: #000;">expand all</a>)</span>
                             <fieldset class="fieldeffect">
                                 <div id="partnerval" class="familydiv"></div>
                             </fieldset>
                         </div>
                         <div id="child" style="display: none; margin-top: 8px;">
-                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addchildck"><span data-i18n="Children">Children</span></span><span id="childcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandchild"  style="color: #000;"><span data-i18n="expand_all">expand all</span></a>)</span>
+                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addchildck">Children</span><span id="childcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandchild"  style="color: #000;">expand all</a>)</span>
                             <fieldset class="fieldeffect">
                                 <div id="childval" class="familydiv"></div>
                             </fieldset>
                         </div>
                         <div id="unknown" style="display: none; margin-top: 8px;">
-                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addunknownck" disabled>Unknown Relations</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandunknown"  style="color: #000;"><span data-i18n="expand_all">expand all</span></a>)</span>
+                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addunknownck" disabled>Unknown Relations</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandunknown"  style="color: #000;">expand all</a>)</span>
                             <fieldset class="fieldeffect">
                                 <div id="unknownval" class="familydiv"></div>
                             </fieldset>
@@ -764,13 +765,13 @@
             </table>
         </div>
 
-        <div id="bottomsubmit" style="display: none; padding-top: 10px; padding-bottom: 5px; text-align: center;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;"><span data-i18n="Submit">Submit</span></a></div>
+        <div id="bottomsubmit" style="display: none; padding-top: 10px; padding-bottom: 5px; text-align: center;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;">Submit</a></div>
 
         <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px; margin-bottom: 15px;">
-            <div style="text-align: center; padding-top: 2px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong><span data-i18n="Reading_Family_Data">Reading Family Data ...</span></strong><div id="readstatus"></div></div>
+            <div style="text-align: center; padding-top: 2px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Reading Family Data...</strong><div id="readstatus"></div></div>
         </div>
         <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
-            <div style="text-align: center; padding-top: 2px; padding-right: 10px; padding-left: 10px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong><span data-i18n="Updating_Geni">Updating Geni</span> (<span id="updatecount">1</span> of <span id="updatetotal">1</span>)</strong>
+            <div style="text-align: center; padding-top: 2px; padding-right: 10px; padding-left: 10px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Updating Geni (<span id="updatecount">1</span> of <span id="updatetotal">1</span>)</strong>
                 <div id="updatestatus"></div>
             </div>
         </div>
@@ -783,7 +784,7 @@
     <div class='colorbox' id='message' style="display:none; width: 88%; margin-bottom: 15px; margin-right: 9px; margin-left: 9px; background-color:#D3D3D3;"></div>
 </center>
 <div style="display: table-cell; text-align: left; white-space: nowrap; font-size: x-small; padding-left: 10px;">
-    <span style="display: table-cell;" id="addhistoryblock"><a style="cursor: pointer;" id="addhistory" data-i18n="Add_to_History">Add to History</a></span></div>
+    <span style="display: none;" id="addhistoryblock"><a style="cursor: pointer;" id="addhistory" data-i18n="Add_to_History">Add to History</a></span></div>
 <div style="display: table-cell;  width: 100%; text-align: right; white-space: nowrap; font-size: x-small; padding-right: 10px;"><a style="cursor: pointer;" id="showhistory" data-i18n="Show_History">Show History</a></div>
 <div id='historybox' class="shadoweffect" style="display: none; margin-bottom: 20px; margin-right: 10px; margin-left: 10px;"><div id='historytext'></div><div style='font-size: x-small; text-align: center; padding-top: 5px;'><a style="cursor: pointer;" id="clearhistory" data-i18n="Clear_History">Clear History</a></div></div>
 <center>

@@ -204,13 +204,18 @@ function parseGeneanet1(htmlstring, familymembers, relation) {
 var jobs = "";
 var jobs1 = parsed.find(".row.clearfix + ul li:last").html();
 var jobs2 = parsed.find(".row.clearfix + + ul li:last").html();
+var jobs3 = parsed.find(".row.clearfix + + + ul li:last").html();
 if(jobs1 !== undefined) {
   jobs = jobs1.replace(/<br>/g," ").trim();
 }
 if(jobs2 !== undefined) {
   jobs = jobs2.replace(/<br>/g," ").trim();
-  }
-if (jobs.includes('Born') || jobs.includes('Baptized') || jobs.includes('Deceased') || jobs.includes('Buried')){
+}
+//case sosa is present
+if(jobs ==="" && jobs3 !== undefined) {
+  jobs = jobs3.replace(/<br>/g," ").trim();
+}
+if (jobs.includes('Born') || jobs.includes('Baptized') || jobs.includes('Deceased') || jobs.includes('Buried')|| jobs.includes('<a href=')){
 jobs = "";
 }
 if (jobs !== ""){

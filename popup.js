@@ -123,7 +123,19 @@ var expandpartner = true; //same
 var expandsibling = true; //same
 //noinspection JSUnusedGlobalSymbols
 var expandchild = true; //samet
-
+/*Manifest V3: service worker not registered in popular extension -
+ https://groups.google.com/a/chromium.org/g/chromium-extensions/c/MesMv9ugQIQ?pli=1
+ Added to be able to use the compliance checking functions on a Geni profile
+ Ajouté pour pouvoir utiliser les fonctions de verification de conformité sur un profil Geni*/
+navigator.serviceWorker.getRegistration().then(r => {
+    if (r) return;
+    const bg = chrome.runtime.getManifest().background;
+    navigator.serviceWorker.register(bg.service_worker, {
+      type: bg.type || 'classic',
+      scope: '/',
+    });
+  });
+  // Fin d'ajout - End of Add
 document.addEventListener('DOMContentLoaded', function () {
     var version = chrome.runtime.getManifest().version;
     console.log(chrome.runtime.getManifest().name + " v" + version);

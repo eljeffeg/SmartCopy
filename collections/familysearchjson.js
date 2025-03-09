@@ -429,21 +429,21 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                                         var parentid = parents[y];
                                         var image = "";
                                         if (
-                                            jsonrel[x]["husband"] &&
-                                            jsonrel[x]["husband"]["id"] ===
+                                            jsonrel[x]["parent1"] &&
+                                            jsonrel[x]["parent1"]["id"] ===
                                                 parentid
                                         ) {
                                             image =
-                                                jsonrel[x]["husband"][
+                                                jsonrel[x]["parent1"][
                                                     "portraitUrl"
                                                 ] || "";
                                         } else if (
-                                            jsonrel[x]["wife"] &&
-                                            jsonrel[x]["wife"]["id"] ===
+                                            jsonrel[x]["parent2"] &&
+                                            jsonrel[x]["parent2"]["id"] ===
                                                 parentid
                                         ) {
                                             image =
-                                                jsonrel[x]["wife"][
+                                                jsonrel[x]["parent2"][
                                                     "portraitUrl"
                                                 ] || "";
                                         }

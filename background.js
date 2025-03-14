@@ -41,47 +41,26 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
     if (request.action == "xhttp") {
         const method = request.method ? request.method.toUpperCase() : 'GET';
         if (method == 'POST') {
-            fetch(request.url, {
-                method : method,
-                body: request.data,
-                headers: {
-                    "Content-Type" : "application/x-www-form-urlencoded"
-                }  
-            }).then((response) => {
-                if (!response.ok) {
-                    console.error("Unable to get XMLHttpRequest: " + request.url);
-                    var valrtn = {error: response.error, variable: request.variable, responseURL: response.responseURL};
-                    callback(valrtn);
-                } else {
-                    const responseText = response.text();
-                    var valrtn = {source: responseText, variable: request.variable, responseURL: response.responseURL};
-                    callback(valrtn);
-                    const jsData = getJsonFromUrl(request);
-                    if (jsData.photo !== undefined) {
-                        // load the photo from the given URL
-                        fetch(jsData.photo, {
-                            method: 'GET',
-                            headers: {
-                                "Content-Type" : "text/plain; charset=UTF-8"
-                            }
-                        }).then((photoResponse) => {
-                            if (!photoResponse.ok) {
-                                var valrtn = {error: photoResponse.error, responseURL: photoResponse.responseURL};
-                                callback(valrtn);
-                            } else {
-                                const photo = photoResponse.text()
-                                let binary = ""
-                                for(i=0;i<photo.length;i++){
-                                    binary += String.fromCharCode(photo.charCodeAt(i) & 0xff);
-                                }
-                                delete jsData.photo;
-                                jsData.file = btoa(binary);
-                                return fetch(getUrlFromJson(jsData));
-                            }
-                        });
-                    }
-                }
+       const jsData = getJsonFromUrl(request.data);
+        //console.log("jsDATA :",jsData.photo,jsData.file);
+        if (jsData.photo !== undefined) {
+            const photoOk  = GetPhoto(jsData);
+            /*Chargement de la Photo par appel Url et mise en place d'un appel POST pour la transférer dans Geni - Loading the Photo by Url call and setting up a POST call for transfer into Geni.
+            Les parametres de l'appel sont transmis dans l'Objet "request", request.url contient l'url, request.data contient 3 clés à l'origine title, attribution, et photo l'url de l'image à charger -data.title, data.attribution et data.photo. Pendant le traitement, on crée la clé "data.file" qu'on remplit avec une chaine codée en base64. On efface data.photo.
+            The parameters of the call are transmitted in the "request" Object, request.url contains the url, request.data contains 3 keys at the origin title, attribution, and photo the url of the image to load - data.title, data.attribution and data.photo. During processing, we create the “data.file” key which we fill with a base64 encoded string. We delete data.photo.
+            https://www.geni.com/api/profile-34835287013/add-photo?fields=id,unions,name&access_token=AEWNhgu5Mdz7kGa4pXPXMohl45ZLVeoo1kFUH4p6
+            */
+            photoOk.then((jsData) =>  {
+            request.data = jsData
+                //console.log("RQ_DAT1 url :",request.url,jsData.photo,jsData.file);
+               const header = "application/x-www-form-urlencoded";
+                GeniPostReq(request,header,callback);
             });
+            return true
+        }
+        const header = "application/x-www-form-urlencoded";
+        GeniPostReq(request,header,callback);
+     
         } else {
             // pass this request through - note that all receivers need to change for fetch response
             var vartn = {variable: request.variable};
@@ -110,8 +89,69 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
         return true;
     }
     return false;
-});
+    });
+//Création et Mis à jour des donnes Geni - Creation and Update of Geni data
+    function GeniPostReq(request,header,callback) {
+        fetch(request.url, {
+            method : "POST",
+            body: request.data,
+            headers: {
+                "Content-Type" : header
+            }  
+        })
+        .then((response) => {
+            if (!response.ok) {
+                return response.text()
+                .then((responseText)=> {
+                console.error("Unable to get Fetch Request: " + request.url);
+                var valrtn = {error: responseText, variable: request.variable, responseURL: request.url};
+                console.log("valrtn_FL ",valrtn,request.data);
+                callback(valrtn);
+            });
+            
+            } else {
+                return response.text()
+                .then((responseText)=> {
+                var valrtn = {source: responseText, variable: request.variable, responseURL: request.url};
+                //console.log("valrtn_OK ",valrtn);
+                callback(valrtn);
+             });
+            } 
+         })
+        }
+       // load the photo from the given URL
+async function GetPhoto (jsData){
 
+try {
+     const photoResponse = await fetch(jsData.photo, {
+        method: 'GET',
+        mode: "cors",
+        headers: {
+            "Content-Type" : "application/xml",
+    });
+    if (!photoResponse.ok) {
+            throw new Error(`Erreur Photo : ${photoResponse.status}`);
+          }
+     const photoreader =  photoResponse.body.getReader();    
+         let binary = "";
+         while (true){
+            const {done,value} = await photoreader.read();
+            if (done){
+                delete jsData.photo;
+                jsData.file = btoa(binary);
+                jsData = getUrlFromJson(jsData);
+                return jsData;
+            }
+            charsReceived = value.length;
+            for(i=0;i<charsReceived;i++){
+            binary += String.fromCharCode(value[i]);
+            }
+         }
+}
+catch({name, stat}) {
+    console.error(name, stat);
+}
+}
 async function evalObject(expression, callback) {
     await setupOffscreenDocument("offscreen.html");
     await chrome.runtime.sendMessage({

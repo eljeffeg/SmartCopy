@@ -132,7 +132,7 @@ registerCollection({
             parsed["data"]["nameConclusion"]["details"]["nameForms"]
         ) {
             focusperson = NameParse.parse(parsed["data"]["name"], mnameonoff);
-            if (focusperson.lastName !== "") {
+            if (focusperson.lastName == "") {
                 focusperson.lastName = NameParse.cleanName(
                     parsed["data"]["nameConclusion"]["details"]["nameForms"][0][
                         "familyPart"

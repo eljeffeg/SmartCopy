@@ -39,7 +39,9 @@ function getJsonFromUrl(query) {
 // listen for messages - if they include photo URLs, intercept and get them
 chrome.runtime.onMessage.addListener( function(request, sender, callback) {
     if (request.action == "xhttp") {
-        delay(190);// see https://www.nginx.com/blog/rate-limiting-nginx/
+        if (request.latency){
+        delay(request.latency);// see https://www.nginx.com/blog/rate-limiting-nginx/
+        }
         const method = request.method ? request.method.toUpperCase() : 'GET';
         if (method == 'POST') {
             fetch(request.url, {

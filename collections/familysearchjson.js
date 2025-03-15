@@ -422,7 +422,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                                         profiledata["thumb"] = image;
                                     }
                                     var parents = parentset.split("_");
-                                    var [data_m,data_d] = parseFSJSONUnion(
+                                    var {data_m,data_d} = parseFSJSONUnion(
                                         jsonrel[x]["event"],
                                     );
                                     for (var y = 0; y < parents.length; y++) {
@@ -515,7 +515,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                             image = jsonrel[x]["parent1"]["portraitUrl"] || "";
                         }
                         if (spouse) {
-                            var [data_m,data_d] = parseFSJSONUnion(jsonrel[x]["event"]);
+                            var {data_m,data_d} = parseFSJSONUnion(jsonrel[x]["event"]);
                             var valid = processFamilySearchJSON(
                                 spouse,
                                 "spouse",
@@ -639,24 +639,14 @@ function parseFSJSONUnion(eventinfo) {
     if (eventinfo &&
  eventinfo["type"] &&
  eventinfo["type"].toLowerCase() === "marriage") {
-        
-
-        if (eventinfo["standardDate"]) {
-            dateval = eventinfo["standardDate"];
-        } else if (eventinfo["originalDate"]) {
-            dateval = eventinfo["originalDate"];
-        }else if (eventinfo.details.date) {     // addition following debugging 
+       
+        if (eventinfo.details.date) {
             dateval = eventinfo.details.date.normalizedText;
         }
         if (dateval !== "") {
             data_m.push({date: cleanDate(dateval)});
         }
-        var eventlocation = "";
-        if (eventinfo["standardPlace"]) {
-            eventlocation = eventinfo["standardPlace"].trim();
-        } else if (eventinfo["originalPlace"]) {
-            eventlocation = eventinfo["originalPlace"].trim();
-        } else if (eventinfo.details.place){ // addition following debugging 
+        if (eventinfo.details.place){  
             if (eventinfo.details.place.normalizedText){
             eventlocation = eventinfo.details.place.normalizedText.trim()
             }
@@ -690,7 +680,7 @@ function parseFSJSONUnion(eventinfo) {
             geoid++;
         }
     }
-    return [data_m,data_d];
+    return {data_m,data_d};
 }
 
 function parseFSJSONDate(eventinfo) {
@@ -769,7 +759,7 @@ function getFamilySearchJSON(famid, url, subdata) {
                 proid: arg.profile_id,
                 itemId: arg.itemId,
             });
-            if (person === undefined || person === "") {
+            if(!person){
                 familystatus.pop();
                 return;
             }
@@ -799,7 +789,7 @@ function getFamilySearchJSON(famid, url, subdata) {
     );
 }
 
-function processFamilySearchJSON(itemid, title, famid, image, data_m,data_d) {
+function processFamilySearchJSON(itemid, title, famid, image, data_m, data_d) {
     // Case of one of the two parents unknown (not referenced)
     if (itemid ==="UNKNOWN"){
         return false;

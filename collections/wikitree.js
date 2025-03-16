@@ -167,7 +167,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 
                 for (var i = 0; i < cells.length; i++) {
                     var urlset = $(cells[i]).find('a');
-                    if (exists(urlset)) {
+                    if ((exists(urlset))&&(urlset.length > 0)) {
                         var url = hostDomain(tablink) + $(urlset[0]).attr('href');
                         var title = $(cells[i]).attr('itemprop');
                         var name = $(urlset[0]).text();

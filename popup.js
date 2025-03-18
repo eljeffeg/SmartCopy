@@ -862,6 +862,8 @@ function loadLogin() {
         if (accountinfo.curator) {
             //display leaderboard link if user is a curator - page itself still verifies
             //document.getElementById("curator").style.display = "inline-block";
+            datelimit = 1000 ;
+            console.log("You are a curator, you can use SC from the year 1000");
         }
         loggedin = true;
         if (!loginprocessing) {

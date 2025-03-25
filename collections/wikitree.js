@@ -337,23 +337,37 @@ function parseWikiTree(htmlstring, familymembers, relation) {
     return profiledata;
 }
 
-function parseWikiEvent(vitalstring) {
-    var data = [];
-    var vitalinfo = vitalstring.trim().replace("[location unknown]", "").replace("[date unknown]", "");
-    var datesplit = vitalinfo.split(" in ");
-    if (datesplit.length > 0) {
-        var dateval = datesplit[0].trim();
-        dateval = cleanDate(dateval);
-        if (dateval !== "") {
-            data.push({date: dateval});
-        }
-        if (datesplit.length > 1) {
-            var eventlocation = datesplit[1].trim();
-            if (eventlocation !== "") {
-                data.push({id: geoid, location: eventlocation});
-                geoid++;
-            }
-        }
+function parseWikiEvent(eventString) {
+    // Return empty array if input is invalid
+    if (!eventString || typeof eventString !== 'string') {
+        return [];
     }
-    return data;
+
+    const eventData = [];
+    
+    // Clean and normalize the input string
+    const cleanedString = eventString
+        .trim()
+        .replace("[location unknown]", "")
+        .replace("[date unknown]", "");
+
+    // Split into date and location parts
+    const [datePart, ...locationParts] = cleanedString.split(/\s+in\s+/);
+    
+    // Parse date if present
+    const cleanedDate = cleanDate(datePart.trim());
+    if (cleanedDate) {
+        // Split date into date and (" at age 100") parts
+        [cleanDatePart, ...otherCleanParts] = cleanedDate.split(/\s+at\s+/);
+        eventData.push({ date: cleanDatePart });
+    }
+            
+    if (locationParts) {
+        eventData.push({
+            id: geoid++,
+            location: locationParts[0]
+        });
+    }
+
+    return eventData;
 }

@@ -168,7 +168,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 
                 for (var i = 0; i < cells.length; i++) {
                     var urlset = $(cells[i]).find('a');
-                    if ((exists(urlset))&&(urlset.length > 0)) {
+                    if ((exists(urlset)) && (urlset.length > 0)) {
                         var url = hostDomain(tablink) + $(urlset[0]).attr('href');
                         var title = $(cells[i]).attr('itemprop');
                         var name = $(urlset[0]).text();
@@ -203,8 +203,12 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 
                             if (isPartner(title)) {
                                 myhspouse.push(famid);
-                                if (exists(cells[2])) {
-                                    data = parseWikiEvent($(cells[2]).text());
+                                if (exists(cells[3])) {
+                                    data = parseWikiEvent($(cells[3]).text());
+                                    if (exists(cells[4])) {
+                                        data.push({id: geoid, location: $(cells[4]).text()});
+                                        geoid++;
+                                    }
                                     if (!$.isEmptyObject(data)) {
                                         subdata["marriage"] = data;
                                     }
@@ -340,8 +344,8 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 
 function parseWikiEvent(vitalstring) {
     var data = [];
-    var vitalinfo = vitalstring.trim().replace("[location unknown]", "").replace("[date unknown]", "");
-    var datesplit = vitalinfo.split(" in ");
+    var vitalinfo = vitalstring.trim().replace("[location unknown]", "").replace("[date unknown]", "").replace("[uncertain]","");
+    var datesplit = vitalinfo.split("\nin ");
     if (datesplit.length > 0) {
         var dateval ="";
         var datevalbrut = datesplit[0].trim();

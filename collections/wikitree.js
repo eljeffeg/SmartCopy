@@ -345,7 +345,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 function parseWikiEvent(vitalstring) {
     var data = [];
     var vitalinfo = vitalstring.trim().replace("[location unknown]", "").replace("[date unknown]", "").replace("[uncertain]","");
-    var datesplit = vitalinfo.split("\nin ");
+    var datesplit = vitalinfo.split("\sin ");
     if (datesplit.length > 0) {
         var dateval ="";
         var datevalbrut = datesplit[0].trim();

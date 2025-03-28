@@ -202,11 +202,13 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                             unionurls[famid] = itemid;
 
                             if (isPartner(title)) {
+                                const mardate = cells.find('span.marriage-date');
+                                const marloc = cells.find('span.marriage-location');
                                 myhspouse.push(famid);
-                                if (exists(cells[3])) {
-                                    data = parseWikiEvent($(cells[3]).text());
-                                    if (exists(cells[4])) {
-                                        data.push({id: geoid, location: $(cells[4]).text()});
+                                    if (exists(mardate)) {
+                                    data = parseWikiEvent($(mardate).text());
+                                    if (exists(marloc)) {
+                                        data.push({id: geoid, location: $(marloc).text()});
                                         geoid++;
                                     }
                                     if (!$.isEmptyObject(data)) {
@@ -345,7 +347,8 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 function parseWikiEvent(vitalstring) {
     var data = [];
     var vitalinfo = vitalstring.trim().replace("[location unknown]", "").replace("[date unknown]", "").replace("[uncertain]","");
-    var datesplit = vitalinfo.split("\sin ");
+    const regin = /\sin /;
+    var datesplit = vitalinfo.split(regin);
     if (datesplit.length > 0) {
         var dateval ="";
         var datevalbrut = datesplit[0].trim();

@@ -1339,6 +1339,8 @@ function buildTree(data, action, sendid) {
                         parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
                     }
                     addHistory(result.id, databyid[id].itemId, getProfileName(databyid[id].name), JSON.stringify(response.variable.data));
+                } else if (sendid === focusid) {
+                    addHistory(result.id, focusURLid, getProfileName(focusname), JSON.stringify(response.variable.data));
                 }
                 if (action !== "add-photo" && action !== "delete") {
                     updatecount += 1;
@@ -2379,11 +2381,18 @@ function geoonoff(value) {
 }
 
 function getProfileName(profile) {
-    if (typeof profile == "object" && profile.displayname) {
-        return profile.displayname;
-    } else {
-        return profile;
+    if (typeof profile === 'object') {
+        if (profile.displayname) {
+            return profile.displayname;
+        }
+        if (profile.display_name) {
+            return profile.display_name;
+        }
+        if (profile.displayName) {
+            return profile.displayName;
+        }
     }
+    return profile;
 }
 
 function hostDomain(url) {

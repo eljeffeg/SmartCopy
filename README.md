@@ -13,18 +13,22 @@ SmartCopy is a Chrome extension that copies genealogical information from sites 
    ```bash
    npm test
    ```
+4. Build the extension for loading in Chrome:
+   ```bash
+   npm run build
+   ```
 
 ## Loading the Extension
 
 1. Open Chrome and navigate to `chrome://extensions`.
 2. Enable **Developer mode**.
-3. Click **Load unpacked** and select the repository directory.
+3. Click **Load unpacked** and select the `dist` directory created by the build step.
 4. The SmartCopy icon will appear in the toolbar.
 
 ## Usage
 
-Navigate to a supported genealogy website and click the SmartCopy icon. Follow the prompts to copy data into Geni. Verbose logging can be enabled by setting `verboselogs` to `true` in `popup.js`, though this is disabled by default to avoid exposing sensitive tokens.
+Navigate to a supported genealogy website and click the SmartCopy icon. Follow the prompts to copy data into Geni. Verbose logging can be enabled by setting `verboselogs` to `true` in `popup.js`, though this is disabled by default to avoid exposing sensitive tokens. 
 
 ## Contributing
 
-Contributions are welcome. Please review `AGENTS.md` for development guidelines. All pull requests should include a brief description of changes and pass the test suite with `npm test`.
+Contributions are welcome. Please review `AGENTS.md` for development guidelines. All pull requests should include a brief description of changes and pass the test suite with `npm test`. 

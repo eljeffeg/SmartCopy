@@ -11,7 +11,7 @@ function handleMessage(event) {
         pendingResponse = null;
     }
 }
-
+  
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "offscreen" && sender.id === chrome.runtime.id) {
         if (!listenerAdded) {

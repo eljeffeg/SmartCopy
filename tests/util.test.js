@@ -1,4 +1,4 @@
-const {isValidDate, getJsonFromUrl} = require('../test-utils');
+const {isValidDate, getJsonFromUrl, getProfileName} = require('../test-utils');
 
 describe('isValidDate', () => {
     test('returns true for valid Date', () => {
@@ -19,5 +19,21 @@ describe('getJsonFromUrl', () => {
     test('returns object if input is already object', () => {
         const obj = {a: 1};
         expect(getJsonFromUrl(obj)).toBe(obj);
+    });
+});
+
+describe('getProfileName', () => {
+    test('returns displayname property', () => {
+        const obj = {displayname: 'Jane Doe'};
+        expect(getProfileName(obj)).toBe('Jane Doe');
+    });
+
+    test('falls back to display_name property', () => {
+        const obj = {display_name: 'Jane Doe'};
+        expect(getProfileName(obj)).toBe('Jane Doe');
+    });
+
+    test('returns original string if no known properties', () => {
+        expect(getProfileName('John Doe')).toBe('John Doe');
     });
 });

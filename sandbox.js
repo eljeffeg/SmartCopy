@@ -9,4 +9,4 @@ window.addEventListener('message', (event) => {
         data = { error: 'Invalid JSON' };
     }
     event.source.window.postMessage(data, event.origin);
-});
+});    

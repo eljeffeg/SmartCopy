@@ -32,7 +32,7 @@ function getJsonFromUrl(query) {
         });
         return result;
     } else {
-        return query;
+        return query; 
     }
 }
 

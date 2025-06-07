@@ -26,4 +26,19 @@ function isValidDate(d) {
     return d instanceof Date && !isNaN(d);
 }
 
-module.exports = {getUrlFromJson, getJsonFromUrl, isValidDate};
+function getProfileName(profile) {
+    if (typeof profile === 'object') {
+        if (profile.displayname) {
+            return profile.displayname;
+        }
+        if (profile.display_name) {
+            return profile.display_name;
+        }
+        if (profile.displayName) {
+            return profile.displayName;
+        }
+    }
+    return profile;
+}
+
+module.exports = {getUrlFromJson, getJsonFromUrl, isValidDate, getProfileName};

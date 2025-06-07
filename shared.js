@@ -31,7 +31,7 @@ if (!String.prototype.contains) {
 function exists(object) {
     return (typeof object !== "undefined" && object !== null);
 }
-
+  
 function isValidDate(d) {
     return d instanceof Date && !isNaN(d);
 }

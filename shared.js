@@ -210,13 +210,17 @@ function GeniPerson(obj) {
 function isFemale(title) {
     if (!exists(title)) { return false; }
     title = title.toLowerCase().replace(" (implied)", "");
-    return (title === "wife" || title === "ex-wife" || title === "mother" || title === "sister" || title === "daughter" || title === "female");
+    return (title === "wife" || title === "ex-wife" || title === "mother" ||
+            title === "sister" || title === "daughter" || title === "female" ||
+            title === "f");
 }
 
 function isMale(title) {
     if (!exists(title)) { return false; }
     title = title.toLowerCase().replace(" (implied)", "");
-    return (title === "husband" || title === "ex-husband" || title === "father" || title === "brother" || title === "son" || title === "male");
+    return (title === "husband" || title === "ex-husband" || title === "father" ||
+            title === "brother" || title === "son" || title === "male" ||
+            title === "m");
 }
 
 function isSibling(relationship) {

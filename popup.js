@@ -1,7 +1,7 @@
 //Development Global Variables
 var devblocksend = false; //Blocks the sending data to Geni, prints output to console instead
 var locationtest = false; //Verbose parsing of location data
-var verboselogs = true;
+var verboselogs = false;
 
 //Common Global Variables
 var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true;
@@ -1872,13 +1872,7 @@ function dateAmbigous(valdate) {
 
 function addHistory(id, itemId, name, data) {
     if (exists(id)) {
-        buildhistory.unshift({
-            id: id,
-            itemId: itemId != null ? String(itemId) : "",
-            name: name,
-            date: Date.now(),
-            data: data
-        });
+        buildhistory.unshift({id: id, itemId: itemId != null ? String(itemId) : "", name: name, date: Date.now(), data: data});
         if (buildhistory.length > 100) {
             buildhistory.pop();
         }

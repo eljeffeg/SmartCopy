@@ -32,7 +32,7 @@ function exists(object) {
     return (typeof object !== "undefined" && object !== null);
 }
 
-function isValidDate(object) {
+function isValidDate(d) {
     return d instanceof Date && !isNaN(d);
 }
 

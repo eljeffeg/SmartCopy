@@ -411,7 +411,7 @@ function loadPage(request) {
             }
             if (!profilechanged && focusURLid !== "") {
                 for (var i = 0; i < buildhistory.length; i++) {
-                    if (buildhistory[i].itemId === focusURLid) {
+                    if (String(buildhistory[i].itemId) === focusURLid) {
                         focusid = buildhistory[i].id;
                         profilechanged = true;
                         loadPage(request);
@@ -1872,7 +1872,13 @@ function dateAmbigous(valdate) {
 
 function addHistory(id, itemId, name, data) {
     if (exists(id)) {
-        buildhistory.unshift({id: id, itemId: itemId, name: name, date: Date.now(), data: data});
+        buildhistory.unshift({
+            id: id,
+            itemId: itemId != null ? String(itemId) : "",
+            name: name,
+            date: Date.now(),
+            data: data
+        });
         if (buildhistory.length > 100) {
             buildhistory.pop();
         }

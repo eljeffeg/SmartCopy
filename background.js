@@ -46,14 +46,14 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
                 body: request.data,
                 headers: {
                     "Content-Type" : "application/x-www-form-urlencoded"
-                }  
-            }).then((response) => {
+                }
+            }).then(async (response) => {
                 if (!response.ok) {
                     console.error("Unable to get XMLHttpRequest: " + request.url);
                     var valrtn = {error: response.error, variable: request.variable, responseURL: response.responseURL};
                     callback(valrtn);
                 } else {
-                    const responseText = response.text();
+                    const responseText = await response.text();
                     var valrtn = {source: responseText, variable: request.variable, responseURL: response.responseURL};
                     callback(valrtn);
                     const jsData = getJsonFromUrl(request);
@@ -64,13 +64,13 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
                             headers: {
                                 "Content-Type" : "text/plain; charset=UTF-8"
                             }
-                        }).then((photoResponse) => {
+                        }).then(async (photoResponse) => {
                             if (!photoResponse.ok) {
                                 var valrtn = {error: photoResponse.error, responseURL: photoResponse.responseURL};
                                 callback(valrtn);
                             } else {
-                                const photo = photoResponse.text()
-                                let binary = ""
+                                const photo = await photoResponse.text();
+                                let binary = "";
                                 for(i=0;i<photo.length;i++){
                                     binary += String.fromCharCode(photo.charCodeAt(i) & 0xff);
                                 }
@@ -81,6 +81,9 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
                         });
                     }
                 }
+            }).catch((error) => {
+                console.error("Fetch POST failed: ", error);
+                callback({error: error.message, variable: request.variable});
             });
         } else {
             // pass this request through - note that all receivers need to change for fetch response

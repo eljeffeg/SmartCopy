@@ -1,4 +1,9 @@
-const {isValidDate, getJsonFromUrl, getProfileName} = require('../test-utils');
+const {
+    isValidDate,
+    getJsonFromUrl,
+    getProfileName,
+    getUrlFromJson,
+} = require('../test-utils');
 
 describe('isValidDate', () => {
     test('returns true for valid Date', () => {
@@ -19,6 +24,18 @@ describe('getJsonFromUrl', () => {
     test('returns object if input is already object', () => {
         const obj = {a: 1};
         expect(getJsonFromUrl(obj)).toBe(obj);
+    });
+});
+
+describe('getUrlFromJson', () => {
+    test('serializes object to query string', () => {
+        const obj = {foo: 'bar', baz: 'qux'};
+        expect(getUrlFromJson(obj)).toBe('foo=bar&baz=qux');
+    });
+
+    test('encodes special characters', () => {
+        const obj = {name: 'John Doe', city: 'New York'};
+        expect(getUrlFromJson(obj)).toBe('name=John%20Doe&city=New%20York');
     });
 });
 

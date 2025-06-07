@@ -9,7 +9,7 @@ SmartCopy is a Chrome extension that copies genealogical information from sites 
    ```bash
    npm install
    ```
-3. Build and run tests:
+3. Run the test suite:
    ```bash
    npm test
    ```
@@ -31,4 +31,4 @@ Navigate to a supported genealogy website and click the SmartCopy icon. Follow t
 
 ## Contributing
 
-Contributions are welcome. Please review `AGENTS.md` for development guidelines. All pull requests should include a brief description of changes and pass the test suite with `npm test`. 
+Contributions are welcome. Please review `AGENTS.md` for development guidelines. Use four spaces for indentation and terminate statements with semicolons. All pull requests should include a brief description of changes and must pass the test suite with `npm test`.

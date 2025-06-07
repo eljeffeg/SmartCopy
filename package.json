@@ -1,16 +1,17 @@
 {
-  "name": "smartcopy",
-  "version": "1.0.0",
-  "description": "Chrome extension for copying genealogical data to Geni",
-  "scripts": {
-    "test": "jest"
-  },
-  "dependencies": {
-    "jquery": "^3.3.1",
-    "moment": "^2.29.3",
-    "jquery-csv": "^1.0.21"
-  },
-  "devDependencies": {
-    "jest": "^29.7.0"
-  }
-}   
+    "name": "smartcopy",
+    "version": "4.12.0.0",
+    "description": "Chrome extension for copying genealogical data to Geni",
+    "scripts": {
+        "test": "jest",
+        "build": "node scripts/build.js"
+    },
+    "dependencies": {
+        "jquery": "^3.3.1",
+        "moment": "^2.29.3",
+        "jquery-csv": "^1.0.21"
+    },
+    "devDependencies": {
+        "jest": "^29.7.0"
+    }
+}

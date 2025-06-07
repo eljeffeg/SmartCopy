@@ -2,11 +2,11 @@ console.log("Sandbox script loaded...");
 
 window.addEventListener('message', (event) => {
     console.log("Sandbox received a message: {}", event.data);
-    let data;
+    let result;
     try {
-        data = JSON.parse(event.data);
+        result = eval(event.data);
     } catch (e) {
-        data = { error: 'Invalid JSON' };
+        result = { error: e.message };
     }
-    event.source.window.postMessage(data, event.origin);
-});    
+    event.source.postMessage(result, event.origin);
+}); 

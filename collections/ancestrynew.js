@@ -143,30 +143,14 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
     }
     $("#readstatus").html(escapeHtml(focusperson));
     var profiledata = {};
-    var genderval = "unknown";
+    var genderval = getAncestryGender(personCard, personFacts);
     var burialdtflag = false;
     var buriallcflag = false;
     var deathdtflag = false;
     var aboutdata = "";
     
-    if (personCard.gender && (isFemale(personCard.gender) || isMale(personCard.gender))) {
-        genderval = personCard.gender.toLowerCase();
-        if (genderval === "f") {
-            genderval = "female";
-        } else if (genderval === "m") {
-            genderval = "male";
-        }
+    if (genderval !== "unknown") {
         profiledata["gender"] = genderval;
-    } else if (personFacts.PersonInfo && personFacts.PersonInfo.Gender) {
-        genderval = personFacts.PersonInfo.Gender.toLowerCase();
-        if (genderval === "f") {
-            genderval = "female";
-        } else if (genderval === "m") {
-            genderval = "male";
-        }
-        if (isFemale(genderval) || isMale(genderval)) {
-            profiledata["gender"] = genderval;
-        }
     }
     if (personCard.isLiving) {
         profiledata["alive"] = personCard.isLiving;

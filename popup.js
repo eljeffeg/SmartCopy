@@ -1,7 +1,7 @@
 //Development Global Variables
 var devblocksend = false; //Blocks the sending data to Geni, prints output to console instead
 var locationtest = false; //Verbose parsing of location data
-var verboselogs = true;
+var verboselogs = false;
 
 //Common Global Variables
 var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true;
@@ -411,7 +411,7 @@ function loadPage(request) {
             }
             if (!profilechanged && focusURLid !== "") {
                 for (var i = 0; i < buildhistory.length; i++) {
-                    if (buildhistory[i].itemId === focusURLid) {
+                    if (String(buildhistory[i].itemId) === focusURLid) {
                         focusid = buildhistory[i].id;
                         profilechanged = true;
                         loadPage(request);
@@ -1339,6 +1339,8 @@ function buildTree(data, action, sendid) {
                         parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
                     }
                     addHistory(result.id, databyid[id].itemId, getProfileName(databyid[id].name), JSON.stringify(response.variable.data));
+                } else if (sendid === focusid) {
+                    addHistory(result.id, focusURLid, getProfileName(focusname), JSON.stringify(response.variable.data));
                 }
                 if (action !== "add-photo" && action !== "delete") {
                     updatecount += 1;
@@ -1872,7 +1874,7 @@ function dateAmbigous(valdate) {
 
 function addHistory(id, itemId, name, data) {
     if (exists(id)) {
-        buildhistory.unshift({id: id, itemId: itemId, name: name, date: Date.now(), data: data});
+        buildhistory.unshift({id: id, itemId: itemId != null ? String(itemId) : "", name: name, date: Date.now(), data: data});
         if (buildhistory.length > 100) {
             buildhistory.pop();
         }
@@ -2379,11 +2381,18 @@ function geoonoff(value) {
 }
 
 function getProfileName(profile) {
-    if (typeof profile == "object" && profile.displayname) {
-        return profile.displayname;
-    } else {
-        return profile;
+    if (typeof profile === 'object') {
+        if (profile.displayname) {
+            return profile.displayname;
+        }
+        if (profile.display_name) {
+            return profile.display_name;
+        }
+        if (profile.displayName) {
+            return profile.displayName;
+        }
     }
+    return profile;
 }
 
 function hostDomain(url) {

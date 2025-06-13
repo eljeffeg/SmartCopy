@@ -1,7 +1,7 @@
 //Development Global Variables
 var devblocksend = false; //Blocks the sending data to Geni, prints output to console instead
 var locationtest = false; //Verbose parsing of location data
-var verboselogs = true;
+var verboselogs = false;
 
 //Common Global Variables
 var profilechanged = false, loggedin = false, parentblock = false, submitcheck = true;
@@ -123,10 +123,7 @@ var expandpartner = true; //same
 var expandsibling = true; //same
 //noinspection JSUnusedGlobalSymbols
 var expandchild = true; //samet
-/*Manifest V3: service worker not registered in popular extension -
- https://groups.google.com/a/chromium.org/g/chromium-extensions/c/MesMv9ugQIQ?pli=1
- Added to be able to use the compliance checking functions on a Geni profile
- Ajouté pour pouvoir utiliser les fonctions de verification de conformité sur un profil Geni*/
+
 navigator.serviceWorker.getRegistration().then(r => {
     if (r) return;
     const bg = chrome.runtime.getManifest().background;
@@ -1351,6 +1348,8 @@ function buildTree(data, action, sendid) {
                         parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
                     }
                     addHistory(result.id, databyid[id].itemId, getProfileName(databyid[id].name), JSON.stringify(response.variable.data));
+                } else if (sendid === focusid) {
+                    addHistory(result.id, focusURLid, getProfileName(focusname), JSON.stringify(response.variable.data));
                 }
                 if (action !== "add-photo" && action !== "delete") {
                     updatecount += 1;

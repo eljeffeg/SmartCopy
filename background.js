@@ -36,8 +36,7 @@ function getJsonFromUrl(query) {
     }
 }
 
-// listen for messages - if they include photo URLs, intercept and get them
-chrome.runtime.onMessage.addListener( function(request, sender, callback) {
+hrome.runtime.onMessage.addListener( function(request, sender, callback) {
     if (request.action == "xhttp") {
         if (request.latency){
         delay(request.latency);// see https://www.nginx.com/blog/rate-limiting-nginx/
@@ -48,11 +47,6 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
         //console.log("jsDATA :",jsData.photo,jsData.file);
         if (jsData.photo !== undefined) {
             const photoOk  = GetPhoto(jsData);
-            /*Chargement de la Photo par appel Url et mise en place d'un appel POST pour la transférer dans Geni - Loading the Photo by Url call and setting up a POST call for transfer into Geni.
-            Les parametres de l'appel sont transmis dans l'Objet "request", request.url contient l'url, request.data contient 3 clés à l'origine title, attribution, et photo l'url de l'image à charger -data.title, data.attribution et data.photo. Pendant le traitement, on crée la clé "data.file" qu'on remplit avec une chaine codée en base64. On efface data.photo.
-            The parameters of the call are transmitted in the "request" Object, request.url contains the url, request.data contains 3 keys at the origin title, attribution, and photo the url of the image to load - data.title, data.attribution and data.photo. During processing, we create the “data.file” key which we fill with a base64 encoded string. We delete data.photo.
-            https://www.geni.com/api/profile-34835287013/add-photo?fields=id,unions,name&access_token=AEWNhgu5Mdz7kGa4pXPXMohl45ZLVeoo1kFUH4p6
-            */
             photoOk.then((jsData) =>  {
             request.data = jsData
                 //console.log("RQ_DAT1 url :",request.url,jsData.photo,jsData.file);

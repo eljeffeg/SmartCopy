@@ -316,7 +316,8 @@ function getGeneanetFamily(famid, url, subdata) {
         method: "GET",
         action: "xhttp",
         variable: subdata,
-        url: url
+        url: url,
+        latency:190
     }, function (response) {
         if (exists(response)) {
             var arg = response.variable;

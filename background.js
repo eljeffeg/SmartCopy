@@ -45,19 +45,42 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
 
         const method = request.method ? request.method.toUpperCase() : 'GET';
         if (method == 'POST') {
-            const jsData = getJsonFromUrl(request.data);
-            if (jsData.photo !== undefined) {
-                const photoOk  = GetPhoto(jsData);
-                photoOk.then((jsData) =>  {
-                    request.data = jsData;
-                    const header = "application/x-www-form-urlencoded";
-                    GeniPostReq(request,header,callback);
-                });
-                return true
-            }
-            const header = "application/x-www-form-urlencoded";
-            GeniPostReq(request,header,callback);
-     
+            (async () => {
+                try {
+                    let jsData = getJsonFromUrl(request.data);
+                    if (jsData.photo !== undefined) {
+                        const photoResponse = await fetch(jsData.photo);
+                        if (!photoResponse.ok) {
+                            callback({error: photoResponse.error, responseURL: photoResponse.responseURL});
+                            return;
+                        }
+                        const buf = await photoResponse.arrayBuffer();
+                        let binary = "";
+                        const bytes = new Uint8Array(buf);
+                        for (let i = 0; i < bytes.byteLength; i++) {
+                            binary += String.fromCharCode(bytes[i] & 0xff);
+                        }
+                        delete jsData.photo;
+                        jsData.file = btoa(binary);
+                    }
+                    const body = getUrlFromJson(jsData);
+                    const response = await fetch(request.url, {
+                        method: 'POST',
+                        body: body,
+                        headers: {"Content-Type": "application/x-www-form-urlencoded"}
+                    });
+                    const responseText = await response.text();
+                    if (!response.ok) {
+                        console.error("Unable to get XMLHttpRequest: " + request.url);
+                        callback({error: response.error, variable: request.variable, responseURL: response.responseURL});
+                    } else {
+                        callback({source: responseText, variable: request.variable, responseURL: response.url});
+                    }
+                } catch (error) {
+                    console.error("Fetch POST failed: ", error);
+                    callback({error: error.message, variable: request.variable});
+                }
+            })();
         } else {
             // pass this request through - note that all receivers need to change for fetch response
             var vartn = {variable: request.variable};
@@ -86,74 +109,7 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
         return true;
     }
     return false;
-    });
-
-    function GeniPostReq(request,header,callback) {
-        fetch(request.url, {
-            method : "POST",
-            body: request.data,
-            headers: {
-                "Content-Type" : header
-            }  
-        })
-        .then((response) => {
-            if (!response.ok) {
-                return response.text()
-                .then((responseText)=> {
-                console.error("Unable to get Fetch Request: " + request.url);
-                var valrtn = {error: responseText, variable: request.variable, responseURL: request.url};
-                console.log("valrtn_FL ",valrtn,request.data);
-                callback(valrtn);
-            });
-            
-            } else {
-                return response.text()
-                .then((responseText)=> {
-                var valrtn = {source: responseText, variable: request.variable, responseURL: request.url};
-                //console.log("valrtn_OK ",valrtn);
-                callback(valrtn);
-             });
-            } 
-         })
-        }
-       // load the photo from the given URL
-async function GetPhoto (jsData){
-    try {
-        const photoResponse = await fetch(jsData.photo, {
-            method: 'GET',
-            mode: "cors",
-            headers: {
-                "Content-Type" : "application/xml",
-            //   "Access-Control-Allow-Origin": "*",
-            //   "Access-Control-Allow-Methods": "GET",
-            //   "Access-Control-Max-Age": "86400",
-            },
-        });
-        if (!photoResponse.ok) {
-                throw new Error(`Erreur Photo : ${photoResponse.status}`);
-            }
-        const photoreader =  photoResponse.body.getReader();    
-            let binary = "";
-            while (true){
-                const {done,value} = await photoreader.read();
-                if (done){
-    
-                    delete jsData.photo;
-                    jsData.file = btoa(binary);
-                    jsData = getUrlFromJson(jsData);
-                    return jsData;
-                }
-
-                charsReceived = value.length;
-                for(i=0;i<charsReceived;i++){
-                binary += String.fromCharCode(value[i]);
-                }
-            }
-    }
-    catch({name, stat}) {
-        console.error(name, stat);
-    }
-}
+});
 
 async function evalObject(expression, callback) {
     await setupOffscreenDocument("offscreen.html");

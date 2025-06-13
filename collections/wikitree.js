@@ -20,8 +20,8 @@ registerCollection({
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
         var personinfo = parsed.find(".VITALS");
         var focusperson = "";
-        if (exists(personinfo[0])) {
-            focusperson = $(personinfo[0]).text().replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
+        if (exists(personinfo[4])) {
+            focusperson = $(personinfo[4]).text().replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
             if (focusperson.contains("formerly")) {
                 focusperson = focusperson.replace("formerly", "(born") + ")";
             } else if (focusperson.contains("formerly") && focusperson.contains("[surname unknown]")) {
@@ -62,9 +62,9 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 
     var personinfo = parsed.find(".VITALS");
     var focusperson = "";
-    if (exists(personinfo[0])) {
-        $(personinfo[0]).html($(personinfo[0]).html().replace(/<strong>/gi, " "));
-        focusperson = $(personinfo[0]).text().replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
+    if (exists(personinfo[4])) {
+        $(personinfo[4]).html($(personinfo[4]).html().replace(/<strong>/gi, " "));
+        focusperson = $(personinfo[4]).text().replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
         focusperson = focusperson.replace("[family name unknown]", "");
         if (focusperson.contains("formerly") && !focusperson.contains("[surname unknown]")) {
             focusperson = focusperson.replace("formerly", "(born") + ")";
@@ -139,7 +139,8 @@ function parseWikiTree(htmlstring, familymembers, relation) {
     var burialdtflag = false;
     var buriallcflag = false;
     var deathdtflag = false;
-    for (var r = 1; r < personinfo.length; r++) {
+//    for (var r = 1; r < personinfo.length; r++) {
+    for (var r = 1; r < 9; r++) {
         var row = personinfo[r];
         var data = [];
         var rowtitle = $(row).text().toLowerCase().trim();
@@ -167,7 +168,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 
                 for (var i = 0; i < cells.length; i++) {
                     var urlset = $(cells[i]).find('a');
-                    if (exists(urlset)) {
+                    if ((exists(urlset)) && (urlset.length > 0)) {
                         var url = hostDomain(tablink) + $(urlset[0]).attr('href');
                         var title = $(cells[i]).attr('itemprop');
                         var name = $(urlset[0]).text();
@@ -201,9 +202,15 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                             unionurls[famid] = itemid;
 
                             if (isPartner(title)) {
+                                const mardate = cells.find('span.marriage-date');
+                                const marloc = cells.find('span.marriage-location');
                                 myhspouse.push(famid);
-                                if (exists(cells[2])) {
-                                    data = parseWikiEvent($(cells[2]).text());
+                                    if (exists(mardate)) {
+                                    data = parseWikiEvent($(mardate).text());
+                                    if (exists(marloc)) {
+                                        data.push({id: geoid, location: $(marloc).text()});
+                                        geoid++;
+                                    }
                                     if (!$.isEmptyObject(data)) {
                                         subdata["marriage"] = data;
                                     }
@@ -339,10 +346,18 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 
 function parseWikiEvent(vitalstring) {
     var data = [];
-    var vitalinfo = vitalstring.trim().replace("[location unknown]", "").replace("[date unknown]", "");
-    var datesplit = vitalinfo.split(" in ");
+    var vitalinfo = vitalstring.trim().replace("[location unknown]", "").replace("[date unknown]", "").replace("[uncertain]","");
+    const regin = /\sin /;
+    var datesplit = vitalinfo.split(regin);
     if (datesplit.length > 0) {
-        var dateval = datesplit[0].trim();
+        var dateval ="";
+        var datevalbrut = datesplit[0].trim();
+        var datevalbrutsplit = datevalbrut.split("at ");
+        if (datevalbrutsplit.length > 0) {
+            dateval = datevalbrutsplit[0].trim();
+        } else {
+            dateval = datevalbrut ;
+        }
         dateval = cleanDate(dateval);
         if (dateval !== "") {
             data.push({date: dateval});

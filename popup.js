@@ -1298,7 +1298,7 @@ function buildTree(data, action, sendid) {
                 variable: {id: id, relation: action.replace("add-", ""), data: data}
             }, function (response) {
                 try {
-                    var result = JSON.parse(response.source);
+                    var result = typeof response.source == 'string' ? JSON.parse(response.source) : response.source;
                     if (verboselogs) {
                         console.log("Geni Response: " + response.source);
                     }

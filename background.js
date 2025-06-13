@@ -40,24 +40,23 @@ function getJsonFromUrl(query) {
 chrome.runtime.onMessage.addListener( function(request, sender, callback) {
     if (request.action == "xhttp") {
         if (request.latency){
-        delay(request.latency);// see https://www.nginx.com/blog/rate-limiting-nginx/
+            delay(request.latency);// see https://www.nginx.com/blog/rate-limiting-nginx/
         }
+
         const method = request.method ? request.method.toUpperCase() : 'GET';
         if (method == 'POST') {
-       const jsData = getJsonFromUrl(request.data);
-        //console.log("jsDATA :",jsData.photo,jsData.file);
-        if (jsData.photo !== undefined) {
-            const photoOk  = GetPhoto(jsData);
-            photoOk.then((jsData) =>  {
-            request.data = jsData
-                //console.log("RQ_DAT1 url :",request.url,jsData.photo,jsData.file);
-               const header = "application/x-www-form-urlencoded";
-                GeniPostReq(request,header,callback);
-            });
-            return true
-        }
-        const header = "application/x-www-form-urlencoded";
-        GeniPostReq(request,header,callback);
+            const jsData = getJsonFromUrl(request.data);
+            if (jsData.photo !== undefined) {
+                const photoOk  = GetPhoto(jsData);
+                photoOk.then((jsData) =>  {
+                    request.data = jsData;
+                    const header = "application/x-www-form-urlencoded";
+                    GeniPostReq(request,header,callback);
+                });
+                return true
+            }
+            const header = "application/x-www-form-urlencoded";
+            GeniPostReq(request,header,callback);
      
         } else {
             // pass this request through - note that all receivers need to change for fetch response
@@ -88,7 +87,7 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
     }
     return false;
     });
-//Création et Mis à jour des donnes Geni - Creation and Update of Geni data
+
     function GeniPostReq(request,header,callback) {
         fetch(request.url, {
             method : "POST",
@@ -119,37 +118,43 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
         }
        // load the photo from the given URL
 async function GetPhoto (jsData){
+    try {
+        const photoResponse = await fetch(jsData.photo, {
+            method: 'GET',
+            mode: "cors",
+            headers: {
+                "Content-Type" : "application/xml",
+            //   "Access-Control-Allow-Origin": "*",
+            //   "Access-Control-Allow-Methods": "GET",
+            //   "Access-Control-Max-Age": "86400",
+            },
+        });
+        if (!photoResponse.ok) {
+                throw new Error(`Erreur Photo : ${photoResponse.status}`);
+            }
+        const photoreader =  photoResponse.body.getReader();    
+            let binary = "";
+            while (true){
+                const {done,value} = await photoreader.read();
+                if (done){
+    
+                    delete jsData.photo;
+                    jsData.file = btoa(binary);
+                    jsData = getUrlFromJson(jsData);
+                    return jsData;
+                }
 
-try {
-     const photoResponse = await fetch(jsData.photo, {
-        method: 'GET',
-        mode: "cors",
-        headers: {
-            "Content-Type" : "application/xml",
-    });
-    if (!photoResponse.ok) {
-            throw new Error(`Erreur Photo : ${photoResponse.status}`);
-          }
-     const photoreader =  photoResponse.body.getReader();    
-         let binary = "";
-         while (true){
-            const {done,value} = await photoreader.read();
-            if (done){
-                delete jsData.photo;
-                jsData.file = btoa(binary);
-                jsData = getUrlFromJson(jsData);
-                return jsData;
+                charsReceived = value.length;
+                for(i=0;i<charsReceived;i++){
+                binary += String.fromCharCode(value[i]);
+                }
             }
-            charsReceived = value.length;
-            for(i=0;i<charsReceived;i++){
-            binary += String.fromCharCode(value[i]);
-            }
-         }
+    }
+    catch({name, stat}) {
+        console.error(name, stat);
+    }
 }
-catch({name, stat}) {
-    console.error(name, stat);
-}
-}
+
 async function evalObject(expression, callback) {
     await setupOffscreenDocument("offscreen.html");
     await chrome.runtime.sendMessage({
@@ -165,9 +170,7 @@ function exists(object) {
     return (typeof object !== "undefined" && object !== null);
 }
 
-const iframeHosts = [
-    'www.geni.com',
-  ];
+const iframeHosts = ['www.geni.com',];
 
 chrome.runtime.onInstalled.addListener(() => {
     const RULE = {

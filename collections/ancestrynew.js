@@ -373,3 +373,26 @@ async function getAncestryNewTreeFamily(famid, itemid, name, title, url) {
         });
     });
 }
+
+function getAncestryGender(personCard, personFacts) {
+    let genderval = 'unknown';
+    if (personCard && (isFemale(personCard.gender) || isMale(personCard.gender))) {
+        genderval = personCard.gender.toLowerCase();
+        if (genderval === 'f') {
+            genderval = 'female';
+        } else if (genderval === 'm') {
+            genderval = 'male';
+        }
+    } else if (personFacts && personFacts.PersonInfo && personFacts.PersonInfo.Gender) {
+        genderval = personFacts.PersonInfo.Gender.toLowerCase();
+        if (genderval === 'f') {
+            genderval = 'female';
+        } else if (genderval === 'm') {
+            genderval = 'male';
+        }
+        if (!isFemale(genderval) && !isMale(genderval)) {
+            genderval = 'unknown';
+        }
+    }
+    return genderval;
+}

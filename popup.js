@@ -124,6 +124,15 @@ var expandsibling = true; //same
 //noinspection JSUnusedGlobalSymbols
 var expandchild = true; //samet
 
+navigator.serviceWorker.getRegistration().then(r => {
+    if (r) return;
+    const bg = chrome.runtime.getManifest().background;
+    navigator.serviceWorker.register(bg.service_worker, {
+      type: bg.type || 'classic',
+      scope: '/',
+    });
+  });
+  // Fin d'ajout - End of Add
 document.addEventListener('DOMContentLoaded', function () {
     var version = chrome.runtime.getManifest().version;
     console.log(chrome.runtime.getManifest().name + " v" + version);
@@ -411,7 +420,7 @@ function loadPage(request) {
             }
             if (!profilechanged && focusURLid !== "") {
                 for (var i = 0; i < buildhistory.length; i++) {
-                    if (String(buildhistory[i].itemId) === focusURLid) {
+                    if (String(buildhistory[i].itemId) === String(focusURLid)) {
                         focusid = buildhistory[i].id;
                         profilechanged = true;
                         loadPage(request);
@@ -1289,7 +1298,7 @@ function buildTree(data, action, sendid) {
                 variable: {id: id, relation: action.replace("add-", ""), data: data}
             }, function (response) {
                 try {
-                    var result = JSON.parse(response.source);
+                    var result = typeof response.source == 'string' ? JSON.parse(response.source) : response.source;
                     if (verboselogs) {
                         console.log("Geni Response: " + response.source);
                     }

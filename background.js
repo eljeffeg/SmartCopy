@@ -39,6 +39,10 @@ function getJsonFromUrl(query) {
 // listen for messages - if they include photo URLs, intercept and get them
 chrome.runtime.onMessage.addListener( function(request, sender, callback) {
     if (request.action == "xhttp") {
+        if (request.latency){
+            delay(request.latency);// see https://www.nginx.com/blog/rate-limiting-nginx/
+        }
+
         const method = request.method ? request.method.toUpperCase() : 'GET';
         if (method == 'POST') {
             (async () => {
@@ -122,9 +126,7 @@ function exists(object) {
     return (typeof object !== "undefined" && object !== null);
 }
 
-const iframeHosts = [
-    'www.geni.com',
-  ];
+const iframeHosts = ['www.geni.com',];
 
 chrome.runtime.onInstalled.addListener(() => {
     const RULE = {
@@ -179,3 +181,11 @@ async function setupOffscreenDocument(path) {
     creating = null;
   }
 }
+
+function delay(ms){
+    let currDate = new Date().getTime();
+    let dateNow = currDate;
+    while(dateNow<currDate+ms){
+      dateNow = new Date().getTime();
+    }
+  }

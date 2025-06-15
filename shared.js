@@ -31,7 +31,7 @@ if (!String.prototype.contains) {
 function exists(object) {
     return (typeof object !== "undefined" && object !== null);
 }
-  
+
 function isValidDate(d) {
     return d instanceof Date && !isNaN(d);
 }
@@ -210,17 +210,13 @@ function GeniPerson(obj) {
 function isFemale(title) {
     if (!exists(title)) { return false; }
     title = title.toLowerCase().replace(" (implied)", "");
-    return (title === "wife" || title === "ex-wife" || title === "mother" ||
-            title === "sister" || title === "daughter" || title === "female" ||
-            title === "f");
+    return (title === "wife" || title === "ex-wife" || title === "mother" || title === "sister" || title === "daughter" || title === "female" || title === "f");
 }
 
 function isMale(title) {
     if (!exists(title)) { return false; }
     title = title.toLowerCase().replace(" (implied)", "");
-    return (title === "husband" || title === "ex-husband" || title === "father" ||
-            title === "brother" || title === "son" || title === "male" ||
-            title === "m");
+    return (title === "husband" || title === "ex-husband" || title === "father" || title === "brother" || title === "son" || title === "male" || title === "m");
 }
 
 function isSibling(relationship) {

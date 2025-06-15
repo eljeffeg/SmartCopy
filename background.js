@@ -188,4 +188,4 @@ function delay(ms){
     while(dateNow<currDate+ms){
       dateNow = new Date().getTime();
     }
-  }
+}

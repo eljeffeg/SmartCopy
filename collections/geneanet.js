@@ -37,9 +37,9 @@ function parseGeneanet(htmlstring, familymembers, relation) {
   var nameTab = parsed.find(".with_tabs.name");
   var genderval = "unknown";
   var genderImg = nameTab.find("track").first();
-  if (genderImg.attr("title") === "M") {
+  if (genderImg.attr("alt") === "Male") {
     genderval = "male";
-  } else if (genderImg.attr("title") === "F") {
+  } else if (genderImg.attr("alt") === "Female") {
     genderval = "female";
   } else if (exists(relation.gender) && relation.gender !== "unknown") {
     genderval = relation.gender;

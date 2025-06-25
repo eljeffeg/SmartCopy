@@ -20,8 +20,8 @@ registerCollection({
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
         var personinfo = parsed.find(".VITALS");
         var focusperson = "";
-        if (exists(personinfo[4])) {
-            focusperson = $(personinfo[4]).text().replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
+        if (exists(personinfo[2])) {
+            focusperson = $(personinfo[2]).text().replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
             if (focusperson.contains("formerly")) {
                 focusperson = focusperson.replace("formerly", "(born") + ")";
             } else if (focusperson.contains("formerly") && focusperson.contains("[surname unknown]")) {
@@ -62,9 +62,9 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 
     var personinfo = parsed.find(".VITALS");
     var focusperson = "";
-    if (exists(personinfo[4])) {
-        $(personinfo[4]).html($(personinfo[4]).html().replace(/<strong>/gi, " "));
-        focusperson = $(personinfo[4]).text().replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
+    if (exists(personinfo[2])) {
+        $(personinfo[2]).html($(personinfo[2]).html().replace(/<strong>/gi, " "));
+        focusperson = $(personinfo[2]).text().replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
         focusperson = focusperson.replace("[family name unknown]", "");
         if (focusperson.contains("formerly") && !focusperson.contains("[surname unknown]")) {
             focusperson = focusperson.replace("formerly", "(born") + ")";

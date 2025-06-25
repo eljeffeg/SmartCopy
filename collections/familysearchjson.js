@@ -132,7 +132,7 @@ registerCollection({
             parsed["data"]["nameConclusion"]["details"]["nameForms"]
         ) {
             focusperson = NameParse.parse(parsed["data"]["name"], mnameonoff);
-            if (focusperson.lastName !== "") {
+            if (focusperson.lastName == "") {
                 focusperson.lastName = NameParse.cleanName(
                     parsed["data"]["nameConclusion"]["details"]["nameForms"][0][
                         "familyPart"
@@ -422,7 +422,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                                         profiledata["thumb"] = image;
                                     }
                                     var parents = parentset.split("_");
-                                    var data = parseFSJSONUnion(
+                                    var {data_m,data_d} = parseFSJSONUnion(
                                         jsonrel[x]["event"],
                                     );
                                     for (var y = 0; y < parents.length; y++) {
@@ -453,7 +453,8 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                                                 "parents",
                                                 famid,
                                                 image,
-                                                data,
+                                                data_m,
+                                                data_d
                                             );
                                         } else {
                                             processFamilySearchJSON(
@@ -514,13 +515,14 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
                             image = jsonrel[x]["parent1"]["portraitUrl"] || "";
                         }
                         if (spouse) {
-                            var data = parseFSJSONUnion(jsonrel[x]["event"]);
+                            var {data_m,data_d} = parseFSJSONUnion(jsonrel[x]["event"]);
                             var valid = processFamilySearchJSON(
                                 spouse,
                                 "spouse",
                                 famid,
                                 image,
-                                data,
+                                data_m,
+                                data_d
                             );
                             if (valid) {
                                 fsspouselist.push(spouse);
@@ -628,34 +630,57 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
 }
 
 function parseFSJSONUnion(eventinfo) {
-    var data = [];
-
-    if (
-        eventinfo &&
-        eventinfo["type"] &&
-        eventinfo["type"].toLowerCase() === "marriage"
-    ) {
-        var dateval = "";
-        if (eventinfo["standardDate"]) {
-            dateval = eventinfo["standardDate"];
-        } else if (eventinfo["originalDate"]) {
-            dateval = eventinfo["originalDate"];
+    
+    var data_m = [];
+    var data_d = [];
+    var dateval = "";
+    var eventlocation = "";
+//console.log("Eventinfo",eventinfo);
+    if (eventinfo &&
+ eventinfo["type"] &&
+ eventinfo["type"].toLowerCase() === "marriage") {
+       
+        if (eventinfo.details.date) {
+            dateval = eventinfo.details.date.normalizedText;
         }
         if (dateval !== "") {
-            data.push({ date: cleanDate(dateval) });
+            data_m.push({date: cleanDate(dateval)});
         }
-        var eventlocation = "";
-        if (eventinfo["standardPlace"]) {
-            eventlocation = eventinfo["standardPlace"].trim();
-        } else if (eventinfo["originalPlace"]) {
-            eventlocation = eventinfo["originalPlace"].trim();
+        if (eventinfo.details.place){  
+            if (eventinfo.details.place.normalizedText){
+            eventlocation = eventinfo.details.place.normalizedText.trim()
+            }
+            if (eventinfo.details.place.originalText && eventlocation == "" ){
+                eventlocation = eventinfo.details.place.originalText.trim()
+            }
+            if (eventlocation == ""){
+                console.log("LocalizedText",eventinfo.details.place.localizedText);
+            }
         }
         if (eventlocation !== "") {
-            data.push({ id: geoid, location: eventlocation });
+            data_m.push({id: geoid, location: eventlocation});
             geoid++;
         }
     }
-    return data;
+    if (eventinfo && eventinfo["type"] && eventinfo["type"].toLowerCase() === "divorce") {
+        dateval = "";
+        eventlocation = "";
+        if (eventinfo.details.date) {    
+            dateval = eventinfo.details.date.normalizedText;
+        }
+        if (dateval !== "") {
+            data_d.push({date: cleanDate(dateval)});
+        }
+       
+        if (eventinfo.details.place){ 
+            eventlocation = eventinfo.details.place.normalizedText.trim()
+        }
+        if (eventlocation !== "") {
+            data_d.push({id: geoid, location: eventlocation});
+            geoid++;
+        }
+    }
+    return {data_m,data_d};
 }
 
 function parseFSJSONDate(eventinfo) {
@@ -734,7 +759,7 @@ function getFamilySearchJSON(famid, url, subdata) {
                 proid: arg.profile_id,
                 itemId: arg.itemId,
             });
-            if (person === "") {
+            if(!person){
                 familystatus.pop();
                 return;
             }
@@ -743,6 +768,9 @@ function getFamilySearchJSON(famid, url, subdata) {
             }
             if (arg.marriage) {
                 person["marriage"] = arg.marriage;
+            }
+            if (arg.divorce) {
+                person["divorce"] = arg.divorce;
             }
             if (arg.parent_id) {
                 person["parent_id"] = arg.parent_id;
@@ -761,7 +789,11 @@ function getFamilySearchJSON(famid, url, subdata) {
     );
 }
 
-function processFamilySearchJSON(itemid, title, famid, image, data) {
+function processFamilySearchJSON(itemid, title, famid, image, data_m, data_d) {
+    // Case of one of the two parents unknown (not referenced)
+    if (itemid ==="UNKNOWN"){
+        return false;
+    }
     if (itemid === focusURLid) {
         return false;
     }
@@ -778,9 +810,12 @@ function processFamilySearchJSON(itemid, title, famid, image, data) {
         parentlist.push(itemid);
     }
 
-    var subdata = { title: title, url: url, itemId: itemid, profile_id: famid };
-    if (!$.isEmptyObject(data)) {
-        subdata["marriage"] = data;
+    var subdata = {title: title, url: url, itemId: itemid, profile_id: famid};
+    if (!$.isEmptyObject(data_m)) {
+        subdata["marriage"] = data_m;
+    }
+    if (!$.isEmptyObject(data_d)) {
+        subdata["divorce"] = data_d;
     }
     if (title === "halfsibling") {
         subdata["halfsibling"] = true;

@@ -20,6 +20,7 @@ var focusnicknames = "";
 var parentmarriageid = "";
 var geounique = [];
 var geocleanup = [];
+var datelimit = 1600;
 
 function updateGeo() {
     if (familystatus.length > 0) {
@@ -262,14 +263,14 @@ function buildForm() {
     if (exists(alldata["profile"]["birth"]) && exists(alldata["profile"]["birth"][0]) && exists(alldata["profile"]["birth"][0]["date"])) {
         var dt = moment(alldata["profile"]["birth"][0]["date"], getDateFormat(alldata["profile"]["birth"][0]["date"]));
         var year = dt.get('year');
-        if (year < 1600) {
+        if (year < datelimit) {
             expand = false;
             
         }
     } else if (exists(alldata["profile"]["death"]) && exists(alldata["profile"]["death"][0]) && exists(alldata["profile"]["death"][0]["date"])) {
         var dt = moment(alldata["profile"]["death"][0]["date"], getDateFormat(alldata["profile"]["death"][0]["date"]));
         var year = dt.get('year');
-        if (year < 1600) {
+        if (year < datelimit) {
             expand = false;
         }
     }
@@ -748,7 +749,7 @@ function buildForm() {
             if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
                 var dt = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"]));
                 var year = dt.get('year');
-                if (year < 1600) {
+                if (year < datelimit) {
                     checkunknown = " disabled";
                     scored = false;
                     expand = false;
@@ -757,7 +758,7 @@ function buildForm() {
             } else if (exists(members[member]["death"]) && exists(members[member]["death"][0]) && exists(members[member]["death"][0]["date"])) {
                 var dt = moment(members[member]["death"][0]["date"], getDateFormat(members[member]["death"][0]["date"]));
                 var year = dt.get('year');
-                if (year < 1600) {
+                if (year < datelimit) {
                     checkunknown = " disabled";
                     scored = false;
                     expand = false;

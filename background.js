@@ -39,49 +39,48 @@ function getJsonFromUrl(query) {
 // listen for messages - if they include photo URLs, intercept and get them
 chrome.runtime.onMessage.addListener( function(request, sender, callback) {
     if (request.action == "xhttp") {
+        if (request.latency){
+            delay(request.latency);// see https://www.nginx.com/blog/rate-limiting-nginx/
+        }
+
         const method = request.method ? request.method.toUpperCase() : 'GET';
         if (method == 'POST') {
-            fetch(request.url, {
-                method : method,
-                body: request.data,
-                headers: {
-                    "Content-Type" : "application/x-www-form-urlencoded"
-                }  
-            }).then((response) => {
-                if (!response.ok) {
-                    console.error("Unable to get XMLHttpRequest: " + request.url);
-                    var valrtn = {error: response.error, variable: request.variable, responseURL: response.responseURL};
-                    callback(valrtn);
-                } else {
-                    const responseText = response.text();
-                    var valrtn = {source: responseText, variable: request.variable, responseURL: response.responseURL};
-                    callback(valrtn);
-                    const jsData = getJsonFromUrl(request);
+            (async () => {
+                try {
+                    let jsData = getJsonFromUrl(request.data);
                     if (jsData.photo !== undefined) {
-                        // load the photo from the given URL
-                        fetch(jsData.photo, {
-                            method: 'GET',
-                            headers: {
-                                "Content-Type" : "text/plain; charset=UTF-8"
-                            }
-                        }).then((photoResponse) => {
-                            if (!photoResponse.ok) {
-                                var valrtn = {error: photoResponse.error, responseURL: photoResponse.responseURL};
-                                callback(valrtn);
-                            } else {
-                                const photo = photoResponse.text()
-                                let binary = ""
-                                for(i=0;i<photo.length;i++){
-                                    binary += String.fromCharCode(photo.charCodeAt(i) & 0xff);
-                                }
-                                delete jsData.photo;
-                                jsData.file = btoa(binary);
-                                return fetch(getUrlFromJson(jsData));
-                            }
-                        });
+                        const photoResponse = await fetch(jsData.photo);
+                        if (!photoResponse.ok) {
+                            callback({error: photoResponse.error, responseURL: photoResponse.responseURL});
+                            return;
+                        }
+                        const buf = await photoResponse.arrayBuffer();
+                        let binary = "";
+                        const bytes = new Uint8Array(buf);
+                        for (let i = 0; i < bytes.byteLength; i++) {
+                            binary += String.fromCharCode(bytes[i] & 0xff);
+                        }
+                        delete jsData.photo;
+                        jsData.file = btoa(binary);
                     }
+                    const body = getUrlFromJson(jsData);
+                    const response = await fetch(request.url, {
+                        method: 'POST',
+                        body: body,
+                        headers: {"Content-Type": "application/x-www-form-urlencoded"}
+                    });
+                    const responseText = await response.text();
+                    if (!response.ok) {
+                        console.error("Unable to get XMLHttpRequest: " + request.url);
+                        callback({error: response.error, variable: request.variable, responseURL: response.responseURL});
+                    } else {
+                        callback({source: responseText, variable: request.variable, responseURL: response.url});
+                    }
+                } catch (error) {
+                    console.error("Fetch POST failed: ", error);
+                    callback({error: error.message, variable: request.variable});
                 }
-            });
+            })();
         } else {
             // pass this request through - note that all receivers need to change for fetch response
             var vartn = {variable: request.variable};
@@ -127,9 +126,7 @@ function exists(object) {
     return (typeof object !== "undefined" && object !== null);
 }
 
-const iframeHosts = [
-    'www.geni.com',
-  ];
+const iframeHosts = ['www.geni.com',];
 
 chrome.runtime.onInstalled.addListener(() => {
     const RULE = {
@@ -183,4 +180,12 @@ async function setupOffscreenDocument(path) {
     await creating;
     creating = null;
   }
+}
+
+function delay(ms){
+    let currDate = new Date().getTime();
+    let dateNow = currDate;
+    while(dateNow<currDate+ms){
+      dateNow = new Date().getTime();
+    }
 }

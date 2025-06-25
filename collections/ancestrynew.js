@@ -107,28 +107,50 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
         return "";
     }
     // TODO - figure out where the parsing issues are
-    var personCard = await readPersonCard(htmlstring);
+    let personCard = {};
+    try {
+        personCard = await readPersonCard(htmlstring);
+    } catch (err) {
+        personCard = {};
+    }
 
     // get personFacts
-    var pfStart = htmlstring.indexOf("researchData = ");
-    var pfEnd = htmlstring.indexOf("};", pfStart);
+    const pfStart = htmlstring.indexOf("researchData = ");
+    const pfEnd = htmlstring.indexOf("};", pfStart);
+    let personFacts = {};
+    if (pfStart !== -1 && pfEnd !== -1) {
+        try {
+            personFacts = JSON.parse(htmlstring.substring(pfStart + 14, pfEnd + 1));
+        } catch (err) {
+            personFacts = {};
+        }
+    }
 
-    var personFacts = JSON.parse(htmlstring.substring(pfStart + 14, pfEnd + 1));
-    
     // useful for debugging Ancestry calls
     // console.log("Ancestry new - entering with PersonCard: {} personFacts: {} familymembers: {} relation: {}", personCard, personFacts, familymembers, relation);
-    var focusperson = personCard.name.trim();
-    var focusdaterange = personCard.lifeYearRange.replace("&ndash;", " - ");
+    let focusperson = "";
+    if (exists(personCard.name)) {
+        focusperson = personCard.name.trim();
+    } else if (personFacts.PersonInfo && personFacts.PersonInfo.FullName) {
+        focusperson = personFacts.PersonInfo.FullName.trim();
+    }
+
+    let focusdaterange = "";
+    if (exists(personCard.lifeYearRange)) {
+        focusdaterange = personCard.lifeYearRange.replace("&ndash;", " - ");
+    } else if (personFacts.PersonInfo && personFacts.PersonInfo.LifeSpan) {
+        focusdaterange = personFacts.PersonInfo.LifeSpan.replace("&ndash;", " - ");
+    }
     $("#readstatus").html(escapeHtml(focusperson));
     var profiledata = {};
-    var genderval = "unknown";
+    var genderval = getAncestryGender(personCard, personFacts);
     var burialdtflag = false;
     var buriallcflag = false;
     var deathdtflag = false;
     var aboutdata = "";
     
-    if (personCard.gender && (isFemale(personCard.gender) || isMale(personCard.gender))) {
-            profiledata["gender"] = personCard.gender.toLowerCase();
+    if (genderval !== "unknown") {
+        profiledata["gender"] = genderval;
     }
     if (personCard.isLiving) {
         profiledata["alive"] = personCard.isLiving;
@@ -350,4 +372,27 @@ async function getAncestryNewTreeFamily(famid, itemid, name, title, url) {
             resolve(true);
         });
     });
+}
+
+function getAncestryGender(personCard, personFacts) {
+    let genderval = 'unknown';
+    if (personCard && (isFemale(personCard.gender) || isMale(personCard.gender))) {
+        genderval = personCard.gender.toLowerCase();
+        if (genderval === 'f') {
+            genderval = 'female';
+        } else if (genderval === 'm') {
+            genderval = 'male';
+        }
+    } else if (personFacts && personFacts.PersonInfo && personFacts.PersonInfo.Gender) {
+        genderval = personFacts.PersonInfo.Gender.toLowerCase();
+        if (genderval === 'f') {
+            genderval = 'female';
+        } else if (genderval === 'm') {
+            genderval = 'male';
+        }
+        if (!isFemale(genderval) && !isMale(genderval)) {
+            genderval = 'unknown';
+        }
+    }
+    return genderval;
 }

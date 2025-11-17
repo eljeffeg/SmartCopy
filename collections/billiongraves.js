@@ -117,8 +117,8 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     // ---------------------- Profile Continued --------------------
 
     profiledata["alive"] = false; //assume deceased
-    if (exists(data.image)) {
-        const imageUrl = data.image;
+    if (exists(data.image) && exists(data.image.url)) {
+        const imageUrl = data.image.url;
         profiledata["thumb"] = imageUrl;
         profiledata["image"] = imageUrl.replace("&p1=128&p2=0", "");
     }

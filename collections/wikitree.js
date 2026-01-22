@@ -227,6 +227,10 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                                 variable: subdata
                             }, function (response) {
                                 var arg = response.variable;
+                                if (!response.source) {
+                                    familystatus.pop();
+                                    return;
+                                }
                                 var person = parseWikiTree(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
                                 if (person === "") {
                                     familystatus.pop();
@@ -250,7 +254,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                     for (var i = 0; i < cells.length; i++) {
                         if (exists(cells[i])) {
                             var urlset = $(cells[i]).find('a');
-                            if (exists(urlset)) {
+                            if (exists(urlset) && urlset.length) {
                                 var title = $(urlset[0]).attr('title');
                                 if (exists(title) && isPartner(title)) {
                                     var url = $(urlset[0]).attr('href');
@@ -274,7 +278,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                 for (var i = 0; i < cells.length; i++) {
                     if (exists(cells[i])) {
                         var urlset = $(cells[i]).find('a');
-                        if (exists(urlset)) {
+                        if (exists(urlset) && urlset.length) {
                             var title = $(urlset[0]).attr('title');
                             if (exists(title) && isParent(title)) {
                                 var url = $(urlset[0]).attr('href');
@@ -294,7 +298,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                 for (var i = 0; i < cells.length; i++) {
                     if (exists(cells[i])) {
                         var urlset = $(cells[i]).find('a');
-                        if (exists(urlset)) {
+                        if (exists(urlset) && urlset.length) {
                             var title = $(urlset[0]).attr('title');
                             if (exists(title) && isParent(title)) {
                                 var url = $(urlset[0]).attr('href');

@@ -227,6 +227,10 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                                 variable: subdata
                             }, function (response) {
                                 var arg = response.variable;
+                                if (!response.source) {
+                                    familystatus.pop();
+                                    return;
+                                }
                                 var person = parseWikiTree(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
                                 if (person === "") {
                                     familystatus.pop();

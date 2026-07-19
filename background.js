@@ -66,6 +66,7 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
                     const body = getUrlFromJson(jsData);
                     const response = await fetch(request.url, {
                         method: 'POST',
+                        credentials: 'include',
                         body: body,
                         headers: {"Content-Type": "application/x-www-form-urlencoded"}
                     });
@@ -87,6 +88,7 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
             fetch(request.url,
                 {
                     method: "GET",
+                    credentials: 'include',
                     body: request.data
                 }
             ).then((response) => {

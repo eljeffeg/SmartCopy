@@ -351,25 +351,32 @@ async function getAncestryNewTreeFamily(famid, itemid, name, title, url) {
             url: url,
             variable: subdata
         }, async function(response) {
-            await response;
-            var arg = response.variable;
-            var person = await parseAncestryNew(response.source, false, {
-                "title": arg.title,
-                "proid": arg.profile_id,
-                "itemId": arg.itemId
-            });
-            if (person === "") {
+            try {
+                await response;
+                var arg = response.variable;
+                var person = await parseAncestryNew(response.source, false, {
+                    "title": arg.title,
+                    "proid": arg.profile_id,
+                    "itemId": arg.itemId
+                });
+                if (person === "") {
+                    familystatus.pop();
+                    resolve(false);
+                    return;
+                }
+                if (arg.halfsibling) {
+                    person["halfsibling"] = true;
+                }
+                person = updateInfoData(person, arg);
+                databyid[arg.profile_id] = person;
+                alldata["family"][arg.title].push(person);
                 familystatus.pop();
-                return;
+                resolve(true);
+            } catch (err) {
+                console.error("getAncestryNewTreeFamily failed for", url, err);
+                familystatus.pop();
+                resolve(false);
             }
-            if (arg.halfsibling) {
-                person["halfsibling"] = true;
-            }
-            person = updateInfoData(person, arg);
-            databyid[arg.profile_id] = person;
-            alldata["family"][arg.title].push(person);
-            familystatus.pop();
-            resolve(true);
         });
     });
 }

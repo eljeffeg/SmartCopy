@@ -231,7 +231,12 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
 
     // ---------------------- Family Data --------------------
     for(var x = 0; x < personFacts.ResearchFamily.Children.length; x++) {
-        var children = personFacts.ResearchFamily.Children[x];
+        var childgroup = personFacts.ResearchFamily.Children[x];
+        if (!exists(childgroup)) continue;
+        var children = Array.isArray(childgroup) ? childgroup : [childgroup];
+        if (!Array.isArray(childgroup)) {
+            console.warn("Ancestry: ResearchFamily.Children entry was not an array, wrapping it", childgroup);
+        }
         for(var i = 0; i < children.length; i++) {
             var child = children[i]
             if (familymembers && exists (child.ClickUrl)) {

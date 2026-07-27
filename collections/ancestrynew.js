@@ -79,57 +79,29 @@ registerCollection({
 
 var ancestrymrglist = [];
 
-async function readPersonCard(htmlstring) {
-    var foundScript = $("script:contains('var PersonCard')", htmlstring).text();
-    
-    return new Promise((resolve, reject) => {
-        // TODO assign the return of this to the PersonCard object
-        if (foundScript) {
-            // truncate the end
-            foundScript = foundScript.substring(0, foundScript.indexOf("};") + 2) + "PersonCard;";
-            chrome.runtime.sendMessage({
-                action: "eval",
-                variable: foundScript
-            }).then((resp) => {
-                // TODO - need to figure out how to use this
-                resolve(resp);
-            });
-        } else {
-            reject("PersonCard not found");
-        }
-    });
-
-}
-
 async function parseAncestryNew(htmlstring, familymembers, relation) {
     relation = relation || "";
     if (!exists(htmlstring)) {
         return "";
     }
-    // TODO - figure out where the parsing issues are
-    let personCard = {};
+
+    // Ancestry embeds all person data as JSON in a single <script id="person-data"> block
+    let pageData = {};
     try {
-        personCard = await readPersonCard(htmlstring);
+        var personDataText = $("script#person-data", htmlstring).text();
+        pageData = JSON.parse(personDataText);
     } catch (err) {
-        personCard = {};
+        console.warn("Ancestry: failed to parse #person-data JSON", err);
+        pageData = {};
     }
 
-    // get personFacts
-    const pfStart = htmlstring.indexOf("researchData = ");
-    const pfEnd = htmlstring.indexOf("};", pfStart);
+    let personCard = (pageData.person && pageData.person.PersonCard) || {};
+    let personResearch = (pageData.person && pageData.person.PersonResearch) || {};
+    let focusPersonId = pageData.personId;
+
     let personFacts = {};
-    if (pfStart !== -1 && pfEnd !== -1) {
-        try {
-            personFacts = JSON.parse(htmlstring.substring(pfStart + 14, pfEnd + 1));
-        } catch (err) {
-            console.warn("Ancestry: failed to parse researchData JSON", err);
-            personFacts = {};
-        }
-    } else {
-        console.warn("Ancestry: researchData block not found on page");
-    }
-    personFacts.PersonFacts = personFacts.PersonFacts || [];
-    personFacts.ResearchFamily = personFacts.ResearchFamily || {};
+    personFacts.PersonFacts = personResearch.PersonFacts || [];
+    personFacts.ResearchFamily = personResearch.PersonFamily || {};
     personFacts.ResearchFamily.Children = personFacts.ResearchFamily.Children || [];
     personFacts.ResearchFamily.HalfSiblings = personFacts.ResearchFamily.HalfSiblings || [];
     personFacts.ResearchFamily.Siblings = personFacts.ResearchFamily.Siblings || [];
@@ -137,34 +109,20 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
     personFacts.ResearchFamily.Mothers = personFacts.ResearchFamily.Mothers || [];
     personFacts.ResearchFamily.Spouses = personFacts.ResearchFamily.Spouses || [];
 
-    // useful for debugging Ancestry calls
-    // console.log("Ancestry new - entering with PersonCard: {} personFacts: {} familymembers: {} relation: {}", personCard, personFacts, familymembers, relation);
-    let focusperson = "";
-    if (exists(personCard.name)) {
-        focusperson = personCard.name.trim();
-    } else if (personFacts.PersonInfo && personFacts.PersonInfo.FullName) {
-        focusperson = personFacts.PersonInfo.FullName.trim();
-    }
+    let focusperson = exists(personCard.FullName) ? personCard.FullName.trim() : "";
+    let focusdaterange = exists(personCard.LifeRange) ? personCard.LifeRange.replace("&ndash;", " - ") : "";
 
-    let focusdaterange = "";
-    if (exists(personCard.lifeYearRange)) {
-        focusdaterange = personCard.lifeYearRange.replace("&ndash;", " - ");
-    } else if (personFacts.PersonInfo && personFacts.PersonInfo.LifeSpan) {
-        focusdaterange = personFacts.PersonInfo.LifeSpan.replace("&ndash;", " - ");
-    }
     $("#readstatus").html(escapeHtml(focusperson));
     var profiledata = {};
-    var genderval = getAncestryGender(personCard, personFacts);
+    var genderval = getAncestryGender(personFacts);
     var burialdtflag = false;
     var buriallcflag = false;
     var deathdtflag = false;
     var aboutdata = "";
-    
-    if (genderval !== "unknown") {
-        profiledata["gender"] = genderval;
-    }
-    if (personCard.isLiving) {
-        profiledata["alive"] = personCard.isLiving;
+
+    profiledata["gender"] = genderval;
+    if (personCard.IsLiving) {
+        profiledata["alive"] = personCard.IsLiving;
     }
 
     profiledata["name"] = focusperson;
@@ -212,12 +170,13 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
         }
     }
 
-    if (exists(personCard.photo)) {
-        var image = $("img", personCard.photo).attr("src");
-        if (exists(image)) {
-            profiledata["thumb"] = image.replace("&maxHeight=280", "&maxWidth=152");
-            profiledata["image"] = image.replace("&maxHeight=280", "");
+    if (exists(personCard.PrimaryImageUrl)) {
+        var image = personCard.PrimaryImageUrl;
+        if (image.startsWith("/")) {
+            image = "https://www.ancestry.com" + image;
         }
+        profiledata["thumb"] = image.replace("&maxHeight=280", "&maxWidth=152");
+        profiledata["image"] = image.replace("&maxHeight=280", "");
     }
 
     if (relation === "") {
@@ -263,8 +222,8 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
                 await getAncestryNewTreeFamily(famid++, father.Id, father.FullName.trim(), "father", father.ClickUrl);
             }
         } else if (exists(relation.title)) {
-            if (isChild(relation.tite)) {
-                if (personCard.personId !== father.Id) {
+            if (isChild(relation.title)) {
+                if (String(focusPersonId) !== String(father.Id)) {
                     childlist[relation.proid] = $.inArray(father.Id, unionurls);
                     profiledata["parent_id"] = $.inArray(father.Id, unionurls);
                 }
@@ -278,8 +237,8 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
                 await getAncestryNewTreeFamily(famid++, mother.Id, mother.FullName.trim(), "mother", mother.ClickUrl);
             }
         } else if (exists(relation.title)) {
-            if (isChild(relation.tite)) {
-                if (personCard.personId !== mother.Id) {
+            if (isChild(relation.title)) {
+                if (String(focusPersonId) !== String(mother.Id)) {
                     childlist[relation.proid] = $.inArray(mother.Id, unionurls);
                     profiledata["parent_id"] = $.inArray(mother.Id, unionurls);
                 }
@@ -338,8 +297,10 @@ function setFactData(fact) {
 
 
 async function getAncestryNewTreeFamily(famid, itemid, name, title, url) {
-    
-    return new Promise((resolve, reject) => {  
+    if (url.startsWith("/")) {
+        url = "https://www.ancestry.com" + url;
+    }
+    return new Promise((resolve, reject) => {
         var gendersv = "unknown";
         var halfsibling = false;
         if (title === "halfsibling") {
@@ -397,25 +358,21 @@ async function getAncestryNewTreeFamily(famid, itemid, name, title, url) {
     });
 }
 
-function getAncestryGender(personCard, personFacts) {
+function getAncestryGender(personFacts) {
     let genderval = 'unknown';
-    if (personCard && (isFemale(personCard.gender) || isMale(personCard.gender))) {
-        genderval = personCard.gender.toLowerCase();
-        if (genderval === 'f') {
-            genderval = 'female';
-        } else if (genderval === 'm') {
-            genderval = 'male';
+    if (personFacts && Array.isArray(personFacts.PersonFacts)) {
+        for (var i = 0; i < personFacts.PersonFacts.length; i++) {
+            var fact = personFacts.PersonFacts[i];
+            if (fact.TypeString === 'Gender' && exists(fact.Value) && (isFemale(fact.Value) || isMale(fact.Value))) {
+                genderval = fact.Value.toLowerCase();
+                break;
+            }
         }
-    } else if (personFacts && personFacts.PersonInfo && personFacts.PersonInfo.Gender) {
-        genderval = personFacts.PersonInfo.Gender.toLowerCase();
-        if (genderval === 'f') {
-            genderval = 'female';
-        } else if (genderval === 'm') {
-            genderval = 'male';
-        }
-        if (!isFemale(genderval) && !isMale(genderval)) {
-            genderval = 'unknown';
-        }
+    }
+    if (genderval === 'f') {
+        genderval = 'female';
+    } else if (genderval === 'm') {
+        genderval = 'male';
     }
     return genderval;
 }

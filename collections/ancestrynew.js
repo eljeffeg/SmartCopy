@@ -122,9 +122,20 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
         try {
             personFacts = JSON.parse(htmlstring.substring(pfStart + 14, pfEnd + 1));
         } catch (err) {
+            console.warn("Ancestry: failed to parse researchData JSON", err);
             personFacts = {};
         }
+    } else {
+        console.warn("Ancestry: researchData block not found on page");
     }
+    personFacts.PersonFacts = personFacts.PersonFacts || [];
+    personFacts.ResearchFamily = personFacts.ResearchFamily || {};
+    personFacts.ResearchFamily.Children = personFacts.ResearchFamily.Children || [];
+    personFacts.ResearchFamily.HalfSiblings = personFacts.ResearchFamily.HalfSiblings || [];
+    personFacts.ResearchFamily.Siblings = personFacts.ResearchFamily.Siblings || [];
+    personFacts.ResearchFamily.Fathers = personFacts.ResearchFamily.Fathers || [];
+    personFacts.ResearchFamily.Mothers = personFacts.ResearchFamily.Mothers || [];
+    personFacts.ResearchFamily.Spouses = personFacts.ResearchFamily.Spouses || [];
 
     // useful for debugging Ancestry calls
     // console.log("Ancestry new - entering with PersonCard: {} personFacts: {} familymembers: {} relation: {}", personCard, personFacts, familymembers, relation);

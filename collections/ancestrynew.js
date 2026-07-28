@@ -61,7 +61,7 @@ registerCollection({
         focusURLid = url.substring(url.lastIndexOf('/') + 1);
         getPageCode();
     },
-    "loadPage": function(request) {
+    "loadPage": async function(request) {
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
         if (parsed.text().contains("Please sign in for secure access to your Ancestry account")) {
             document.getElementById("smartcopy-container").style.display = "none";
@@ -70,9 +70,13 @@ registerCollection({
             this.parseProfileData = "";
             return;
         }
-        var par = parsed.find("#personCard");
-        focusname = par.find(".userCardTitle").text();
-        focusrange = par.find(".userCardSubTitle").text().replace("&ndash;", " - ");
+        // #personCard/.userCardTitle predate the #person-data page-structure
+        // migration and no longer match current Ancestry pages (they always
+        // returned "", silently clearing focusname before the real copy ever
+        // reads it). Use the same extraction parseAncestryNew relies on.
+        var data = await extractAncestryPersonData(request.source);
+        focusname = data.name;
+        focusrange = data.daterange;
     },
     "parseProfileData": parseAncestryNew
 });

@@ -201,6 +201,12 @@
     "History_Search": {
         "message": "History Search"
     },
+    "Forest_Density_Calculator": {
+        "message": "Forest Density Calculator"
+    },
+    "Path_To_User": {
+        "message": "Path to User"
+    },
     "Configuration": {
         "message": "Configuration"
     },

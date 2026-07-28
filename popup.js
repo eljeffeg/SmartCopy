@@ -284,11 +284,13 @@ function userAccess() {
                     chrome.runtime.sendMessage({
                         method: "GET",
                         action: "xhttp",
-                        url: "https://www.geni.com/api/" + focusid + "&fields=name&access_token=" + accountinfo.access_token,
+                        url: "https://www.geni.com/api/" + focusid + "?fields=name&access_token=" + accountinfo.access_token,
                         variable: ""
                     }, function (response) {
                         var responsedata = JSON.parse(response.source);
-                        focusname = responsedata.name;
+                        if (exists(responsedata.name)) {
+                            focusname = responsedata.name;
+                        }
                     })
                 } else {
                     $(accessdialog).html("<div style='font-size: 115%;'><strong>" + _("Research_this_Person") + "</strong></div>" + _("Loading___"));

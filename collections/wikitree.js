@@ -18,10 +18,12 @@ registerCollection({
     },
     "loadPage": function(request) {
         var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        parsed.find(".VITALS .EDIT, .VITALS .BLANK").remove();
         var personinfo = parsed.find(".VITALS");
         var focusperson = "";
         if (exists(personinfo[2])) {
             focusperson = $(personinfo[2]).text().replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
+            focusperson = focusperson.replace(/ aka .*/i, "").trim();
             if (focusperson.contains("formerly")) {
                 focusperson = focusperson.replace("formerly", "(born") + ")";
             } else if (focusperson.contains("formerly") && focusperson.contains("[surname unknown]")) {
@@ -47,6 +49,7 @@ registerCollection({
 function parseWikiTree(htmlstring, familymembers, relation) {
     relation = relation || "";
     var parsed = $(htmlstring.replace(/<img/ig, "<gmi"));
+    parsed.find(".VITALS .EDIT, .VITALS .BLANK").remove();
     var focusdaterange = "";
     var title = parsed.filter('title').text();
     var focusrangearray = title.match(/\d* - \d*/);
@@ -66,6 +69,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
         $(personinfo[2]).html($(personinfo[2]).html().replace(/<strong>/gi, " "));
         focusperson = $(personinfo[2]).text().replace(/[\n\r]/g, " ").replace(/\s+/g, " ").trim();
         focusperson = focusperson.replace("[family name unknown]", "");
+        focusperson = focusperson.replace(/ aka .*/i, "").trim();
         if (focusperson.contains("formerly") && !focusperson.contains("[surname unknown]")) {
             focusperson = focusperson.replace("formerly", "(born") + ")";
         } else if (focusperson.contains("formerly") && focusperson.contains("[surname unknown]")) {
@@ -350,7 +354,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
 
 function parseWikiEvent(vitalstring) {
     var data = [];
-    var vitalinfo = vitalstring.trim().replace("[location unknown]", "").replace("[date unknown]", "").replace("[uncertain]","");
+    var vitalinfo = vitalstring.trim().replace(/\[[^\]]*\]/g, "").trim();
     const regin = /\sin /;
     var datesplit = vitalinfo.split(regin);
     if (datesplit.length > 0) {

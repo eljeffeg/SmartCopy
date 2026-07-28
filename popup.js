@@ -27,10 +27,169 @@ document.addEventListener('DOMContentLoaded', function () {
 
 chrome.storage.local.get('buildhistory', function (result) {
     if (exists(result.buildhistory)) {
-        buildhistory = result.buildhistory;
+        buildhistory = dedupeHistory(result.buildhistory);
+        chrome.storage.local.set({'buildhistory': buildhistory});
         buildHistoryBox();
     }
 });
+
+function normalizeProfileId(id) {
+    return String(id).replace("profile-g", "").replace("profile-", "");
+}
+
+// Source-page item ids can show up percent-encoded or decoded depending on
+// where they were captured from - e.g. chrome.tabs Tab.url is percent-encoded
+// for non-ASCII paths ("L%C3%B6wenstein-53"), while ids parsed directly out
+// of a fetched page's own HTML href attributes come through as raw Unicode
+// ("Löwenstein-53"). Decode before comparing/storing so the same profile
+// visited either way still matches for history auto-pick.
+function normalizeItemId(itemId) {
+    var s = String(itemId);
+    try {
+        return decodeURIComponent(s);
+    } catch (e) {
+        return s;
+    }
+}
+
+// Geni exposes (at least) two id formats for the same profile: a modern
+// "guid"-based id (used in "pretty" https://www.geni.com/people/Name/<guid>
+// URLs) and an older, shorter internal "node_number". Geni's update/submit
+// API endpoints require the node_number form - using the guid form as
+// focusid breaks the auto-pick-destination-from-history match against a
+// real submit's result.id. So the node_number form is kept as the
+// primary/matching id, while the guid form (nicer, human-recognizable) is
+// preferred for display.
+//
+// Detection is based on normalized digit length (matching getProfile()'s
+// own >16-digit convention in shared.js), not on string prefix, since ids
+// show up with a "profile-g" prefix, a "profile-" prefix, or completely
+// bare (e.g. the alias captured by scraping a Geni page's own source only
+// yields the bare digits).
+function isNodeNumberId(id) {
+    var normalized = normalizeProfileId(id);
+    return /^\d+$/.test(normalized) && normalized.length <= 16;
+}
+
+function isGuidFormatId(id) {
+    var normalized = normalizeProfileId(id);
+    return /^\d+$/.test(normalized) && normalized.length > 16;
+}
+
+function toProfileId(id) {
+    var normalized = normalizeProfileId(id);
+    if (/^\d+$/.test(normalized)) {
+        return (normalized.length > 16 ? "profile-g" : "profile-") + normalized;
+    }
+    return id;
+}
+
+function pickPrimaryId(candidateIds) {
+    for (var i = 0; i < candidateIds.length; i++) {
+        if (isNodeNumberId(candidateIds[i])) {
+            return toProfileId(candidateIds[i]);
+        }
+    }
+    return toProfileId(candidateIds[0]);
+}
+
+function pickDisplayId(entry) {
+    var candidates = [entry.id].concat(Array.isArray(entry.aliasIds) ? entry.aliasIds : []);
+    for (var i = 0; i < candidates.length; i++) {
+        if (isGuidFormatId(candidates[i])) {
+            return toProfileId(candidates[i]);
+        }
+    }
+    return toProfileId(entry.id);
+}
+
+function getAllHistoryIds(entry) {
+    var ids = [normalizeProfileId(entry.id)];
+    if (Array.isArray(entry.aliasIds)) {
+        for (var i = 0; i < entry.aliasIds.length; i++) {
+            ids.push(normalizeProfileId(entry.aliasIds[i]));
+        }
+    }
+    return ids;
+}
+
+function idSetsOverlap(idsA, idsB) {
+    for (var i = 0; i < idsA.length; i++) {
+        if (idsB.indexOf(idsA[i]) !== -1) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function dedupeHistory(history) {
+    // One-time cleanup for entries stored before per-profile de-duplication
+    // was added to addHistory() - collapses any pre-existing duplicate
+    // profile ids down to one entry, merging their submission histories.
+    // Matches on the full set of known ids per entry (primary id + any
+    // aliasIds) since Geni exposes more than one id format for the same
+    // profile (e.g. a modern "guid"-based id and an older internal id).
+    var groups = [];
+    for (var i = 0; i < history.length; i++) {
+        var entry = history[i];
+        var entryNormIds = getAllHistoryIds(entry);
+        var entryOriginalIds = [entry.id].concat(Array.isArray(entry.aliasIds) ? entry.aliasIds : []);
+        var entrySubmissions = Array.isArray(entry.data)
+            ? entry.data
+            : [{date: entry.date, data: exists(entry.data) ? entry.data : ""}];
+        var group = null;
+        for (var g = 0; g < groups.length; g++) {
+            if (idSetsOverlap(groups[g].normIds, entryNormIds)) {
+                group = groups[g];
+                break;
+            }
+        }
+        var entryItemIds = Array.isArray(entry.itemIds) ? entry.itemIds : (exists(entry.itemId) && entry.itemId !== "" ? [entry.itemId] : []);
+        if (!group) {
+            group = {
+                normIds: entryNormIds.slice(),
+                originalIds: entryOriginalIds.slice(),
+                itemIds: entryItemIds.slice(),
+                name: entry.name,
+                date: entry.date,
+                data: entrySubmissions.slice()
+            };
+            groups.push(group);
+        } else {
+            for (var n = 0; n < entryNormIds.length; n++) {
+                if (group.normIds.indexOf(entryNormIds[n]) === -1) {
+                    group.normIds.push(entryNormIds[n]);
+                }
+            }
+            for (var o = 0; o < entryOriginalIds.length; o++) {
+                if (group.originalIds.indexOf(entryOriginalIds[o]) === -1) {
+                    group.originalIds.push(entryOriginalIds[o]);
+                }
+            }
+            for (var k = 0; k < entryItemIds.length; k++) {
+                if (group.itemIds.map(normalizeItemId).indexOf(normalizeItemId(entryItemIds[k])) === -1) {
+                    group.itemIds.push(entryItemIds[k]);
+                }
+            }
+            if ((!exists(group.name) || group.name === "") && exists(entry.name) && entry.name !== "") {
+                group.name = entry.name;
+            }
+            group.data = group.data.concat(entrySubmissions);
+        }
+    }
+    return groups.map(function (g) {
+        var primary = pickPrimaryId(g.originalIds);
+        var primaryNorm = normalizeProfileId(primary);
+        return {
+            id: primary,
+            aliasIds: g.originalIds.filter(function (v) { return normalizeProfileId(v) !== primaryNorm; }),
+            itemIds: g.itemIds,
+            name: g.name,
+            date: g.date,
+            data: g.data
+        };
+    });
+}
 
 function buildHistoryBox() {
     var historytext = "";
@@ -39,24 +198,21 @@ function buildHistoryBox() {
         if (exists(buildhistory[i].name)) {
             name = buildhistory[i].name;
         }
-        var datetxt = "";
-        if (exists(buildhistory[i].date)) {
-            var day = new Date(buildhistory[i].date);
-            datetxt = (("00" + (day.getMonth() + 1))).slice(-2) + "-" + ("00" + day.getDate()).slice(-2) + "@" + ("00" + day.getHours()).slice(-2) + ":" + ("00" + day.getMinutes()).slice(-2) + ": ";
-            //moment(buildhistory[i].date).format("MM-DD@HH:mm") + ': ';
-        }
         var focusprofileurl = "";
         if (exists(buildhistory[i].id)) {
-            if (buildhistory[i].id.startsWith("profile-g")) {
-                focusprofileurl = "https://www.geni.com/profile/index/" + buildhistory[i].id.replace("profile-g", "");
+            var displayId = pickDisplayId(buildhistory[i]);
+            var normalizedId = normalizeProfileId(displayId);
+            if (displayId.startsWith("profile-g")) {
+                focusprofileurl = "https://www.geni.com/profile/index/" + displayId.replace("profile-g", "");
             } else {
-                focusprofileurl = "https://www.geni.com/" + buildhistory[i].id;
+                focusprofileurl = "https://www.geni.com/" + displayId;
             }
-            if (exists(buildhistory[i].data)) {
-                historytext += '<span class="expandhistory" name="history' + buildhistory[i].id + '" style="font-size: large; cursor: pointer;"><img src="images/dropdown.png" style="width: 11px;"></span> ' + datetxt + '<a href="' + focusprofileurl + '" target="_blank">' + name + '</a><br/>';
-                historytext += formatJSON(buildhistory[i].data, "", buildhistory[i].id);
+            var nameLink = '<a href="' + focusprofileurl + '" target="_blank">' + name + '</a>' + (normalizedId !== "" ? ' (' + normalizedId + ')' : '');
+            if (hasHistoryDetails(buildhistory[i].data)) {
+                historytext += '<span class="expandhistory" name="history' + buildhistory[i].id + '" style="font-size: large; cursor: pointer;">▸</span> ' + nameLink + '<br/>';
+                historytext += formatHistoryDetails(buildhistory[i].data, buildhistory[i].id);
             } else {
-                historytext += '<span style="padding-left: 2px; padding-right: 2px;">&#x25cf;</span> ' + datetxt + '<a href="' + focusprofileurl + '" target="_blank">' + name + '</a><br/>';
+                historytext += '<span style="padding-left: 2px; padding-right: 2px;">&#x25cf;</span> ' + nameLink + '<br/>';
             }
         }
     }
@@ -64,8 +220,43 @@ function buildHistoryBox() {
     $(function () {
         $('.expandhistory').on('click', function () {
             expandFamily($(this).attr("name"));
+            $(this).text($(this).text() === '▸' ? '▾' : '▸');
         });
     });
+}
+
+function hasHistoryDetails(data) {
+    if (Array.isArray(data)) {
+        return data.length > 0;
+    }
+    return exists(data) && data !== "";
+}
+
+function formatHistoryDetails(data, id) {
+    // Newer entries store an array of past submissions (accumulated across
+    // repeat "Add to History" calls for the same profile); older entries
+    // stored a single JSON string directly - support both.
+    var submissions = Array.isArray(data) ? data : [{date: null, data: data}];
+    var historytext = '<ul id="slidehistory' + id + '" style="display: none;">';
+    for (var s = 0; s < submissions.length; s++) {
+        var sub = submissions[s];
+        var subdatetxt = "Update";
+        if (exists(sub.date)) {
+            var day = new Date(sub.date);
+            subdatetxt = ("00" + (day.getMonth() + 1)).slice(-2) + "-" + ("00" + day.getDate()).slice(-2) + "@" + ("00" + day.getHours()).slice(-2) + ":" + ("00" + day.getMinutes()).slice(-2);
+        }
+        if (!exists(sub.data) || sub.data === "") {
+            historytext += '<li><b>' + subdatetxt + '</b>: Manually added to history</li>';
+            continue;
+        }
+        var parsed = sub.data;
+        if (typeof parsed === 'string') {
+            parsed = JSON.parse(parsed);
+        }
+        historytext += '<li><b>' + subdatetxt + '</b>: ' + formatJSON(parsed, "", "") + '</li>';
+    }
+    historytext += '</ul>';
+    return historytext;
 }
 
 function formatJSON(datastring, historytext, id) {
@@ -422,7 +613,10 @@ function loadPage(request) {
             }
             if (!profilechanged && focusURLid !== "") {
                 for (var i = 0; i < buildhistory.length; i++) {
-                    if (String(buildhistory[i].itemId) === String(focusURLid)) {
+                    var historyItemIds = Array.isArray(buildhistory[i].itemIds)
+                        ? buildhistory[i].itemIds
+                        : (exists(buildhistory[i].itemId) ? [buildhistory[i].itemId] : []);
+                    if (historyItemIds.map(normalizeItemId).indexOf(normalizeItemId(focusURLid)) !== -1) {
                         focusid = buildhistory[i].id;
                         profilechanged = true;
                         loadPage(request);
@@ -982,8 +1176,30 @@ $(function () {
 
 $(function () {
     $('#addhistory').on('click', function () {
-        addHistory(focusid, tablink, getProfileName(focusname), "");
-        buildHistoryBox();
+        // Geni's REST API doesn't expose the short internal "node_number"
+        // (confirmed - neither genifocusdata.get("id") nor .get("node_number")
+        // returned it), but the page itself embeds it directly, e.g.
+        // <span class="matches-counter" data-match-counter='profile-34758447241'>
+        // and G.PageProfile = {..., "node_number":"34758447241", ...}. Fetch
+        // this Geni page's own source and pull it from there instead.
+        chrome.runtime.sendMessage({
+            method: "GET",
+            action: "xhttp",
+            url: tablink
+        }, function (response) {
+            var aliasId = "";
+            if (exists(response.source)) {
+                var match = response.source.match(/data-match-counter=["']profile-(\d+)["']/);
+                if (!match) {
+                    match = response.source.match(/"node_number"\s*:\s*"(\d+)"/);
+                }
+                if (match) {
+                    aliasId = match[1];
+                }
+            }
+            addHistory(focusid, tablink, getProfileName(focusname), "", aliasId);
+            buildHistoryBox();
+        });
     });
 });
 
@@ -1351,7 +1567,12 @@ function buildTree(data, action, sendid) {
                     }
                     addHistory(result.id, databyid[id].itemId, getProfileName(databyid[id].name), JSON.stringify(response.variable.data));
                 } else if (sendid === focusid) {
-                    addHistory(result.id, focusURLid, getProfileName(focusname), JSON.stringify(response.variable.data));
+                    // result.id and focusid are confirmed to be the same profile here
+                    // (that's what the sendid === focusid check just established), but
+                    // Geni's API can return result.id in a different id format than
+                    // focusid (URL/guid-derived) - pass focusid through as an alias so
+                    // this matches any prior/future history entry recorded under either.
+                    addHistory(result.id, focusURLid, getProfileName(focusname), JSON.stringify(response.variable.data), focusid);
                 }
                 if (action !== "add-photo" && action !== "delete") {
                     updatecount += 1;
@@ -1883,9 +2104,48 @@ function dateAmbigous(valdate) {
     return false;
 }
 
-function addHistory(id, itemId, name, data) {
+function addHistory(id, itemId, name, data, aliasId) {
     if (exists(id)) {
-        buildhistory.unshift({id: id, itemId: itemId != null ? String(itemId) : "", name: name, date: Date.now(), data: data});
+        var incomingOriginalIds = [id];
+        if (exists(aliasId) && aliasId !== "" && normalizeProfileId(aliasId) !== normalizeProfileId(id)) {
+            incomingOriginalIds.push(aliasId);
+        }
+        var incomingNormIds = incomingOriginalIds.map(normalizeProfileId);
+        var priorSubmissions = [];
+        var priorOriginalIds = [];
+        var priorItemIds = [];
+        buildhistory = buildhistory.filter(function (entry) {
+            if (!idSetsOverlap(getAllHistoryIds(entry), incomingNormIds)) {
+                return true;
+            }
+            if (Array.isArray(entry.data)) {
+                priorSubmissions = entry.data;
+            } else {
+                priorSubmissions = [{date: entry.date, data: exists(entry.data) ? entry.data : ""}];
+            }
+            priorOriginalIds = [entry.id].concat(Array.isArray(entry.aliasIds) ? entry.aliasIds : []);
+            priorItemIds = Array.isArray(entry.itemIds) ? entry.itemIds : (exists(entry.itemId) && entry.itemId !== "" ? [entry.itemId] : []);
+            return false;
+        });
+        var submissions = [{date: Date.now(), data: exists(data) ? data : ""}].concat(priorSubmissions);
+        var allOriginalIds = incomingOriginalIds.concat(priorOriginalIds).filter(function (v, idx, arr) {
+            return arr.map(normalizeProfileId).indexOf(normalizeProfileId(v)) === idx;
+        });
+        var primary = pickPrimaryId(allOriginalIds);
+        var primaryNorm = normalizeProfileId(primary);
+        var aliasIds = allOriginalIds.filter(function (v) { return normalizeProfileId(v) !== primaryNorm; });
+        // itemId here may be a source page's own id (auto-pick's match key) or,
+        // from the manual "Add to History" button, the Geni destination page's
+        // own URL - not the same kind of value at all. Accumulate rather than
+        // overwrite, so a later manual add can never destroy the source-page
+        // mapping auto-pick actually depends on.
+        var itemIds = [String(itemId)].concat(priorItemIds).filter(function (v, idx, arr) {
+            if (v === "" || v === "null" || v === "undefined") {
+                return false;
+            }
+            return arr.map(normalizeItemId).indexOf(normalizeItemId(v)) === idx;
+        });
+        buildhistory.unshift({id: primary, aliasIds: aliasIds, itemIds: itemIds, name: name, date: Date.now(), data: submissions});
         if (buildhistory.length > 100) {
             buildhistory.pop();
         }

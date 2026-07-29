@@ -1538,6 +1538,19 @@ function buildTree(data, action, sendid) {
                     updateMessage(errormsg, 'There was a problem updating Geni with a ' + response.variable.relation + '. ' + extrainfo + 'Error Response: "' + e.message + '"');
                     console.log(e); //error in the above string(in this case,yes)!
                     console.log(response)
+                    // result was never assigned (the parse above threw), so every
+                    // relation type other than "update" must also bail out here -
+                    // falling through used result.id on an undefined result,
+                    // throwing a second, uncaught exception that both dropped the
+                    // rest of this chained add (e.g. a 2nd parent, marriage info,
+                    // children - #152) and skipped the submitstatus.pop() below,
+                    // leaving submission tracking permanently off by one.
+                    if (action !== "add-photo" && action !== "delete") {
+                        updatecount += 1;
+                        $("#updatecount").text(Math.min(updatecount, updatetotal).toString());
+                    }
+                    submitstatus.pop();
+                    return;
                 }
                 var id = response.variable.id;
                 var relation = response.variable.relation;

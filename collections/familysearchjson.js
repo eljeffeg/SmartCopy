@@ -672,8 +672,13 @@ function parseFSJSONUnion(eventinfo) {
             data_d.push({date: cleanDate(dateval)});
         }
        
-        if (eventinfo.details.place){ 
-            eventlocation = eventinfo.details.place.normalizedText.trim()
+        if (eventinfo.details.place){
+            if (eventinfo.details.place.normalizedText){
+                eventlocation = eventinfo.details.place.normalizedText.trim()
+            }
+            if (eventinfo.details.place.originalText && eventlocation == "" ){
+                eventlocation = eventinfo.details.place.originalText.trim()
+            }
         }
         if (eventlocation !== "") {
             data_d.push({id: geoid, location: eventlocation});

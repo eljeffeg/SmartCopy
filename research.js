@@ -11,11 +11,13 @@ function buildResearch() {
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
-        url: "https://www.geni.com/api/" + focusid + "&fields=" + fields + "&access_token=" + accountinfo.access_token,
+        url: "https://www.geni.com/api/" + focusid + "?fields=" + fields + "&access_token=" + accountinfo.access_token,
         variable: ""
     }, function (response) {
         let responsedata = JSON.parse(response.source);
-        let focusname = responsedata.name;
+        if (exists(responsedata.name)) {
+            focusname = responsedata.name;
+        }
         let accessdialog = document.querySelector('#useraccess');
         let researchstring = "<div style='font-size: 115%;'><strong>" + _("Research_this_Person") + "</strong><div style='font-size: 85%; font-style: italic;'>" + focusname + "</div></div><div style='padding-top: 2px; padding-bottom: 5px;'>";
         if (exists(responsedata.first_name)) {

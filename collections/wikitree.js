@@ -29,6 +29,7 @@ registerCollection({
             } else if (focusperson.contains("formerly") && focusperson.contains("[surname unknown]")) {
                 focusperson = focusperson.replace("formerly", "").replace("[surname unknown]", "").trim();
             }
+            focusperson = focusperson.replace(/\[[^\]]*\]/g, "").replace(/\s+/g, " ").trim();
             focusname = focusperson;
         }
         var title = parsed.filter('title').text();
@@ -75,6 +76,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
         } else if (focusperson.contains("formerly") && focusperson.contains("[surname unknown]")) {
             focusperson = focusperson.replace("formerly", "").replace("[surname unknown]", "").trim();
         }
+        focusperson = focusperson.replace(/\[[^\]]*\]/g, "").replace(/\s+/g, " ").trim();
     }
     $("#readstatus").html(escapeHtml(focusperson));
     var imageflag = false;
@@ -143,8 +145,8 @@ function parseWikiTree(htmlstring, familymembers, relation) {
     var burialdtflag = false;
     var buriallcflag = false;
     var deathdtflag = false;
-//    for (var r = 1; r < personinfo.length; r++) {
-    for (var r = 1; r < 9; r++) {
+//    for (var r = 0; r < personinfo.length; r++) {
+    for (var r = 0; r < 9; r++) {
         var row = personinfo[r];
         var data = [];
         var rowtitle = $(row).text().toLowerCase().trim();
@@ -177,6 +179,7 @@ function parseWikiTree(htmlstring, familymembers, relation) {
                         var title = $(cells[i]).attr('itemprop');
                         var name = $(urlset[0]).text();
                         if (exists(name)) {
+                            name = name.replace(/\[[^\]]*\]/g, "").replace(/\s+/g, " ").trim();
                             name = name.replace("(", "(born ");
                         }
                         if (exists(title) && title !== "" && title != "name") {

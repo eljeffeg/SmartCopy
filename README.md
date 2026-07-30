@@ -63,7 +63,7 @@ Install directly from the [Firefox Add-ons listing](https://addons.mozilla.org/e
 
 ## Getting help
 
-For questions, discussion, and support, see the [SmartCopy discussion board on Geni](https://www.geni.com/discussions?discussion_type=project-18783).
+SmartCopy has a [Project page on Geni](https://www.geni.com/projects/SmartCopy/18783), with a [discussion board](https://www.geni.com/discussions?discussion_type=project-18783) for questions, discussion, and support.
 
 ## License
 

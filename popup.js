@@ -1943,10 +1943,33 @@ function parseForm(fs) {
                     if (fsinput[item].value !== "" || updatefd) {
                         var varlocation = {};
                         var fieldname = splitentry[2];
+                        var isFlatPlace = (fieldname === "place_name");
                         if (fieldname === "place_name_geo") {
                             fieldname = "place_name";
                         }
                         varlocation[fieldname] = fsinput[item].value;
+                        if (isFlatPlace) {
+                            // Submitting the flat "Place:" field alone left
+                            // every other part of Geni's location record
+                            // untouched (whether set by hand, or by a
+                            // previous submission) - not just
+                            // city/county/state/country, but the address
+                            // lines and postal code too, none of which
+                            // SmartCopy's UI even exposes. Geni's own
+                            // combined location summary then showed the new
+                            // place name and the stale remainder stacked
+                            // back to back. Explicitly clearing Geni's full
+                            // location schema makes the flat place name the
+                            // sole source of truth for this location.
+                            varlocation['city'] = '';
+                            varlocation['county'] = '';
+                            varlocation['state'] = '';
+                            varlocation['country'] = '';
+                            varlocation['address_line_1'] = '';
+                            varlocation['address_line_2'] = '';
+                            varlocation['address_line_3'] = '';
+                            varlocation['postal_code'] = '';
+                        }
                         if (!$('#geoonoffswitch').prop('checked') && !exists(varlocation['latitude']) && !exists(varlocation['longitude'])) {
                             varlocation['latitude'] = 0;
                             varlocation['longitude'] = 0;

@@ -104,8 +104,14 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
         }
         return true; // prevents the callback from being called too early on return
     } else if (request.action == "icon") {
+        // Fire-and-forget: popup.js never passes a callback for this
+        // action, so no async response is ever expected. Returning true
+        // here (as if a response were coming) with no matching callback()
+        // call is exactly what Firefox flags as "Promised response from
+        // onMessage listener went out of scope" - Chrome tolerates the
+        // mismatch silently, Firefox logs it as an uncaught error.
         chrome.action.setIcon({path: request.path});
-        return true;
+        return false;
     } else if (request.action == "eval") {
         evalObject(request.variable, callback);
         return true;

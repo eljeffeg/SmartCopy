@@ -588,8 +588,14 @@ function updateLinks(focusprofile) {
 
 chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     if (request.action == "getSource") {
+        // loadPage() runs synchronously and never calls callback -
+        // getPagesSource.js's sendMessage call doesn't pass one either, so
+        // no response is ever expected here. Returning true (promising an
+        // async response) with nothing to deliver is exactly what Firefox
+        // flags as "Promised response from onMessage listener went out of
+        // scope"; Chrome tolerates the mismatch silently.
         loadPage(request);
-        return true;
+        return false;
     }
     return false;
 });

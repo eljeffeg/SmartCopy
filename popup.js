@@ -1950,25 +1950,23 @@ function parseForm(fs) {
                         varlocation[fieldname] = fsinput[item].value;
                         if (isFlatPlace) {
                             // Submitting the flat "Place:" field alone left
-                            // city/county/state/country untouched (whether
-                            // set by hand, or by a previous submission), and
-                            // Geni's own combined location summary then
-                            // showed the new place name and the stale
-                            // structured fields stacked back to back.
-                            // Explicitly clearing these four makes the flat
-                            // place name the sole source of truth. NOTE:
-                            // this deliberately does NOT also send
-                            // address_line_1/2/3 or postal_code - those
-                            // field names were guessed from Geni's UI
-                            // labels, never confirmed against the actual
-                            // API, and sending them caused a 500 from
-                            // Geni's server (unlike city/county/state/
-                            // country, which are already used successfully
-                            // by the existing geo-breakdown code below).
+                            // the rest of Geni's location record untouched
+                            // (whether set by hand, or by a previous
+                            // submission), and Geni's own combined location
+                            // summary then showed the new place name and
+                            // the stale remainder stacked back to back.
+                            // Explicitly clearing the rest of Geni's actual
+                            // location schema (per Geni's own API docs:
+                            // place_name/city/county/state/country/
+                            // street_address1/latitude/longitude - no
+                            // separate address lines 2/3, no postal_code)
+                            // makes the flat place name the sole source of
+                            // truth for this location.
                             varlocation['city'] = '';
                             varlocation['county'] = '';
                             varlocation['state'] = '';
                             varlocation['country'] = '';
+                            varlocation['street_address1'] = '';
                         }
                         if (!$('#geoonoffswitch').prop('checked') && !exists(varlocation['latitude']) && !exists(varlocation['longitude'])) {
                             varlocation['latitude'] = 0;

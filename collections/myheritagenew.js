@@ -269,12 +269,15 @@ function parseMyHeritageNew(htmlstring, familymembers, relation) {
                     continue;
                 }
                 var relEntry = {title: title, name: relname, url: relurl, itemId: extractMHProfileId(relurl)};
-                // "Birth of son/daughter:" already carries this same fact's
-                // own date+place - that's the child's own birth, so use it
-                // directly instead of falling back to the coarser year-only
-                // data below.
+                // "Birth of son/daughter:"/"Marriage to:" already carry this
+                // same fact's own date+place - the child's own birth, or the
+                // marriage this spouse shares with the focus person - so use
+                // it directly instead of falling back to the coarser
+                // year-only data below.
                 if ((title === "son" || title === "daughter") && !$.isEmptyObject(data)) {
                     relEntry.birth = data;
+                } else if ((title === "husband" || title === "wife") && !$.isEmptyObject(data)) {
+                    relEntry.marriage = data;
                 }
                 var relYears = relativeYearsByName[relname];
                 if (relYears) {
@@ -334,7 +337,7 @@ function parseMyHeritageNew(htmlstring, familymembers, relation) {
             if (!exists(alldata["family"][rel.title])) {
                 alldata["family"][rel.title] = [];
             }
-            var subdata = {name: rel.name, title: rel.title, url: rel.url, itemId: rel.itemId, profile_id: famid, birth: rel.birth, death: rel.death};
+            var subdata = {name: rel.name, title: rel.title, url: rel.url, itemId: rel.itemId, profile_id: famid, birth: rel.birth, death: rel.death, marriage: rel.marriage};
             if (isPartner(rel.title)) {
                 myhspouse.push(famid);
             } else if (isParent(rel.title)) {
@@ -386,6 +389,9 @@ function getMyHeritageNewFamily(famid, url, subdata) {
         }
         if (!exists(person.death) && exists(arg.death)) {
             person.death = arg.death;
+        }
+        if (!exists(person.marriage) && exists(arg.marriage)) {
+            person.marriage = arg.marriage;
         }
         databyid[arg.profile_id] = person;
         alldata["family"][arg.title].push(person);

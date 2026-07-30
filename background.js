@@ -166,28 +166,43 @@ function exists(object) {
 const iframeHosts = ['www.geni.com',];
 
 chrome.runtime.onInstalled.addListener(() => {
-    const RULE = {
-      id: 1,
-      condition: {
-        initiatorDomains: [chrome.runtime.id],
-        requestDomains: iframeHosts,
-        resourceTypes: ['main_frame', 'sub_frame'],
-      },
-      action: {
-        type: 'modifyHeaders',
-        responseHeaders: [
-          {header: 'X-Frame-Options', operation: 'remove'},
-          {header: 'Frame-Options', operation: 'remove'},
-          // Uncomment the following line to suppress `frame-ancestors` error
-          // {header: 'Content-Security-Policy', operation: 'remove'},
-        ],
-      },
-    };
-    chrome.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds: [RULE.id],
-      addRules: [RULE],
-    });
-    console.log("Header rule installed");
+    // On Firefox, chrome.runtime.id is the browser_specific_settings.gecko.id
+    // from the manifest (an email-like string such as
+    // "smartcopy@eljeffeg.github.io"), not a Chrome-style extension id -
+    // declarativeNetRequest's initiatorDomains rejects it outright ("Invalid
+    // domain"), since it expects a plain hostname-shaped string. Wrapped in
+    // try/catch (and a .catch() for the promise itself) so a browser that
+    // can't set this specific rule just skips it, rather than throwing
+    // uncaught and leaving the header-stripping feature half-configured.
+    try {
+        const RULE = {
+          id: 1,
+          condition: {
+            initiatorDomains: [chrome.runtime.id],
+            requestDomains: iframeHosts,
+            resourceTypes: ['main_frame', 'sub_frame'],
+          },
+          action: {
+            type: 'modifyHeaders',
+            responseHeaders: [
+              {header: 'X-Frame-Options', operation: 'remove'},
+              {header: 'Frame-Options', operation: 'remove'},
+              // Uncomment the following line to suppress `frame-ancestors` error
+              // {header: 'Content-Security-Policy', operation: 'remove'},
+            ],
+          },
+        };
+        chrome.declarativeNetRequest.updateDynamicRules({
+          removeRuleIds: [RULE.id],
+          addRules: [RULE],
+        }).then(() => {
+            console.log("Header rule installed");
+        }).catch((error) => {
+            console.warn("Could not install header-stripping rule: ", error);
+        });
+    } catch (error) {
+        console.warn("Could not install header-stripping rule: ", error);
+    }
   });
 
 

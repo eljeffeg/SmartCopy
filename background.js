@@ -114,13 +114,48 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
 });
 
 async function evalObject(expression, callback) {
-    await setupOffscreenDocument("offscreen.html");
-    await chrome.runtime.sendMessage({
-        action: "offscreen",
-        target: "offscreen",
-        data: expression
-    }, function(response) {
-        callback(response);
+    if (chrome.offscreen) {
+        await setupOffscreenDocument("offscreen.html");
+        await chrome.runtime.sendMessage({
+            action: "offscreen",
+            target: "offscreen",
+            data: expression
+        }, function(response) {
+            callback(response);
+        });
+    } else {
+        // Firefox has no chrome.offscreen API, but its MV3 background is a
+        // real event page (a "scripts" background, not a headless service
+        // worker) with its own document, so the sandboxed eval iframe can be
+        // hosted directly here instead of in a separate offscreen document.
+        const result = await evalInSandboxIframe(expression);
+        callback(result);
+    }
+}
+
+let sandboxIframeReady;
+function getSandboxIframe() {
+    if (!sandboxIframeReady) {
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        sandboxIframeReady = new Promise((resolve) => {
+            iframe.addEventListener("load", () => resolve(iframe), { once: true });
+            (document.body || document.documentElement).appendChild(iframe);
+            iframe.src = chrome.runtime.getURL("sandbox.html");
+        });
+    }
+    return sandboxIframeReady;
+}
+
+function evalInSandboxIframe(expression) {
+    return new Promise(async (resolve) => {
+        const iframe = await getSandboxIframe();
+        function handleMessage(event) {
+            window.removeEventListener("message", handleMessage);
+            resolve(event.data);
+        }
+        window.addEventListener("message", handleMessage);
+        iframe.contentWindow.postMessage(expression, "*");
     });
 }
 

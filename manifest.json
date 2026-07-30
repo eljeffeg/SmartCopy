@@ -9,7 +9,17 @@
         "48": "images/icon48.png",
         "128": "images/icon128.png" },
     "background": {
+        "scripts": ["background.js"],
         "service_worker": "background.js"
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "smartcopy@eljeffeg.github.io",
+            "strict_min_version": "142.0",
+            "data_collection_permissions": {
+                "required": ["none"]
+            }
+        }
     },
     "action": {
         "default_icon": "images/icon.png",

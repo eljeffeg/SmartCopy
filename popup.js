@@ -315,14 +315,21 @@ var expandsibling = true; //same
 //noinspection JSUnusedGlobalSymbols
 var expandchild = true; //samet
 
-navigator.serviceWorker.getRegistration().then(r => {
-    if (r) return;
-    const bg = chrome.runtime.getManifest().background;
-    navigator.serviceWorker.register(bg.service_worker, {
-      type: bg.type || 'classic',
-      scope: '/',
-    });
-  });
+if (navigator.serviceWorker) {
+    // Chrome MV3-only: the background service worker can go dormant: this
+    // re-registers it if needed. Firefox has no navigator.serviceWorker at
+    // all in this context - it uses an always-on background event page
+    // instead (see manifest.json's background.scripts), so it doesn't need
+    // this and the API simply isn't there to call.
+    navigator.serviceWorker.getRegistration().then(r => {
+        if (r) return;
+        const bg = chrome.runtime.getManifest().background;
+        navigator.serviceWorker.register(bg.service_worker, {
+          type: bg.type || 'classic',
+          scope: '/',
+        });
+      });
+}
   // Fin d'ajout - End of Add
 document.addEventListener('DOMContentLoaded', function () {
     var version = chrome.runtime.getManifest().version;

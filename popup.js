@@ -1010,11 +1010,20 @@ async function getPageCode() {
             const tabId = await getTabId();
             chrome.scripting.executeScript({
                 target: {tabId: tabId},
-                files: ["getPagesSource.js"]
+                world: "MAIN",
+                files: ["annotateMyHeritageLinks.js"]
             }, function () {
-                if (chrome.runtime.lastError) {
-                    setMessage(errormsg, 'There was an error injecting script : \n' + chrome.runtime.lastError.message);
-                }
+                // Best-effort only (e.g. not every site is React, or this is
+                // a browser without MAIN-world injection support) - proceed
+                // to the normal page capture regardless of the outcome here.
+                chrome.scripting.executeScript({
+                    target: {tabId: tabId},
+                    files: ["getPagesSource.js"]
+                }, function () {
+                    if (chrome.runtime.lastError) {
+                        setMessage(errormsg, 'There was an error injecting script : \n' + chrome.runtime.lastError.message);
+                    }
+                });
             });
         }
     } else {

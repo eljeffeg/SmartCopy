@@ -227,6 +227,10 @@ function parseMyHeritageNew(htmlstring, familymembers, relation) {
             if (!$.isEmptyObject(data)) {
                 profiledata["baptism"] = data;
             }
+        } else if (factLabel === "marriage to:") {
+            if (!$.isEmptyObject(data)) {
+                profiledata["marriage"] = data;
+            }
         }
 
         // Only facts describing this person's own spouse/children carry a

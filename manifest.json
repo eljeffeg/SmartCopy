@@ -4,12 +4,22 @@
     "short_name": "__MSG_appShortName__",
     "description": "__MSG_appDesc__",
     "default_locale": "en",
-    "version": "4.13.2.3",
+    "version": "4.14.0.0",
     "icons": { "16": "images/icon16.png",
         "48": "images/icon48.png",
         "128": "images/icon128.png" },
     "background": {
+        "scripts": ["background.js"],
         "service_worker": "background.js"
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "smartcopy@eljeffeg.github.io",
+            "strict_min_version": "140.0",
+            "data_collection_permissions": {
+                "required": ["none"]
+            }
+        }
     },
     "action": {
         "default_icon": "images/icon.png",

@@ -315,14 +315,21 @@ var expandsibling = true; //same
 //noinspection JSUnusedGlobalSymbols
 var expandchild = true; //samet
 
-navigator.serviceWorker.getRegistration().then(r => {
-    if (r) return;
-    const bg = chrome.runtime.getManifest().background;
-    navigator.serviceWorker.register(bg.service_worker, {
-      type: bg.type || 'classic',
-      scope: '/',
-    });
-  });
+if (navigator.serviceWorker) {
+    // Chrome MV3-only: the background service worker can go dormant: this
+    // re-registers it if needed. Firefox has no navigator.serviceWorker at
+    // all in this context - it uses an always-on background event page
+    // instead (see manifest.json's background.scripts), so it doesn't need
+    // this and the API simply isn't there to call.
+    navigator.serviceWorker.getRegistration().then(r => {
+        if (r) return;
+        const bg = chrome.runtime.getManifest().background;
+        navigator.serviceWorker.register(bg.service_worker, {
+          type: bg.type || 'classic',
+          scope: '/',
+        });
+      });
+}
   // Fin d'ajout - End of Add
 document.addEventListener('DOMContentLoaded', function () {
     var version = chrome.runtime.getManifest().version;
@@ -581,8 +588,14 @@ function updateLinks(focusprofile) {
 
 chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     if (request.action == "getSource") {
+        // loadPage() runs synchronously and never calls callback -
+        // getPagesSource.js's sendMessage call doesn't pass one either, so
+        // no response is ever expected here. Returning true (promising an
+        // async response) with nothing to deliver is exactly what Firefox
+        // flags as "Promised response from onMessage listener went out of
+        // scope"; Chrome tolerates the mismatch silently.
         loadPage(request);
-        return true;
+        return false;
     }
     return false;
 });
@@ -1003,11 +1016,20 @@ async function getPageCode() {
             const tabId = await getTabId();
             chrome.scripting.executeScript({
                 target: {tabId: tabId},
-                files: ["getPagesSource.js"]
+                world: "MAIN",
+                files: ["annotateMyHeritageLinks.js"]
             }, function () {
-                if (chrome.runtime.lastError) {
-                    setMessage(errormsg, 'There was an error injecting script : \n' + chrome.runtime.lastError.message);
-                }
+                // Best-effort only (e.g. not every site is React, or this is
+                // a browser without MAIN-world injection support) - proceed
+                // to the normal page capture regardless of the outcome here.
+                chrome.scripting.executeScript({
+                    target: {tabId: tabId},
+                    files: ["getPagesSource.js"]
+                }, function () {
+                    if (chrome.runtime.lastError) {
+                        setMessage(errormsg, 'There was an error injecting script : \n' + chrome.runtime.lastError.message);
+                    }
+                });
             });
         }
     } else {
@@ -1927,10 +1949,31 @@ function parseForm(fs) {
                     if (fsinput[item].value !== "" || updatefd) {
                         var varlocation = {};
                         var fieldname = splitentry[2];
+                        var isFlatPlace = (fieldname === "place_name");
                         if (fieldname === "place_name_geo") {
                             fieldname = "place_name";
                         }
                         varlocation[fieldname] = fsinput[item].value;
+                        if (isFlatPlace) {
+                            // Submitting the flat "Place:" field alone left
+                            // the rest of Geni's location record untouched
+                            // (whether set by hand, or by a previous
+                            // submission), and Geni's own combined location
+                            // summary then showed the new place name and
+                            // the stale remainder stacked back to back.
+                            // Explicitly clearing the rest of Geni's actual
+                            // location schema (per Geni's own API docs:
+                            // place_name/city/county/state/country/
+                            // street_address1/latitude/longitude - no
+                            // separate address lines 2/3, no postal_code)
+                            // makes the flat place name the sole source of
+                            // truth for this location.
+                            varlocation['city'] = '';
+                            varlocation['county'] = '';
+                            varlocation['state'] = '';
+                            varlocation['country'] = '';
+                            varlocation['street_address1'] = '';
+                        }
                         if (!$('#geoonoffswitch').prop('checked') && !exists(varlocation['latitude']) && !exists(varlocation['longitude'])) {
                             varlocation['latitude'] = 0;
                             varlocation['longitude'] = 0;

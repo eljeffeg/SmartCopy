@@ -192,6 +192,9 @@
     "Loading___": {
         "message": "Loading..."
     },
+    "HistoryLink": {
+        "message": "HistoryLink Tools"
+    },
     "Ancestor_Graph": {
         "message": "Ancestor Graph"
     },
@@ -202,7 +205,7 @@
         "message": "History Search"
     },
     "Forest_Density_Calculator": {
-        "message": "Forest Density Calculator"
+        "message": "Density Calculator"
     },
     "Path_To_User": {
         "message": "Path to User"

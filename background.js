@@ -171,15 +171,31 @@ function exists(object) {
 
 const iframeHosts = ['www.geni.com',];
 
-chrome.runtime.onInstalled.addListener(() => {
-    // On Firefox, chrome.runtime.id is the browser_specific_settings.gecko.id
-    // from the manifest (an email-like string such as
-    // "smartcopy@eljeffeg.github.io"), not a Chrome-style extension id -
-    // declarativeNetRequest's initiatorDomains rejects it outright ("Invalid
-    // domain"), since it expects a plain hostname-shaped string. Wrapped in
-    // try/catch (and a .catch() for the promise itself) so a browser that
-    // can't set this specific rule just skips it, rather than throwing
-    // uncaught and leaving the header-stripping feature half-configured.
+// This rule strips X-Frame-Options/Frame-Options from geni.com responses,
+// but only for requests this extension itself initiates - it's what lets
+// #loginframe in popup.html actually render Geni's own login page in an
+// iframe (Geni sets X-Frame-Options: sameorigin, which blocks that by
+// default for every other origin). Without this rule installed, login
+// fails outright with "Refused to display ... because it set
+// 'X-Frame-Options' to 'sameorigin'".
+//
+// Previously only installed via chrome.runtime.onInstalled, which is a
+// one-time event on install/update. MV3 service workers get terminated and
+// restarted by Chrome frequently (idle timeout, browser restart, etc.), and
+// while declarativeNetRequest's dynamic rules are documented to persist
+// across those restarts, re-asserting the rule on every service worker
+// start as well is a cheap, idempotent safety net against any timing or
+// persistence edge case - not just the one moment right after an update.
+//
+// On Firefox, chrome.runtime.id is the browser_specific_settings.gecko.id
+// from the manifest (an email-like string such as
+// "smartcopy@eljeffeg.github.io"), not a Chrome-style extension id -
+// declarativeNetRequest's initiatorDomains rejects it outright ("Invalid
+// domain"), since it expects a plain hostname-shaped string. Wrapped in
+// try/catch (and a .catch() for the promise itself) so a browser that
+// can't set this specific rule just skips it, rather than throwing
+// uncaught and leaving the header-stripping feature half-configured.
+function installHeaderStrippingRule() {
     try {
         const RULE = {
           id: 1,
@@ -209,7 +225,10 @@ chrome.runtime.onInstalled.addListener(() => {
     } catch (error) {
         console.warn("Could not install header-stripping rule: ", error);
     }
-  });
+}
+
+chrome.runtime.onInstalled.addListener(installHeaderStrippingRule);
+installHeaderStrippingRule();
 
 
 let creating; // A global promise to avoid concurrency issues

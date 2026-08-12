@@ -1305,18 +1305,39 @@ function updateClassResponse() {
     $(function () {
         $('.checkslide').on('click', function () {
             var fs = $("#" + this.name.replace("checkbox", "slide"));
+            // Same empty-field guard as the .checkall handler in popup.js -
+            // this is the per-person "select all fields for this person"
+            // checkbox and had the identical bug (a separate, duplicated
+            // implementation that wasn't caught when that one was fixed):
+            // forcing empty fields on could overwrite existing Geni data
+            // (e.g. Last Name) with a blank value.
+            var selectingAll = this.checked;
             var ffs = fs.find('[type="checkbox"]');
             var photoon = $('#photoonoffswitch').prop('checked');
             ffs.filter(function (item) {
                 if ($(ffs[item]).closest('tr').css("display") === "none") {
                     return false;
                 }
-                return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
-            }).prop('checked', this.checked);
+                if (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) {
+                    return false;
+                }
+                if (selectingAll && isFieldEmptyForCheckAll($(ffs[item]).closest('tr'))) {
+                    return false;
+                }
+                return true;
+            }).prop('checked', selectingAll);
             ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector");
             ffs.filter(function (item) {
-                return !((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
-            }).attr('disabled', !this.checked);
+                if ((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") ||
+                    (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) ||
+                    ffs[item].name === "action" || ffs[item].name === "profile_id") {
+                    return false;
+                }
+                if (selectingAll && (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA") && !isValue(ffs[item].value)) {
+                    return false;
+                }
+                return true;
+            }).attr('disabled', !selectingAll);
         });
     });
     $('.geoicon').off();

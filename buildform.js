@@ -805,7 +805,12 @@ function buildForm() {
                 if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
                     actionBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
                 }
-                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 24px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, members[member].name, actionBirthYear) + '</span></td></tr></span>';
+                // nameval.lastName is cleared to "" for females (above,
+                // when the birth-name split applies) with the maiden
+                // surname moved into nameval.birthName instead - use
+                // whichever is populated so buildAction gets the actual
+                // surname regardless of gender.
+                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 24px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
 
                 if (isChild(relationship) || relationship === "unknown") {
                     var parentrel = "Parent";
@@ -1625,7 +1630,7 @@ function buildUnknown(gender) {
     return pselect;
 }
 
-function buildAction(relationship, gender, id, name, birthYear) {
+function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
     var pselect = "";
     var selected = true;
     if (exists(genifamily)) {
@@ -1674,30 +1679,34 @@ function buildAction(relationship, gender, id, name, birthYear) {
         // birth year on either side doesn't block the match, only a
         // conflicting one does - see issue #186 for the full reasoning.
         var autoSelectId = null;
-        if (exists(name) && relationship !== "father" && relationship !== "mother") {
-            var incoming = NameParse.parse(name, mnameonoff);
-            var incomingFirst = (incoming.firstName || "").trim().toLowerCase();
-            var incomingLast = (incoming.lastName || "").trim().toLowerCase();
-            if (incomingFirst !== "" || incomingLast !== "") {
-                var nameMatches = [];
-                for (var node2 in genifamilydata) {
-                    if (!genifamilydata.hasOwnProperty(node2)) continue;
-                    var candidate = genifamilydata[node2];
-                    if (!categoryMatches(candidate)) continue;
-                    var candidateName = NameParse.parse(candidate.get("name"), mnameonoff);
-                    var candidateFirst = (candidateName.firstName || "").trim().toLowerCase();
-                    var candidateLast = (candidateName.lastName || "").trim().toLowerCase();
-                    if (candidateFirst === incomingFirst && candidateLast === incomingLast) {
-                        nameMatches.push(candidate);
-                    }
+        var incomingFirst = (firstName || "").trim().toLowerCase();
+        var incomingLast = (lastName || "").trim().toLowerCase();
+        if ((incomingFirst !== "" || incomingLast !== "") && relationship !== "father" && relationship !== "mother") {
+            var nameMatches = [];
+            for (var node2 in genifamilydata) {
+                if (!genifamilydata.hasOwnProperty(node2)) continue;
+                var candidate = genifamilydata[node2];
+                if (!categoryMatches(candidate)) continue;
+                var candidateLang = candidate.get("name_language");
+                var candidateFirst = (candidate.get("names", candidateLang + ".first_name") || "").trim().toLowerCase();
+                // Sites like Ancestry generally only ever record a
+                // woman's maiden surname, while Geni's own "name" for
+                // her may show her married surname (or vice versa) -
+                // match against either of Geni's surname fields rather
+                // than assuming which one the source data used.
+                var candidateLastName = (candidate.get("names", candidateLang + ".last_name") || "").trim().toLowerCase();
+                var candidateMaidenName = (candidate.get("names", candidateLang + ".maiden_name") || "").trim().toLowerCase();
+                if (candidateFirst === incomingFirst &&
+                    (candidateLastName === incomingLast || candidateMaidenName === incomingLast)) {
+                    nameMatches.push(candidate);
                 }
-                if (nameMatches.length === 1) {
-                    var candidateBirthYear = nameMatches[0].get("birth", "date.year");
-                    var birthConflict = exists(birthYear) && exists(candidateBirthYear) && candidateBirthYear !== "" &&
-                        Number(birthYear) !== Number(candidateBirthYear);
-                    if (!birthConflict) {
-                        autoSelectId = nameMatches[0].get("id");
-                    }
+            }
+            if (nameMatches.length === 1) {
+                var candidateBirthYear = nameMatches[0].get("birth", "date.year");
+                var birthConflict = exists(birthYear) && exists(candidateBirthYear) && candidateBirthYear !== "" &&
+                    Number(birthYear) !== Number(candidateBirthYear);
+                if (!birthConflict) {
+                    autoSelectId = nameMatches[0].get("id");
                 }
             }
         }

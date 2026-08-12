@@ -1093,6 +1093,17 @@ function isValue(object) {
     return (object !== "");
 }
 
+// German transliteration is a deterministic convention, not a stylistic
+// choice: each umlaut expands to the vowel followed by "e" (and the
+// sharp-s expands to "ss") whenever the umlaut character itself isn't
+// available - so "Loeb" and its umlaut-spelled form represent the
+// identical name. One-directional (umlaut -> expanded) so an
+// already-ASCII name on either side just passes through unchanged.
+// See issue #190.
+function normalizeGermanic(s) {
+    return (s || "").replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss");
+}
+
 /**
  * @return {string}
  */
@@ -1706,8 +1717,8 @@ function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
         // birth year on either side doesn't block the match, only a
         // conflicting one does - see issue #186 for the full reasoning.
         var autoSelectId = null;
-        var incomingFirst = (firstName || "").trim().toLowerCase();
-        var incomingLast = (lastName || "").trim().toLowerCase();
+        var incomingFirst = normalizeGermanic((firstName || "").trim().toLowerCase());
+        var incomingLast = normalizeGermanic((lastName || "").trim().toLowerCase());
         if ((incomingFirst !== "" || incomingLast !== "") && relationship !== "father" && relationship !== "mother") {
             var nameMatches = [];
             for (var node2 in genifamilydata) {
@@ -1715,14 +1726,14 @@ function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
                 var candidate = genifamilydata[node2];
                 if (!categoryMatches(candidate)) continue;
                 var candidateLang = candidate.get("name_language");
-                var candidateFirst = (candidate.get("names", candidateLang + ".first_name") || "").trim().toLowerCase();
+                var candidateFirst = normalizeGermanic((candidate.get("names", candidateLang + ".first_name") || "").trim().toLowerCase());
                 // Sites like Ancestry generally only ever record a
                 // woman's maiden surname, while Geni's own "name" for
                 // her may show her married surname (or vice versa) -
                 // match against either of Geni's surname fields rather
                 // than assuming which one the source data used.
-                var candidateLastName = (candidate.get("names", candidateLang + ".last_name") || "").trim().toLowerCase();
-                var candidateMaidenName = (candidate.get("names", candidateLang + ".maiden_name") || "").trim().toLowerCase();
+                var candidateLastName = normalizeGermanic((candidate.get("names", candidateLang + ".last_name") || "").trim().toLowerCase());
+                var candidateMaidenName = normalizeGermanic((candidate.get("names", candidateLang + ".maiden_name") || "").trim().toLowerCase());
                 if (candidateFirst === incomingFirst &&
                     (candidateLastName === incomingLast || candidateMaidenName === incomingLast)) {
                     nameMatches.push(candidate);

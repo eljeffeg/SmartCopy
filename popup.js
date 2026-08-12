@@ -1044,7 +1044,7 @@ async function getTabId() {
 }
 
 var loginprocessing = true;
-var logincount = 0;
+var loginpoll = null;
 
 function loadLogin() {
     chrome.runtime.sendMessage({
@@ -1059,20 +1059,25 @@ function loadLogin() {
             console.log('Problem getting account information. {}', err);
             if (loginprocessing) {
                 chrome.runtime.sendMessage({ action : "icon", path: "images/icon_warn.png" });
-                console.log("Logged Out... Redirecting to Geni for authorization.");
+                console.log("Logged Out... Prompting for Geni login.");
                 loginprocessing = false;
-                var frame = $("#loginframe");
-                frame.attr('src', smartcopyurl + '/smartlogin');
-                $("body").css('max-width', "640px");
-                $("body").animate({ 'width': "640px" }, 'slow');
-                frame.on("load", function(){
-                    if (logincount > 0) {
-                        loginProcess();
-                    } else if (logincount === 0) {
-                        $("#logindiv").slideDown();
-                        document.getElementById("loginspinner").style.display = "none";
+                document.getElementById("loginspinner").style.display = "none";
+                $("#logindiv").slideDown();
+                $("#genilogin").off("click").on("click", function () {
+                    window.open(smartcopyurl + '/smartlogin', 'smartcopylogin', 'width=660,height=520');
+                    $("#loginhint").slideDown();
+                    if (loginpoll) {
+                        clearInterval(loginpoll);
                     }
-                    logincount++;
+                    var attempts = 0;
+                    loginpoll = setInterval(function () {
+                        if (loggedin || attempts++ > 120) {
+                            clearInterval(loginpoll);
+                            loginpoll = null;
+                            return;
+                        }
+                        loadLogin();
+                    }, 1000);
                 });
             }
             return;

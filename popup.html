@@ -787,7 +787,11 @@
 </div>
 <center>
     <div id='loginspinner' style="padding-top: 11px; text-align: center;"><img src="images/spinnerlg.gif" alt="Waiting" style="height: 24px;"></div>
-    <div id='logindiv' style="padding-top: 11px; text-align: center; margin-left: -20px; margin-right: -20px; display: none;"><iframe id="loginframe" style="width: 100%; height: 460px; width: 650px;" frameborder="0" scrolling="no"></iframe></div>
+    <div id='logindiv' style="padding: 24px 14px; text-align: center; display: none;">
+        <div style="font-size: 92%; margin-bottom: 14px;">Please log in to your Geni account to use SmartCopy.</div>
+        <button type="button" id="genilogin" class="cta cta-blue">Log in with Geni</button>
+        <div id="loginhint" style="font-size: 82%; color: #888; margin-top: 16px; display: none;">A login window opened. Finish logging in there, then click the SmartCopy icon again.</div>
+    </div>
     <div class='colorbox' id='useraccess' style="display:none; width: 88%; margin-bottom: 12px; margin-right: 9px; margin-left: 9px; background-color:#dfe6ed;"></div>
     <div class='colorbox' id='message' style="display:none; width: 88%; margin-bottom: 15px; margin-right: 9px; margin-left: 9px; background-color:#D3D3D3;"></div>
 </center>

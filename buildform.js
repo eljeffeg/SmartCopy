@@ -1730,8 +1730,12 @@ function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
             }
             if (nameMatches.length === 1) {
                 var candidateBirthYear = nameMatches[0].get("birth", "date.year");
+                // Allow a small gap rather than requiring an exact match -
+                // source data commonly disagrees by a year or two for the
+                // same person (e.g. an estimated vs. recorded birth year),
+                // which shouldn't by itself read as a namesake conflict.
                 var birthConflict = exists(birthYear) && exists(candidateBirthYear) && candidateBirthYear !== "" &&
-                    Number(birthYear) !== Number(candidateBirthYear);
+                    Math.abs(Number(birthYear) - Number(candidateBirthYear)) > 2;
                 if (!birthConflict) {
                     autoSelectId = nameMatches[0].get("id");
                 }

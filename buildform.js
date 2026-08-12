@@ -401,13 +401,13 @@ function buildForm() {
             membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, false) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, false) + '>' +
                 '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
         }
-        if ($('#privacyonoffswitch').prop('checked') && !living) {
-            membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
-            '<option value="">Auto</option><option value=true selected>Public</option><option value=false>Private</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
-        } else {
-            membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
-            '<option value="" selected>Auto</option><option value=true>Public</option><option value=false>Private</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
+        var focusBirthYear = undefined;
+        if (exists(alldata["profile"]["birth"]) && exists(alldata["profile"]["birth"][0]) && exists(alldata["profile"]["birth"][0]["date"])) {
+            focusBirthYear = moment(alldata["profile"]["birth"][0]["date"], getDateFormat(alldata["profile"]["birth"][0]["date"])).get('year');
         }
+        var focusPrivacy = buildPrivacySelect(living, focusBirthYear, genifocusdata.get("public") === true);
+        membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + (focusPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (focusPrivacy.enabled ? "" : "disabled") + '>' +
+        focusPrivacy.options + '</select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
         $(div[0]).html(membersstring);
         if (exists(alldata["profile"].about)) {
             sepx++;
@@ -863,13 +863,19 @@ function buildForm() {
                     '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_gender" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                     '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, scored) + '>Vital: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect livingselect" update="'+ i + '"  style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, scored) + '>' +
                     '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_is_alive" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
-                if ($('#privacyonoffswitch').prop('checked') && !living) {
-                    membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" update="'+ i + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
-                        '<option value="">Auto</option><option value=true selected>Public</option><option value=false>Private</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
-                } else {
-                    membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" update="'+ i + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
-                        '<option value="" selected>Auto</option><option value=true>Public</option><option value=false>Private</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                var memberBirthYear = undefined;
+                if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
+                    memberBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
                 }
+                // currentlyPublic isn't checked here (unlike the focus
+                // profile above) - which existing Geni profile this member
+                // matches, if any, is only resolved dynamically via the
+                // Action picker above and can change if the user picks a
+                // different match, so there's no single reliable "already
+                // public" value to read at render time.
+                var memberPrivacy = buildPrivacySelect(living, memberBirthYear, undefined);
+                membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + (memberPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" update="'+ i + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacy.enabled ? "" : "disabled") + '>' +
+                    memberPrivacy.options + '</select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 if (exists(members[member].about)) {
                     var about = members[member].about;
                     membersstring = membersstring + '<tr><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scored) + '>About:<img id="' + i + '_geni_about" class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scored) + '>' + about + '</textarea></div></td></tr>';
@@ -2282,6 +2288,55 @@ function isPublic(privacy) {
     } else {
         return "Private";
     }
+}
+
+// Geni's own server-side "Auto" privacy logic defaults deceased profiles
+// under 150 years old to Private whenever SmartCopy doesn't explicitly
+// submit a public/private value - which is what happens whenever this
+// dropdown is left in its default disabled state. Rather than leaving that
+// field unset and letting "Auto" decide, this explicitly resolves what to
+// submit:
+//   - Older than 150 years: always Public, no other choice offered at all.
+//   - Already Public on Geni: defaults to staying Public (still
+//     overridable), so "Auto" re-evaluating on every update can't
+//     accidentally flip it to Private.
+//   - Otherwise, if "Default deceased profiles to public" is on: defaults
+//     to Public (still overridable) instead of leaving the field unset.
+//   - Otherwise: unchanged from before - field stays disabled/unset,
+//     deferring entirely to Geni's own existing/Auto behavior.
+//
+// None of the above applies while the person is living - living profiles
+// always keep today's original safe default (unset, deferring to Geni)
+// regardless of birth year, current status, or the settings toggle. This
+// is about deceased-profile discoverability, not encouraging a living
+// person's profile to be made public.
+function buildPrivacySelect(living, birthYear, currentlyPublic) {
+    if (living) {
+        return {
+            options: '<option value="" selected>Auto</option><option value=true>Public</option><option value=false>Private</option>',
+            enabled: false
+        };
+    }
+    var currentYear = new Date().getFullYear();
+    if (exists(birthYear) && (currentYear - birthYear) > 150) {
+        return {options: '<option value=true selected>Public</option>', enabled: true};
+    }
+    if (currentlyPublic === true) {
+        return {
+            options: '<option value="">Auto</option><option value=true selected>Public</option><option value=false>Private</option>',
+            enabled: true
+        };
+    }
+    if ($('#privacyonoffswitch').prop('checked')) {
+        return {
+            options: '<option value="">Auto</option><option value=true selected>Public</option><option value=false>Private</option>',
+            enabled: true
+        };
+    }
+    return {
+        options: '<option value="" selected>Auto</option><option value=true>Public</option><option value=false>Private</option>',
+        enabled: false
+    };
 }
 
 function getGeniLock(profile, value, subvalue) {

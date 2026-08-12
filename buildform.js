@@ -801,7 +801,11 @@ function buildForm() {
                     showimg = "images/hide.png";
                     showtitle = "Hide Unused Fields";
                 }
-                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 24px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i) + '</span></td></tr></span>';
+                var actionBirthYear = undefined;
+                if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
+                    actionBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
+                }
+                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 24px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, members[member].name, actionBirthYear) + '</span></td></tr></span>';
 
                 if (isChild(relationship) || relationship === "unknown") {
                     var parentrel = "Parent";
@@ -1621,7 +1625,7 @@ function buildUnknown(gender) {
     return pselect;
 }
 
-function buildAction(relationship, gender, id) {
+function buildAction(relationship, gender, id, name, birthYear) {
     var pselect = "";
     var selected = true;
     if (exists(genifamily)) {
@@ -1644,6 +1648,71 @@ function buildAction(relationship, gender, id) {
                 relationship = "daughter";
             }
         }
+
+        function categoryMatches(familymem) {
+            var famRel = familymem.get("relation");
+            return (relationship === "brother" && famRel === "brother") ||
+                (relationship === "sister" && famRel === "sister") ||
+                (relationship === "son" && famRel === "son") ||
+                (relationship === "daughter" && famRel === "daughter") ||
+                (isPartner(famRel) && isPartner(relationship)) ||
+                (isChild(famRel) && relationship === "child") ||
+                (isSibling(famRel) && relationship === "sibling") ||
+                (isParent(famRel) && relationship === "parent") ||
+                (famRel === "child" && isChild(relationship)) ||
+                (famRel === "sibling" && isSibling(relationship)) ||
+                (famRel === "parent" && isParent(relationship));
+        }
+
+        // Father/Mother always auto-default (below) since Geni's own data
+        // model guarantees at most one of each per person - no ambiguity
+        // possible. Every other category can have several already-linked
+        // candidates, so auto-selecting among them requires an exact name
+        // match, unique among the category's candidates, that isn't
+        // contradicted by a conflicting birth year (a classic namesake
+        // signal - e.g. a grandson named after his grandfather). A missing
+        // birth year on either side doesn't block the match, only a
+        // conflicting one does - see issue #186 for the full reasoning.
+        var autoSelectId = null;
+        if (exists(name) && relationship !== "father" && relationship !== "mother") {
+            var incoming = NameParse.parse(name, mnameonoff);
+            var incomingFirst = (incoming.firstName || "").trim().toLowerCase();
+            var incomingLast = (incoming.lastName || "").trim().toLowerCase();
+            if (incomingFirst !== "" || incomingLast !== "") {
+                var nameMatches = [];
+                for (var node2 in genifamilydata) {
+                    if (!genifamilydata.hasOwnProperty(node2)) continue;
+                    var candidate = genifamilydata[node2];
+                    if (!categoryMatches(candidate)) continue;
+                    var candidateName = NameParse.parse(candidate.get("name"), mnameonoff);
+                    var candidateFirst = (candidateName.firstName || "").trim().toLowerCase();
+                    var candidateLast = (candidateName.lastName || "").trim().toLowerCase();
+                    if (candidateFirst === incomingFirst && candidateLast === incomingLast) {
+                        nameMatches.push(candidate);
+                    }
+                }
+                if (nameMatches.length === 1) {
+                    var candidateBirthYear = nameMatches[0].get("birth", "date.year");
+                    var birthConflict = exists(birthYear) && exists(candidateBirthYear) && candidateBirthYear !== "" &&
+                        Number(birthYear) !== Number(candidateBirthYear);
+                    if (!birthConflict) {
+                        autoSelectId = nameMatches[0].get("id");
+                    }
+                }
+            }
+        }
+
+        function addCandidateOption(familymem) {
+            var candidateId = familymem.get("id");
+            if (candidateId === autoSelectId) {
+                pselect += '<option value="' + candidateId + '" selected>Update: ' + familymem.get("name") + '</option>';
+                genibuildaction[candidateId] = id;
+                selected = false;
+            } else {
+                pselect += '<option value="' + candidateId + '">Update: ' + familymem.get("name") + '</option>';
+            }
+        }
+
         for (var node in genifamilydata) {
             if (!genifamilydata.hasOwnProperty(node)) continue;
             var familymem = genifamilydata[node];
@@ -1656,13 +1725,13 @@ function buildAction(relationship, gender, id) {
                 genibuildaction[familymem.get("id")] = id;
                 selected = false;
             } else if (relationship === "brother" && familymem.get("relation") === "brother") {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                addCandidateOption(familymem);
             } else if (relationship === "sister" && familymem.get("relation") === "sister") {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                addCandidateOption(familymem);
             } else if (relationship === "son" && familymem.get("relation") === "son") {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                addCandidateOption(familymem);
             } else if (relationship === "daughter" && familymem.get("relation") === "daughter") {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                addCandidateOption(familymem);
             } else if ((isPartner(familymem.get("relation")) && isPartner(relationship)) ||
                 (isChild(familymem.get("relation")) && relationship === "child") ||
                 (isSibling(familymem.get("relation")) && relationship === "sibling") ||
@@ -1670,7 +1739,7 @@ function buildAction(relationship, gender, id) {
                 (familymem.get("relation") === "child" && isChild(relationship)) ||
                 (familymem.get("relation") === "sibling" && isSibling(relationship)) ||
                 (familymem.get("relation")  === "parent" && isParent(relationship))) {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                addCandidateOption(familymem);
             }
         }
     }

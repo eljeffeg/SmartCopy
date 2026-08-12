@@ -288,6 +288,20 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
     }
 
     // ---------------------- Family Data --------------------
+    // Spouses are fetched (and registered into unionurls/myhspouse) before
+    // Children: a child's parent_id gets resolved by looking up its other
+    // parent's id in unionurls, via a recursive fetch of the child's own
+    // page. Since these are true sequential `await`s (not fire-and-forget,
+    // unlike the older collection parsers), that lookup would otherwise
+    // run before the spouse it needs to find was ever added.
+    for(var i = 0; i < data.family.Spouses.length; i++) {
+        var spouse = data.family.Spouses[i];
+        if (spouse.FullName.trim().toLowerCase() == "no spouse") continue;
+        if (familymembers && exists(spouse.ClickUrl)) {
+            myhspouse.push(famid);
+            await getAncestryNewTreeFamily(famid++, spouse.Id, spouse.FullName.trim(), "spouse", spouse.ClickUrl);
+        }
+    }
     for(var x = 0; x < data.family.Children.length; x++) {
         var childgroup = data.family.Children[x];
         if (!exists(childgroup)) continue;
@@ -344,15 +358,6 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
             }
         }
     }
-    for(var i = 0; i < data.family.Spouses.length; i++) {
-        var spouse = data.family.Spouses[i];
-        if (spouse.FullName.trim().toLowerCase() == "no spouse") continue;
-        if (familymembers && exists(spouse.ClickUrl)) {
-            myhspouse.push(spouse.Id);
-            await getAncestryNewTreeFamily(famid++, spouse.Id, spouse.FullName.trim(), "spouse", spouse.ClickUrl);
-        }
-    }
-
     // ---------------------- Profile Data --------------------
     if (focusdaterange !== "") {
         profiledata["daterange"] = focusdaterange;

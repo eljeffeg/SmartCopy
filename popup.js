@@ -1059,6 +1059,16 @@ function loadLogin() {
             console.log('Problem getting account information. {}', err);
             if (loginprocessing) {
                 chrome.runtime.sendMessage({ action : "icon", path: "images/icon_warn.png" });
+                if (resp.status !== 401) {
+                    // Not a clean "not authenticated" response - a network
+                    // failure, a HistoryLink server error, etc. Prompting
+                    // to log into Geni here would be misleading when Geni
+                    // isn't actually the problem.
+                    loginprocessing = false;
+                    document.getElementById("loginspinner").style.display = "none";
+                    setMessage(errormsg, _("HistoryLink_unreachable_message"));
+                    return;
+                }
                 console.log("Logged Out... Prompting for Geni login.");
                 loginprocessing = false;
                 document.getElementById("loginspinner").style.display = "none";

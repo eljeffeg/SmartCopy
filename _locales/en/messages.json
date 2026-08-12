@@ -192,6 +192,9 @@
     "Loading___": {
         "message": "Loading..."
     },
+    "HistoryLink_unreachable_message": {
+        "message": "Couldn't reach HistoryLink's login service. Check your internet connection and try again."
+    },
     "HistoryLink": {
         "message": "HistoryLink Tools"
     },

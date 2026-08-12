@@ -93,6 +93,7 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
                 }
             ).then((response) => {
                 vartn.responseURL = response.url;
+                vartn.status = response.status;
                 return response.text();
             }).then((source) => {
                 vartn.source = source;

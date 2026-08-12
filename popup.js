@@ -1059,6 +1059,16 @@ function loadLogin() {
             console.log('Problem getting account information. {}', err);
             if (loginprocessing) {
                 chrome.runtime.sendMessage({ action : "icon", path: "images/icon_warn.png" });
+                if (resp.status !== 401) {
+                    // Not a clean "not authenticated" response - a network
+                    // failure, a HistoryLink server error, etc. Prompting
+                    // to log into Geni here would be misleading when Geni
+                    // isn't actually the problem.
+                    loginprocessing = false;
+                    document.getElementById("loginspinner").style.display = "none";
+                    setMessage(errormsg, _("HistoryLink_unreachable_message"));
+                    return;
+                }
                 console.log("Logged Out... Prompting for Geni login.");
                 loginprocessing = false;
                 document.getElementById("loginspinner").style.display = "none";
@@ -1165,22 +1175,61 @@ function capFL(string) {   //Capitalize the first letter of the string
 $(function () {
     $('.checkall').on('click', function () {
         var fs = $(this).closest('div').find('fieldset');
+        // Captured before entering .filter() callbacks below, where `this`
+        // is rebound by jQuery to the element currently being tested.
+        var selectingAll = this.checked;
         var ffs = fs.find('[type="checkbox"]');
         if (!$(ffs[0]).prop("disabled")) {
             var photoon = $('#photoonoffswitch').prop('checked');
+            // Individual fields already default to checked/enabled only
+            // when they actually have a value (see isChecked()/isEnabled()
+            // at render time) - Select All was overriding that and forcing
+            // empty text fields on too, which then submitted as blank and
+            // overwrote whatever was already on the Geni profile. Only
+            // applies while turning fields on; deselecting is always safe.
             ffs.filter(function (item) {
                 if ($(ffs[item]).closest('tr').css("display") === "none") {
                     return false;
                 }
-                return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
-            }).prop('checked', this.checked);
+                if (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) {
+                    return false;
+                }
+                if (selectingAll && isFieldEmptyForCheckAll($(ffs[item]).closest('tr'))) {
+                    return false;
+                }
+                return true;
+            }).prop('checked', selectingAll);
             var ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector");
             ffs.filter(function (item) {
-                return !((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
-            }).attr('disabled', !this.checked);
+                if ((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") ||
+                    (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) ||
+                    ffs[item].name === "action" || ffs[item].name === "profile_id") {
+                    return false;
+                }
+                if (selectingAll && (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA") && !isValue(ffs[item].value)) {
+                    return false;
+                }
+                return true;
+            }).attr('disabled', !selectingAll);
         }
     });
 });
+
+function isFieldEmptyForCheckAll(row) {
+    var valueFields = row.find('input[type="text"],textarea').not(".genislideinput").not(".parentselector");
+    if (valueFields.length === 0) {
+        // No plain text/textarea value field on this row (e.g. a <select>
+        // like Gender or Vital status) - those always resolve to a real
+        // value, not a blank one, so there's nothing to guard against here.
+        return false;
+    }
+    for (var i = 0; i < valueFields.length; i++) {
+        if (isValue(valueFields[i].value)) {
+            return false;
+        }
+    }
+    return true;
+}
 
 $(function () {
     $('#updateslide').on('click', function () {

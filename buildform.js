@@ -401,13 +401,13 @@ function buildForm() {
             membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, false) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, false) + '>' +
                 '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
         }
-        if ($('#privacyonoffswitch').prop('checked') && !living) {
-            membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
-            '<option value="">Auto</option><option value=true selected>Public</option><option value=false>Private</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
-        } else {
-            membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
-            '<option value="" selected>Auto</option><option value=true>Public</option><option value=false>Private</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
+        var focusBirthYear = undefined;
+        if (exists(alldata["profile"]["birth"]) && exists(alldata["profile"]["birth"][0]) && exists(alldata["profile"]["birth"][0]["date"])) {
+            focusBirthYear = moment(alldata["profile"]["birth"][0]["date"], getDateFormat(alldata["profile"]["birth"][0]["date"])).get('year');
         }
+        var focusPrivacy = buildPrivacySelect(living, focusBirthYear, genifocusdata.get("public") === true);
+        membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + (focusPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (focusPrivacy.enabled ? "" : "disabled") + '>' +
+        focusPrivacy.options + '</select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
         $(div[0]).html(membersstring);
         if (exists(alldata["profile"].about)) {
             sepx++;
@@ -801,7 +801,16 @@ function buildForm() {
                     showimg = "images/hide.png";
                     showtitle = "Hide Unused Fields";
                 }
-                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 24px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i) + '</span></td></tr></span>';
+                var actionBirthYear = undefined;
+                if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
+                    actionBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
+                }
+                // nameval.lastName is cleared to "" for females (above,
+                // when the birth-name split applies) with the maiden
+                // surname moved into nameval.birthName instead - use
+                // whichever is populated so buildAction gets the actual
+                // surname regardless of gender.
+                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 24px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
 
                 if (isChild(relationship) || relationship === "unknown") {
                     var parentrel = "Parent";
@@ -854,13 +863,19 @@ function buildForm() {
                     '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_gender" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                     '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, scored) + '>Vital: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect livingselect" update="'+ i + '"  style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, scored) + '>' +
                     '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_is_alive" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
-                if ($('#privacyonoffswitch').prop('checked') && !living) {
-                    membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" update="'+ i + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
-                        '<option value="">Auto</option><option value=true selected>Public</option><option value=false>Private</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
-                } else {
-                    membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" update="'+ i + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + isEnabled(living, false) + '>' +
-                        '<option value="" selected>Auto</option><option value=true>Public</option><option value=false>Private</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                var memberBirthYear = undefined;
+                if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
+                    memberBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
                 }
+                // currentlyPublic isn't checked here (unlike the focus
+                // profile above) - which existing Geni profile this member
+                // matches, if any, is only resolved dynamically via the
+                // Action picker above and can change if the user picks a
+                // different match, so there's no single reliable "already
+                // public" value to read at render time.
+                var memberPrivacy = buildPrivacySelect(living, memberBirthYear, undefined);
+                membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + (memberPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" update="'+ i + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacy.enabled ? "" : "disabled") + '>' +
+                    memberPrivacy.options + '</select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 if (exists(members[member].about)) {
                     var about = members[member].about;
                     membersstring = membersstring + '<tr><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scored) + '>About:<img id="' + i + '_geni_about" class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scored) + '>' + about + '</textarea></div></td></tr>';
@@ -1078,6 +1093,17 @@ function isValue(object) {
     return (object !== "");
 }
 
+// German transliteration is a deterministic convention, not a stylistic
+// choice: each umlaut expands to the vowel followed by "e" (and the
+// sharp-s expands to "ss") whenever the umlaut character itself isn't
+// available - so "Loeb" and its umlaut-spelled form represent the
+// identical name. One-directional (umlaut -> expanded) so an
+// already-ASCII name on either side just passes through unchanged.
+// See issue #190.
+function normalizeGermanic(s) {
+    return (s || "").replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss");
+}
+
 /**
  * @return {string}
  */
@@ -1290,18 +1316,39 @@ function updateClassResponse() {
     $(function () {
         $('.checkslide').on('click', function () {
             var fs = $("#" + this.name.replace("checkbox", "slide"));
+            // Same empty-field guard as the .checkall handler in popup.js -
+            // this is the per-person "select all fields for this person"
+            // checkbox and had the identical bug (a separate, duplicated
+            // implementation that wasn't caught when that one was fixed):
+            // forcing empty fields on could overwrite existing Geni data
+            // (e.g. Last Name) with a blank value.
+            var selectingAll = this.checked;
             var ffs = fs.find('[type="checkbox"]');
             var photoon = $('#photoonoffswitch').prop('checked');
             ffs.filter(function (item) {
                 if ($(ffs[item]).closest('tr').css("display") === "none") {
                     return false;
                 }
-                return !(!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked);
-            }).prop('checked', this.checked);
+                if (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) {
+                    return false;
+                }
+                if (selectingAll && isFieldEmptyForCheckAll($(ffs[item]).closest('tr'))) {
+                    return false;
+                }
+                return true;
+            }).prop('checked', selectingAll);
             ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector");
             ffs.filter(function (item) {
-                return !((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") || (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) || ffs[item].name === "action" || ffs[item].name === "profile_id");
-            }).attr('disabled', !this.checked);
+                if ((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") ||
+                    (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) ||
+                    ffs[item].name === "action" || ffs[item].name === "profile_id") {
+                    return false;
+                }
+                if (selectingAll && (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA") && !isValue(ffs[item].value)) {
+                    return false;
+                }
+                return true;
+            }).attr('disabled', !selectingAll);
         });
     });
     $('.geoicon').off();
@@ -1621,7 +1668,7 @@ function buildUnknown(gender) {
     return pselect;
 }
 
-function buildAction(relationship, gender, id) {
+function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
     var pselect = "";
     var selected = true;
     if (exists(genifamily)) {
@@ -1644,6 +1691,79 @@ function buildAction(relationship, gender, id) {
                 relationship = "daughter";
             }
         }
+
+        function categoryMatches(familymem) {
+            var famRel = familymem.get("relation");
+            return (relationship === "brother" && famRel === "brother") ||
+                (relationship === "sister" && famRel === "sister") ||
+                (relationship === "son" && famRel === "son") ||
+                (relationship === "daughter" && famRel === "daughter") ||
+                (isPartner(famRel) && isPartner(relationship)) ||
+                (isChild(famRel) && relationship === "child") ||
+                (isSibling(famRel) && relationship === "sibling") ||
+                (isParent(famRel) && relationship === "parent") ||
+                (famRel === "child" && isChild(relationship)) ||
+                (famRel === "sibling" && isSibling(relationship)) ||
+                (famRel === "parent" && isParent(relationship));
+        }
+
+        // Father/Mother always auto-default (below) since Geni's own data
+        // model guarantees at most one of each per person - no ambiguity
+        // possible. Every other category can have several already-linked
+        // candidates, so auto-selecting among them requires an exact name
+        // match, unique among the category's candidates, that isn't
+        // contradicted by a conflicting birth year (a classic namesake
+        // signal - e.g. a grandson named after his grandfather). A missing
+        // birth year on either side doesn't block the match, only a
+        // conflicting one does - see issue #186 for the full reasoning.
+        var autoSelectId = null;
+        var incomingFirst = normalizeGermanic((firstName || "").trim().toLowerCase());
+        var incomingLast = normalizeGermanic((lastName || "").trim().toLowerCase());
+        if ((incomingFirst !== "" || incomingLast !== "") && relationship !== "father" && relationship !== "mother") {
+            var nameMatches = [];
+            for (var node2 in genifamilydata) {
+                if (!genifamilydata.hasOwnProperty(node2)) continue;
+                var candidate = genifamilydata[node2];
+                if (!categoryMatches(candidate)) continue;
+                var candidateLang = candidate.get("name_language");
+                var candidateFirst = normalizeGermanic((candidate.get("names", candidateLang + ".first_name") || "").trim().toLowerCase());
+                // Sites like Ancestry generally only ever record a
+                // woman's maiden surname, while Geni's own "name" for
+                // her may show her married surname (or vice versa) -
+                // match against either of Geni's surname fields rather
+                // than assuming which one the source data used.
+                var candidateLastName = normalizeGermanic((candidate.get("names", candidateLang + ".last_name") || "").trim().toLowerCase());
+                var candidateMaidenName = normalizeGermanic((candidate.get("names", candidateLang + ".maiden_name") || "").trim().toLowerCase());
+                if (candidateFirst === incomingFirst &&
+                    (candidateLastName === incomingLast || candidateMaidenName === incomingLast)) {
+                    nameMatches.push(candidate);
+                }
+            }
+            if (nameMatches.length === 1) {
+                var candidateBirthYear = nameMatches[0].get("birth", "date.year");
+                // Allow a small gap rather than requiring an exact match -
+                // source data commonly disagrees by a year or two for the
+                // same person (e.g. an estimated vs. recorded birth year),
+                // which shouldn't by itself read as a namesake conflict.
+                var birthConflict = exists(birthYear) && exists(candidateBirthYear) && candidateBirthYear !== "" &&
+                    Math.abs(Number(birthYear) - Number(candidateBirthYear)) > 2;
+                if (!birthConflict) {
+                    autoSelectId = nameMatches[0].get("id");
+                }
+            }
+        }
+
+        function addCandidateOption(familymem) {
+            var candidateId = familymem.get("id");
+            if (candidateId === autoSelectId) {
+                pselect += '<option value="' + candidateId + '" selected>Update: ' + familymem.get("name") + '</option>';
+                genibuildaction[candidateId] = id;
+                selected = false;
+            } else {
+                pselect += '<option value="' + candidateId + '">Update: ' + familymem.get("name") + '</option>';
+            }
+        }
+
         for (var node in genifamilydata) {
             if (!genifamilydata.hasOwnProperty(node)) continue;
             var familymem = genifamilydata[node];
@@ -1656,13 +1776,13 @@ function buildAction(relationship, gender, id) {
                 genibuildaction[familymem.get("id")] = id;
                 selected = false;
             } else if (relationship === "brother" && familymem.get("relation") === "brother") {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                addCandidateOption(familymem);
             } else if (relationship === "sister" && familymem.get("relation") === "sister") {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                addCandidateOption(familymem);
             } else if (relationship === "son" && familymem.get("relation") === "son") {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                addCandidateOption(familymem);
             } else if (relationship === "daughter" && familymem.get("relation") === "daughter") {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                addCandidateOption(familymem);
             } else if ((isPartner(familymem.get("relation")) && isPartner(relationship)) ||
                 (isChild(familymem.get("relation")) && relationship === "child") ||
                 (isSibling(familymem.get("relation")) && relationship === "sibling") ||
@@ -1670,7 +1790,7 @@ function buildAction(relationship, gender, id) {
                 (familymem.get("relation") === "child" && isChild(relationship)) ||
                 (familymem.get("relation") === "sibling" && isSibling(relationship)) ||
                 (familymem.get("relation")  === "parent" && isParent(relationship))) {
-                pselect += '<option value="' + familymem.get("id") + '">Update: ' + familymem.get("name") + '</option>';
+                addCandidateOption(familymem);
             }
         }
     }
@@ -2204,6 +2324,55 @@ function isPublic(privacy) {
     } else {
         return "Private";
     }
+}
+
+// Geni's own server-side "Auto" privacy logic defaults deceased profiles
+// under 150 years old to Private whenever SmartCopy doesn't explicitly
+// submit a public/private value - which is what happens whenever this
+// dropdown is left in its default disabled state. Rather than leaving that
+// field unset and letting "Auto" decide, this explicitly resolves what to
+// submit:
+//   - Older than 150 years: always Public, no other choice offered at all.
+//   - Already Public on Geni: defaults to staying Public (still
+//     overridable), so "Auto" re-evaluating on every update can't
+//     accidentally flip it to Private.
+//   - Otherwise, if "Default deceased profiles to public" is on: defaults
+//     to Public (still overridable) instead of leaving the field unset.
+//   - Otherwise: unchanged from before - field stays disabled/unset,
+//     deferring entirely to Geni's own existing/Auto behavior.
+//
+// None of the above applies while the person is living - living profiles
+// always keep today's original safe default (unset, deferring to Geni)
+// regardless of birth year, current status, or the settings toggle. This
+// is about deceased-profile discoverability, not encouraging a living
+// person's profile to be made public.
+function buildPrivacySelect(living, birthYear, currentlyPublic) {
+    if (living) {
+        return {
+            options: '<option value="" selected>Auto</option><option value=true>Public</option><option value=false>Private</option>',
+            enabled: false
+        };
+    }
+    var currentYear = new Date().getFullYear();
+    if (exists(birthYear) && (currentYear - birthYear) > 150) {
+        return {options: '<option value=true selected>Public</option>', enabled: true};
+    }
+    if (currentlyPublic === true) {
+        return {
+            options: '<option value="">Auto</option><option value=true selected>Public</option><option value=false>Private</option>',
+            enabled: true
+        };
+    }
+    if ($('#privacyonoffswitch').prop('checked')) {
+        return {
+            options: '<option value="">Auto</option><option value=true selected>Public</option><option value=false>Private</option>',
+            enabled: true
+        };
+    }
+    return {
+        options: '<option value="" selected>Auto</option><option value=true>Public</option><option value=false>Private</option>',
+        enabled: false
+    };
 }
 
 function getGeniLock(profile, value, subvalue) {

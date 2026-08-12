@@ -231,35 +231,70 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
     profiledata["status"] = relation.title;
 
     // Loop through important life events
+    // Ancestry marks exactly one fact per type as primary (IsAlternate:
+    // false) - the rest are alternates (e.g. an estimated birth year pulled
+    // from an unrelated record). Track whether the currently-stored value
+    // for each field is itself an alternate, so a later primary fact can
+    // still replace it - but a later alternate never displaces an already-
+    // stored primary just because it comes later in data.facts.
+    var birthIsAlternate, baptismIsAlternate, burialIsAlternate, deathIsAlternate, marriageIsAlternate;
     for(var i = 0; i < data.facts.length; i++) {
         const fact = data.facts[i];
         // we only want to examine FactType 0 which apply to this person
         if (fact.FactType != 0) continue;
         switch(fact.TypeString) {
             case 'Birth':
-                profiledata["birth"] = setFactData(fact);
+                if (!exists(profiledata["birth"]) || (!fact.IsAlternate && birthIsAlternate)) {
+                    profiledata["birth"] = setFactData(fact);
+                    birthIsAlternate = !!fact.IsAlternate;
+                }
                 break;
             case 'Baptism':
-                profiledata["baptism"] = setFactData(fact);
+                if (!exists(profiledata["baptism"]) || (!fact.IsAlternate && baptismIsAlternate)) {
+                    profiledata["baptism"] = setFactData(fact);
+                    baptismIsAlternate = !!fact.IsAlternate;
+                }
                 break;
             case 'Burial':
-                profiledata["burial"] = setFactData(fact);
-                if (fact.Date) burialdtflag = true;
-                if (fact.Place) buriallcflag = true;
+                if (!exists(profiledata["burial"]) || (!fact.IsAlternate && burialIsAlternate)) {
+                    profiledata["burial"] = setFactData(fact);
+                    burialIsAlternate = !!fact.IsAlternate;
+                    if (fact.Date) burialdtflag = true;
+                    if (fact.Place) buriallcflag = true;
+                }
                 break;
             case 'Death':
-                profiledata["death"] = setFactData(fact);
+                if (!exists(profiledata["death"]) || (!fact.IsAlternate && deathIsAlternate)) {
+                    profiledata["death"] = setFactData(fact);
+                    deathIsAlternate = !!fact.IsAlternate;
+                }
                 break;
             case 'Marriage':
-                // TODO handle marriage 
-                profiledata["marriage"] = setFactData(fact);
+                // TODO handle marriage
+                if (!exists(profiledata["marriage"]) || (!fact.IsAlternate && marriageIsAlternate)) {
+                    profiledata["marriage"] = setFactData(fact);
+                    marriageIsAlternate = !!fact.IsAlternate;
+                }
                 if (familymembers && fact.FactTargetPerson && fact.FactTargetPerson.Id) {
                     var mid = fact.FactTargetPerson.Id;
-                    ancestrymrglist.push({
-                        "id": mid,
-                        "event": setFactData(fact)
-                    }); 
-                } 
+                    var mrgIdx = -1;
+                    for (var m = 0; m < ancestrymrglist.length; m++) {
+                        if (ancestrymrglist[m].id === mid) {
+                            mrgIdx = m;
+                            break;
+                        }
+                    }
+                    if (mrgIdx === -1) {
+                        ancestrymrglist.push({
+                            "id": mid,
+                            "event": setFactData(fact),
+                            "isAlternate": !!fact.IsAlternate
+                        });
+                    } else if (!fact.IsAlternate && ancestrymrglist[mrgIdx].isAlternate) {
+                        ancestrymrglist[mrgIdx].event = setFactData(fact);
+                        ancestrymrglist[mrgIdx].isAlternate = false;
+                    }
+                }
                 break;
         }
     }
@@ -288,6 +323,20 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
     }
 
     // ---------------------- Family Data --------------------
+    // Spouses are fetched (and registered into unionurls/myhspouse) before
+    // Children: a child's parent_id gets resolved by looking up its other
+    // parent's id in unionurls, via a recursive fetch of the child's own
+    // page. Since these are true sequential `await`s (not fire-and-forget,
+    // unlike the older collection parsers), that lookup would otherwise
+    // run before the spouse it needs to find was ever added.
+    for(var i = 0; i < data.family.Spouses.length; i++) {
+        var spouse = data.family.Spouses[i];
+        if (spouse.FullName.trim().toLowerCase() == "no spouse") continue;
+        if (familymembers && exists(spouse.ClickUrl)) {
+            myhspouse.push(famid);
+            await getAncestryNewTreeFamily(famid++, spouse.Id, spouse.FullName.trim(), "spouse", spouse.ClickUrl);
+        }
+    }
     for(var x = 0; x < data.family.Children.length; x++) {
         var childgroup = data.family.Children[x];
         if (!exists(childgroup)) continue;
@@ -344,15 +393,6 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
             }
         }
     }
-    for(var i = 0; i < data.family.Spouses.length; i++) {
-        var spouse = data.family.Spouses[i];
-        if (spouse.FullName.trim().toLowerCase() == "no spouse") continue;
-        if (familymembers && exists(spouse.ClickUrl)) {
-            myhspouse.push(spouse.Id);
-            await getAncestryNewTreeFamily(famid++, spouse.Id, spouse.FullName.trim(), "spouse", spouse.ClickUrl);
-        }
-    }
-
     // ---------------------- Profile Data --------------------
     if (focusdaterange !== "") {
         profiledata["daterange"] = focusdaterange;

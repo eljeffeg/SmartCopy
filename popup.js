@@ -1024,7 +1024,7 @@ async function getPageCode() {
                 // to the normal page capture regardless of the outcome here.
                 chrome.scripting.executeScript({
                     target: {tabId: tabId},
-                    files: ["getPagesSource.js"]
+                    files: ["annotateFilaeAvatars.js", "getPagesSource.js"]
                 }, function () {
                     if (chrome.runtime.lastError) {
                         setMessage(errormsg, 'There was an error injecting script : \n' + chrome.runtime.lastError.message);

@@ -867,14 +867,19 @@ function buildForm() {
                 if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
                     memberBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
                 }
-                // currentlyPublic isn't checked here (unlike the focus
-                // profile above) - which existing Geni profile this member
-                // matches, if any, is only resolved dynamically via the
-                // Action picker above and can change if the user picks a
-                // different match, so there's no single reliable "already
-                // public" value to read at render time.
+                // currentlyPublic can't be known yet at render time - which
+                // existing Geni profile this member matches, if any, is only
+                // resolved once the user picks something in the Action
+                // picker above (defaults to "add"/no match). Rendered here
+                // as not-yet-public (undefined); setGeniFamilyData() below
+                // re-resolves this via getGeniData(profile, "public") and
+                // rebuilds this row every time the Action picker's selected
+                // match changes, so it stays correct as the user picks
+                // different matches. data-birthyear carries memberBirthYear
+                // through to that recompute, since it's not otherwise
+                // available outside this closure.
                 var memberPrivacy = buildPrivacySelect(living, memberBirthYear, undefined);
-                membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + (memberPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" update="'+ i + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacy.enabled ? "" : "disabled") + '>' +
+                membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input id="' + i + '_public_checkbox" type="checkbox" class="checknext" ' + (memberPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect privacyselect" update="'+ i + '" data-birthyear="' + (exists(memberBirthYear) ? memberBirthYear : "") + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacy.enabled ? "" : "disabled") + '>' +
                     memberPrivacy.options + '</select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 if (exists(members[member].about)) {
                     var about = members[member].about;
@@ -2283,6 +2288,26 @@ function setGeniFamilyData(id, profile) {
     $("#" + id + "_geni_is_alive").prev().attr('src', getGeniLock(profile, "living"));
     $("#" + id + "_geni_public").val(isPublic(getGeniData(profile, "public")));
     $("#" + id + "_geni_public").prev().attr('src', getGeniLock(profile, "public"));
+
+    // Re-resolve the editable Privacy checkbox/select now that we know
+    // which Geni profile (if any) this member is matched to - the row was
+    // originally rendered with currentlyPublic left undefined (see the
+    // comment at render time in buildform.js) because that wasn't knowable
+    // until now. Mirrors the focus-profile call at line ~408, but reads
+    // "living" live off the Vital dropdown rather than the closed-over
+    // render-time value, since the user can toggle Vital independently
+    // after the match is picked.
+    var privacySelect = $('select.privacyselect[update="' + id + '"]');
+    if (privacySelect.length > 0) {
+        var memberLivingNow = $('select.livingselect[update="' + id + '"]').val() === "true";
+        var birthYearAttr = privacySelect.attr('data-birthyear');
+        var memberBirthYearNow = exists(birthYearAttr) && birthYearAttr !== "" ? parseInt(birthYearAttr, 10) : undefined;
+        var currentlyPublicNow = getGeniData(profile, "public") === true;
+        var refreshedPrivacy = buildPrivacySelect(memberLivingNow, memberBirthYearNow, currentlyPublicNow);
+        privacySelect.html(refreshedPrivacy.options);
+        privacySelect.prop('disabled', !refreshedPrivacy.enabled);
+        $('#' + id + '_public_checkbox').prop('checked', refreshedPrivacy.enabled);
+    }
     $("#" + id + "_geni_cause_of_death").val(getGeniData(profile, "cause_of_death"));
     $("#" + id + "_geni_cause_of_death").prev().attr('src', getGeniLock(profile, "cause_of_death"));
 
@@ -2332,10 +2357,20 @@ function isPublic(privacy) {
 // dropdown is left in its default disabled state. Rather than leaving that
 // field unset and letting "Auto" decide, this explicitly resolves what to
 // submit:
-//   - Older than 150 years: always Public, no other choice offered at all.
-//   - Already Public on Geni: defaults to staying Public (still
-//     overridable), so "Auto" re-evaluating on every update can't
-//     accidentally flip it to Private.
+//   - Older than 150 years: always Public, no other choice offered at all -
+//     except it also stays unchecked by default if already Public on Geni,
+//     for the same no-op reason as the next bullet (this branch is checked
+//     first, so it otherwise would have shadowed that logic entirely for
+//     every profile old enough to qualify).
+//   - Already Public on Geni: pre-selects Public but stays unchecked by
+//     default - checking it (manually, or via Select All) submits an
+//     explicit Public, protecting against Auto re-evaluating and flipping
+//     it to Private on an unrelated update. Not auto-submitted by default
+//     though: since the field starts pre-checked whenever this branch
+//     applied, and submitting Public here is genuinely a no-op on Geni's
+//     side (nothing actually changes, since it's already Public), a
+//     pre-checked box misleadingly implied a pending change was about to
+//     happen when nothing observable would.
 //   - Otherwise, if "Default deceased profiles to public" is on: defaults
 //     to Public (still overridable) instead of leaving the field unset.
 //   - Otherwise: unchanged from before - field stays disabled/unset,
@@ -2355,12 +2390,12 @@ function buildPrivacySelect(living, birthYear, currentlyPublic) {
     }
     var currentYear = new Date().getFullYear();
     if (exists(birthYear) && (currentYear - birthYear) > 150) {
-        return {options: '<option value=true selected>Public</option>', enabled: true};
+        return {options: '<option value=true selected>Public</option>', enabled: currentlyPublic !== true};
     }
     if (currentlyPublic === true) {
         return {
             options: '<option value="">Auto</option><option value=true selected>Public</option><option value=false>Private</option>',
-            enabled: true
+            enabled: false
         };
     }
     if ($('#privacyonoffswitch').prop('checked')) {

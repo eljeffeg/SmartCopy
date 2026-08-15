@@ -331,12 +331,33 @@ if (navigator.serviceWorker) {
       });
 }
   // Fin d'ajout - End of Add
+// get_tab() (which eventually calls loginProcess(), the thing that
+// actually checks the geonotice flag) used to fire straight from
+// DOMContentLoaded, independently of chrome.storage.local.get('geonotice',
+// ...) below - two separate async calls racing with no ordering between
+// them. geonotice starts hardcoded true (see the var declaration up top),
+// so whichever finished first decided the outcome: if chrome.tabs.query
+// resolved before the storage read did, loginProcess() saw the still-
+// default true and showed the notice again even though the user had
+// already dismissed and persisted it as false. Gating on both flags
+// (rather than nesting one call inside the other) closes the race
+// regardless of which actually finishes first - see issue #193.
+var domReady = false;
+var geonoticeLoaded = false;
+
+function maybeStartLogin() {
+    if (domReady && geonoticeLoaded) {
+        get_tab();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     var version = chrome.runtime.getManifest().version;
     console.log(chrome.runtime.getManifest().name + " v" + version);
     $("#versionbox").html("SmartCopy v" + version);
     $("#versionbox2").html("SmartCopy v" + version);
-    get_tab();
+    domReady = true;
+    maybeStartLogin();
 });
 
 function get_tab() {
@@ -2897,6 +2918,8 @@ chrome.storage.local.get('geonotice', function(result) {
     if (!exists(geonotice)) {
         geonotice = true;
     }
+    geonoticeLoaded = true;
+    maybeStartLogin();
 });
 
 chrome.storage.local.get('autogeo', function (result) {

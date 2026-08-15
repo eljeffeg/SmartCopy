@@ -159,7 +159,7 @@ var NameParse = (function(){
             if ((end - start) > 1) {
                 // concat the last name
                 for (j=i; j<end; j++) {
-                    if (j !== end -1 && $('#compoundlastonoffswitch').prop('checked') && this.is_compound_lastName(nameParts[j])) {
+                    if (j !== end -1 && $('#compoundlastonoffswitch').prop('checked') && this.is_compound_lastName(nameParts[j]) && !nameParts[j].contains(".")) {
                         lastName += " " + nameParts[j].toLowerCase();
                     } else {
                         lastName += " " + this.fix_case(nameParts[j]);
@@ -223,7 +223,7 @@ var NameParse = (function(){
             birthName = "";
             // rebuild birth name
             for (j=0; j<birthsplit.length; j++) {
-                if (j !== birthsplit.length -1 && $('#compoundlastonoffswitch').prop('checked') && this.is_compound_lastName(birthsplit[j])) {
+                if (j !== birthsplit.length -1 && $('#compoundlastonoffswitch').prop('checked') && this.is_compound_lastName(birthsplit[j]) && !birthsplit[j].contains(".")) {
                     birthName += " " + birthsplit[j].toLowerCase();
                 } else {
                     birthName += " " + this.fix_case(birthsplit[j]);

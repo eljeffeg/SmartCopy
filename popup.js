@@ -2115,7 +2115,7 @@ function summarizeUpdatedCategories(fields, includesPhoto) {
     }
     if (exists(fields)) {
         for (var key in fields) {
-            if (fields.hasOwnProperty(key) && key !== "about_me" && key !== "profile_id") {
+            if (fields.hasOwnProperty(key) && key !== "about_me" && key !== "profile_id" && key !== "action") {
                 var category;
                 if (categoryMap.hasOwnProperty(key)) {
                     category = categoryMap[key];

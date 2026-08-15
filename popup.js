@@ -1774,11 +1774,16 @@ function buildTree(data, action, sendid) {
                     if (exists(response) && exists(response.source)) {
                         var result = typeof response.source == 'string' ? JSON.parse(response.source) : response.source;
                         if (!exists(result.error)) {
+                            // A clean "photo -> uploaded" marker, not the raw
+                            // submission payload - that's a full image URL
+                            // plus attribution text, not useful in a compact
+                            // history view.
+                            var photoHistoryData = JSON.stringify({photo: "uploaded"});
                             var photoId = response.variable.id;
                             if (exists(databyid[photoId])) {
-                                addHistory(result.id, databyid[photoId].itemId, getProfileName(databyid[photoId].name), JSON.stringify(response.variable.data));
+                                addHistory(result.id, databyid[photoId].itemId, getProfileName(databyid[photoId].name), photoHistoryData);
                             } else if (sendid === focusid) {
-                                addHistory(result.id, focusURLid, getProfileName(focusname), JSON.stringify(response.variable.data), focusid);
+                                addHistory(result.id, focusURLid, getProfileName(focusname), photoHistoryData, focusid);
                             }
                         }
                     }

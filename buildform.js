@@ -732,16 +732,16 @@ function buildForm() {
                 gender = reverseGender(focusgender);
             }
 
-            // #114 (siblings/children re-checked on a re-run): unlike
-            // parent, which is guarded above by geniHas(), sibling/child/
-            // partner had no "already in Geni's tree" check at all - only
-            // whether scorefactors flagged the relationship as a match
-            // factor, so re-running a build on the same profile after a
-            // prior run already added these people re-checked them again.
-            // Use the same name+birth-year match buildAction() uses to
-            // decide "Update" vs "Add Profile" in the dropdown below, so a
-            // member already linked to an existing Geni family member
-            // doesn't get flagged as needing to be added a second time.
+            // Siblings/children re-checked on a re-run: unlike parent, which
+            // is guarded above by geniHas(), sibling/child/partner had no
+            // "already in Geni's tree" check at all - only whether
+            // scorefactors flagged the relationship as a match factor, so
+            // re-running a build on the same profile after a prior run
+            // already added these people re-checked them again. Use the
+            // same name+birth-year match buildAction() uses to decide
+            // "Update" vs "Add Profile" in the dropdown below, so a member
+            // already linked to an existing Geni family member doesn't get
+            // flagged as needing to be added a second time.
             if (scored && (isSibling(relationship) || isChild(relationship) || isPartner(relationship))) {
                 var earlyBirthYear = undefined;
                 if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {

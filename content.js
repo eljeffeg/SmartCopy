@@ -357,9 +357,27 @@ function appendBio() {
         $("*").css("cursor", "default");
         var textarea = $("#page_profile_detail_strings_en-US_about_me");
         textarea.val(biography + textarea.val().replace(getSelection(), "").trim());
+        selectDefaultBioTab();
     } else {
         //In case the screen is closed
         $("*").css("cursor", "default");
+    }
+}
+
+// #114: the biography is always written into the en-US textarea above,
+// regardless of which language tab was showing when "Add biography" was
+// clicked - if a non-English tab was active, the edit looks like it did
+// nothing since the visible panel didn't change. Geni's tab widget is
+// jQuery UI Tabs, but SmartCopy's own bundled jquery.js doesn't include
+// the UI plugin, so its .tabs() API isn't available on this $ - a real
+// native click on the en-US tab's anchor is what reaches the page's own
+// jQuery UI click handlers (content scripts share the live DOM with the
+// page regardless of JS world, even though they don't share a jQuery
+// instance).
+function selectDefaultBioTab() {
+    var defaultTabLink = $("#add-language-button").closest(".ui-tabs").find('a[href="#tabc-en-US"]')[0];
+    if (defaultTabLink) {
+        defaultTabLink.click();
     }
 }
 

@@ -1394,9 +1394,15 @@ var submitform = function () {
                 if (exists(alldata["profile"].url)) {
                     refurl = alldata["profile"].url;
                 }
-                if (!focusabout.contains("Updated from [" + encodeURI(refurl) + " " + recordtype + "] by [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
-                    !focusabout.contains("Updated from [" + encodeURI(refurl) + " " + recordtype + "] by [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]:") &&
-                    !focusabout.contains("Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [http://www.geni.com/projects/SmartCopy/18783 SmartCopy]:")) {
+                // Matches on just the stable "[url recordtype]" token rather
+                // than the full surrounding phrase, so this keeps working
+                // regardless of prefix wording ("Updated from" vs
+                // "Reference:"), link protocol, or formatting (e.g. bold) -
+                // the previous three-variant check only ever matched
+                // http://, never the https:// link actually written below,
+                // so it silently never recognized its own prior output and
+                // re-merged/re-referenced the same source on every re-run.
+                if (!focusabout.contains("[" + encodeURI(refurl) + " " + recordtype + "]")) {
                     if (focusabout !== "") {
                         about = focusabout + "\n" + about;
                     }
@@ -1406,9 +1412,9 @@ var submitform = function () {
                     var updatedCategories = summarizeUpdatedCategories(profileout, exists(focusphotoinfo));
                     var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
                     if (exists(refurl)) {
-                        profileout["about_me"] = about + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                        profileout["about_me"] = about + "* '''Reference:''' [" + encodeURI(refurl) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                     } else {
-                        profileout["about_me"] = about + "* Reference: " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                        profileout["about_me"] = about + "* '''Reference:''' " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                     }
                     
                 } else {
@@ -1485,9 +1491,9 @@ var submitform = function () {
                             var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]));
                             var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
                             if (exists(fdata.url)) {
-                                about = about + "* Reference: [" + encodeURI(fdata.url) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                                about = about + "* '''Reference:''' [" + encodeURI(fdata.url) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                             } else {
-                                about = about + "* Reference: " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                                about = about + "* '''Reference:''' " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                             }
                             
                         }

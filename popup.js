@@ -2676,7 +2676,7 @@ $(function () {
         chrome.storage.local.set({'adjustname': this.checked});
         $("#casenamechange").css("display", "block");
     });
-    $('#compountlastonoffswitch').on('click', function () {
+    $('#compoundlastonoffswitch').on('click', function () {
         chrome.storage.local.set({'compoundlast': this.checked});
         $("#compoundlast").css("display", "block");
     });
@@ -3128,10 +3128,8 @@ chrome.storage.local.get('adjustname', function (result) {
 });
 
 chrome.storage.local.get('compoundlast', function (result) {
-    var compoundlast = result.compoundlast;
-    if (exists(compoundlast)) {
-        $('#compountlastonoffswitch').prop('checked', compoundlast);
-    }
+    var compoundlast = exists(result.compoundlast) ? result.compoundlast : true;
+    $('#compoundlastonoffswitch').prop('checked', compoundlast);
 });
 
 chrome.storage.local.get('autoprivate', function (result) {

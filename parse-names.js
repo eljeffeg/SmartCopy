@@ -214,9 +214,15 @@ var NameParse = (function(){
         }
 
         if (middleName !== "") {
-            var testcompound = false;
             var splitlast = lastName.trim().split(" ");
-            if (splitlast.every(this.is_compound_lastName)) {
+            // Require 2+ words, not just 1 - a single word matching the
+            // compound-surname list is almost always a genuine, complete
+            // short surname (Lo, Da, Di, O', Te, Y, ...), not a stranded
+            // prefix missing its actual surname. A *multi*-word last name
+            // where every word is a prefix/nexus word with no head noun
+            // among them is a much stronger signal that the real surname
+            // is actually missing from the source data - see issue #200.
+            if (splitlast.length > 1 && splitlast.every(this.is_compound_lastName)) {
                 lastName = middleName + " " + lastName.trim();
                 middleName = "";
             }

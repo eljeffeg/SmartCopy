@@ -23,6 +23,12 @@ document.addEventListener('DOMContentLoaded', function () {
       $(el).text(tranlation);
     }
   });
+  // The on/off switches render their "ON"/"OFF" text via CSS
+  // (.onoffswitch-inner:before/:after { content: attr(data-on-text/data-off-text) })
+  // rather than real DOM text, since the same two-tone slider look is shared
+  // by 20+ switches - setting these two attributes once here covers all of
+  // them instead of needing a data-i18n-style attribute on every switch.
+  $('.onoffswitch-inner').attr('data-on-text', _("switchOn")).attr('data-off-text', _("switchOff"));
 });
 
 chrome.storage.local.get('buildhistory', function (result) {
@@ -1299,9 +1305,9 @@ $(function () {
         $('#historybox').slideToggle();
         showhistorycheck = !showhistorycheck;
         if (showhistorycheck) {
-            $('#showhistory').text("Show History");
+            $('#showhistory').text(_("Show_History"));
         } else {
-            $('#showhistory').text("Hide History");
+            $('#showhistory').text(_("Hide_History"));
         }
     });
 });

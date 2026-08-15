@@ -8,6 +8,12 @@
     "appDesc": {
         "message": "Tool for copying genealogical data into Geni."
     },
+    "switchOn": {
+        "message": "ON"
+    },
+    "switchOff": {
+        "message": "OFF"
+    },
     "consistencyCheck": {
         "message": "Consistency Check"
     },
@@ -380,6 +386,9 @@
     },
     "Show_History": {
         "message": "Show History"
+    },
+    "Hide_History": {
+        "message": "Hide History"
     },
     "Clear_History": {
         "message": "Clear History"

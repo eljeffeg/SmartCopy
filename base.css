@@ -454,14 +454,14 @@ a:hover {
 }
 
 .onoffswitch-inner:before {
-    content: "ON";
+    content: attr(data-on-text);
     padding-left: 5px;
     text-align: left;
     background-color: #44B1FA; color: #FFFFFF;
 }
 
 .onoffswitch-inner:after {
-    content: "OFF";
+    content: attr(data-off-text);
     padding-right: 5px;
     background-color: #EBEBEB; color: #666666;
     text-align: right;

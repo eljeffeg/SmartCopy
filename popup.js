@@ -1408,6 +1408,16 @@ var submitform = function () {
                         about = "";
                         if (exists(familyout["about_me"])) {
                             about = familyout["about_me"];
+                            // Unconditional, matching the focus-profile path
+                            // above (~line 1328) - without this, a plain
+                            // about note with no existing bullet lines (e.g.
+                            // straight from a collection's own note text,
+                            // not a prior SmartCopy run) skipped straight to
+                            // the "* Reference: ..." append below with no
+                            // separator, breaking the bullet formatting.
+                            if (!about.endsWith("\n")) {
+                                about += "\n";
+                            }
                         }
                         if (about !== "") {
                             var splitabout = about.split("\n");

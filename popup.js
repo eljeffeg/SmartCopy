@@ -2457,7 +2457,7 @@ function addHistory(id, itemId, name, data, aliasId) {
             return arr.map(normalizeItemId).indexOf(normalizeItemId(v)) === idx;
         });
         buildhistory.unshift({id: primary, aliasIds: aliasIds, itemIds: itemIds, name: name, date: Date.now(), data: submissions});
-        if (buildhistory.length > 100) {
+        if (buildhistory.length > 300) {
             buildhistory.pop();
         }
         chrome.storage.local.set({'buildhistory': buildhistory});

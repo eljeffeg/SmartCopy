@@ -1400,15 +1400,6 @@ var submitform = function () {
                     if (focusabout !== "") {
                         about = focusabout + "\n" + about;
                     }
-                    if (about !== "") {
-                        var splitabout = about.split("\n");
-                        if (splitabout.length > 1 && splitabout[splitabout.length - 2].startsWith("* ")) {
-                            if (!about.endsWith("\n")) {
-                                about += "\n";
-                            }
-                            about += "*";
-                        }
-                    }
                     // Category-level summary of what this submission actually
                     // touched, appended to the same Reference note rather than
                     // a separate formal sources/citations system - see #59.
@@ -1482,17 +1473,6 @@ var submitform = function () {
                             // separator, breaking the bullet formatting.
                             if (!about.endsWith("\n")) {
                                 about += "\n";
-                            }
-                        }
-                        if (about !== "") {
-                            var splitabout = about.split("\n");
-                            if (splitabout.length > 1 && splitabout[splitabout.length - 2].startsWith("* ")) {
-                                if (!about.endsWith("\n")) {
-                                    about += "\n";
-                                }
-                                if (sourcecheck) {
-                                    about += "*";
-                                }
                             }
                         }
                         if (sourcecheck) {

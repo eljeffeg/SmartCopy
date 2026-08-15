@@ -1740,14 +1740,23 @@ function buildTree(data, action, sendid) {
                     } else if (isSibling(relation) && !exists(parentspouseunion)) {
                         parentspouseunion = result.unions[0].replace("https://www.geni.com/api/", "");
                     }
-                    addHistory(result.id, databyid[id].itemId, getProfileName(databyid[id].name), JSON.stringify(response.variable.data));
+                    // genidata already resolved above (from genifamilydata if
+                    // known, else a fresh wrapper around this response) - its
+                    // guid, when available, is what lets history display and
+                    // future auto-pick use the recognizable guid instead of
+                    // the internal node_number id result.id above always is
+                    // (see issue #201).
+                    addHistory(result.id, databyid[id].itemId, getProfileName(databyid[id].name), JSON.stringify(response.variable.data), genidata.get("guid"));
                 } else if (sendid === focusid) {
                     // result.id and focusid are confirmed to be the same profile here
                     // (that's what the sendid === focusid check just established), but
                     // Geni's API can return result.id in a different id format than
                     // focusid (URL/guid-derived) - pass focusid through as an alias so
                     // this matches any prior/future history entry recorded under either.
-                    addHistory(result.id, focusURLid, getProfileName(focusname), JSON.stringify(response.variable.data), focusid);
+                    // Also pass the real guid directly (issue #201) - focusid isn't
+                    // guaranteed to be guid-format depending on how it was set this
+                    // session, so don't rely on it alone for that.
+                    addHistory(result.id, focusURLid, getProfileName(focusname), JSON.stringify(response.variable.data), [focusid, genifocusdata.get("guid")]);
                 }
                 if (action !== "add-photo" && action !== "delete") {
                     updatecount += 1;
@@ -1781,9 +1790,23 @@ function buildTree(data, action, sendid) {
                             var photoHistoryData = JSON.stringify({photo: "uploaded"});
                             var photoId = response.variable.id;
                             if (exists(databyid[photoId])) {
-                                addHistory(result.id, databyid[photoId].itemId, getProfileName(databyid[photoId].name), photoHistoryData);
+                                // Unlike the field-update callback, nothing
+                                // upstream of this callback already resolved
+                                // a GeniPerson wrapper for this family member -
+                                // look one up the same way that callback does
+                                // (known genifamilydata entry, if any) so the
+                                // guid can be passed the same way (#201). No
+                                // fallback to a fresh wrapper from `result`
+                                // here - the photo endpoint's response doesn't
+                                // include a guid field either way, so a fresh
+                                // wrapper wouldn't have one to give.
+                                var photoGuid = "";
+                                if (exists(databyid[photoId]["geni_id"]) && exists(genifamilydata[databyid[photoId]["geni_id"]])) {
+                                    photoGuid = genifamilydata[databyid[photoId]["geni_id"]].get("guid");
+                                }
+                                addHistory(result.id, databyid[photoId].itemId, getProfileName(databyid[photoId].name), photoHistoryData, photoGuid);
                             } else if (sendid === focusid) {
-                                addHistory(result.id, focusURLid, getProfileName(focusname), photoHistoryData, focusid);
+                                addHistory(result.id, focusURLid, getProfileName(focusname), photoHistoryData, [focusid, genifocusdata.get("guid")]);
                             }
                             // submitstatus.pop() below fires synchronously,
                             // not waiting on this response - so the "all
@@ -2340,8 +2363,15 @@ function dateAmbigous(valdate) {
 function addHistory(id, itemId, name, data, aliasId) {
     if (exists(id)) {
         var incomingOriginalIds = [id];
-        if (exists(aliasId) && aliasId !== "" && normalizeProfileId(aliasId) !== normalizeProfileId(id)) {
-            incomingOriginalIds.push(aliasId);
+        // aliasId may be a single id (existing callers) or an array of
+        // candidate ids (e.g. both a legacy alias and the profile's guid -
+        // see issue #201) - accept either.
+        var aliasCandidates = Array.isArray(aliasId) ? aliasId : [aliasId];
+        for (var a = 0; a < aliasCandidates.length; a++) {
+            var candidate = aliasCandidates[a];
+            if (exists(candidate) && candidate !== "" && normalizeProfileId(candidate) !== normalizeProfileId(id) && incomingOriginalIds.indexOf(candidate) === -1) {
+                incomingOriginalIds.push(candidate);
+            }
         }
         var incomingNormIds = incomingOriginalIds.map(normalizeProfileId);
         var priorSubmissions = [];

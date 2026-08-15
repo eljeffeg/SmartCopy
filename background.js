@@ -273,7 +273,7 @@ function isSupportedSite(url) {
 
 function updateBadgeForTab(tabId, url) {
     if (isSupportedSite(url)) {
-        chrome.action.setBadgeText({tabId: tabId, text: "✓"});
+        chrome.action.setBadgeText({tabId: tabId, text: "."});
         chrome.action.setBadgeBackgroundColor({tabId: tabId, color: "#2e7d32"});
     } else {
         chrome.action.setBadgeText({tabId: tabId, text: ""});

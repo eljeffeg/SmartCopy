@@ -1785,6 +1785,15 @@ function buildTree(data, action, sendid) {
                             } else if (sendid === focusid) {
                                 addHistory(result.id, focusURLid, getProfileName(focusname), photoHistoryData, focusid);
                             }
+                            // submitstatus.pop() below fires synchronously,
+                            // not waiting on this response - so the "all
+                            // submissions done" flow elsewhere can already
+                            // have redrawn the history list before this
+                            // callback (and thus addHistory() above) ever
+                            // runs, leaving the photo entry recorded but not
+                            // visible until some unrelated later refresh.
+                            // Redraw here too so it shows up promptly.
+                            buildHistoryBox();
                         }
                     }
                 } catch (e) {

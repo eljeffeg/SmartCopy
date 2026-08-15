@@ -586,8 +586,36 @@ function updateLinks(focusprofile) {
     $("#descendanturl").attr("href", "https://historylinktools.herokuapp.com/graph" + focusprofile + "&type=descendant&color=gender");
 }
 
+// Client-rendered SPA pages (Filae, MyHeritage's new design) can be
+// captured before React has actually finished rendering, since
+// getPagesSource.js's injection is a single, one-shot DOM snapshot with no
+// concept of "is this page actually ready yet" - unlike the retry-based
+// family-member fallback each of those collections has, the FOCUS
+// profile's own capture had no equivalent safety net at all, confirmed
+// live: an early capture on Filae came back completely blank. Strictly
+// opt-in via collection.isPageReady (undefined for every collection that
+// doesn't need it, e.g. anything server-rendered) so this changes nothing
+// for the common case - only a collection that defines it pays any retry
+// cost at all.
+var pageReadyAttempts = 0;
+var PAGE_READY_MAX_ATTEMPTS = 15;
+
 chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     if (request.action == "getSource") {
+        if (exists(collection) && exists(collection.isPageReady)) {
+            var ready = collection.isPageReady(request.source);
+            console.log("getSource: isPageReady check", {ready: ready, attempt: pageReadyAttempts});
+            if (!ready && pageReadyAttempts < PAGE_READY_MAX_ATTEMPTS) {
+                pageReadyAttempts++;
+                $("#readstatus").html("(waiting for the page to finish loading)");
+                setTimeout(capturePage, 1000);
+                return false;
+            }
+            if (!ready) {
+                console.log("getSource: gave up waiting for isPageReady after " + pageReadyAttempts + " attempts, proceeding anyway");
+            }
+        }
+        pageReadyAttempts = 0;
         // loadPage() runs synchronously and never calls callback -
         // getPagesSource.js's sendMessage call doesn't pass one either, so
         // no response is ever expected here. Returning true (promising an
@@ -997,6 +1025,31 @@ function updateMessage(color, messagetext) {
     $(message).html(messagehtml + messagetext);
 }
 
+// The actual DOM capture step of getPageCode() - factored out so the
+// "getSource" listener below can re-trigger it for a collection that opts
+// into isPageReady (see that listener), without duplicating the injection
+// sequence.
+async function capturePage() {
+    const tabId = await getTabId();
+    chrome.scripting.executeScript({
+        target: {tabId: tabId},
+        world: "MAIN",
+        files: ["annotateMyHeritageLinks.js"]
+    }, function () {
+        // Best-effort only (e.g. not every site is React, or this is
+        // a browser without MAIN-world injection support) - proceed
+        // to the normal page capture regardless of the outcome here.
+        chrome.scripting.executeScript({
+            target: {tabId: tabId},
+            files: ["annotateFilaeAvatars.js", "getPagesSource.js"]
+        }, function () {
+            if (chrome.runtime.lastError) {
+                setMessage(errormsg, 'There was an error injecting script : \n' + chrome.runtime.lastError.message);
+            }
+        });
+    });
+}
+
 async function getPageCode() {
     if (loggedin && exists(accountinfo)) {
         document.querySelector('#message').style.display = "none";
@@ -1013,24 +1066,7 @@ async function getPageCode() {
                 loadPage(response);
             });
         } else if (collection.parseProfileData) {
-            const tabId = await getTabId();
-            chrome.scripting.executeScript({
-                target: {tabId: tabId},
-                world: "MAIN",
-                files: ["annotateMyHeritageLinks.js"]
-            }, function () {
-                // Best-effort only (e.g. not every site is React, or this is
-                // a browser without MAIN-world injection support) - proceed
-                // to the normal page capture regardless of the outcome here.
-                chrome.scripting.executeScript({
-                    target: {tabId: tabId},
-                    files: ["annotateFilaeAvatars.js", "getPagesSource.js"]
-                }, function () {
-                    if (chrome.runtime.lastError) {
-                        setMessage(errormsg, 'There was an error injecting script : \n' + chrome.runtime.lastError.message);
-                    }
-                });
-            });
+            capturePage();
         }
     } else {
         setTimeout(getPageCode, 50);

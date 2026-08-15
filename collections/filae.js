@@ -43,6 +43,40 @@ registerCollection({
         focusURLid = extractFilaeProfileId(url);
         getPageCode();
     },
+    // Filae is entirely client-rendered React (see file header comment) -
+    // a capture taken before React has finished mounting/rendering comes
+    // back as effectively the empty <div id="root"></div> shell, which
+    // parseFilae() cannot recover from (unlike family members, which have
+    // their own retry-based tab fallback, the focus profile's own capture
+    // had no such safety net - confirmed live, an early capture produced a
+    // completely blank profile). Uses the same extractFilaeHeader() lookup
+    // parseFilae()'s own header section and loadPage() below both use -
+    // if this passes, both of those will succeed too.
+    "isPageReady": function(htmlstring) {
+        if (!exists(htmlstring)) {
+            return false;
+        }
+        var header = extractFilaeHeader($(htmlstring.replace(/<img/ig, "<gmi")));
+        // header.nameEl.length alone only proves the <p> element exists,
+        // not that React has actually populated its text yet - requiring
+        // a non-empty header.name too catches the case where the DOM
+        // skeleton renders slightly ahead of the name text itself.
+        return header.nameEl.length > 0 && header.name !== "";
+    },
+    // Sets the global focusname - separate from, and independent of,
+    // parseProfileData()/parseFilae() below. buildform.js's "Profile Data"
+    // table (behind the profile's "show all fields" toggle) reads
+    // NameParse.parse(focusname, ...) directly (see buildform.js ~line
+    // 231), not alldata["profile"].name, which is the thing parseFilae()
+    // sets. Every other collection with this two-step split (Geneanet,
+    // MyHeritage's new design) already defines this hook; Filae never did,
+    // which meant focusname simply never got set here at all - the "Profile
+    // Data" section came up completely blank even on runs where
+    // parseFilae()'s own extraction succeeded (confirmed live via console
+    // diagnostics: parseFilae() had the right name the whole time).
+    "loadPage": function(request) {
+        focusname = extractFilaeHeader($(request.source.replace(/<img/ig, "<gmi"))).name;
+    },
     "parseProfileData": parseFilae
 });
 
@@ -179,6 +213,71 @@ function buildFilaeEventData(sentence) {
     return data;
 }
 
+// Shared by isPageReady, loadPage, and parseFilae()'s own header section -
+// all three need the same "life-dates paragraph -> preceding name
+// paragraph" lookup. Duplicating this three times independently is exactly
+// what caused the focus-profile-blank bug: loadPage() didn't exist at all
+// (only parseFilae() had this logic), so focusname - which
+// buildform.js's "Profile Data" table actually reads via
+// NameParse.parse(focusname, ...), not alldata["profile"].name - never got
+// set, even though parseFilae()'s own extraction worked correctly the
+// whole time (confirmed live via console diagnostics).
+//
+// The page has more than one "first non-empty paragraph" candidate before
+// the real profile header - a global account-menu avatar/name in the
+// site's own nav, and a compact name-only repeat in a "tree breadcrumb
+// bar" above the actual profile card (confirmed directly against a live
+// rendered page - see issue #28). An earlier version of this file picked
+// up the site's own "My alerts" notification text instead of the profile
+// name because of this.
+//
+// The life-dates line ("1845  - 1918 ", a bare year-range with no other
+// text) reliably identifies the real header instead: it's the first such
+// paragraph in document order, before any family sidebar card's own
+// year-range paragraph, and its immediately preceding sibling <p> is the
+// name paragraph, which nests any nickname as a <span class="nickname">
+// rather than a separate paragraph.
+function extractFilaeHeader(parsed) {
+    var lifeDatesPara = parsed.find("p").filter(function () {
+        return /^\d{4}\s*-\s*\d{0,4}\s*$/.test($(this).text().trim()) && !$(this).closest("a").length;
+    }).first();
+    var nameEl = lifeDatesPara.length ? lifeDatesPara.prev("p") : $();
+    var name = "";
+    var birthYear, deathYear;
+    if (nameEl.length) {
+        var yearMatch = lifeDatesPara.text().trim().match(/^(\d{4})\s*-\s*(\d{4})?/);
+        if (yearMatch) {
+            birthYear = yearMatch[1];
+            deathYear = yearMatch[2];
+        }
+        var nickname = nameEl.find(".nickname").text().replace(/\s+/g, " ").trim();
+        var nameClone = nameEl.clone();
+        nameClone.find(".nickname").remove();
+        name = nameClone.text().replace(/\s+/g, " ").trim();
+        // Some of Filae's GEDCOM-imported names carry a stray, unmatched
+        // quote character baked directly into this text (e.g. a raw
+        // "Heinrich "henry KESSLER" with no closing quote before KESSLER -
+        // confirmed live, a Filae import artifact, not something
+        // introduced here). An odd/unbalanced quote count collides with
+        // NameParse's own "name in quotes = nickname" convention once the
+        // real nickname gets appended below, confusing which part it
+        // treats as the surname. Stripping quotes only when the count is
+        // actually unbalanced leaves every normal, quote-free name
+        // untouched.
+        if ((name.match(/"/g) || []).length % 2 !== 0) {
+            name = name.replace(/"/g, "").replace(/\s+/g, " ").trim();
+        }
+        if (nickname !== "") {
+            // Wrapped in quotes so the existing NameParse-based pipeline
+            // (already used by every other collection in this codebase)
+            // picks it up as an alias/nickname the same way it would for a
+            // source that embeds it in the raw name string directly.
+            name += ' "' + nickname + '"';
+        }
+    }
+    return {lifeDatesPara: lifeDatesPara, nameEl: nameEl, name: name, birthYear: birthYear, deathYear: deathYear};
+}
+
 function parseFilae(htmlstring, familymembers, relation) {
     relation = relation || "";
     if (!exists(htmlstring)) {
@@ -192,44 +291,11 @@ function parseFilae(htmlstring, familymembers, relation) {
     var deathdtflag = false;
 
     // ---------------------- Name / header --------------------
-    // The page has more than one "first non-empty paragraph" candidate
-    // before the real profile header - a global account-menu avatar/name in
-    // the site's own nav, and a compact name-only repeat in a "tree
-    // breadcrumb bar" above the actual profile card (confirmed directly
-    // against a live rendered page - see issue #28). An earlier version of
-    // this file picked up the site's own "My alerts" notification text
-    // instead of the profile name because of this.
-    //
-    // The life-dates line ("1845  - 1918 ", a bare year-range with no other
-    // text) reliably identifies the real header instead: it's the first
-    // such paragraph in document order, before any family sidebar card's
-    // own year-range paragraph, and its immediately preceding sibling <p>
-    // is the name paragraph, which nests any nickname as a
-    // <span class="nickname"> rather than a separate paragraph.
-    var focusperson = "";
-    var focusBirthYearFromHeader, focusDeathYearFromHeader;
-    var lifeDatesPara = parsed.find("p").filter(function () {
-        return /^\d{4}\s*-\s*\d{0,4}\s*$/.test($(this).text().trim()) && !$(this).closest("a").length;
-    }).first();
-    var nameEl = lifeDatesPara.length ? lifeDatesPara.prev("p") : $();
-    if (nameEl.length) {
-        var yearMatch = lifeDatesPara.text().trim().match(/^(\d{4})\s*-\s*(\d{4})?/);
-        if (yearMatch) {
-            focusBirthYearFromHeader = yearMatch[1];
-            focusDeathYearFromHeader = yearMatch[2];
-        }
-        var nickname = nameEl.find(".nickname").text().replace(/\s+/g, " ").trim();
-        var nameClone = nameEl.clone();
-        nameClone.find(".nickname").remove();
-        focusperson = nameClone.text().replace(/\s+/g, " ").trim();
-        if (nickname !== "") {
-            // Wrapped in quotes so the existing NameParse-based pipeline
-            // (already used by every other collection in this codebase)
-            // picks it up as an alias/nickname the same way it would for a
-            // source that embeds it in the raw name string directly.
-            focusperson += ' "' + nickname + '"';
-        }
-    }
+    var header = extractFilaeHeader(parsed);
+    var nameEl = header.nameEl;
+    var focusperson = header.name;
+    var focusBirthYearFromHeader = header.birthYear;
+    var focusDeathYearFromHeader = header.deathYear;
     if (focusperson === "") {
         // Fall back to whatever page <title> Filae sets, if the header
         // lookup above doesn't find anything on this particular page
@@ -237,7 +303,19 @@ function parseFilae(htmlstring, familymembers, relation) {
         // a nickname.
         focusperson = parsed.find("title").text().trim();
     }
-    $("#readstatus").html(escapeHtml(focusperson));
+    if (focusperson !== "") {
+        // This also fires on every tab-polling attempt for every family
+        // member now, not just the one-shot focus-profile call it was
+        // originally written for - on an early attempt where the page
+        // hasn't rendered yet, focusperson is "", and unconditionally
+        // writing that here blanked out whatever real progress was showing
+        // a moment earlier (confirmed live: with 2 tabs polling
+        // concurrently, real names and blanks rapidly interleaved on the
+        // same status line). Only ever overwrite with something real -
+        // leave the previous status alone otherwise, rather than clearing
+        // it for a parse that didn't find anything yet.
+        $("#readstatus").html(escapeHtml(focusperson));
+    }
 
     // The main profile avatar immediately precedes the name/dates wrapper
     // (nameEl's parent) in the header - see annotateFilaeAvatars.js for how
@@ -467,72 +545,228 @@ function parseFilae(htmlstring, familymembers, relation) {
 
 function getFilaeFamily(famid, url, subdata) {
     familystatus.push(famid);
-    chrome.runtime.sendMessage({
-        method: "GET",
-        action: "xhttp",
-        url: url,
-        variable: subdata
-    }, function (response) {
-        // familystatus.pop() must run no matter what happens above it -
-        // updateGeo() polls familystatus.length and never moves past
-        // "Reading Family Data..." if even one push here is never matched
-        // by a pop. A relative/incomplete url (background.js's fetch
-        // failing) or any other unexpected response leaves
-        // response.source undefined, and parseFilae()'s first line calls
-        // .replace() on it unconditionally - that throw used to happen
-        // above the pop, hanging the whole import. try/finally guarantees
-        // the pop happens regardless of whether parsing below succeeds.
-        try {
-            var arg = response.variable;
-            // The recursive fetch almost always comes back empty (Filae's
-            // page is entirely client-rendered, same as MyHeritage's new
-            // design - see file header comment) - confirmed live: it isn't
-            // a rare edge case here, it's the normal outcome. Dropping the
-            // family member entirely when that happens (as an earlier
-            // version of this function did, to fix a hang caused by an
-            // unguarded .replace() on an undefined response) was wrong -
-            // it silently threw away everyone whose recursive fetch didn't
-            // pan out, which in practice was everyone. Falling back to a
-            // person built from arg - the name/url/itemId/birth/death
-            // already gathered from the sidebar card before this fetch
-            // was even made - instead of dropping them.
-            var person = exists(response.source) ? parseFilae(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId}) : "";
-            if (person === "") {
-                // url/itemId/profile_id specifically (not just
-                // name/birth/death) - these are what
-                // popup.js's "Add reference to Geni's About section"
-                // logic reads via databyid[profile_id].url when building
-                // each family member's own submission. Without them, the
-                // reference silently has nothing to link to for anyone who
-                // took this fallback path - confirmed live: Benno's own
-                // reference worked (a different, focus-profile-specific
-                // code path that doesn't depend on this), his wife's did
-                // not.
-                person = {name: arg.name, status: arg.title, url: arg.url, itemId: arg.itemId, profile_id: arg.profile_id};
-            } else {
-                person = updateInfoData(person, arg);
-            }
-            if (!exists(person.name) || person.name === "") {
-                person.name = arg.name;
-            }
-            if (!exists(person.birth) && exists(arg.birth)) {
-                person.birth = arg.birth;
-            }
-            if (!exists(person.death) && exists(arg.death)) {
-                person.death = arg.death;
-            }
-            // arg.gender comes from this person's own sidebar-card avatar
-            // color on the focus person's page (see the family-card loop
-            // above) - a real per-person source, not a guess, so it's
-            // preferred over whatever the (almost always empty) recursive
-            // fetch determined.
-            if ((!exists(person.gender) || person.gender === "unknown") && exists(arg.gender) && arg.gender !== "unknown") {
-                person.gender = arg.gender;
-            }
-            databyid[arg.profile_id] = person;
-            alldata["family"][arg.title].push(person);
-        } finally {
-            familystatus.pop();
+    // No plain background fetch attempt here, unlike Geneanet's equivalent
+    // - it's not worth trying first the way Geneanet's is, since Filae's
+    // page is entirely client-rendered React with no server-side HTML at
+    // all (confirmed via a raw fetch - see file header comment, issue
+    // #28), so a background fetch always comes back as the empty
+    // <div id="root"></div> shell regardless of session state or how many
+    // times it's retried. Trying it anyway only ever cost a wasted network
+    // round-trip before falling through to the tab for every single family
+    // member - straight there instead.
+    fetchFilaeFamilyViaTab(famid, url, subdata);
+}
+
+// person.birth/death gets populated two different ways in parseFilae() - a
+// real Events-tab date+place sentence, or (when that's missing) a fallback
+// to the bare "birth - death" year shown in the page header - so exists()
+// alone can't tell a genuinely full result from one that just inherited the
+// same bare year the sidebar card already gave us before any fetch at all.
+// Checking for anything beyond a plain 4-digit year is what actually
+// distinguishes them, since the header fallback can never produce that.
+function isFullFilaeDate(dateEntry) {
+    return exists(dateEntry) && exists(dateEntry[0]) && exists(dateEntry[0].date) && !/^\d{4}$/.test(dateEntry[0].date);
+}
+
+function isUsableFilaePerson(person) {
+    return exists(person) && person !== "" && (isFullFilaeDate(person.birth) || isFullFilaeDate(person.death));
+}
+
+// familystatus.pop() must run no matter what happens above it - updateGeo()
+// polls familystatus.length and never moves past "Reading Family Data..."
+// if even one push is never matched by a pop. try/finally guarantees that
+// regardless of which caller (the plain fetch or the tab fallback) reaches
+// this, and regardless of whether the merge logic below throws.
+function finishFilaeFamilyMember(famid, person, arg) {
+    try {
+        if (person === "") {
+            // url/itemId/profile_id specifically (not just
+            // name/birth/death) - these are what
+            // popup.js's "Add reference to Geni's About section"
+            // logic reads via databyid[profile_id].url when building
+            // each family member's own submission. Without them, the
+            // reference silently has nothing to link to for anyone who
+            // took this fallback path - confirmed live: Benno's own
+            // reference worked (a different, focus-profile-specific
+            // code path that doesn't depend on this), his wife's did
+            // not.
+            person = {name: arg.name, status: arg.title, url: arg.url, itemId: arg.itemId, profile_id: arg.profile_id};
+        } else {
+            person = updateInfoData(person, arg);
         }
+        if (!exists(person.name) || person.name === "") {
+            person.name = arg.name;
+        }
+        if (!exists(person.birth) && exists(arg.birth)) {
+            person.birth = arg.birth;
+        }
+        if (!exists(person.death) && exists(arg.death)) {
+            person.death = arg.death;
+        }
+        // arg.gender comes from this person's own sidebar-card avatar
+        // color on the focus person's page (see the family-card loop
+        // above) - a real per-person source, not a guess, so it's
+        // preferred over whatever the (often empty) fetch determined.
+        if ((!exists(person.gender) || person.gender === "unknown") && exists(arg.gender) && arg.gender !== "unknown") {
+            person.gender = arg.gender;
+        }
+        databyid[arg.profile_id] = person;
+        alldata["family"][arg.title].push(person);
+    } finally {
+        familystatus.pop();
+    }
+}
+
+// Mirrors collections/geneanet.js's tab fallback: one tab at a time (a
+// burst of simultaneous tabs is both disruptive to watch and plausibly
+// worse for any anti-bot heuristics, not better), polling
+// chrome.tabs.get()/executeScript() directly rather than reacting to
+// chrome.tabs.onUpdated's "complete" event (an event-driven version lost
+// the race against fast-loading pages in testing - the listener wasn't
+// attached yet by the time the tab had already finished).
+// Every family member needs its own full tab render - there's no
+// Geneanet-style "clearance carries over" shortcut here, since Filae's
+// blocker is that the page needs React to actually run, not a
+// session/cookie state that one success can unlock for everyone else. A
+// strict one-at-a-time queue made that cost purely additive (family size *
+// per-person render time) - a small concurrency limit instead lets that
+// render time overlap. Unlike Geneanet there's no established anti-bot
+// reason to stay fully serialized here, so this is a real wall-clock win,
+// not just a rebalancing of the same total wait.
+var filaeTabQueue = [];
+var filaeTabActive = 0;
+var FILAE_TAB_CONCURRENCY = 3;
+
+function fetchFilaeFamilyViaTab(famid, url, arg) {
+    filaeTabQueue.push({famid: famid, url: url, arg: arg});
+    runNextFilaeTabFetch();
+}
+
+function runNextFilaeTabFetch() {
+    if (filaeTabActive >= FILAE_TAB_CONCURRENCY || filaeTabQueue.length === 0) {
+        return;
+    }
+    // How many tabs were already running when this one starts - used only
+    // to stagger its first poll slightly (see runFilaeTabFetch()), not a
+    // stable per-slot identity.
+    var staggerIndex = filaeTabActive;
+    filaeTabActive++;
+    var next = filaeTabQueue.shift();
+    runFilaeTabFetch(next.famid, next.url, next.arg, staggerIndex, function () {
+        filaeTabActive--;
+        runNextFilaeTabFetch();
+    });
+    // Immediately try to fill the next concurrency slot too, rather than
+    // waiting for this one call to return - runNextFilaeTabFetch() is a
+    // no-op once the concurrency limit or the queue is exhausted, so this
+    // just keeps pulling from the queue until either is hit.
+    runNextFilaeTabFetch();
+}
+
+function runFilaeTabFetch(famid, url, arg, staggerIndex, onDone) {
+    $("#readstatus").html(escapeHtml(arg.name) + " (looking deeper, this may take a second)");
+    chrome.tabs.create({url: url, active: false}, function (tab) {
+        if (!exists(tab) || !exists(tab.id)) {
+            finishFilaeFamilyMember(famid, "", arg);
+            onDone();
+            return;
+        }
+        var settled = false;
+        var attempts = 0;
+        // Filae is a full React SPA (bootstraps, fetches its own data via
+        // API calls, then renders), not server-rendered HTML like
+        // Geneanet - a background/inactive tab is also throttled by
+        // Chrome/Firefox for rendering and network, so this needs at least
+        // as much overall patience as Geneanet's tab fallback needed (~15s
+        // ceiling), confirmed live - full dates/places came through
+        // correctly at that budget. Checking twice as often (0.75s instead
+        // of 1.5s) keeps that same ceiling for genuinely slow renders while
+        // catching anyone who finishes early sooner - a pure latency win,
+        // not a reduction in how long a slow tab gets to finish.
+        var maxAttempts = 20;
+
+        function cleanupAndFinish(person) {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            chrome.tabs.remove(tab.id, function () {
+                // Swallow "no tab with id" - the tab may have already
+                // closed (e.g. the user closed it manually) by the time
+                // this runs; nothing left to clean up in that case.
+                void chrome.runtime.lastError;
+            });
+            finishFilaeFamilyMember(famid, person, arg);
+            onDone();
+        }
+
+        function attempt() {
+            if (settled) {
+                return;
+            }
+            attempts++;
+            chrome.tabs.get(tab.id, function (tabInfo) {
+                if (chrome.runtime.lastError || !exists(tabInfo)) {
+                    cleanupAndFinish("");
+                    return;
+                }
+                // Gender depends on annotateFilaeAvatars.js having stamped
+                // each avatar's computed background-color onto the DOM
+                // first (see that file) - getPageCode() does the same
+                // two-step for the focus tab, chained before serialization.
+                chrome.scripting.executeScript({
+                    target: {tabId: tab.id},
+                    files: ["annotateFilaeAvatars.js"]
+                }, function () {
+                    void chrome.runtime.lastError;
+                    chrome.scripting.executeScript({
+                        target: {tabId: tab.id},
+                        func: function () {
+                            var html = "", node = document.firstChild;
+                            while (node) {
+                                if (node.nodeType === Node.ELEMENT_NODE) {
+                                    html += node.outerHTML;
+                                } else if (node.nodeType === Node.TEXT_NODE) {
+                                    html += node.nodeValue;
+                                }
+                                node = node.nextSibling;
+                            }
+                            return html;
+                        }
+                    }, function (results) {
+                        void chrome.runtime.lastError;
+                        if (settled) {
+                            return;
+                        }
+                        var html = (exists(results) && exists(results[0])) ? results[0].result : undefined;
+                        var person = "";
+                        try {
+                            person = exists(html) ? parseFilae(html, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId}) : "";
+                        } catch (e) {
+                            console.log(e);
+                            person = "";
+                        }
+                        if (isUsableFilaePerson(person) || attempts >= maxAttempts) {
+                            // On the final attempt, use whatever came
+                            // through even if incomplete (e.g. gender but
+                            // no full date) - still strictly better than
+                            // discarding it for the bare sidebar-year
+                            // fallback.
+                            cleanupAndFinish(person);
+                        } else {
+                            setTimeout(attempt, 750);
+                        }
+                    });
+                });
+            });
+        }
+        // Staggering only the first check (not the ongoing 750ms cadence
+        // in the retry branch above) is enough - every later attempt stays
+        // offset by the same amount from there on, since each is scheduled
+        // relative to the previous one. Without this, tabs started at
+        // nearly the same instant with an identical cadence poll (and
+        // often finish) in lockstep, showing up as bursts of simultaneous
+        // updates rather than a steady trickle.
+        setTimeout(attempt, 750 + staggerIndex * 350);
     });
 }

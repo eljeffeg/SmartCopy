@@ -110,6 +110,9 @@
     "fixTitle": {
         "message": "fix title"
     },
+    "noPermission": {
+        "message": "no permission to fix"
+    },
     "makePublic": {
         "message": "make public"
     },

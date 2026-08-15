@@ -407,7 +407,7 @@ function getMyHeritageNewFamily(famid, url, subdata) {
         try {
             person = (exists(response) && exists(response.source)) ? parseMyHeritageNew(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId}) : "";
         } catch (e) {
-            console.log(e);
+            console.error(e);
             person = "";
         }
         if (isUsableMHPerson(person)) {
@@ -568,7 +568,7 @@ function runMHTabFetch(famid, url, arg, staggerIndex, onDone) {
                     try {
                         person = exists(html) ? parseMyHeritageNew(html, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId}) : "";
                     } catch (e) {
-                        console.log(e);
+                        console.error(e);
                         person = "";
                     }
                     if (isUsableMHPerson(person) || attempts >= maxAttempts) {

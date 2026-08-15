@@ -754,12 +754,6 @@ function runGeneanetTabFetch(famid, url, arg, onDone) {
                     void chrome.runtime.lastError;
                     var html = (exists(results) && exists(results[0])) ? results[0].result : undefined;
                     var person = exists(html) ? parseGeneanet(html, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId}) : "";
-                    // Temporary diagnostic - remove once the timing fix is
-                    // confirmed live. Distinguishes "tab extraction never
-                    // found real dates" from "it found them but something
-                    // downstream lost them" without needing another round
-                    // of guessing.
-                    console.log("Geneanet tab attempt " + attempts + " for " + arg.name + ":", {htmlLen: exists(html) ? html.length : 0, birth: person ? person.birth : undefined, death: person ? person.death : undefined});
                     if (isUsableGeneanetPerson(person) || attempts >= maxAttempts) {
                         // On the final attempt, use whatever came through
                         // even if incomplete (e.g. gender but no dates) -

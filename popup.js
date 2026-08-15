@@ -625,7 +625,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     if (request.action == "getSource") {
         if (exists(collection) && exists(collection.isPageReady)) {
             var ready = collection.isPageReady(request.source);
-            console.log("getSource: isPageReady check", {ready: ready, attempt: pageReadyAttempts});
             if (!ready && pageReadyAttempts < PAGE_READY_MAX_ATTEMPTS) {
                 pageReadyAttempts++;
                 $("#readstatus").html("(waiting for the page to finish loading)");
@@ -633,7 +632,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
                 return false;
             }
             if (!ready) {
-                console.log("getSource: gave up waiting for isPageReady after " + pageReadyAttempts + " attempts, proceeding anyway");
+                console.warn("getSource: gave up waiting for isPageReady after " + pageReadyAttempts + " attempts, proceeding anyway");
             }
         }
         pageReadyAttempts = 0;

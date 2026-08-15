@@ -865,9 +865,6 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             var arg = response.variable;
                             var person = exists(response) ? parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id, "url": arg.url}) : "";
                             person = updateInfoData(person, arg);
-                            if (person.name === "") {
-                                console.log(response.source);
-                            }
                             databyid[arg.profile_id] = person;
                             alldata["family"][arg.title].push(person);
                         } finally {

@@ -743,7 +743,7 @@ function runFilaeTabFetch(famid, url, arg, staggerIndex, onDone) {
                         try {
                             person = exists(html) ? parseFilae(html, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId}) : "";
                         } catch (e) {
-                            console.log(e);
+                            console.error(e);
                             person = "";
                         }
                         if (isUsableFilaePerson(person) || attempts >= maxAttempts) {

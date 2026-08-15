@@ -731,6 +731,27 @@ function buildForm() {
                 //if unknown, assume spouse is opposite gender
                 gender = reverseGender(focusgender);
             }
+
+            // #114 (siblings/children re-checked on a re-run): unlike
+            // parent, which is guarded above by geniHas(), sibling/child/
+            // partner had no "already in Geni's tree" check at all - only
+            // whether scorefactors flagged the relationship as a match
+            // factor, so re-running a build on the same profile after a
+            // prior run already added these people re-checked them again.
+            // Use the same name+birth-year match buildAction() uses to
+            // decide "Update" vs "Add Profile" in the dropdown below, so a
+            // member already linked to an existing Geni family member
+            // doesn't get flagged as needing to be added a second time.
+            if (scored && (isSibling(relationship) || isChild(relationship) || isPartner(relationship))) {
+                var earlyBirthYear = undefined;
+                if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
+                    earlyBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
+                }
+                if (findExistingFamilyMatch(relationship, gender, nameval.firstName, (nameval.lastName || nameval.birthName), earlyBirthYear)) {
+                    scored = false;
+                }
+            }
+
             var bgcolor = genderColor(gender);
 
             var actionicon = "add";
@@ -1673,6 +1694,92 @@ function buildUnknown(gender) {
     return pselect;
 }
 
+// Shared by buildAction() (below) and the auto-check gate in buildForm() -
+// matches an incoming family member against genifamilydata by exact,
+// case/diacritic-normalized name and, when more than one same-named
+// candidate could apply, a non-conflicting birth year (a classic namesake
+// signal - e.g. a grandson named after his grandfather - see #186 for the
+// full reasoning). Father/mother are excluded since Geni's data model
+// guarantees at most one of each - no ambiguity to resolve, and that case
+// is handled separately via geniHas(). Returns the matched genifamilydata
+// entry, or null if nothing qualifies.
+function findExistingFamilyMatch(relationship, gender, firstName, lastName, birthYear) {
+    if (!exists(genifamily)) {
+        return null;
+    }
+    if (isParent(relationship)) {
+        if (gender === "male") {
+            relationship = "father";
+        } else if (gender === "female") {
+            relationship = "mother";
+        }
+    } else if (isSibling(relationship)) {
+        if (gender === "male") {
+            relationship = "brother";
+        } else if (gender === "female") {
+            relationship = "sister";
+        }
+    } else if (isChild(relationship)) {
+        if (gender === "male") {
+            relationship = "son";
+        } else if (gender === "female") {
+            relationship = "daughter";
+        }
+    }
+
+    function categoryMatches(familymem) {
+        var famRel = familymem.get("relation");
+        return (relationship === "brother" && famRel === "brother") ||
+            (relationship === "sister" && famRel === "sister") ||
+            (relationship === "son" && famRel === "son") ||
+            (relationship === "daughter" && famRel === "daughter") ||
+            (isPartner(famRel) && isPartner(relationship)) ||
+            (isChild(famRel) && relationship === "child") ||
+            (isSibling(famRel) && relationship === "sibling") ||
+            (isParent(famRel) && relationship === "parent") ||
+            (famRel === "child" && isChild(relationship)) ||
+            (famRel === "sibling" && isSibling(relationship)) ||
+            (famRel === "parent" && isParent(relationship));
+    }
+
+    var incomingFirst = normalizeGermanic((firstName || "").trim().toLowerCase());
+    var incomingLast = normalizeGermanic((lastName || "").trim().toLowerCase());
+    if ((incomingFirst === "" && incomingLast === "") || relationship === "father" || relationship === "mother") {
+        return null;
+    }
+    var nameMatches = [];
+    for (var node in genifamilydata) {
+        if (!genifamilydata.hasOwnProperty(node)) continue;
+        var candidate = genifamilydata[node];
+        if (!categoryMatches(candidate)) continue;
+        var candidateLang = candidate.get("name_language");
+        var candidateFirst = normalizeGermanic((candidate.get("names", candidateLang + ".first_name") || "").trim().toLowerCase());
+        // Sites like Ancestry generally only ever record a woman's maiden
+        // surname, while Geni's own "name" for her may show her married
+        // surname (or vice versa) - match against either of Geni's surname
+        // fields rather than assuming which one the source data used.
+        var candidateLastName = normalizeGermanic((candidate.get("names", candidateLang + ".last_name") || "").trim().toLowerCase());
+        var candidateMaidenName = normalizeGermanic((candidate.get("names", candidateLang + ".maiden_name") || "").trim().toLowerCase());
+        if (candidateFirst === incomingFirst &&
+            (candidateLastName === incomingLast || candidateMaidenName === incomingLast)) {
+            nameMatches.push(candidate);
+        }
+    }
+    if (nameMatches.length === 1) {
+        var candidateBirthYear = nameMatches[0].get("birth", "date.year");
+        // Allow a small gap rather than requiring an exact match - source
+        // data commonly disagrees by a year or two for the same person
+        // (e.g. an estimated vs. recorded birth year), which shouldn't by
+        // itself read as a namesake conflict.
+        var birthConflict = exists(birthYear) && exists(candidateBirthYear) && candidateBirthYear !== "" &&
+            Math.abs(Number(birthYear) - Number(candidateBirthYear)) > 2;
+        if (!birthConflict) {
+            return nameMatches[0];
+        }
+    }
+    return null;
+}
+
 function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
     var pselect = "";
     var selected = true;
@@ -1712,51 +1819,8 @@ function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
                 (famRel === "parent" && isParent(relationship));
         }
 
-        // Father/Mother always auto-default (below) since Geni's own data
-        // model guarantees at most one of each per person - no ambiguity
-        // possible. Every other category can have several already-linked
-        // candidates, so auto-selecting among them requires an exact name
-        // match, unique among the category's candidates, that isn't
-        // contradicted by a conflicting birth year (a classic namesake
-        // signal - e.g. a grandson named after his grandfather). A missing
-        // birth year on either side doesn't block the match, only a
-        // conflicting one does - see issue #186 for the full reasoning.
-        var autoSelectId = null;
-        var incomingFirst = normalizeGermanic((firstName || "").trim().toLowerCase());
-        var incomingLast = normalizeGermanic((lastName || "").trim().toLowerCase());
-        if ((incomingFirst !== "" || incomingLast !== "") && relationship !== "father" && relationship !== "mother") {
-            var nameMatches = [];
-            for (var node2 in genifamilydata) {
-                if (!genifamilydata.hasOwnProperty(node2)) continue;
-                var candidate = genifamilydata[node2];
-                if (!categoryMatches(candidate)) continue;
-                var candidateLang = candidate.get("name_language");
-                var candidateFirst = normalizeGermanic((candidate.get("names", candidateLang + ".first_name") || "").trim().toLowerCase());
-                // Sites like Ancestry generally only ever record a
-                // woman's maiden surname, while Geni's own "name" for
-                // her may show her married surname (or vice versa) -
-                // match against either of Geni's surname fields rather
-                // than assuming which one the source data used.
-                var candidateLastName = normalizeGermanic((candidate.get("names", candidateLang + ".last_name") || "").trim().toLowerCase());
-                var candidateMaidenName = normalizeGermanic((candidate.get("names", candidateLang + ".maiden_name") || "").trim().toLowerCase());
-                if (candidateFirst === incomingFirst &&
-                    (candidateLastName === incomingLast || candidateMaidenName === incomingLast)) {
-                    nameMatches.push(candidate);
-                }
-            }
-            if (nameMatches.length === 1) {
-                var candidateBirthYear = nameMatches[0].get("birth", "date.year");
-                // Allow a small gap rather than requiring an exact match -
-                // source data commonly disagrees by a year or two for the
-                // same person (e.g. an estimated vs. recorded birth year),
-                // which shouldn't by itself read as a namesake conflict.
-                var birthConflict = exists(birthYear) && exists(candidateBirthYear) && candidateBirthYear !== "" &&
-                    Math.abs(Number(birthYear) - Number(candidateBirthYear)) > 2;
-                if (!birthConflict) {
-                    autoSelectId = nameMatches[0].get("id");
-                }
-            }
-        }
+        var existingMatch = findExistingFamilyMatch(relationship, gender, firstName, lastName, birthYear);
+        var autoSelectId = existingMatch ? existingMatch.get("id") : null;
 
         function addCandidateOption(familymem) {
             var candidateId = familymem.get("id");

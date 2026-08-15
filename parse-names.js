@@ -167,7 +167,11 @@ var NameParse = (function(){
 
                 }
 
-                lastName = this.removeIgnoredChars(lastName);
+                // Only strip commas here, not periods via the shared
+                // removeIgnoredChars() - that would strip a legitimate
+                // abbreviation period (e.g. "St." in "St. John") right
+                // after the loop above went out of its way to preserve it.
+                lastName = lastName.replace(/,/g, "");
                 if ((end - start) === 2 && lastName.trim().length === 1) {
                     //Look for the situation where the last name is not specified, just First Middle Initial. (ie George R.)
                     //https://www.familysearch.org/ark:/61903/1:1:Q2W7-5YZF
@@ -229,7 +233,9 @@ var NameParse = (function(){
                     birthName += " " + this.fix_case(birthsplit[j]);
                 }
             }
-            birthName = this.removeIgnoredChars(birthName);
+            // Same reasoning as the lastName case above - strip commas
+            // only, not a legitimate abbreviation period.
+            birthName = birthName.replace(/,/g, "");
         }
 
         if (suffix !== false && suffix !== "" && lastName === "" && birthName === "") {

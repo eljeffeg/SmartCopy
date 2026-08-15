@@ -361,7 +361,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var version = chrome.runtime.getManifest().version;
     console.log(chrome.runtime.getManifest().name + " v" + version);
     $("#versionbox").html("SmartCopy v" + version);
-    $("#versionbox2").html("SmartCopy v" + version);
+    $("#versionbox2").html("<a href='https://github.com/eljeffeg/SmartCopy/releases' target='_blank' style='color: inherit; text-decoration: none;'>SmartCopy v" + version + "</a>");
     domReady = true;
     maybeStartLogin();
 });

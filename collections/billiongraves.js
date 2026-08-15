@@ -38,8 +38,10 @@ const dateFormat = "YYYY-MM-DD";
 
 // Parse FindAGrave
 function parseBillionGraves(htmlstring, familymembers, relation) {
+    if (!exists(htmlstring)) {
+        return "";
+    }
 
-    $("#experimentalmessage").text("Note: BillionGraves images will not copy for technical reasons, so the preview has been disabled. This is not a bug. Sorry, you'll have to do that part manually.");
     $("#experimentalmessage").show();
     relation = relation || "";
     var parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));
@@ -93,16 +95,11 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     if (exists(data.deathDate)) {
         profiledata = addEvent(profiledata, "death", displayDate(parseDate(data.deathDate, null, dateFormat)), "");
     }
-    cemname = data.deathPlace.name;
-    cemeteryplace = data.deathPlace.address;
+    var deathPlace = exists(data.deathPlace) ? data.deathPlace : {};
+    var cemname = deathPlace.name || "";
+    var cemeteryplace = deathPlace.address;
     let locsplit = []
     if (exists(cemeteryplace)) {
-        const cemAddressTypes = Object.keys(data.deathPlace.address).filter((key) => { return !key.startsWith("@")})
-        for (const cemAddressType in cemAddressTypes) {
-            if (cemeteryplace[cemAddressType[i]] && cemeteryplace[cemAddressType[i]].trim() !== "") {
-                locsplit[i] = cemeteryplace[cemAddressType[i]].trim();
-            }
-        }
         const addressComponents = ['addressLocality', 'addressRegion', 'addressCountry'];
         addressComponents.forEach(component => {
             if (cemeteryplace[component] && cemeteryplace[component].trim() !== "") {
@@ -144,7 +141,23 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
 }
 
 function getData(htmlstring) {
-    return JSON.parse(htmlstring.split('<script type="application/ld+json">')[1].split('</script>')[0]);
+    if (!exists(htmlstring) || !htmlstring.contains('application/ld+json')) {
+        return {};
+    }
+    var parsed;
+    try {
+        parsed = JSON.parse(htmlstring.split('<script type="application/ld+json">')[1].split('</script>')[0]);
+    } catch (e) {
+        return {};
+    }
+    // BillionGraves' redesign now emits an array of JSON-LD blocks on the
+    // page (Person + BreadcrumbList) instead of a single Person object -
+    // find the Person entry rather than assuming the root is it.
+    if (Array.isArray(parsed)) {
+        var person = parsed.find(function (item) { return item["@type"] === "Person"; });
+        return exists(person) ? person : {};
+    }
+    return parsed;
 }
 
 function displayDate(vardate) {

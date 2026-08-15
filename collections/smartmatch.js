@@ -132,6 +132,18 @@ registerCollection({
 
 var fsimage = {};
 function parseSmartMatch(htmlstring, familymembers, relation) {
+    // A failed recursive fetch (any of the four call sites below that pass
+    // response.source straight into this function) used to reach line 149's
+    // htmlstring.contains(...) unconditionally and throw uncaught there -
+    // above the familystatus.pop() in each of those callbacks, hanging
+    // "Reading Family Data..." forever (updateGeo() in buildform.js polls
+    // familystatus.length and never proceeds while any push is unmatched by
+    // a pop). Same hang-causing bug class already fixed this session in
+    // collections/geneanet.js, collections/filae.js, and
+    // collections/myheritagenew.js - see issue #196.
+    if (!exists(htmlstring)) {
+        return "";
+    }
     try{
         if ($(htmlstring).filter('title').text().contains("Marriages")) {
             document.getElementById("loading").style.display = "none";
@@ -223,16 +235,25 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     url: imgurl,
                     variable: imgurl
                 }, function (response) {
-                    var thumb = response.responseURL;
-                    var imgurl = response.variable;
-                    if (imgurl.startsWith("http") && !thumb.contains("myheritageimages.com") && !thumb.contains("mhcache.com") && !thumb.contains("myheritage.com")) {
-                        //https://www.myheritage.com/research/collection-40001/familysearch-family-tree?itemId=149064846&action=showRecord
-                        //https://www.myheritage.com/research/collection-40001/familysearch-family-tree?itemId=337043845&action=showRecord
-                        profiledata["image"] = imgurl;
-                        profiledata["thumb"] = imgurl;
-                        fsimage[imgurl] = thumb;
+                    // try/finally guarantees the pop below regardless of
+                    // what throws inside - a failed fetch (e.g. the
+                    // FamilySearch image proxy timing out or 404ing) leaves
+                    // response.responseURL undefined, and thumb.contains(...)
+                    // on undefined used to throw uncaught here, above the
+                    // pop - see issue #196.
+                    try {
+                        var thumb = response.responseURL;
+                        var imgurl = response.variable;
+                        if (exists(thumb) && imgurl.startsWith("http") && !thumb.contains("myheritageimages.com") && !thumb.contains("mhcache.com") && !thumb.contains("myheritage.com")) {
+                            //https://www.myheritage.com/research/collection-40001/familysearch-family-tree?itemId=149064846&action=showRecord
+                            //https://www.myheritage.com/research/collection-40001/familysearch-family-tree?itemId=337043845&action=showRecord
+                            profiledata["image"] = imgurl;
+                            profiledata["thumb"] = imgurl;
+                            fsimage[imgurl] = thumb;
+                        }
+                    } finally {
+                        familystatus.pop();
                     }
-                    familystatus.pop();
                 });
             }
         }
@@ -383,12 +404,26 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                                         url: shorturl,
                                         variable: subdata
                                     }, function (response) {
-                                        var arg = response.variable;
-                                        var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id, "url": arg.url});
-                                        person = updateInfoData(person, arg);
-                                        databyid[arg.profile_id] = person;
-                                        alldata["family"][arg.title].push(person);
-                                        familystatus.pop();
+                                        // try/finally guarantees the pop
+                                        // below regardless of what throws
+                                        // inside - see issue #196. person
+                                        // becomes "" (not a throw) when
+                                        // response.source is undefined,
+                                        // thanks to the guard at the top of
+                                        // parseSmartMatch(); updateInfoData()
+                                        // already falls back to arg (the
+                                        // name/url/itemId/gender already
+                                        // scraped from the list before this
+                                        // fetch) whenever person is "".
+                                        try {
+                                            var arg = response.variable;
+                                            var person = exists(response) ? parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id, "url": arg.url}) : "";
+                                            person = updateInfoData(person, arg);
+                                            databyid[arg.profile_id] = person;
+                                            alldata["family"][arg.title].push(person);
+                                        } finally {
+                                            familystatus.pop();
+                                        }
                                     });
                                 }
                             }
@@ -824,16 +859,17 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         url: urlval,
                         variable: subdata
                     }, function (response) {
-                        var arg = response.variable;
-
-                        var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id, "url": arg.url});
-                        person = updateInfoData(person, arg);
-                        if (person.name === "") {
-                            console.log(response.source);
+                        // try/finally guarantees the pop below regardless of
+                        // what throws inside - see issue #196.
+                        try {
+                            var arg = response.variable;
+                            var person = exists(response) ? parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id, "url": arg.url}) : "";
+                            person = updateInfoData(person, arg);
+                            databyid[arg.profile_id] = person;
+                            alldata["family"][arg.title].push(person);
+                        } finally {
+                            familystatus.pop();
                         }
-                        databyid[arg.profile_id] = person;
-                        alldata["family"][arg.title].push(person);
-                        familystatus.pop();
                     });
                 }
             }
@@ -884,15 +920,25 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     url: shorturl,
                     variable: subdata
                 }, function (response) {
-                    var arg = response.variable;
-                    var person = parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id, "url": arg.url});
-                    person = updateInfoData(person, arg);
-                    databyid[arg.profile_id] = person;
-                    if (!exists(alldata["family"][arg.title])) {
-                        alldata["family"][arg.title] = [];
+                    // try/finally guarantees the pop below regardless of
+                    // what throws inside - this is the census household
+                    // loop, i.e. the spouse/children processing path from
+                    // issue #196's second reported symptom (parent matches
+                    // but spouse/children can't be updated) - a failed
+                    // fetch for even one household member used to hang the
+                    // whole read, not just skip that one person.
+                    try {
+                        var arg = response.variable;
+                        var person = exists(response) ? parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id, "url": arg.url}) : "";
+                        person = updateInfoData(person, arg);
+                        databyid[arg.profile_id] = person;
+                        if (!exists(alldata["family"][arg.title])) {
+                            alldata["family"][arg.title] = [];
+                        }
+                        alldata["family"][arg.title].push(person);
+                    } finally {
+                        familystatus.pop();
                     }
-                    alldata["family"][arg.title].push(person);
-                    familystatus.pop();
                 });
             }
             closeout = true;
@@ -1009,11 +1055,20 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     action: "xhttp",
                     url: abouturl
                 }, function (response) {
-                    var about_return = JSON.parse(response.source);
-                    if (!$.isEmptyObject(about_return) && exists(about_return.about_me)) {
-                        focusabout = about_return.about_me;
+                    // try/finally guarantees the pop below regardless of
+                    // what throws inside - JSON.parse(undefined) throws if
+                    // this fetch fails, same risk class as the other four
+                    // call sites fixed for issue #196, even though this
+                    // particular branch's own reachability is uncertain
+                    // (see the comment above).
+                    try {
+                        var about_return = JSON.parse(response.source);
+                        if (!$.isEmptyObject(about_return) && exists(about_return.about_me)) {
+                            focusabout = about_return.about_me;
+                        }
+                    } finally {
+                        familystatus.pop();
                     }
-                    familystatus.pop();
                 });
             }
             updateGeo();

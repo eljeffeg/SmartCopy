@@ -73,7 +73,18 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
                     const responseText = await response.text();
                     if (!response.ok) {
                         console.error("Unable to get XMLHttpRequest: " + request.url);
-                        callback({error: response.error, variable: request.variable, responseURL: response.responseURL});
+                        // response.error was always undefined here - a fetch()
+                        // Response object has no .error property - and this
+                        // branch discarded responseText entirely even though it
+                        // was already read above, so the caller never saw
+                        // Geni's actual rejection reason (permission denied,
+                        // validation failure, etc.), only that it failed.
+                        // Passing source through the same way the success case
+                        // does lets popup.js's buildTree() actually parse and
+                        // show that real reason instead of crashing on an
+                        // undefined result and showing its own crash message
+                        // in place of Geni's - see issue #194.
+                        callback({source: responseText, error: response.error, variable: request.variable, responseURL: response.responseURL});
                     } else {
                         callback({source: responseText, variable: request.variable, responseURL: response.url});
                     }

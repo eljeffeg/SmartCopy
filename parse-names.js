@@ -159,7 +159,7 @@ var NameParse = (function(){
             if ((end - start) > 1) {
                 // concat the last name
                 for (j=i; j<end; j++) {
-                    if (j !== end -1 && $('#compountlastonoffswitch').prop('checked') && this.is_compound_lastName(nameParts[j])) {
+                    if (j !== end -1 && $('#compoundlastonoffswitch').prop('checked') && this.is_compound_lastName(nameParts[j])) {
                         lastName += " " + nameParts[j].toLowerCase();
                     } else {
                         lastName += " " + this.fix_case(nameParts[j]);
@@ -223,7 +223,7 @@ var NameParse = (function(){
             birthName = "";
             // rebuild birth name
             for (j=0; j<birthsplit.length; j++) {
-                if (j !== birthsplit.length -1 && $('#compountlastonoffswitch').prop('checked') && this.is_compound_lastName(birthsplit[j])) {
+                if (j !== birthsplit.length -1 && $('#compoundlastonoffswitch').prop('checked') && this.is_compound_lastName(birthsplit[j])) {
                     birthName += " " + birthsplit[j].toLowerCase();
                 } else {
                     birthName += " " + this.fix_case(birthsplit[j]);
@@ -391,7 +391,7 @@ var NameParse = (function(){
     NameParse.is_compound_lastName = function (word) {
         word = word.toLocaleLowerCase();
         // these are some common prefixes that identify a compound last names - what am I missing?
-        var words = ['vere','von','van','de','der','del','della','di','da', 'do', 'pietro','vanden','du','st.','st','la','le','lo', 'las', 'los', 'ter','o', 'y', "o'",'mc','mac','fitz'];
+        var words = ['vere','von','zu','van','de','der','den','del','della','dei','degli','delle','di','da', 'do', 'das', 'dos', 'pietro','vanden','du','des','st.','st','la','le','les','lo', 'las', 'los', 'ter','ten','te','o', 'y', "o'",'mc','mac','fitz'];
         return (words.indexOf(word) >= 0);
     };
 

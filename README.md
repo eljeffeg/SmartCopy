@@ -18,6 +18,7 @@ SmartCopy can read profile data from:
 - **Find A Grave**
 - **BillionGraves**
 - **Geneanet**
+- **Filae**
 - **RootsWeb** (WorldConnect)
 - **WeRelate**
 - **FamilyTreeMaker** (web-published genealogy exports)

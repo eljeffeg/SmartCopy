@@ -23,6 +23,12 @@ document.addEventListener('DOMContentLoaded', function () {
       $(el).text(tranlation);
     }
   });
+  // The on/off switches render their "ON"/"OFF" text via CSS
+  // (.onoffswitch-inner:before/:after { content: attr(data-on-text/data-off-text) })
+  // rather than real DOM text, since the same two-tone slider look is shared
+  // by 20+ switches - setting these two attributes once here covers all of
+  // them instead of needing a data-i18n-style attribute on every switch.
+  $('.onoffswitch-inner').attr('data-on-text', _("switchOn")).attr('data-off-text', _("switchOff"));
 });
 
 chrome.storage.local.get('buildhistory', function (result) {
@@ -331,12 +337,33 @@ if (navigator.serviceWorker) {
       });
 }
   // Fin d'ajout - End of Add
+// get_tab() (which eventually calls loginProcess(), the thing that
+// actually checks the geonotice flag) used to fire straight from
+// DOMContentLoaded, independently of chrome.storage.local.get('geonotice',
+// ...) below - two separate async calls racing with no ordering between
+// them. geonotice starts hardcoded true (see the var declaration up top),
+// so whichever finished first decided the outcome: if chrome.tabs.query
+// resolved before the storage read did, loginProcess() saw the still-
+// default true and showed the notice again even though the user had
+// already dismissed and persisted it as false. Gating on both flags
+// (rather than nesting one call inside the other) closes the race
+// regardless of which actually finishes first - see issue #193.
+var domReady = false;
+var geonoticeLoaded = false;
+
+function maybeStartLogin() {
+    if (domReady && geonoticeLoaded) {
+        get_tab();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     var version = chrome.runtime.getManifest().version;
     console.log(chrome.runtime.getManifest().name + " v" + version);
     $("#versionbox").html("SmartCopy v" + version);
     $("#versionbox2").html("SmartCopy v" + version);
-    get_tab();
+    domReady = true;
+    maybeStartLogin();
 });
 
 function get_tab() {
@@ -586,8 +613,35 @@ function updateLinks(focusprofile) {
     $("#descendanturl").attr("href", "https://historylinktools.herokuapp.com/graph" + focusprofile + "&type=descendant&color=gender");
 }
 
+// Client-rendered SPA pages (Filae, MyHeritage's new design) can be
+// captured before React has actually finished rendering, since
+// getPagesSource.js's injection is a single, one-shot DOM snapshot with no
+// concept of "is this page actually ready yet" - unlike the retry-based
+// family-member fallback each of those collections has, the FOCUS
+// profile's own capture had no equivalent safety net at all, confirmed
+// live: an early capture on Filae came back completely blank. Strictly
+// opt-in via collection.isPageReady (undefined for every collection that
+// doesn't need it, e.g. anything server-rendered) so this changes nothing
+// for the common case - only a collection that defines it pays any retry
+// cost at all.
+var pageReadyAttempts = 0;
+var PAGE_READY_MAX_ATTEMPTS = 15;
+
 chrome.runtime.onMessage.addListener(function (request, sender, callback) {
     if (request.action == "getSource") {
+        if (exists(collection) && exists(collection.isPageReady)) {
+            var ready = collection.isPageReady(request.source);
+            if (!ready && pageReadyAttempts < PAGE_READY_MAX_ATTEMPTS) {
+                pageReadyAttempts++;
+                $("#readstatus").html("(waiting for the page to finish loading)");
+                setTimeout(capturePage, 1000);
+                return false;
+            }
+            if (!ready) {
+                console.warn("getSource: gave up waiting for isPageReady after " + pageReadyAttempts + " attempts, proceeding anyway");
+            }
+        }
+        pageReadyAttempts = 0;
         // loadPage() runs synchronously and never calls callback -
         // getPagesSource.js's sendMessage call doesn't pass one either, so
         // no response is ever expected here. Returning true (promising an
@@ -997,6 +1051,31 @@ function updateMessage(color, messagetext) {
     $(message).html(messagehtml + messagetext);
 }
 
+// The actual DOM capture step of getPageCode() - factored out so the
+// "getSource" listener below can re-trigger it for a collection that opts
+// into isPageReady (see that listener), without duplicating the injection
+// sequence.
+async function capturePage() {
+    const tabId = await getTabId();
+    chrome.scripting.executeScript({
+        target: {tabId: tabId},
+        world: "MAIN",
+        files: ["annotateMyHeritageLinks.js"]
+    }, function () {
+        // Best-effort only (e.g. not every site is React, or this is
+        // a browser without MAIN-world injection support) - proceed
+        // to the normal page capture regardless of the outcome here.
+        chrome.scripting.executeScript({
+            target: {tabId: tabId},
+            files: ["annotateFilaeAvatars.js", "getPagesSource.js"]
+        }, function () {
+            if (chrome.runtime.lastError) {
+                setMessage(errormsg, 'There was an error injecting script : \n' + chrome.runtime.lastError.message);
+            }
+        });
+    });
+}
+
 async function getPageCode() {
     if (loggedin && exists(accountinfo)) {
         document.querySelector('#message').style.display = "none";
@@ -1013,24 +1092,7 @@ async function getPageCode() {
                 loadPage(response);
             });
         } else if (collection.parseProfileData) {
-            const tabId = await getTabId();
-            chrome.scripting.executeScript({
-                target: {tabId: tabId},
-                world: "MAIN",
-                files: ["annotateMyHeritageLinks.js"]
-            }, function () {
-                // Best-effort only (e.g. not every site is React, or this is
-                // a browser without MAIN-world injection support) - proceed
-                // to the normal page capture regardless of the outcome here.
-                chrome.scripting.executeScript({
-                    target: {tabId: tabId},
-                    files: ["getPagesSource.js"]
-                }, function () {
-                    if (chrome.runtime.lastError) {
-                        setMessage(errormsg, 'There was an error injecting script : \n' + chrome.runtime.lastError.message);
-                    }
-                });
-            });
+            capturePage();
         }
     } else {
         setTimeout(getPageCode, 50);
@@ -1243,9 +1305,9 @@ $(function () {
         $('#historybox').slideToggle();
         showhistorycheck = !showhistorycheck;
         if (showhistorycheck) {
-            $('#showhistory').text("Show History");
+            $('#showhistory').text(_("Show_History"));
         } else {
-            $('#showhistory').text("Hide History");
+            $('#showhistory').text(_("Hide_History"));
         }
     });
 });
@@ -1408,6 +1470,16 @@ var submitform = function () {
                         about = "";
                         if (exists(familyout["about_me"])) {
                             about = familyout["about_me"];
+                            // Unconditional, matching the focus-profile path
+                            // above (~line 1328) - without this, a plain
+                            // about note with no existing bullet lines (e.g.
+                            // straight from a collection's own note text,
+                            // not a prior SmartCopy run) skipped straight to
+                            // the "* Reference: ..." append below with no
+                            // separator, breaking the bullet formatting.
+                            if (!about.endsWith("\n")) {
+                                about += "\n";
+                            }
                         }
                         if (about !== "") {
                             var splitabout = about.split("\n");
@@ -1592,6 +1664,20 @@ function buildTree(data, action, sendid) {
                 variable: {id: id, relation: action.replace("add-", ""), data: data}
             }, function (response) {
                 try {
+                    if (!exists(response.source)) {
+                        // background.js now passes source through even on a
+                        // non-2xx Geni response (see its POST handler), so
+                        // reaching here with no source at all means there
+                        // was never an HTTP response to read in the first
+                        // place - a genuine network-level failure, caught by
+                        // background.js's own outer catch, which does set a
+                        // real, readable response.error message for exactly
+                        // this case. Surface that directly instead of
+                        // falling through to result.error below, which would
+                        // throw on an undefined result and show that crash's
+                        // own message in place of the real reason.
+                        throw new Error(exists(response.error) ? response.error : "No response received from Geni.");
+                    }
                     var result = typeof response.source == 'string' ? JSON.parse(response.source) : response.source;
                     if (verboselogs) {
                         console.log("Geni Response: " + response.source);
@@ -2595,7 +2681,7 @@ $(function () {
         chrome.storage.local.set({'adjustname': this.checked});
         $("#casenamechange").css("display", "block");
     });
-    $('#compountlastonoffswitch').on('click', function () {
+    $('#compoundlastonoffswitch').on('click', function () {
         chrome.storage.local.set({'compoundlast': this.checked});
         $("#compoundlast").css("display", "block");
     });
@@ -2851,6 +2937,8 @@ chrome.storage.local.get('geonotice', function(result) {
     if (!exists(geonotice)) {
         geonotice = true;
     }
+    geonoticeLoaded = true;
+    maybeStartLogin();
 });
 
 chrome.storage.local.get('autogeo', function (result) {
@@ -3045,10 +3133,8 @@ chrome.storage.local.get('adjustname', function (result) {
 });
 
 chrome.storage.local.get('compoundlast', function (result) {
-    var compoundlast = result.compoundlast;
-    if (exists(compoundlast)) {
-        $('#compountlastonoffswitch').prop('checked', compoundlast);
-    }
+    var compoundlast = exists(result.compoundlast) ? result.compoundlast : true;
+    $('#compoundlastonoffswitch').prop('checked', compoundlast);
 });
 
 chrome.storage.local.get('autoprivate', function (result) {

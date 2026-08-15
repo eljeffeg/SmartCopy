@@ -59,6 +59,29 @@ registerCollection({
         focusname = fperson.text();
         focusrange = "";
     },
+    // The page is entirely client-rendered (see file header comment) - a
+    // capture taken before React has finished mounting/rendering comes
+    // back as effectively the empty page shell, which loadPage()/
+    // parseMyHeritageNew() can't recover from (same class of bug fixed for
+    // Filae - see collections/filae.js). Mirrors loadPage()'s own
+    // person_name lookup exactly, so if this passes, that lookup succeeds
+    // too.
+    "isPageReady": function(htmlstring) {
+        if (!exists(htmlstring)) {
+            return false;
+        }
+        if (htmlstring.indexOf('SearchPlansPageManager') !== -1) {
+            // Not a "still loading" state - this means the user isn't
+            // signed into the main myheritage.com site (loadPage() checks
+            // for this same marker and shows a sign-in message) - no
+            // amount of retrying fixes that, so don't waste the retry
+            // budget on it; let loadPage() handle it immediately.
+            return true;
+        }
+        var parsed = $(htmlstring.replace(/<img[^>]*>/ig, ""));
+        var name = parsed.find("div.profile_page_header").find("div.person_name").text().trim();
+        return name !== "";
+    },
     "parseProfileData": parseMyHeritageNew
 });
 
@@ -96,6 +119,14 @@ function extractMHProfileId(url) {
 
 function parseMyHeritageNew(htmlstring, familymembers, relation) {
     relation = relation || "";
+    // A failed/undefined recursive fetch (getMyHeritageNewFamily() below)
+    // used to reach the .replace() call unconditionally and throw above
+    // familystatus.pop() - same hang-causing bug class already fixed for
+    // Filae and Geneanet (see those files' parse functions for the same
+    // guard).
+    if (!exists(htmlstring)) {
+        return "";
+    }
     var parsed = $(htmlstring.replace(/<img/ig, "<gmi"));
     var header = parsed.find("div.profile_page_header");
 
@@ -371,30 +402,183 @@ function getMyHeritageNewFamily(famid, url, subdata) {
         url: url,
         variable: subdata
     }, function (response) {
-        var arg = response.variable;
-        var person = parseMyHeritageNew(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
-        if (person === "") {
-            familystatus.pop();
+        var arg = (exists(response) && exists(response.variable)) ? response.variable : subdata;
+        var person = "";
+        try {
+            person = (exists(response) && exists(response.source)) ? parseMyHeritageNew(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId}) : "";
+        } catch (e) {
+            console.error(e);
+            person = "";
+        }
+        if (isUsableMHPerson(person)) {
+            finishMHFamilyMember(famid, person, arg);
+        } else {
+            // The plain background fetch above almost always comes back
+            // empty (the new page design is entirely client-rendered, so a
+            // raw background fetch never sees React's output - see file
+            // header comment, same as Filae's confirmed-always-empty case
+            // in collections/filae.js). Straight to a real (inactive) tab,
+            // which actually executes the page's JS and can render it -
+            // no "retry the plain fetch" optimization the way Geneanet has
+            // (that only helps for a Cloudflare-session/cookie problem,
+            // which isn't what's happening here).
+            fetchMHFamilyViaTab(famid, url, arg);
+        }
+    });
+}
+
+// person.birth/death here only ever come from this person's own Facts
+// section (a real date, possibly with a place) - unlike Filae,
+// parseMyHeritageNew() has no internal "fall back to a bare year" step of
+// its own, so exists() alone is a reliable enough "did we get something
+// real" signal; the coarse Immediate-Family year-only fallback only ever
+// gets applied externally, in finishMHFamilyMember() below, when the
+// fetch/tab attempt produced nothing at all.
+function isUsableMHPerson(person) {
+    return exists(person) && person !== "" && (exists(person.birth) || exists(person.death));
+}
+
+function finishMHFamilyMember(famid, person, arg) {
+    if (person === "") {
+        // url/itemId/profile_id specifically (not just name/birth/death) -
+        // needed for popup.js's "Add reference to Geni's About section"
+        // logic (reads databyid[profile_id].url), and to keep this family
+        // member in the list at all instead of silently dropping them -
+        // the original version of this function did exactly that on any
+        // failed fetch, which was effectively dead code before the
+        // hang-guard in parseMyHeritageNew() made it reachable (see that
+        // guard's own comment) - matches the same fallback pattern already
+        // established in collections/filae.js.
+        person = {name: arg.name, status: arg.title, url: arg.url, itemId: arg.itemId, profile_id: arg.profile_id};
+    } else {
+        person = updateInfoData(person, arg);
+    }
+    if (!exists(person.name) || person.name === "") {
+        person.name = arg.name;
+    }
+    // birth/death/marriage already gathered from the focus person's own
+    // page (Facts section dates for children, Immediate Family years for
+    // everyone else) are carried over here whenever the fetch/tab attempt
+    // didn't produce something better, rather than being lost.
+    if (!exists(person.birth) && exists(arg.birth)) {
+        person.birth = arg.birth;
+    }
+    if (!exists(person.death) && exists(arg.death)) {
+        person.death = arg.death;
+    }
+    if (!exists(person.marriage) && exists(arg.marriage)) {
+        person.marriage = arg.marriage;
+    }
+    databyid[arg.profile_id] = person;
+    alldata["family"][arg.title].push(person);
+    familystatus.pop();
+}
+
+// Mirrors collections/filae.js's tab fallback exactly: a small concurrency
+// limit with staggered start times (so progress updates trickle in rather
+// than arriving in synchronized bursts), polling chrome.tabs.get()/
+// executeScript() directly rather than reacting to chrome.tabs.onUpdated's
+// "complete" event (event-driven lost the race against fast-loading pages
+// in testing - see collections/geneanet.js for where this was first found).
+var mhTabQueue = [];
+var mhTabActive = 0;
+var MH_TAB_CONCURRENCY = 3;
+
+function fetchMHFamilyViaTab(famid, url, arg) {
+    mhTabQueue.push({famid: famid, url: url, arg: arg});
+    runNextMHTabFetch();
+}
+
+function runNextMHTabFetch() {
+    if (mhTabActive >= MH_TAB_CONCURRENCY || mhTabQueue.length === 0) {
+        return;
+    }
+    var staggerIndex = mhTabActive;
+    mhTabActive++;
+    var next = mhTabQueue.shift();
+    runMHTabFetch(next.famid, next.url, next.arg, staggerIndex, function () {
+        mhTabActive--;
+        runNextMHTabFetch();
+    });
+    runNextMHTabFetch();
+}
+
+function runMHTabFetch(famid, url, arg, staggerIndex, onDone) {
+    $("#readstatus").html(escapeHtml(arg.name) + " (looking deeper, this may take a second)");
+    chrome.tabs.create({url: url, active: false}, function (tab) {
+        if (!exists(tab) || !exists(tab.id)) {
+            finishMHFamilyMember(famid, "", arg);
+            onDone();
             return;
         }
-        person = updateInfoData(person, arg);
-        // The recursive fetch above almost always comes back empty (the new
-        // page design is entirely client-rendered, so a raw background
-        // fetch never sees React's output - see file header comment), so
-        // birth/death already gathered from the focus person's own page
-        // (Facts section dates for children, Immediate Family years for
-        // everyone else) are carried over here rather than lost.
-        if (!exists(person.birth) && exists(arg.birth)) {
-            person.birth = arg.birth;
+        var settled = false;
+        var attempts = 0;
+        var maxAttempts = 10;
+
+        function cleanupAndFinish(person) {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            chrome.tabs.remove(tab.id, function () {
+                void chrome.runtime.lastError;
+            });
+            finishMHFamilyMember(famid, person, arg);
+            onDone();
         }
-        if (!exists(person.death) && exists(arg.death)) {
-            person.death = arg.death;
+
+        function attempt() {
+            if (settled) {
+                return;
+            }
+            attempts++;
+            chrome.tabs.get(tab.id, function (tabInfo) {
+                if (chrome.runtime.lastError || !exists(tabInfo)) {
+                    cleanupAndFinish("");
+                    return;
+                }
+                // React-internal family-link data (data-smartcopy-profile-link,
+                // see file header comment) isn't needed here - this tab's
+                // own parseMyHeritageNew() call always runs with
+                // familymembers=false, so it never needs to read that
+                // attribute for itself; only the focus profile's own
+                // capture (via getPageCode()) needs the MAIN-world
+                // annotation step.
+                chrome.scripting.executeScript({
+                    target: {tabId: tab.id},
+                    func: function () {
+                        var html = "", node = document.firstChild;
+                        while (node) {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                html += node.outerHTML;
+                            } else if (node.nodeType === Node.TEXT_NODE) {
+                                html += node.nodeValue;
+                            }
+                            node = node.nextSibling;
+                        }
+                        return html;
+                    }
+                }, function (results) {
+                    void chrome.runtime.lastError;
+                    if (settled) {
+                        return;
+                    }
+                    var html = (exists(results) && exists(results[0])) ? results[0].result : undefined;
+                    var person = "";
+                    try {
+                        person = exists(html) ? parseMyHeritageNew(html, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId}) : "";
+                    } catch (e) {
+                        console.error(e);
+                        person = "";
+                    }
+                    if (isUsableMHPerson(person) || attempts >= maxAttempts) {
+                        cleanupAndFinish(person);
+                    } else {
+                        setTimeout(attempt, 1500);
+                    }
+                });
+            });
         }
-        if (!exists(person.marriage) && exists(arg.marriage)) {
-            person.marriage = arg.marriage;
-        }
-        databyid[arg.profile_id] = person;
-        alldata["family"][arg.title].push(person);
-        familystatus.pop();
+        setTimeout(attempt, 750 + staggerIndex * 350);
     });
 }

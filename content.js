@@ -25,7 +25,7 @@ var locationcheckoption = false;
 var dataconflictoption = false;
 var datecheckoption = true;
 var samenameoption = true;
-var compoundlast = false;
+var compoundlast = true;
 var wedlock = false;
 var biography = null;
 var addbioonoff = true;
@@ -1449,6 +1449,8 @@ function checkSpace(person, quickfix) {
             } else {
                 consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
             }
+        } else {
+            consistencymessage += "<sup>[" + _("noPermission") + "]</sup>";
         }
     }
     // checks for other languages names (without fixes as Geni API does not support it)
@@ -1550,6 +1552,8 @@ function checkCase(person, quickfix) {
             } else {
                 consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
             }
+        } else {
+            consistencymessage += "<sup>[" + _("noPermission") + "]</sup>";
         }
     }
 }
@@ -1569,6 +1573,8 @@ function checkSuffixInFirstName(person, quickfix) {
             } else {
                 consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
             }
+        } else {
+            consistencymessage += "<sup>[" + _("noPermission") + "]</sup>";
         }
     }
 }
@@ -1590,6 +1596,8 @@ function checkTitle(person, quickfix) {
                 } else {
                     consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
                 }
+            } else {
+                consistencymessage += "<sup>[" + _("noPermission") + "]</sup>";
             }
         } else if (isChild(title) || isPartner(title) || isParent(title) || title === "grandmother" || title === "grandfather") {
             // Relationship in title
@@ -1602,6 +1610,8 @@ function checkTitle(person, quickfix) {
                 } else {
                     consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
                 }
+            } else {
+                consistencymessage += "<sup>[" + _("noPermission") + "]</sup>";
             }
         }
     }
@@ -1623,6 +1633,8 @@ function checkMaidenName(person, quickfix) {
             } else {
                 consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
             }
+        } else {
+            consistencymessage += "<sup>[" + _("noPermission") + "]</sup>";
         }
     }
 }
@@ -1644,6 +1656,8 @@ function checkSuffix(person, quickfix) {
                 } else {
                     consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
                 }
+            } else {
+                consistencymessage += "<sup>[" + _("noPermission") + "]</sup>";
             }
         } else if (suffix.startsWith("#") || (!isNaN(suffix) && suffix > 5)) {
             //Numbering scheme
@@ -1656,6 +1670,8 @@ function checkSuffix(person, quickfix) {
                 } else {
                     consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
                 }
+            } else {
+                consistencymessage += "<sup>[" + _("noPermission") + "]</sup>";
             }
         } else if (isChild(suffix) || isPartner(suffix) || isParent(suffix) || suffix === "grandmother" || suffix === "grandfather") {
             //Relationship in suffix
@@ -1668,6 +1684,8 @@ function checkSuffix(person, quickfix) {
                 } else {
                     consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
                 }
+            } else {
+                consistencymessage += "<sup>[" + _("noPermission") + "]</sup>";
             }
         }
     }

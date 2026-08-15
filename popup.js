@@ -404,17 +404,14 @@ function loginProcess() {
         var focusprofile = getProfile(tablink);
         focusid = focusprofile.replace("?profile=", "");
         document.getElementById("addhistoryblock").style.display = "block";
-        chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon.png" });
         updateLinks(focusprofile);
     }
     if (startsWithHTTP(tablink, "https://www.geni.com") && !isGeni(tablink)) {
-        chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon.png" });
         $('#loginspinner').hide();
         $("#optionslide").show();
     } else if (!loggedin) {
         loadLogin();
     } else {
-        chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon.png" });
         if (isGeni(tablink)) {
             userAccess();
         } else {
@@ -1170,6 +1167,7 @@ function loadLogin() {
             console.log("You are a curator, you can use SC from the year 1000");
         }
         loggedin = true;
+        chrome.action.setIcon({ path: "images/icon.png" });
         if (!loginprocessing) {
             $("#logindiv").slideUp();
             document.getElementById("loginspinner").style.display = "block";
@@ -2995,7 +2993,7 @@ $(function () {
             url: smartcopyurl + "/logout",
             variable: ""
         }, function (response) {
-            chrome.runtime.sendMessage({ "action" : "icon", "path": "images/icon_warn.png" });
+            chrome.action.setIcon({ path: "images/icon_warn.png" });
             window.close();
         });
     });

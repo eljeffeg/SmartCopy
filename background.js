@@ -115,15 +115,6 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
             });
         }
         return true; // prevents the callback from being called too early on return
-    } else if (request.action == "icon") {
-        // Fire-and-forget: popup.js never passes a callback for this
-        // action, so no async response is ever expected. Returning true
-        // here (as if a response were coming) with no matching callback()
-        // call is exactly what Firefox flags as "Promised response from
-        // onMessage listener went out of scope" - Chrome tolerates the
-        // mismatch silently, Firefox logs it as an uncaught error.
-        chrome.action.setIcon({path: request.path});
-        return false;
     } else if (request.action == "eval") {
         evalObject(request.variable, callback);
         return true;
@@ -241,6 +232,86 @@ function installHeaderStrippingRule() {
 
 chrome.runtime.onInstalled.addListener(installHeaderStrippingRule);
 installHeaderStrippingRule();
+
+// #55: badge the toolbar icon on tabs where SmartCopy can read a profile,
+// either the Geni destination site itself or one of the source sites it
+// knows how to parse. Kept as a coarse, domain-level list matching
+// manifest.json's host_permissions rather than each collection's own
+// (much narrower) collectionMatch() regex - reusing those exactly would
+// mean importing shared.js and every collections/*.js file into the
+// background context just for a badge, and this only needs to answer
+// "is this a site SmartCopy knows," not "will this exact page parse."
+const SUPPORTED_SITE_HOSTS = [
+    "geni.com",
+    "findagrave.com",
+    "familysearch.org",
+    "familysearchcdn.org",
+    "wikitree.com",
+    "billiongraves.com",
+    "ancestrylibrary.com",
+    "ancestry.com",
+    "myheritage.com",
+    "sites-cf.mhcache.com",
+    "filae.com",
+    "gravez.me",
+    "toldot.ru",
+    "yadvashem.org",
+    "geneanet.org",
+    "bezikaron.co.il"
+];
+
+function isSupportedSite(url) {
+    try {
+        const hostname = new URL(url).hostname;
+        return SUPPORTED_SITE_HOSTS.some(function (host) {
+            return hostname === host || hostname.endsWith("." + host);
+        });
+    } catch (error) {
+        return false;
+    }
+}
+
+function updateBadgeForTab(tabId, url) {
+    if (isSupportedSite(url)) {
+        chrome.action.setBadgeText({tabId: tabId, text: "✓"});
+        chrome.action.setBadgeBackgroundColor({tabId: tabId, color: "#2e7d32"});
+    } else {
+        chrome.action.setBadgeText({tabId: tabId, text: ""});
+    }
+}
+
+function refreshAllTabBadges() {
+    chrome.tabs.query({}, function (tabs) {
+        tabs.forEach(function (tab) {
+            if (tab.id !== undefined && tab.url) {
+                updateBadgeForTab(tab.id, tab.url);
+            }
+        });
+    });
+}
+
+chrome.tabs.onActivated.addListener(function (activeInfo) {
+    chrome.tabs.get(activeInfo.tabId, function (tab) {
+        if (tab && tab.url) {
+            updateBadgeForTab(tab.id, tab.url);
+        }
+    });
+});
+
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+    if (changeInfo.url || changeInfo.status === "complete") {
+        updateBadgeForTab(tabId, tab.url);
+    }
+});
+
+// Service workers (Chrome) get torn down and restarted; a freshly-started
+// worker hasn't run any of the listeners above for tabs that were already
+// open and already active, so their badge would stay stale/unset until
+// their next activation or navigation. Same onInstalled+direct-call
+// pattern as installHeaderStrippingRule() above.
+chrome.runtime.onInstalled.addListener(refreshAllTabBadges);
+chrome.runtime.onStartup.addListener(refreshAllTabBadges);
+refreshAllTabBadges();
 
 
 let creating; // A global promise to avoid concurrency issues

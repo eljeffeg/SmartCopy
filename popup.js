@@ -1411,10 +1411,15 @@ var submitform = function () {
                             about += "*";
                         }
                     }
+                    // Category-level summary of what this submission actually
+                    // touched, appended to the same Reference note rather than
+                    // a separate formal sources/citations system - see #59.
+                    var updatedCategories = summarizeUpdatedCategories(profileout, exists(focusphotoinfo));
+                    var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
                     if (exists(refurl)) {
-                        profileout["about_me"] = about + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                        profileout["about_me"] = about + "* Reference: [" + encodeURI(refurl) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                     } else {
-                        profileout["about_me"] = about + "* Reference: " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                        profileout["about_me"] = about + "* Reference: " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                     }
                     
                 } else {
@@ -1499,10 +1504,12 @@ var submitform = function () {
                             } else {
                                 focusprofileurl = "https://www.geni.com/" + focusid;
                             }
+                            var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]));
+                            var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
                             if (exists(fdata.url)) {
-                                about = about + "* Reference: [" + encodeURI(fdata.url) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                                about = about + "* Reference: [" + encodeURI(fdata.url) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                             } else {
-                                about = about + "* Reference: " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''\n";
+                                about = about + "* Reference: " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                             }
                             
                         }
@@ -2101,6 +2108,47 @@ document.getElementById('submitbutton').addEventListener('click', submitform, fa
 document.getElementById('submitbutton2').addEventListener('click', submitform, false);
 document.getElementById('optionbutton').addEventListener('click', slideoptions, false);
 
+
+// Condenses a parseForm() field-data object into a short, human-readable
+// list of what categories of data changed - e.g. "photo, name, gender,
+// living status, birth" - for the "* Reference: ..." note appended to
+// about_me on submit (issue #59). Category-level, not field-level, so it
+// stays skimmable in a bio even on a large multi-field update, rather than
+// listing every individual field name touched.
+function summarizeUpdatedCategories(fields, includesPhoto) {
+    var categoryMap = {
+        "title": "name", "first_name": "name", "middle_name": "name", "last_name": "name",
+        "maiden_name": "name", "suffix": "name", "display_name": "name", "nicknames": "name",
+        "gender": "gender",
+        "is_alive": "living status",
+        "public": "privacy",
+        "occupation": "occupation",
+        "cause_of_death": "cause of death"
+    };
+    var categories = [];
+    if (includesPhoto) {
+        categories.push("photo");
+    }
+    if (exists(fields)) {
+        for (var key in fields) {
+            if (fields.hasOwnProperty(key) && key !== "about_me" && key !== "profile_id") {
+                var category;
+                if (categoryMap.hasOwnProperty(key)) {
+                    category = categoryMap[key];
+                } else if (key.contains(":")) {
+                    // e.g. "birth:date", "birth:location:place_name" -> "birth"
+                    category = key.split(":")[0].replace(/_/g, " ");
+                } else {
+                    category = key.replace(/_/g, " ");
+                }
+                if (categories.indexOf(category) === -1) {
+                    categories.push(category);
+                }
+            }
+        }
+    }
+    return categories;
+}
 
 function parseForm(fs) {
     let name_element = ["title", "first_name", "middle_name", "last_name", "maiden_name", "suffix", "display_name"]

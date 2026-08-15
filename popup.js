@@ -1762,6 +1762,29 @@ function buildTree(data, action, sendid) {
                 url: posturl,
                 data: $.param(data),
                 variable: {id: id, relation: action.replace("add-", ""), data: data}
+            }, function (response) {
+                // Additive only - the POST itself and submitstatus.pop()'s
+                // timing below are unchanged. This only adds the same
+                // addHistory() bookkeeping the non-photo callback already
+                // does, so photo updates stop being silently absent from
+                // history (see issue #36). Wrapped defensively since a
+                // malformed/unexpected response shape here must not affect
+                // submission tracking, which doesn't depend on this callback.
+                try {
+                    if (exists(response) && exists(response.source)) {
+                        var result = typeof response.source == 'string' ? JSON.parse(response.source) : response.source;
+                        if (!exists(result.error)) {
+                            var photoId = response.variable.id;
+                            if (exists(databyid[photoId])) {
+                                addHistory(result.id, databyid[photoId].itemId, getProfileName(databyid[photoId].name), JSON.stringify(response.variable.data));
+                            } else if (sendid === focusid) {
+                                addHistory(result.id, focusURLid, getProfileName(focusname), JSON.stringify(response.variable.data), focusid);
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
             });
                 submitstatus.pop();
         }

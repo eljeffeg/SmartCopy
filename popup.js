@@ -1659,6 +1659,20 @@ function buildTree(data, action, sendid) {
                 variable: {id: id, relation: action.replace("add-", ""), data: data}
             }, function (response) {
                 try {
+                    if (!exists(response.source)) {
+                        // background.js now passes source through even on a
+                        // non-2xx Geni response (see its POST handler), so
+                        // reaching here with no source at all means there
+                        // was never an HTTP response to read in the first
+                        // place - a genuine network-level failure, caught by
+                        // background.js's own outer catch, which does set a
+                        // real, readable response.error message for exactly
+                        // this case. Surface that directly instead of
+                        // falling through to result.error below, which would
+                        // throw on an undefined result and show that crash's
+                        // own message in place of the real reason.
+                        throw new Error(exists(response.error) ? response.error : "No response received from Geni.");
+                    }
                     var result = typeof response.source == 'string' ? JSON.parse(response.source) : response.source;
                     if (verboselogs) {
                         console.log("Geni Response: " + response.source);

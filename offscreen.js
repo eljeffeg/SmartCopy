@@ -6,6 +6,7 @@ let listenerAdded = false;
 let pendingResponse = null;
 
 function handleMessage(event) {
+    if (event.source !== iframe.contentWindow) return;
     if (pendingResponse) {
         pendingResponse(event.data);
         pendingResponse = null;
@@ -19,7 +20,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             listenerAdded = true;
         }
         pendingResponse = sendResponse;
-        iframe.contentWindow.postMessage(request.data, "*");
+        iframe.contentWindow.postMessage(request.data, "null");
         return true;
     }
     return false;

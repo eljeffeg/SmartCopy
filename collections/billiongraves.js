@@ -42,7 +42,6 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
         return "";
     }
 
-    $("#experimentalmessage").text("Note: BillionGraves images will not copy for technical reasons, so the preview has been disabled. This is not a bug. Sorry, you'll have to do that part manually.");
     $("#experimentalmessage").show();
     relation = relation || "";
     var parsed = $(htmlstring.replace(/<img[^>]*>/ig,""));

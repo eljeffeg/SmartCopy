@@ -238,7 +238,7 @@ function parseFamilySearchJSON(htmlstring, familymembers, relation) {
         parsed["data"]["nameConclusion"]["details"]["nameForms"]
     ) {
         focusperson = NameParse.parse(parsed["data"]["name"], mnameonoff);
-        if (focusperson.lastName !== "") {
+        if (focusperson.lastName === "") {
             var familyPart =
                 parsed["data"]["nameConclusion"]["details"]["nameForms"][0][
                     "familyPart"

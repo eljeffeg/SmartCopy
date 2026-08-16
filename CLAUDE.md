@@ -284,15 +284,32 @@ don't flatten those down to this same voice.
   the checkbox feature it's part of; lumped into a generic list of
   unrelated technical bugs, it reads as noise. Group by user-facing area
   first, chronology/PR-order a distant second.
-- **Purely internal tooling (dev scripts, CLAUDE.md itself, pre-commit
-  hooks, syntax checkers) has no place here at all** - it doesn't affect
-  what the extension does for a user. Leave it out of the notes entirely
-  rather than compressing it; it belongs in commit messages only.
+- **Dev-process/tooling hardening (syntax checks, pre-commit hooks,
+  packaging scripts, doc improvements) still belongs in the notes - don't
+  cut it, give it its own "Behind the Scenes" section.** It's the same
+  reliability signal as the QA-pass exception above (fewer broken commits
+  reaching a release), just phrased as what it buys the user ("a broken
+  file can no longer slip into a release") rather than the mechanism
+  ("added scripts/check-syntax.js"). A prior pass at this over-corrected
+  and deleted the section outright - don't repeat that; compress it, don't
+  remove it.
 - **Keep the issue number on every bullet that has one, as a bare `(#123)`
   - GitHub auto-links it.** That's where the nerdy stuff already lives (the
   root cause, the exact repro, how it was verified) via the issue's own
   comments - the release note doesn't need to duplicate any of that, it
   just needs to point there for whoever wants it.
+- **Bold the main point of every bullet** - the short lead clause stating
+  the outcome (e.g. "**Import a whole new family in fewer clicks**"),
+  normal weight for the elaboration that follows. Lets someone scan the
+  whole release in bold-only and still get the gist.
+- **Before publishing, audit for completeness**: `git log <prev-tag>..HEAD
+  --format="%B" | grep -oE '#[0-9]+' | sort -u` against the actual release
+  range, then check every number found appears somewhere in the notes.
+  Expect some false positives (a numbered list item inside a commit
+  message, a reference to an older/already-shipped issue given as
+  context, this very file's own example text) - verify each with `git log
+  --format="%B" | grep -B3 '#N\b'` before concluding it's really missing,
+  don't just add every number the grep turns up.
 
 **Building the release zip:**
 

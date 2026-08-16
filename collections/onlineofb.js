@@ -74,7 +74,7 @@ registerCollection({
             // guard handles the family-member-fetch version of this.
             return;
         }
-        var parsed = $(request.source.replace(/<img[^>]*>/ig, ""));
+        var parsed = $(request.source.replace(/<img /ig, "<track "));
         focusname = getOFBName(parsed, tablink);
     },
     "parseProfileData": parseOnlineOFB
@@ -100,20 +100,21 @@ function parseOnlineOFB(htmlstring, familymembers, relation) {
         return "";
     }
     relation = relation || "";
-    var parsed = $(htmlstring.replace(/<img[^>]*>/ig, ""));
+    var parsed = $(htmlstring.replace(/<img /ig, "<track "));
     var cells = getOFBCells(parsed);
 
     var focusperson = getOFBName(parsed, relation.url || tablink);
-    // No confirmed gender signal for the focus person specifically across
-    // any of the three samples (no icon, no explicit field mentioned in
-    // the issue or the live findings) - defaulting to "unknown" rather
-    // than guessing from the name. Family members below DO get a
-    // relationship-based inference, same fallback TNG/Geneanet already use
-    // when they likewise have no direct signal to read.
-    var genderval = "unknown";
+    // A real "berlin" family report page has a male.gif/female.gif icon
+    // directly next to the person's name (images/female.gif, confirmed
+    // live) - read via getOFBGenderIcon() below. Falls back to "unknown"
+    // if no icon is found, same as before this was confirmed; family
+    // members below still separately get a relationship-based inference
+    // (father/mother/etc.) when there's no icon to read for them either,
+    // same fallback TNG/Geneanet already use.
+    var genderval = getOFBGenderIcon(parsed);
     if (relation === "" ) {
         focusgender = genderval;
-    } else if (exists(relation.gender) && relation.gender !== "unknown") {
+    } else if (genderval === "unknown" && exists(relation.gender) && relation.gender !== "unknown") {
         genderval = relation.gender;
     }
 
@@ -300,9 +301,18 @@ function getOFBFieldCell(cells, variants) {
 // Two lookup strategies, tried in order, since there's no single
 // consistent label/value layout across generators (confirmed by the three
 // live samples): the label and value can share one cell ("Birth: 03 Jul
-// 1850"), or the label can sit alone with the value in the following cell
-// - the pattern collections/tng.js's getTNGField() relies on exclusively,
-// also confirmed present here.
+// 1850"), or the label can sit alone with the value in a following cell -
+// the pattern collections/tng.js's getTNGField() relies on exclusively,
+// also confirmed present here. That second case isn't always the
+// *immediate* next cell, though - a real live sample (a "berlin" family
+// report page) has an empty spacer <td width=3></td> between the ✶ symbol
+// and its actual date value, which broke birth/death/baptism extraction
+// entirely (father/mother still worked, since those labels apparently
+// aren't followed by a spacer). Scan forward past empty cells instead of
+// checking only the one immediately after the label - bounded to a few
+// cells so this can't wander into an unrelated later field on a page with
+// no spacer at all.
+var OFB_FORWARD_SCAN_LIMIT = 3;
 function getOFBFieldText(cells, variants) {
     var match = getOFBFieldCell(cells, variants);
     if (!exists(match)) {
@@ -311,8 +321,8 @@ function getOFBFieldText(cells, variants) {
     if (match.remainder !== "") {
         return match.remainder;
     }
-    if (match.index + 1 < cells.length) {
-        var next = $(cells[match.index + 1]).text().trim();
+    for (var offset = 1; offset <= OFB_FORWARD_SCAN_LIMIT && match.index + offset < cells.length; offset++) {
+        var next = $(cells[match.index + offset]).text().trim();
         if (next !== "") {
             return next;
         }
@@ -320,11 +330,18 @@ function getOFBFieldText(cells, variants) {
     return "";
 }
 
-// Date+place split is a best-effort heuristic (comma-separated, the most
-// common convention elsewhere in this codebase) - not confirmed against a
-// live Online-OFB date-with-place example, since neither the issue nor the
-// three checked samples included one verbatim. Degrades to a date-only
-// result if the split doesn't apply, never throws.
+// Date+place format confirmed live on a real "berlin" sample: "06 May 1873
+// in Friedrichshagen,  Berlin,  Deutschland" (English) / "06.05.1873 in
+// Friedrichshagen,  Berlin,  Deutschland" (German - same " in " connector
+// either way, since German "in" happens to be identical to English "in"
+// here). The place itself commonly has its own internal commas (city,
+// region, country), so splitting on the first comma the way most other
+// collections in this codebase do was wrong here - it cut "Friedrichshagen"
+// off the date side and left the place truncated. Split on " in " instead;
+// only fall back to a first-comma split if " in " isn't present, for
+// whatever other date-only-with-comma shape a different generator might
+// use. Degrades to a date-only result if neither pattern applies, never
+// throws.
 function getOFBDate(cells, variants) {
     var data = [];
     var raw = getOFBFieldText(cells, variants);
@@ -333,7 +350,11 @@ function getOFBDate(cells, variants) {
     }
     var datepart = raw;
     var placepart = "";
-    if (raw.contains(",")) {
+    var inIndex = raw.indexOf(" in ");
+    if (inIndex !== -1) {
+        datepart = raw.substring(0, inIndex).trim();
+        placepart = raw.substring(inIndex + 4).trim();
+    } else if (raw.contains(",")) {
         var split = raw.split(",");
         datepart = split[0].trim();
         placepart = split.slice(1).join(",").trim();
@@ -343,6 +364,11 @@ function getOFBDate(cells, variants) {
         data.push({date: datepart});
     }
     if (placepart !== "") {
+        // Collapse the multi-space runs the raw markup has between
+        // comma-separated place components (e.g. "Friedrichshagen,  Berlin,
+        // Deutschland" - two spaces after each comma in the real sample)
+        // down to a single space, for a cleaner display value.
+        placepart = placepart.replace(/\s+/g, " ").replace(/\s*,\s*/g, ", ").trim();
         data.push({id: geoid, location: placepart});
         geoid++;
     }
@@ -380,22 +406,51 @@ function getOFBFamilyLinks(cells, labelVariants, emptyMarkers) {
     return links;
 }
 
+// Confirmed live on a real "berlin" family report page: a male.gif/
+// female.gif icon sits directly next to the person's name (as a <track>
+// by the time this runs - see the <img>-to-<track> substitution at the
+// top of parseOnlineOFB()/loadPage(), which exists specifically so this
+// icon's attributes survive parsing instead of being stripped). Matches
+// on the src filename rather than an alt attribute, since none was
+// present in the confirmed sample. Takes the FIRST such icon found on the
+// page - fine for the focus person's own top-of-page icon, but if a
+// family-report-style page ever shows multiple people's icons together,
+// this could pick up the wrong one; not something the current samples
+// have shown a case for, so not guarded against yet.
+function getOFBGenderIcon(parsed) {
+    var icon = parsed.find('track[src*="female"], track[src*="male"]').first();
+    if (icon.length === 0) {
+        return "unknown";
+    }
+    return (icon.attr("src") || "").toLowerCase().contains("female") ? "female" : "male";
+}
+
+// Two different name display conventions confirmed live so far, order
+// varies by generator: "SURNAME, Given" (comma-separated - the issue's
+// original technical notes) and "Given SURNAME" with no comma at all, the
+// surname distinguished only by being in caps (confirmed live on a real
+// "berlin" family report page: "Madchen MAASS", inside a <FONT> tag - not
+// covered by the original b/h1/h2/strong candidate list, which is why the
+// name went blank on that page even though father/mother were found).
+// OFB_SURNAME_PATTERN finds the all-caps run regardless of which side of
+// the name it's on, so this doesn't assume a fixed order.
+var OFB_SURNAME_PATTERN = /\b[A-ZÀ-ÖØ-Þ]{2,}\b/;
+
 // Name display isn't confirmed to use a literal "Name:" label across all
-// three samples (the issue's own technical notes just describe the
-// eventual "SURNAME, Given" shape, matching the url's own nachname= param
-// as a cross-check) - tries the label lookup first, falls back to the
-// page's first bold/header text containing a comma if that fails, and
-// falls back again to the raw nachname= URL param alone if even that
-// comes up empty. Never returns something that throws downstream; "" is a
-// valid (if unhelpful) result like every other lookup in this file.
+// samples - tries the label lookup first, falls back to the page's first
+// bold/header/font text that looks like a name (comma-separated, or has a
+// caps-surname run) if that fails, and falls back again to the raw
+// nachname= URL param alone if even that comes up empty. Never returns
+// something that throws downstream; "" is a valid (if unhelpful) result
+// like every other lookup in this file.
 function getOFBName(parsed, url) {
     var cells = getOFBCells(parsed);
     var raw = getOFBFieldText(cells, ["Name:"]);
     if (raw === "") {
-        var candidates = parsed.find("b, h1, h2, strong").toArray();
+        var candidates = parsed.find("b, h1, h2, strong, font").toArray();
         for (var i = 0; i < candidates.length; i++) {
             var text = $(candidates[i]).text().trim();
-            if (text.contains(",") && text.length < 80) {
+            if (text.length < 80 && (text.contains(",") || OFB_SURNAME_PATTERN.test(text))) {
                 raw = text;
                 break;
             }
@@ -408,6 +463,14 @@ function getOFBName(parsed, url) {
         return given + " (" + surname + ")";
     }
     if (raw !== "") {
+        var surnameMatch = raw.match(OFB_SURNAME_PATTERN);
+        if (exists(surnameMatch)) {
+            var capsSurname = surnameMatch[0];
+            var restOfName = (raw.substring(0, surnameMatch.index) + raw.substring(surnameMatch.index + capsSurname.length)).trim();
+            if (restOfName !== "") {
+                return restOfName + " (" + capsSurname + ")";
+            }
+        }
         return raw;
     }
     var nachname = exists(url) ? getParameterByName("nachname", url) : "";

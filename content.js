@@ -117,7 +117,13 @@ function queryGeni() {
         dconflict = ",data_conflict";
     }
     familystatus.push(1);
-    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,cause_of_death,burial,is_alive,marriage,divorce,claimed,public" + dconflict + "&actions=update,update-basics";
+    // about_me added alongside the other protectable fields (occupation,
+    // dates, etc.) so refreshFieldCheckState()'s About protection in
+    // buildform.js's setGeniFamilyData() has a real value to compare
+    // against, not just always-blank - without it here, a family member's
+    // real About/bio text on Geni would never be visible to that check at
+    // all, silently defeating the same protection every other field gets.
+    var args = "fields=id,guid,name,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,names,occupation,gender,deleted,birth,baptism,death,cause_of_death,burial,is_alive,marriage,divorce,claimed,public,about_me" + dconflict + "&actions=update,update-basics";
     var url = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;
     chrome.runtime.sendMessage({
         method: "GET",

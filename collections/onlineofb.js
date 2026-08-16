@@ -428,6 +428,17 @@ function parseOFBDateString(raw) {
         .replace(/^vor\s+/i, "Before ")
         .replace(/^nach\s+/i, "After ")
         .replace(/^zwischen\s+/i, "Between ");
+    // "zwischen X und Y" only had its leading keyword translated above -
+    // the "und" (German "and") connector was left as-is. Downstream
+    // "Between X and Y" consumers (checkBurial() in buildform.js, and
+    // popup.js's own date-submission logic) split on the literal string
+    // " and ", so an untranslated "und" left the whole range unparsed
+    // instead of yielding just the end date. Scoped to right after
+    // "Between " (not a blind global replace) so an unrelated "und"
+    // elsewhere in the string - if one ever appeared - isn't mangled.
+    if (raw.startsWith("Between ")) {
+        raw = raw.replace(" und ", " and ");
+    }
     var datepart = raw;
     var placepart = "";
     var inIndex = raw.indexOf(" in ");

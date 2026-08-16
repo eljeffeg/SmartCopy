@@ -1039,11 +1039,19 @@ function buildForm() {
                 var memberPrivacy = buildPrivacySelect(living, memberBirthYear, undefined);
                 membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input id="' + i + '_public_checkbox" type="checkbox" class="checknext" ' + (memberPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect privacyselect" update="'+ i + '" data-birthyear="' + (exists(memberBirthYear) ? memberBirthYear : "") + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacy.enabled ? "" : "disabled") + '>' +
                     memberPrivacy.options + '</select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                // The genislideinput below (missing until now) is what lets
+                // refreshFieldCheckState()/parseForm()'s no-op skip see
+                // Geni's actual About text for this field, same as every
+                // other field's own hidden comparison input - without it,
+                // an empty-but-present scraped About value could start
+                // pre-checked (per the blank-scraped/blank-Geni rule above)
+                // and never get re-protected once a real match with
+                // existing bio text is picked.
                 if (exists(members[member].about)) {
                     var about = members[member].about;
-                    membersstring = membersstring + '<tr><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scored, false, "") + '>About:<img id="' + i + '_geni_about" class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scored, false, "") + '>' + about + '</textarea></div></td></tr>';
+                    membersstring = membersstring + '<tr><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scored, false, "") + '>About:<img class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"><input id="' + i + '_geni_about" type="text" class="formtext genislideinput" value="" disabled style="display:none;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scored, false, "") + '>' + about + '</textarea></div></td></tr>';
                 } else {
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext">About:<img id="' + i + '_geni_about" class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
+                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext">About:<img class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"><input id="' + i + '_geni_about" type="text" class="formtext genislideinput" value="" disabled style="display:none;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
                 }
                 for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
                     var title = listvalues[list];
@@ -1988,21 +1996,6 @@ function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
             }
         }
 
-        function categoryMatches(familymem) {
-            var famRel = familymem.get("relation");
-            return (relationship === "brother" && famRel === "brother") ||
-                (relationship === "sister" && famRel === "sister") ||
-                (relationship === "son" && famRel === "son") ||
-                (relationship === "daughter" && famRel === "daughter") ||
-                (isPartner(famRel) && isPartner(relationship)) ||
-                (isChild(famRel) && relationship === "child") ||
-                (isSibling(famRel) && relationship === "sibling") ||
-                (isParent(famRel) && relationship === "parent") ||
-                (famRel === "child" && isChild(relationship)) ||
-                (famRel === "sibling" && isSibling(relationship)) ||
-                (famRel === "parent" && isParent(relationship));
-        }
-
         var existingMatch = findExistingFamilyMatch(relationship, gender, firstName, lastName, birthYear);
         var autoSelectId = existingMatch ? existingMatch.get("id") : null;
 
@@ -2647,7 +2640,10 @@ function setGeniFamilyData(id, profile) {
     var geniNicknames = getGeniData(profile, "nicknames");
     $("#" + id + "_geni_nicknames").val(geniNicknames);
     $("#" + id + "_geni_nickimage").attr('src', isAppend(profile));
-    $("#" + id + "_geni_about").attr('src', isAppend(profile));
+    var geniAbout = getGeniData(profile, "about_me");
+    $("#" + id + "_geni_about").val(geniAbout);
+    $("#" + id + "_geni_about").prev().attr('src', isAppend(profile));
+    refreshFieldCheckState(id, "about_me", geniAbout);
     refreshFieldCheckState(id, "nicknames", geniNicknames);
     var geniOccupation = getGeniData(profile, "occupation");
     $("#" + id + "_geni_occupation").val(geniOccupation);
@@ -2780,7 +2776,19 @@ function refreshPrivacySelect(id) {
     var memberLivingNow = $('select.livingselect[update="' + id + '"]').val() === "true";
     var birthYearAttr = privacySelect.attr('data-birthyear');
     var memberBirthYearNow = exists(birthYearAttr) && birthYearAttr !== "" ? parseInt(birthYearAttr, 10) : undefined;
-    var currentlyPublicNow = getGeniData(profile, "public") === true;
+    // getGeniData() returns "" for "no profile/no data" (e.g. a brand-new
+    // "Add Profile" match) - genuinely different from a real profile whose
+    // public field is explicitly false, same distinction isPublic() draws
+    // above. Collapsing "" to false here (as `=== true` alone would) broke
+    // buildPrivacySelect()'s living-person branch specifically, which checks
+    // `currentlyPublic !== false`: a brand-new living person's Privacy
+    // checkbox would render enabled at initial render (currentlyPublic is
+    // genuinely undefined then) but flip to incorrectly disabled the moment
+    // this function re-resolves it against "" mistaken for false. Preserving
+    // the real tri-state (true/false/undefined) instead keeps both call
+    // sites consistent.
+    var geniPublicRaw = getGeniData(profile, "public");
+    var currentlyPublicNow = geniPublicRaw === "" ? undefined : geniPublicRaw;
     var refreshedPrivacy = buildPrivacySelect(memberLivingNow, memberBirthYearNow, currentlyPublicNow);
     privacySelect.html(refreshedPrivacy.options);
     // "Select all" means all, full stop - it doesn't try to skip fields

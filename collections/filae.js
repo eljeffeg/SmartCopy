@@ -477,9 +477,14 @@ function parseFilae(htmlstring, familymembers, relation) {
         // (Benno's mother has no alt-name shown, so her years were never
         // even attempted). Checking every paragraph after the name for a
         // year-range match, regardless of position, handles both cases.
+        // Same "±" (approximate-year) tolerance as extractFilaeHeader() -
+        // #207's fix only patched that one, but this is the identical
+        // shape of regex reading the identical shape of text, so an
+        // approximate-dated relative's sidebar card silently lost its
+        // birth/death year here too.
         var cardYears = {};
         for (var np = 1; np < nameParas.length; np++) {
-            var yearRangeMatch = $(nameParas[np]).text().trim().match(/^(\d{4})\s*-\s*(\d{4})?\s*$/);
+            var yearRangeMatch = $(nameParas[np]).text().trim().match(/^±?\s*(\d{4})\s*-\s*±?\s*(\d{4})?\s*$/);
             if (yearRangeMatch) {
                 cardYears.birth = [{date: yearRangeMatch[1]}];
                 if (exists(yearRangeMatch[2])) {

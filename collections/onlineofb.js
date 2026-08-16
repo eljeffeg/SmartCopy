@@ -179,8 +179,15 @@ function parseOnlineOFB(htmlstring, familymembers, relation) {
             famid++;
         }
         var spouses = getOFBSpouseLinks(cells);
+        // Attached to whichever spouse is processed first - with more than
+        // one "Spouse:" row (unconfirmed live, but plausible - remarriage)
+        // this would incorrectly apply the same marriage date to every
+        // spouse, since getOFBMarriageDate() only reads the first matching
+        // Spouse: cell. Known simplification, not guessed further without
+        // a real multi-spouse sample to check against.
+        var marriageDate = getOFBMarriageDate(cells);
         for (var s = 0; s < spouses.length; s++) {
-            processOFBFamily(spouses[s], "spouse", famid);
+            processOFBFamily(spouses[s], "spouse", famid, marriageDate);
             myhspouse.push(famid);
             famid++;
         }
@@ -356,8 +363,19 @@ function getOFBFieldText(cells, variants) {
 // use. Degrades to a date-only result if neither pattern applies, never
 // throws.
 function getOFBDate(cells, variants) {
-    var data = [];
     var raw = getOFBFieldText(cells, variants);
+    if (raw === "") {
+        return [];
+    }
+    return parseOFBDateString(raw);
+}
+
+// Shared by getOFBDate() (looks up a labeled cell first) and
+// getOFBMarriageDate() below (extracts a symbol-marked segment out of a
+// cell that mixes several dates together) - everything past "found the
+// raw date+place text" is identical between them.
+function parseOFBDateString(raw) {
+    var data = [];
     if (raw === "") {
         return data;
     }
@@ -392,6 +410,43 @@ function getOFBDate(cells, variants) {
         geoid++;
     }
     return data;
+}
+
+// Marriage date/place, marked with the ⚭ symbol - confirmed live embedded
+// directly inside the Spouse: value cell, alongside the spouse's own
+// birth (✶) and death (✡) dates, all <br>-separated within that one cell
+// (e.g. "Emanuel WOLFF<br>✶ 03 Jul 1850 in Posen<br>✡ 30 Dec 1901 in
+// Berlin<br>⚭ 27 Jan 1880 in Posen (StA) [1]"). jQuery's .text() doesn't
+// preserve <br> as a separator, so the whole cell collapses to one run-on
+// string with no boundary between segments - the symbols themselves are
+// what mark where each one starts, so this splits on those rather than
+// relying on <br>.
+var OFB_MARRIAGE_SYMBOL = "⚭";
+function getOFBMarriageDate(cells) {
+    var spouseMatch = getOFBFieldCell(cells, OFB_SPOUSE_LABELS);
+    if (!exists(spouseMatch)) {
+        return [];
+    }
+    var valueCell = $(cells[spouseMatch.index]).next("td");
+    if (valueCell.length === 0) {
+        return [];
+    }
+    var text = valueCell.text();
+    var marriageIndex = text.indexOf(OFB_MARRIAGE_SYMBOL);
+    if (marriageIndex === -1) {
+        return [];
+    }
+    var afterSymbol = text.substring(marriageIndex + OFB_MARRIAGE_SYMBOL.length);
+    var otherSymbols = ["✶", "✡", "▭", "†"];
+    var nextSymbolIndex = -1;
+    otherSymbols.forEach(function (symbol) {
+        var idx = afterSymbol.indexOf(symbol);
+        if (idx !== -1 && (nextSymbolIndex === -1 || idx < nextSymbolIndex)) {
+            nextSymbolIndex = idx;
+        }
+    });
+    var raw = (nextSymbolIndex === -1 ? afterSymbol : afterSymbol.substring(0, nextSymbolIndex)).trim();
+    return parseOFBDateString(raw);
 }
 
 // Every family-member link this file extracts goes through this one
@@ -632,7 +687,7 @@ function getOFBName(parsed, url) {
     return nachname || "";
 }
 
-function processOFBFamily(link, title, famid) {
+function processOFBFamily(link, title, famid, marriageDate) {
     var url = $(link).attr("href");
     if (!exists(url) || url === "") {
         return;
@@ -661,6 +716,9 @@ function processOFBFamily(link, title, famid) {
         parentlist.push(itemid);
     }
     var subdata = {name: name, title: title, gender: gendersv, url: fullurl, itemId: itemid, profile_id: famid};
+    if (isPartner(title) && exists(marriageDate) && marriageDate.length > 0) {
+        subdata["marriage"] = marriageDate;
+    }
     unionurls[famid] = itemid;
     getOFBFamily(famid, fullurl, subdata);
 }

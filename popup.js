@@ -478,7 +478,13 @@ function userAccess() {
                 variable: ""
             }, function (response) {
                 document.querySelector('#loginspinner').style.display = "none";
-                var responsedata = JSON.parse(response.source);
+                var responsedata;
+                try {
+                    responsedata = JSON.parse(response.source);
+                } catch (e) {
+                    setMessage(errormsg, "SmartCopy was unable to read Geni's account-access response. Try again.");
+                    return;
+                }
                 var accessdialog = document.querySelector('#useraccess');
                 accessdialog.style.display = "block";
                 if (!responsedata.big_tree) {
@@ -509,7 +515,16 @@ function userAccess() {
                         url: "https://www.geni.com/api/" + focusid + "?fields=name&access_token=" + accountinfo.access_token,
                         variable: ""
                     }, function (response) {
-                        var responsedata = JSON.parse(response.source);
+                        // Non-critical lookup (just refreshes the display
+                        // name) - a bad response here means focusname simply
+                        // stays whatever it already was, not worth its own
+                        // user-facing error.
+                        var responsedata;
+                        try {
+                            responsedata = JSON.parse(response.source);
+                        } catch (e) {
+                            return;
+                        }
                         if (exists(responsedata.name)) {
                             focusname = responsedata.name;
                         }
@@ -731,7 +746,22 @@ function loadPage(request) {
                 action: "xhttp",
                 url: descurl
             }, function (response) {
-                genifamily = JSON.parse(response.source);
+                // A malformed/non-JSON response (a transient proxy error
+                // page, a truncated body) previously threw here uncaught,
+                // aborting the callback silently mid-execution - the user
+                // was left staring at the loading spinner forever with no
+                // error shown. Same cleanup+message as the explicit error
+                // branches below, just for the "couldn't even parse a
+                // response" case those don't cover.
+                try {
+                    genifamily = JSON.parse(response.source);
+                } catch (e) {
+                    document.getElementById("top-container").style.display = "block";
+                    document.getElementById("submitbutton").style.display = "none";
+                    document.getElementById("loading").style.display = "none";
+                    setMessage(errormsg, 'SmartCopy was unable to retrieve the focus profile data from Geni (invalid response).');
+                    return;
+                }
                 if (genifamily["error"]) {
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
@@ -882,7 +912,12 @@ function loadSelectPage(request) {
             action: "xhttp",
             url: url
         }, function (response) {
-            genifamily = JSON.parse(response.source);
+            try {
+                genifamily = JSON.parse(response.source);
+            } catch (e) {
+                setMessage(errormsg, "SmartCopy was unable to retrieve family data from Geni (invalid response). Try again.");
+                return;
+            }
             buildParentSpouse(false);
             var result = genifamilydata;
             result.sort(function (a, b) {
@@ -1614,7 +1649,20 @@ var submitform = function () {
                                 url: abouturl,
                                 variable: {pid: pid, familyout: familyout, rawAbout: rawAbout}
                             }, function (response) {
-                                var geni_return = JSON.parse(response.source);
+                                // A malformed/non-JSON response here used to
+                                // throw uncaught, skipping submitstatus.pop()
+                                // below entirely - the counter it tracks
+                                // never cleared, silently stalling whatever
+                                // watches submitstatus.length. Degrades
+                                // instead: skip just the about_me/nicknames
+                                // merge (familyout keeps whatever Stage 1
+                                // already set) and still submit the person.
+                                var geni_return = {};
+                                try {
+                                    geni_return = JSON.parse(response.source);
+                                } catch (e) {
+                                    console.error("SmartCopy: failed to parse Geni about_me/nicknames response for " + response.variable.pid, e);
+                                }
                                 var familyout = response.variable.familyout;
                                 var rawAbout = response.variable.rawAbout;
                                 if (!$.isEmptyObject(geni_return)) {
@@ -2129,7 +2177,16 @@ function buildTempSpouse(parentid) {
             data: $.param({gender: tgender}),
             variable: {id: parentid}
         }, function (response) {
-            var result = JSON.parse(response.source);
+            // A parse failure here previously threw before submitstatus.pop()
+            // ran, leaving the counter stuck and submitWait() waiting forever.
+            var result;
+            try {
+                result = JSON.parse(response.source);
+            } catch (e) {
+                console.error("SmartCopy: failed to parse add-partner response", e);
+                submitstatus.pop();
+                return;
+            }
             if (exists(result.unions)) {
                 spouselist[response.variable.id] = {union: result.unions[0].replace("https://www.geni.com/api/", ""), status: "partner", genidata: ""};
             }
@@ -2785,7 +2842,13 @@ $(function () {
                 url: url,
                     variable: {api_value: api_value}
             }, function (response) {
-                var result = JSON.parse(response.source);
+                var result;
+                try {
+                    result = JSON.parse(response.source);
+                } catch (e) {
+                    alert("Unable to read Google's response - try again.");
+                    return;
+                }
                 if (exists(result.error_message)) {
                     google_api = "";
                     googlegeoquery = false;

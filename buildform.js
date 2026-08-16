@@ -343,8 +343,8 @@ function buildForm() {
             }
             var occupation = alldata["profile"]["occupation"].trim();
             membersstring = membersstring +
-                '<tr id="occupation"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scoreoccupation) + '>' +
-                capFL(title) + ': </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="' + title + '" value="' + occupation + '" ' + isEnabled(occupation, scoreoccupation) + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
+                '<tr id="occupation"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scoreoccupation, false, genifocusdata.get("occupation")) + '>' +
+                capFL(title) + ': </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="' + title + '" value="' + occupation + '" ' + isEnabled(occupation, scoreoccupation, false, genifocusdata.get("occupation")) + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         } else {
             membersstring = $(div[0]).html();
@@ -481,8 +481,8 @@ function buildForm() {
                                 dateambig = 'style="color: #ff0000;" ';
                             }
                         membersstring = membersstring +
-                            '<tr id="' + title + 'date"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored) + '>' +
-                            capFL(title) + ' Date:</td><td style="float:right;padding: 0;"><input type="text" class="formtext dateform" ' + dateambig + 'name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored) + '></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "date.formatted_date") + '" disabled></td></tr>';
+                            '<tr id="' + title + 'date"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored, false, genifocusdata.get(title, "date.formatted_date")) + '>' +
+                            capFL(title) + ' Date:</td><td style="float:right;padding: 0;"><input type="text" class="formtext dateform" ' + dateambig + 'name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored, false, genifocusdata.get(title, "date.formatted_date")) + '></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "date.formatted_date") + '" disabled></td></tr>';
                         dateadded = true;
 
                         //div[0].style.display = "block";
@@ -526,12 +526,12 @@ function buildForm() {
                                 locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                             }
                             locationval = locationval + '<img class="geopin" title="' + pintitle + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
-                            '<tr class="geoplace' + geoplacehidden + '"style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, placeScored) + '>' + capFL(title) + ' Place:</td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, placeScored) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location_string") + '" disabled></td></tr>' +
-                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, geoScored, geoone) + '>Place: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, geoScored, geoone) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.place_name") + '" disabled></td></tr>' +
-                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, geoScored, geoone) + '>City: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, geoScored, geoone) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.city") + '" disabled></td></tr>' +
-                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, geoScored, geoone) + '>County: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:county" value="' + county + '" ' + isEnabled(county, geoScored, geoone) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.county") + '" disabled></td></tr>' +
-                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(state, geoScored, geoone) + '>State: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:state" value="' + state + '" ' + isEnabled(state, geoScored, geoone) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.state") + '" disabled></td></tr>' +
-                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(country, geoScored, geoone) + '>Country: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:country" value="' + country + '" ' + isEnabled(country, geoScored, geoone) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.country") + '" disabled></td></tr>';
+                            '<tr class="geoplace' + geoplacehidden + '"style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, placeScored, false, genifocusdata.get(title, "location_string")) + '>' + capFL(title) + ' Place:</td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, placeScored, false, genifocusdata.get(title, "location_string")) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location_string") + '" disabled></td></tr>' +
+                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name")) + '>Place: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name")) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.place_name") + '" disabled></td></tr>' +
+                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, geoScored, geoone, genifocusdata.get(title, "location.city")) + '>City: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, geoScored, geoone, genifocusdata.get(title, "location.city")) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.city") + '" disabled></td></tr>' +
+                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, geoScored, geoone, genifocusdata.get(title, "location.county")) + '>County: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:county" value="' + county + '" ' + isEnabled(county, geoScored, geoone, genifocusdata.get(title, "location.county")) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.county") + '" disabled></td></tr>' +
+                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(state, geoScored, geoone, genifocusdata.get(title, "location.state")) + '>State: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:state" value="' + state + '" ' + isEnabled(state, geoScored, geoone, genifocusdata.get(title, "location.state")) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.state") + '" disabled></td></tr>' +
+                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(country, geoScored, geoone, genifocusdata.get(title, "location.country")) + '>Country: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:country" value="' + country + '" ' + isEnabled(country, geoScored, geoone, genifocusdata.get(title, "location.country")) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.country") + '" disabled></td></tr>';
                         locationadded = true;
                         //div[0].style.display = "block";
                     }
@@ -623,30 +623,42 @@ function buildForm() {
         var parentck = false;
         var scoreused = false;
         //Use a common naming scheme
+        // sibcheck/childck/parentck/partnerck (the top-level "add all
+        // [category]" convenience checkbox) share their "Geni has none of
+        // this category at all" signal with scored (which drives the
+        // per-person top checkbox and, within each member's row, per-field
+        // pre-checking) - deliberately, not coincidentally. This is a
+        // separate, deterministic reason to auto-select from the source's
+        // own SmartMatch relevance signal (scorefactors): whether MyHeritage
+        // flagged this relationship as a probable match or not, a category
+        // Geni has zero of at all is unambiguous - there's nothing to
+        // conflict with, so every candidate found for it is worth
+        // auto-selecting, fields included, not just the top-level "add all"
+        // checkbox with nothing checked underneath it.
         if (isSibling(relationship)) {
-            if (scorefactors.contains("sibling")) {
+            sibcheck = !geniHasAnyOfCategory(isSibling);
+            if (scorefactors.contains("sibling") || sibcheck) {
                 scored = true;
-                sibcheck = true;
             }
             relationship = "sibling";
         } else if (isChild(relationship)) {
-            if (scorefactors.contains("child")) {
+            childck = !geniHasAnyOfCategory(isChild);
+            if (scorefactors.contains("child") || childck) {
                 scored = true;
-                childck = true;
             }
             relationship = "child";
         }
         else if (isParent(relationship)) {
-            if (scorefactors.contains("parent")) {
+            parentck = !geniHasAnyOfCategory(isParent);
+            if (scorefactors.contains("parent") || parentck) {
                 scored = true;
-                parentck = true;
             }
             relationship = "parent";
         }
         else if (isPartner(relationship) || relationship.contains("veteran (self)")) {
-            if (scorefactors.contains("spouse")) {
+            partnerck = !geniHasAnyOfCategory(isPartner);
+            if (scorefactors.contains("spouse") || partnerck) {
                 scored = true;
-                partnerck = true;
             }
             relationship = "partner";
         } else {
@@ -685,12 +697,18 @@ function buildForm() {
             var halfsibling = false;
             if (!scored && relationship === "parent") {
                 //used !== to also select unknown gender
+                // Only sets scored (per-member field-level relevance) now -
+                // the top-level "add parents" bulk checkbox is decided once
+                // per category, above, purely from whether Geni already has
+                // ANY parent at all. Directly forcing #addparentck checked
+                // here too - as this used to - would re-select "add
+                // parents" any time just one of father/mother was
+                // individually missing, even when Geni already has the
+                // other one, contradicting that category-wide rule.
                 if (scorefactors.contains("father") && !geniHas("father") && members[member].gender !== "female") {
                     scored = true;
-                    $('#addparentck').prop('checked', true);
                 } else if (scorefactors.contains("mother") && !geniHas("mother")  && members[member].gender !== "male") {
                     scored = true;
-                    $('#addparentck').prop('checked', true);
                 }
             }
             if (isSibling(relationship) && exists(members[member].halfsibling) && members[member].halfsibling) {
@@ -866,17 +884,17 @@ function buildForm() {
                 let regex = new RegExp('value="' + namelang + '">',"gm");
                 membersstring += '<tr><td colspan="2"></td><td>' + $(langtarget).html().replace(regex, "value='" + namelang + "' selected>"); + '</td></tr>'
                 membersstring +=
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.prefix, scored) + '>Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" ' + isEnabled(nameval.prefix, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_title" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored) + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_first_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.middleName, scored) + '>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '" ' + isEnabled(nameval.middleName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_middle_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.lastName, scored) + '>Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" ' + isEnabled(nameval.lastName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_last_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.birthName, scored) + '>Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" ' + isEnabled(nameval.birthName, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_maiden_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.suffix, scored) + '>Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" ' + isEnabled(nameval.suffix, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_suffix" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(displayname, scored) + '>Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" ' + isEnabled(displayname, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_display_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.nickName, scored) + '>Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" ' + isEnabled(nameval.nickName, scored) + '></td><td class="genisliderow"><img id="' + i + '_geni_nickimage" src="images/right.png" class="genislideimage"><input id="' + i + '_geni_nicknames" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.prefix, scored, false, "") + '>Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" ' + isEnabled(nameval.prefix, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_title" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored, false, "") + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_first_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.middleName, scored, false, "") + '>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '" ' + isEnabled(nameval.middleName, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_middle_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.lastName, scored, false, "") + '>Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" ' + isEnabled(nameval.lastName, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_last_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.birthName, scored, false, "") + '>Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" ' + isEnabled(nameval.birthName, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_maiden_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.suffix, scored, false, "") + '>Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" ' + isEnabled(nameval.suffix, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_suffix" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(displayname, scored, false, "") + '>Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" ' + isEnabled(displayname, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_display_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.nickName, scored, false, "") + '>Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" ' + isEnabled(nameval.nickName, scored, false, "") + '></td><td class="genisliderow"><img id="' + i + '_geni_nickimage" src="images/right.png" class="genislideimage"><input id="' + i + '_geni_nicknames" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 if (exists(members[member]["occupation"])) {
                     var occupation = members[member]["occupation"].trim();
-                    membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored) + '>Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" value="' + occupation + '" ' + isEnabled(occupation, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                    membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored, false, "") + '>Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" value="' + occupation + '" ' + isEnabled(occupation, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 } else {
                     membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 }
@@ -904,7 +922,7 @@ function buildForm() {
                     memberPrivacy.options + '</select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 if (exists(members[member].about)) {
                     var about = members[member].about;
-                    membersstring = membersstring + '<tr><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scored) + '>About:<img id="' + i + '_geni_about" class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scored) + '>' + about + '</textarea></div></td></tr>';
+                    membersstring = membersstring + '<tr><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scored, false, "") + '>About:<img id="' + i + '_geni_about" class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scored, false, "") + '>' + about + '</textarea></div></td></tr>';
                 } else {
                     membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext">About:<img id="' + i + '_geni_about" class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
                 }
@@ -928,7 +946,7 @@ function buildForm() {
                                     ambigdatecheck.push(i);
                                 }
                                 membersstring = membersstring +
-                                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored) + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" ' + dateambig + 'name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored, false, "") + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" ' + dateambig + 'name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                                 dateadded = true;
                             }
                             if (exists(memberobj[item].location)) {
@@ -963,12 +981,12 @@ function buildForm() {
                                         locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
                                     }
                                     locationval = locationval + '<img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + pintitle + '" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
-                                    '<tr class="geoplace' +  geoplacehidden + '" style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, placeScored) + '>' + Abbr(capFL(title)) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, placeScored) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, geoScored, geoone) + '>Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, geoScored, geoone) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, geoScored, geoone) + '>City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, geoScored, geoone) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_city" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, geoScored, geoone) + '>County: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:county" value="' + county + '" ' + isEnabled(county, geoScored, geoone) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_county" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(state, geoScored, geoone) + '>State: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:state" value="' + state + '" ' + isEnabled(state, geoScored, geoone) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_state" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(country, geoScored, geoone) + '>Country: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:country" value="' + country + '" ' + isEnabled(country, geoScored, geoone) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_country" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                                    '<tr class="geoplace' +  geoplacehidden + '" style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, placeScored, false, "") + '>' + Abbr(capFL(title)) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, placeScored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, geoScored, geoone, "") + '>Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, geoScored, geoone, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, geoScored, geoone, "") + '>City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, geoScored, geoone, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_city" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, geoScored, geoone, "") + '>County: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:county" value="' + county + '" ' + isEnabled(county, geoScored, geoone, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_county" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(state, geoScored, geoone, "") + '>State: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:state" value="' + state + '" ' + isEnabled(state, geoScored, geoone, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_state" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(country, geoScored, geoone, "") + '>Country: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:country" value="' + country + '" ' + isEnabled(country, geoScored, geoone, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_country" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                                 locationadded = true;
                             }
                         }
@@ -1249,6 +1267,7 @@ function updateClassResponse() {
                 } else {
                     $('#ribbon'+ id).show();
                 }
+                refreshPrivacySelect(id);
             }
         });
     });
@@ -1341,40 +1360,7 @@ function updateClassResponse() {
     $('.checkslide').off();
     $(function () {
         $('.checkslide').on('click', function () {
-            var fs = $("#" + this.name.replace("checkbox", "slide"));
-            // Same empty-field guard as the .checkall handler in popup.js -
-            // this is the per-person "select all fields for this person"
-            // checkbox and had the identical bug (a separate, duplicated
-            // implementation that wasn't caught when that one was fixed):
-            // forcing empty fields on could overwrite existing Geni data
-            // (e.g. Last Name) with a blank value.
-            var selectingAll = this.checked;
-            var ffs = fs.find('[type="checkbox"]');
-            var photoon = $('#photoonoffswitch').prop('checked');
-            ffs.filter(function (item) {
-                if ($(ffs[item]).closest('tr').css("display") === "none") {
-                    return false;
-                }
-                if (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) {
-                    return false;
-                }
-                if (selectingAll && isFieldEmptyForCheckAll($(ffs[item]).closest('tr'))) {
-                    return false;
-                }
-                return true;
-            }).prop('checked', selectingAll);
-            ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector");
-            ffs.filter(function (item) {
-                if ((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") ||
-                    (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) ||
-                    ffs[item].name === "action" || ffs[item].name === "profile_id") {
-                    return false;
-                }
-                if (selectingAll && (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA") && !isValue(ffs[item].value)) {
-                    return false;
-                }
-                return true;
-            }).attr('disabled', !selectingAll);
+            applySelectAllState($("#" + this.name.replace("checkbox", "slide")), this.checked);
         });
     });
     $('.geoicon').off();
@@ -1551,10 +1537,23 @@ function placementUpdate() {
     });
 }
 
-function isEnabled(value, score, force) {
+// currentValue is optional and only changes behavior when explicitly passed
+// as "" (a confirmed-blank comparison, e.g. Geni's own field for this
+// person is genuinely empty, or the person doesn't exist on Geni at all
+// yet). Left undefined at a call site preserves the original behavior
+// exactly (blank scraped value -> disabled), since undefined fails the
+// exists() check below - only call sites that have actually verified what
+// Geni currently holds for this field opt into the relaxed behavior.
+// Distinguishes "leave this alone, Geni already has real data here that a
+// blank scrape shouldn't clobber" (protective, unchanged) from "there's
+// nothing on either side to protect, so let the user type directly instead
+// of requiring an extra click on the checkbox first."
+function isEnabled(value, score, force, currentValue) {
     if (force && score) {
         return "";
     } else if (score && isValue(value)) {
+        return "";
+    } else if (score && !isValue(value) && exists(currentValue) && !isValue(currentValue)) {
         return "";
     } else {
         return "disabled";
@@ -1610,11 +1609,16 @@ function isSelected(id1, id2) {
     }
 }
 
-function isChecked(value, score, force) {
+// See isEnabled()'s comment above - same currentValue contract, kept in
+// sync so a field never ends up checked-but-disabled or enabled-but-not
+// submitted.
+function isChecked(value, score, force, currentValue) {
     force = force || false;
     if (force && score) {
         return "checked";
     } else if (score && isValue(value)) {
+        return "checked";
+    } else if (score && !isValue(value) && exists(currentValue) && !isValue(currentValue)) {
         return "checked";
     } else {
         return "";
@@ -1879,6 +1883,26 @@ function geniHas(relationship) {
             if (!genifamilydata.hasOwnProperty(node)) continue;
             var familymem = genifamilydata[node];
             if (familymem.get("relation") === relationship) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// Whole-category version of geniHas() - true if Geni already has ANY
+// member of this category (e.g. isParent matches "father" OR "mother"),
+// used to decide whether the top-level "add all [category]" convenience
+// checkbox should pre-select on load. "Geni has 1 and 1" (or even just 1)
+// for parents should never auto-select "add parents" - that's for the
+// "Geni has none of this category yet" case specifically, not a general
+// relevance signal (that's what scored/scorefactors is for, and is left
+// untouched - this only gates the bulk "add all" checkbox itself).
+function geniHasAnyOfCategory(categoryCheck) {
+    if (exists(genifamily)) {
+        for (var node in genifamilydata) {
+            if (!genifamilydata.hasOwnProperty(node)) continue;
+            if (categoryCheck(genifamilydata[node].get("relation"))) {
                 return true;
             }
         }
@@ -2322,30 +2346,133 @@ function geniPhoto(gender) {
     }
 }
 
+// Applies (or re-applies) the person-level "select all fields" state to
+// every field in fs - shared by the .checkslide click handler itself and
+// by setGeniFamilyData() below, which re-runs this automatically whenever
+// the action dropdown changes while "all" is already checked. Without
+// that second call site, switching between "Update Betta" and "Add
+// Profile" (or between two different matches) left every field's checked
+// state stuck at whatever it was under the PREVIOUS action - e.g. Last
+// Name staying checked (or unchecked) from a different person's Geni
+// data - even though the row's top-level checkbox already visibly showed
+// "yes, submit this person," so re-syncing the details underneath it on a
+// dropdown change isn't the "silently select something the user can't
+// see" problem this whole checked/disabled split was designed to avoid -
+// it's just making the already-visible commitment stay internally
+// consistent. Previously the only way to force this resync was to
+// manually uncheck then recheck "all".
+function applySelectAllState(fs, selectingAll) {
+    var ffs = fs.find('[type="checkbox"]');
+    var photoon = $('#photoonoffswitch').prop('checked');
+    ffs.filter(function (item) {
+        if ($(ffs[item]).closest('tr').css("display") === "none") {
+            return false;
+        }
+        if (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) {
+            return false;
+        }
+        if (selectingAll && isFieldEmptyForCheckAll($(ffs[item]).closest('tr'))) {
+            return false;
+        }
+        return true;
+    }).prop('checked', selectingAll);
+    ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector");
+    ffs.filter(function (item) {
+        if ((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") ||
+            (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) ||
+            ffs[item].name === "action" || ffs[item].name === "profile_id") {
+            return false;
+        }
+        // Same reasoning as isFieldEmptyForCheckAll() (popup.js) - reads
+        // Geni's value straight from this row's .genislideinput companion
+        // rather than the field's own disabled attribute, which this very
+        // filter mutates on every check/uncheck cycle and would otherwise
+        // go stale.
+        if (selectingAll && (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA") && !isValue(ffs[item].value)) {
+            var companionVal = $(ffs[item]).closest("tr").find(".genislideinput").val();
+            if (exists(companionVal) && companionVal !== "") {
+                return false;
+            }
+        }
+        return true;
+    }).attr('disabled', !selectingAll);
+}
+
+// Re-evaluates a family-member field's checkbox/enabled state now that we
+// actually know whether Geni has real data there - triggered from
+// setGeniFamilyData() below whenever the action dropdown settles on either
+// a specific existing match or "Add Profile" (getGeniData("add", ...)
+// already correctly returns "" for that case). The row was originally
+// rendered before any of this was knowable, so every field started
+// conservatively unchecked/disabled if the scraped value was blank.
+// Mirrors isChecked()/isEnabled()'s truth table exactly, just applied live
+// against the freshly-known currentValue instead of at initial render:
+// scraped blank + Geni blank -> check it (nothing to protect, save the
+// user a click); scraped blank + Geni has real data -> stays unchecked
+// (protect it - the user can still manually check it to intentionally
+// clear that field, but it's never pre-checked into doing so).
+function refreshFieldCheckState(id, fieldName, currentValue) {
+    var input = $("#familytable_" + id + " [name='" + fieldName + "']").not(".genislideinput");
+    if (input.length === 0) {
+        return;
+    }
+    var scrapedValue = input.val();
+    // Only ever toggles disabled (typeable or not) - never checked. Checking
+    // a field is what tells the person's top-level "select all" checkbox
+    // (.checkslide) that something is about to be submitted for them; that
+    // signal needs to stay exclusively tied to an explicit user action - an
+    // individual .checknext click (which already propagates up to check
+    // .checkslide) or the "all" button itself (isFieldEmptyForCheckAll(),
+    // which already respects this same disabled state to decide what's
+    // safe to include). If picking an action from the dropdown also
+    // auto-checked fields, a collapsed sibling row could end up with real
+    // fields silently selected for submission while its own .checkslide
+    // still showed unchecked - no visible sign anything would happen.
+    input.prop("disabled", isEnabled(scrapedValue, true, false, currentValue) === "disabled");
+}
+
 function setGeniFamilyData(id, profile) {
     var nameicon = getGeniLock(profile, "name");
     let namelang = $("#" + id + "_geni_name_language").val();
     $("#" + id + "_geni_photo_urls").attr('src', getGeniData(profile, "photo_urls"));
     $("#" + id + "_geni_mugshot").attr('src', isAppend(getGeniData(profile, "photo_urls")));
-    $("#" + id + "_geni_title").val(getGeniData(profile,  "names", namelang + ".title"));
+    var geniTitle = getGeniData(profile, "names", namelang + ".title");
+    $("#" + id + "_geni_title").val(geniTitle);
     $("#" + id + "_geni_title").prev().attr('src', nameicon);
-    $("#" + id + "_geni_first_name").val(getGeniData(profile, "names", namelang + ".first_name").replace(/&quot;/g, '"'));
+    refreshFieldCheckState(id, "title", geniTitle);
+    var geniFirstName = getGeniData(profile, "names", namelang + ".first_name").replace(/&quot;/g, '"');
+    $("#" + id + "_geni_first_name").val(geniFirstName);
     $("#" + id + "_geni_first_name").prev().attr('src', nameicon);
-    $("#" + id + "_geni_middle_name").val(getGeniData(profile, "names", namelang + ".middle_name").replace(/&quot;/g, '"'));
+    refreshFieldCheckState(id, "first_name", geniFirstName);
+    var geniMiddleName = getGeniData(profile, "names", namelang + ".middle_name").replace(/&quot;/g, '"');
+    $("#" + id + "_geni_middle_name").val(geniMiddleName);
     $("#" + id + "_geni_middle_name").prev().attr('src', nameicon);
-    $("#" + id + "_geni_last_name").val(getGeniData(profile, "names", namelang + ".last_name"));
+    refreshFieldCheckState(id, "middle_name", geniMiddleName);
+    var geniLastName = getGeniData(profile, "names", namelang + ".last_name");
+    $("#" + id + "_geni_last_name").val(geniLastName);
     $("#" + id + "_geni_last_name").prev().attr('src', nameicon);
-    $("#" + id + "_geni_maiden_name").val(getGeniData(profile, "names", namelang + ".maiden_name"));
+    refreshFieldCheckState(id, "last_name", geniLastName);
+    var geniMaidenName = getGeniData(profile, "names", namelang + ".maiden_name");
+    $("#" + id + "_geni_maiden_name").val(geniMaidenName);
     $("#" + id + "_geni_maiden_name").prev().attr('src', nameicon);
-    $("#" + id + "_geni_suffix").val(getGeniData(profile, "names", namelang + ".suffix"));
+    refreshFieldCheckState(id, "maiden_name", geniMaidenName);
+    var geniSuffix = getGeniData(profile, "names", namelang + ".suffix");
+    $("#" + id + "_geni_suffix").val(geniSuffix);
     $("#" + id + "_geni_suffix").prev().attr('src', nameicon);
-    $("#" + id + "_geni_display_name").val(getGeniData(profile, "names", namelang + ".display_name").replace(/&quot;/g, '"'));
+    refreshFieldCheckState(id, "suffix", geniSuffix);
+    var geniDisplayName = getGeniData(profile, "names", namelang + ".display_name").replace(/&quot;/g, '"');
+    $("#" + id + "_geni_display_name").val(geniDisplayName);
     $("#" + id + "_geni_display_name").prev().attr('src', nameicon);
-    $("#" + id + "_geni_nicknames").val(getGeniData(profile, "nicknames"));
+    refreshFieldCheckState(id, "display_name", geniDisplayName);
+    var geniNicknames = getGeniData(profile, "nicknames");
+    $("#" + id + "_geni_nicknames").val(geniNicknames);
     $("#" + id + "_geni_nickimage").attr('src', isAppend(profile));
     $("#" + id + "_geni_about").attr('src', isAppend(profile));
-    $("#" + id + "_geni_occupation").val(getGeniData(profile, "occupation"));
+    refreshFieldCheckState(id, "nicknames", geniNicknames);
+    var geniOccupation = getGeniData(profile, "occupation");
+    $("#" + id + "_geni_occupation").val(geniOccupation);
     $("#" + id + "_geni_occupation").prev().attr('src', getGeniLock(profile, "occupation"));
+    refreshFieldCheckState(id, "occupation", geniOccupation);
     $("#" + id + "_geni_gender").val(capFL(getGeniData(profile, "gender")));
     $("#" + id + "_geni_gender").prev().attr('src', getGeniLock(profile, "gender"));
     $("#" + id + "_geni_is_alive").val(isAlive(getGeniData(profile, "is_alive")));
@@ -2357,44 +2484,72 @@ function setGeniFamilyData(id, profile) {
     // which Geni profile (if any) this member is matched to - the row was
     // originally rendered with currentlyPublic left undefined (see the
     // comment at render time in buildform.js) because that wasn't knowable
-    // until now. Mirrors the focus-profile call at line ~408, but reads
-    // "living" live off the Vital dropdown rather than the closed-over
-    // render-time value, since the user can toggle Vital independently
-    // after the match is picked.
-    var privacySelect = $('select.privacyselect[update="' + id + '"]');
-    if (privacySelect.length > 0) {
-        var memberLivingNow = $('select.livingselect[update="' + id + '"]').val() === "true";
-        var birthYearAttr = privacySelect.attr('data-birthyear');
-        var memberBirthYearNow = exists(birthYearAttr) && birthYearAttr !== "" ? parseInt(birthYearAttr, 10) : undefined;
-        var currentlyPublicNow = getGeniData(profile, "public") === true;
-        var refreshedPrivacy = buildPrivacySelect(memberLivingNow, memberBirthYearNow, currentlyPublicNow);
-        privacySelect.html(refreshedPrivacy.options);
-        privacySelect.prop('disabled', !refreshedPrivacy.enabled);
-        $('#' + id + '_public_checkbox').prop('checked', refreshedPrivacy.enabled);
-    }
-    $("#" + id + "_geni_cause_of_death").val(getGeniData(profile, "cause_of_death"));
+    // until now.
+    refreshPrivacySelect(id);
+    var geniCauseOfDeath = getGeniData(profile, "cause_of_death");
+    $("#" + id + "_geni_cause_of_death").val(geniCauseOfDeath);
     $("#" + id + "_geni_cause_of_death").prev().attr('src', getGeniLock(profile, "cause_of_death"));
+    refreshFieldCheckState(id, "cause_of_death", geniCauseOfDeath);
 
     var listvalues = ["birth", "baptism", "marriage", "divorce", "death", "burial"];
     for (var i = 0; i < listvalues.length; i++) {
         var title = listvalues[i];
         var locationicon = getGeniLock(profile, title, "location");
-        $("#" + id + "_geni_" + title + "_date").val(getGeniData(profile, title, "date.formatted_date"));
+        var geniDate = getGeniData(profile, title, "date.formatted_date");
+        $("#" + id + "_geni_" + title + "_date").val(geniDate);
         $("#" + id + "_geni_" + title + "_date").prev().attr('src', getGeniLock(profile, title, "date"));
-        $("#" + id + "_geni_" + title + "_location_string").val(getGeniData(profile, title, "location_string"));
+        refreshFieldCheckState(id, title + ":date", geniDate);
+        var geniLocationString = getGeniData(profile, title, "location_string");
+        $("#" + id + "_geni_" + title + "_location_string").val(geniLocationString);
         $("#" + id + "_geni_" + title + "_location_string").prev().attr('src', locationicon);
-        $("#" + id + "_geni_" + title + "_place").val(getGeniData(profile, title, "location.place_name"));
+        refreshFieldCheckState(id, title + ":location:place_name", geniLocationString);
+        var geniPlaceName = getGeniData(profile, title, "location.place_name");
+        $("#" + id + "_geni_" + title + "_place").val(geniPlaceName);
         $("#" + id + "_geni_" + title + "_place").prev().attr('src', locationicon);
-        $("#" + id + "_geni_" + title + "_city").val(getGeniData(profile, title, "location.city"));
+        refreshFieldCheckState(id, title + ":location:place_name_geo", geniPlaceName);
+        var geniCity = getGeniData(profile, title, "location.city");
+        $("#" + id + "_geni_" + title + "_city").val(geniCity);
         $("#" + id + "_geni_" + title + "_city").prev().attr('src', locationicon);
-        $("#" + id + "_geni_" + title + "_county").val(getGeniData(profile, title, "location.county"));
+        refreshFieldCheckState(id, title + ":location:city", geniCity);
+        var geniCounty = getGeniData(profile, title, "location.county");
+        $("#" + id + "_geni_" + title + "_county").val(geniCounty);
         $("#" + id + "_geni_" + title + "_county").prev().attr('src', locationicon);
-        $("#" + id + "_geni_" + title + "_state").val(getGeniData(profile, title, "location.state"));
+        refreshFieldCheckState(id, title + ":location:county", geniCounty);
+        var geniState = getGeniData(profile, title, "location.state");
+        $("#" + id + "_geni_" + title + "_state").val(geniState);
         $("#" + id + "_geni_" + title + "_state").prev().attr('src', locationicon);
-        $("#" + id + "_geni_" + title + "_country").val(getGeniData(profile, title, "location.country"));
+        refreshFieldCheckState(id, title + ":location:state", geniState);
+        var geniCountry = getGeniData(profile, title, "location.country");
+        $("#" + id + "_geni_" + title + "_country").val(geniCountry);
         $("#" + id + "_geni_" + title + "_country").prev().attr('src', locationicon);
+        refreshFieldCheckState(id, title + ":location:country", geniCountry);
     }
 
+    // If this person's "select all" checkbox is already checked, the user
+    // has already made the visible, top-level commitment to submit them -
+    // re-sync every field's checked state to match what we just learned
+    // about this specific match/action, the same as manually unchecking
+    // and rechecking "all" would (previously the only way to force this).
+    // Never does this when "all" isn't checked - a dropdown change alone
+    // still never checks anything on its own, matching the "only an
+    // explicit action checks a box" rule refreshFieldCheckState() follows.
+    var memberexpand = $("#familytable_" + id).closest(".memberexpand");
+    var checkslideEl = memberexpand.prev(".membertitle").find(".checkslide");
+    if (checkslideEl.length > 0 && checkslideEl.prop("checked")) {
+        // Reset-then-reapply, not just reapply: applySelectAllState(...,
+        // true) only ever SETS the fields it wants checked - it never
+        // explicitly unchecks whatever it filters out, since normally
+        // nothing is checked yet the first time "all" gets clicked. Here,
+        // fields may already be checked from a PREVIOUS match/action (e.g.
+        // safely checked as blank-to-blank under "Add Profile"), and if
+        // the new match now has real Geni data for one of them, it needs
+        // to go back to unchecked/disabled, not just get skipped over.
+        // The false pass clears everything back to that baseline first,
+        // exactly like manually unchecking "all" before rechecking it -
+        // which is the workaround this whole resync replaces.
+        applySelectAllState(memberexpand, false);
+        applySelectAllState(memberexpand, true);
+    }
 }
 
 function isAlive(alive) {
@@ -2408,11 +2563,57 @@ function isAlive(alive) {
 }
 
 function isPublic(privacy) {
-    if (privacy) {
+    // getGeniData()/GeniPerson.get() both return "" specifically for "this
+    // profile/field doesn't exist" (e.g. a brand-new "Add Profile" family
+    // member, who has no Geni profile at all yet) - genuinely different
+    // from a real profile whose public field is explicitly false. Treating
+    // both as falsy collapsed them into the same "Private" display, making
+    // a new person's "what Geni currently has" comparison column falsely
+    // claim Geni already says Private, when there's really nothing there
+    // to compare against at all - it should read blank, like every other
+    // "_geni_X" companion field does in that same situation.
+    if (privacy === "") {
+        return "";
+    } else if (privacy) {
         return "Public";
     } else {
         return "Private";
     }
+}
+
+// Re-resolves a family member's Privacy select/checkbox from whatever is
+// currently true right now - the action dropdown's match (or "add"),
+// living/deceased status, and birth year - rather than the render-time
+// snapshot the row was originally built with (currentlyPublic couldn't be
+// known yet then, and living/birthYear can both change afterward). Shared
+// by setGeniFamilyData() (fires when the action dropdown settles on a
+// match) and the .livingselect change handler below (fires when Vital
+// itself changes) - previously only the former existed, so toggling Vital
+// alone left Privacy showing whatever it last was, unrelated to the new
+// Living/Deceased status.
+function refreshPrivacySelect(id) {
+    var privacySelect = $('select.privacyselect[update="' + id + '"]');
+    if (privacySelect.length === 0) {
+        return;
+    }
+    var profile = $("#familytable_" + id + " select.actionselect").val();
+    var memberLivingNow = $('select.livingselect[update="' + id + '"]').val() === "true";
+    var birthYearAttr = privacySelect.attr('data-birthyear');
+    var memberBirthYearNow = exists(birthYearAttr) && birthYearAttr !== "" ? parseInt(birthYearAttr, 10) : undefined;
+    var currentlyPublicNow = getGeniData(profile, "public") === true;
+    var refreshedPrivacy = buildPrivacySelect(memberLivingNow, memberBirthYearNow, currentlyPublicNow);
+    privacySelect.html(refreshedPrivacy.options);
+    // "Select all" means all, full stop - it doesn't try to skip fields
+    // that happen to be no-ops (that's parseForm()'s job at actual submit
+    // time, not the UI's). So if this person's top-level checkbox is
+    // already checked, Privacy needs to stay checked too even when
+    // buildPrivacySelect() says this particular value would be a no-op -
+    // otherwise switching Vital back and forth while "all" is checked
+    // left Privacy the one checkbox that mysteriously unchecked itself.
+    var allChecked = $("#familytable_" + id).closest(".memberexpand").prev(".membertitle").find(".checkslide").prop("checked");
+    var enabled = refreshedPrivacy.enabled || allChecked;
+    privacySelect.prop('disabled', !enabled);
+    $('#' + id + '_public_checkbox').prop('checked', enabled);
 }
 
 // Geni's own server-side "Auto" privacy logic defaults deceased profiles
@@ -2440,16 +2641,30 @@ function isPublic(privacy) {
 //   - Otherwise: unchanged from before - field stays disabled/unset,
 //     deferring entirely to Geni's own existing/Auto behavior.
 //
-// None of the above applies while the person is living - living profiles
-// always keep today's original safe default (unset, deferring to Geni)
-// regardless of birth year, current status, or the settings toggle. This
-// is about deceased-profile discoverability, not encouraging a living
-// person's profile to be made public.
+// A living person is handled first, before any of the above - explicitly
+// resolves to Private (see its own comment below) rather than deferring to
+// Geni's Auto behavior the way a deceased profile still can, since making
+// the user guess what "Auto" resolves to for a living profile is exactly
+// the confusion this whole function exists to avoid.
+//
+// Re-evaluated live (not just once at initial render) by
+// refreshPrivacySelect() below whenever the action dropdown settles on a
+// match, or the Vital dropdown itself changes - both call sites read
+// living/currentlyPublic fresh rather than relying on a stale render-time
+// snapshot.
 function buildPrivacySelect(living, birthYear, currentlyPublic) {
     if (living) {
+        // Private is the only real choice for a living profile - Geni
+        // doesn't allow a normal living person to be Public without
+        // separate "Master Profile" permissions this extension has no
+        // business granting, so Public/Auto aren't offered at all, the
+        // same way the >150-years branch below only ever offers Public.
+        // Only enabled (checkable) when it would be a real change -
+        // already-Private on Geni means checking it would be a no-op, the
+        // same principle every other branch below already follows.
         return {
-            options: '<option value="" selected>Auto</option><option value=true>Public</option><option value=false>Private</option>',
-            enabled: false
+            options: '<option value=false selected>Private</option>',
+            enabled: currentlyPublic !== false
         };
     }
     var currentYear = new Date().getFullYear();

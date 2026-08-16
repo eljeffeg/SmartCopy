@@ -1266,8 +1266,16 @@ $(function () {
                     ffs[item].name === "action" || ffs[item].name === "profile_id") {
                     return false;
                 }
+                // Same reasoning as isFieldEmptyForCheckAll() below - reads
+                // Geni's value straight from this row's .genislideinput
+                // companion rather than the field's own disabled attribute,
+                // which this very filter mutates on every check/uncheck
+                // cycle and would otherwise go stale.
                 if (selectingAll && (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA") && !isValue(ffs[item].value)) {
-                    return false;
+                    var companionVal = $(ffs[item]).closest("tr").find(".genislideinput").val();
+                    if (exists(companionVal) && companionVal !== "") {
+                        return false;
+                    }
                 }
                 return true;
             }).attr('disabled', !selectingAll);
@@ -1288,7 +1296,20 @@ function isFieldEmptyForCheckAll(row) {
             return false;
         }
     }
-    return true;
+    // Every value field in this row is blank - safe to include (don't
+    // exclude) only if Geni's own value, read directly from this row's
+    // .genislideinput companion, is ALSO blank. Deliberately does NOT look
+    // at the field's disabled attribute - that toggles on every "all"
+    // check/uncheck cycle (see the second filter below and
+    // refreshFieldCheckState() in buildform.js), so a field correctly
+    // enabled once (e.g. after the action dropdown settles on "Add
+    // Profile") would otherwise get disabled again by simply unchecking
+    // "all", then wrongly look "protected" and get excluded the next time
+    // "all" is checked. The .genislideinput companion only changes when
+    // setGeniFamilyData()/render-time genifocusdata actually updates it,
+    // which is exactly when this determination should change too.
+    var companion = row.find(".genislideinput").val();
+    return exists(companion) && companion !== "";
 }
 
 $(function () {
@@ -1394,33 +1415,48 @@ var submitform = function () {
                 if (exists(alldata["profile"].url)) {
                     refurl = alldata["profile"].url;
                 }
+                // Always fold in the existing About text first - a prior
+                // submission's Reference lines live there, and skipping this
+                // merge on a repeat submission (as a stale version of this
+                // check used to) silently dropped about_me from the request
+                // whenever the source page itself had no free-text notes.
+                if (focusabout !== "") {
+                    about = focusabout + "\n" + about;
+                }
+                // Category-level summary of what this submission actually
+                // touched, appended to the same Reference note rather than
+                // a separate formal sources/citations system - see #59.
+                var updatedCategories = summarizeUpdatedCategories(profileout, exists(focusphotoinfo));
+                var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
                 // Matches on just the stable "[url recordtype]" token rather
                 // than the full surrounding phrase, so this keeps working
                 // regardless of prefix wording ("Updated from" vs
-                // "Reference:"), link protocol, or formatting (e.g. bold) -
-                // the previous three-variant check only ever matched
-                // http://, never the https:// link actually written below,
-                // so it silently never recognized its own prior output and
-                // re-merged/re-referenced the same source on every re-run.
-                if (!focusabout.contains("[" + encodeURI(refurl) + " " + recordtype + "]")) {
-                    if (focusabout !== "") {
-                        about = focusabout + "\n" + about;
-                    }
-                    // Category-level summary of what this submission actually
-                    // touched, appended to the same Reference note rather than
-                    // a separate formal sources/citations system - see #59.
-                    var updatedCategories = summarizeUpdatedCategories(profileout, exists(focusphotoinfo));
-                    var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
+                // "Reference:"), link protocol, or formatting (e.g. bold).
+                var token = "[" + encodeURI(refurl) + " " + recordtype + "]";
+                var alreadyReferenced = focusabout.contains(token);
+                // A source referenced once but updated again later with a
+                // genuinely different category (e.g. a photo added after the
+                // name was already recorded) still deserves its own new
+                // Reference line - but resubmitting the SAME category that a
+                // prior line from this source already recorded (e.g.
+                // re-saving the death place a second time with nothing else
+                // changed) is reference spam, not new information, and
+                // should be skipped even though summarizeUpdatedCategories
+                // still reports it as "updated" for this request. Compares
+                // against every category ANY prior line from this source has
+                // ever recorded, not just the most recent one.
+                var priorCategories = getReferencedCategories(focusabout, token);
+                var newCategories = updatedCategories.filter(function (category) {
+                    return priorCategories.indexOf(category) === -1;
+                });
+                if (!alreadyReferenced || newCategories.length > 0) {
                     if (exists(refurl)) {
                         profileout["about_me"] = about + "* '''Reference:''' [" + encodeURI(refurl) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                     } else {
                         profileout["about_me"] = about + "* '''Reference:''' " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                     }
-                    
-                } else {
-                    if (about !== "") {
-                        profileout["about_me"] = focusabout + "\n" + about;
-                    }
+                } else if (about !== "") {
+                    profileout["about_me"] = about;
                 }
             } else if (about !== "" && focusabout !== "") {
                 profileout["about_me"] = focusabout + "\n" + about;
@@ -1600,6 +1636,29 @@ function getUnion(profileid) {
     return getGeniData(profileid, "union");
 }
 
+// jQuery's $.param(), used as-is, serializes an array-valued field (e.g.
+// nicknames: ["Yakob", "Jakob"]) as repeated PHP/Rails-style bracket keys -
+// "nicknames[]=Yakob&nicknames[]=Jakob". Confirmed live that Geni's API
+// doesn't treat that as multiple values (only the last "nicknames[]="
+// survived). The classic repeated-key HTML form format ("nicknames=Yakob&
+// nicknames=Jakob", jQuery's "traditional" param mode) doesn't work either -
+// also confirmed live, Geni's API keeps only the last "nicknames=" value it
+// sees either way. What actually persists all of them is the same format
+// Geni's own GET response would produce if flattened: one "nicknames="
+// field holding a single comma-joined string. Built on a shallow copy so
+// the caller's own `data` object - reused afterward as the `variable`
+// payload for chrome.runtime.sendMessage's callback, and eventually
+// JSON.stringify'd into the local history log - keeps its original
+// nicknames array intact rather than being silently rewritten to a string.
+function serializeGeniUpdate(data) {
+    if (!exists(data.nicknames)) {
+        return $.param(data);
+    }
+    var withData = $.extend({}, data);
+    withData.nicknames = (data.nicknames instanceof Array) ? data.nicknames.join(",") : data.nicknames;
+    return $.param(withData);
+}
+
 var noerror = true;
 function buildTree(data, action, sendid) {
     if (!$.isEmptyObject(data) && exists(sendid) && !devblocksend) {
@@ -1651,7 +1710,7 @@ function buildTree(data, action, sendid) {
                 method: "POST",
                 action: "xhttp",
                 url: posturl,
-                data: $.param(data),
+                data: serializeGeniUpdate(data),
                 variable: {id: id, relation: action.replace("add-", ""), data: data}
             }, function (response) {
                 try {
@@ -2101,8 +2160,19 @@ document.getElementById('optionbutton').addEventListener('click', slideoptions, 
 // listing every individual field name touched.
 function summarizeUpdatedCategories(fields, includesPhoto) {
     var categoryMap = {
-        "title": "name", "first_name": "name", "middle_name": "name", "last_name": "name",
-        "maiden_name": "name", "suffix": "name", "display_name": "name", "nicknames": "name",
+        // "title"/"first_name"/etc. never actually appear as flat top-level
+        // keys here - parseForm() always nests them under a top-level
+        // "names" object (one per language), so it's that plural literal
+        // key that needs mapping, not the individual field names (those
+        // entries are kept anyway in case a future caller ever does pass
+        // them flat). "nicknames" gets its own distinct "AKA" category
+        // (matching Geni's own "Also Known As" field label) rather than
+        // folding into "names" - it's a genuinely different field from the
+        // actual given/family name, and collapsing the two together would
+        // hide that a submission touched one but not the other.
+        "names": "names",
+        "title": "names", "first_name": "names", "middle_name": "names", "last_name": "names",
+        "maiden_name": "names", "suffix": "names", "display_name": "names", "nicknames": "AKA",
         "gender": "gender",
         "is_alive": "living status",
         "public": "privacy",
@@ -2134,6 +2204,37 @@ function summarizeUpdatedCategories(fields, includesPhoto) {
     return categories;
 }
 
+// Every category any prior "* Reference: [url recordtype] ... (updated:
+// ...)" line for this same source has ever recorded, scanned from the
+// existing about_me text line-by-line (each Reference line is always
+// exactly one line - see the "\n" terminator where these lines are built).
+// Used to tell a genuinely new update (a category not seen before from this
+// source) apart from reference spam (resubmitting a category, e.g. death
+// place, that a prior line from this same source already recorded, with
+// nothing else new this time).
+function getReferencedCategories(existingAbout, token) {
+    var categories = [];
+    if (!exists(existingAbout) || existingAbout === "") {
+        return categories;
+    }
+    existingAbout.split("\n").forEach(function (line) {
+        if (!line.contains(token)) {
+            return;
+        }
+        var match = line.match(/\(updated: ([^)]*)\)/);
+        if (!exists(match)) {
+            return;
+        }
+        match[1].split(",").forEach(function (category) {
+            category = category.trim();
+            if (category !== "" && categories.indexOf(category) === -1) {
+                categories.push(category);
+            }
+        });
+    });
+    return categories;
+}
+
 function parseForm(fs) {
     let name_element = ["title", "first_name", "middle_name", "last_name", "maiden_name", "suffix", "display_name"]
     let name_language = "en-US"
@@ -2151,6 +2252,40 @@ function parseForm(fs) {
             fsinput[item].name = ""
         }
         if (exists(fsinput[item].value) && !fsinput[item].disabled && getProfileName(fsinput[item].name) !== "") {
+            // A checked+enabled field can still be a genuine no-op: "select
+            // all" now always checks every safe field regardless of
+            // whether it happens to already match Geni (e.g. Privacy
+            // pre-selecting Public on an already-Public profile, or a
+            // scraped birth year of 1821 landing on a profile Geni already
+            // has as 1821 - see #205), and the blank-scraped/blank-Geni
+            // case (isChecked()/isEnabled()'s currentValue relaxation) is
+            // really just the same thing with both sides empty. Comparing
+            // against the real "what does Geni actually have" value
+            // already sitting in this row's .genislideinput companion
+            // (populated by setGeniFamilyData()/genifocusdata at render or
+            // match time) catches all of these the same way, so nothing
+            // gets submitted - or shows up as a false "(updated: ...)"
+            // reference-note category - for a field that wouldn't actually
+            // change anything. A blank scraped value that does NOT match a
+            // real Geni value still proceeds normally - that's a
+            // deliberate manual clear (the field only reaches here checked
+            // at all because the user explicitly overrode a protected
+            // field), not a no-op.
+            var geniCompanionValue = $(fsinput[item]).closest("tr").find(".genislideinput").val();
+            if (exists(geniCompanionValue)) {
+                // Privacy's select value is "true"/"false"/"", but its
+                // companion displays the human label ("Public"/"Private"/"")
+                // via isPublic() - map through the same labels before
+                // comparing, since the raw strings would never match even
+                // when they mean the same thing.
+                var comparableValue = fsinput[item].value;
+                if (fsinput[item].name === "public") {
+                    comparableValue = fsinput[item].value === "true" ? "Public" : (fsinput[item].value === "false" ? "Private" : "");
+                }
+                if (geniCompanionValue === comparableValue) {
+                    continue;
+                }
+            }
             //console.log(fsinput[item].name + ":" + fsinput[item].value);
             var splitentry = fsinput[item].name.split(":");
             if (splitentry.length > 1) {

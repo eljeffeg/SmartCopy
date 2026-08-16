@@ -1,0 +1,11 @@
+# Marks files that are part of this repo but not part of the shipped
+# extension - excluded automatically from `git archive` output (what
+# scripts/build-release-zip.js uses to build the release zip). Everything
+# else tracked in git ships, since the extension's own runtime code (manifest.json,
+# popup.html, collections/*.js, etc.) has no separate "dist" build step to
+# assemble from - the working tree IS the shipped tree, minus this dev-only list.
+.gitattributes export-ignore
+.gitignore export-ignore
+CLAUDE.md export-ignore
+package.json export-ignore
+scripts export-ignore

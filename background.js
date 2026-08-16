@@ -296,26 +296,85 @@ const SUPPORTED_SITE_HOSTS = [
     "toldot.ru",
     "yadvashem.org",
     "geneanet.org",
-    "bezikaron.co.il",
-    "online-ofb.de",
-    "ofb.genealogy.net"
+    "bezikaron.co.il"
 ];
+
+// Hosts for collections marked "experimental": true in their own
+// collections/*.js file (#55 follow-up) - badged with the same checkmark
+// as a fully-supported site, just amber instead of green, matching the
+// amber in-popup warning shown for these same collections ("...may not be
+// fully supported..."). A distinct glyph (a lab flask, tried first) didn't
+// work - too small to read reliably at badge size - so this keeps the
+// already-legible checkmark shape and uses color alone to distinguish
+// "supported" from "supported, with a caveat." Checked before
+// SUPPORTED_SITE_HOSTS below: worldconnect.rootsweb.ancestry.com is a
+// subdomain of the already-stable ancestry.com, so it needs to match here
+// first to get the experimental badge rather than silently falling
+// through to the stable one.
+//
+// TNG (collections/tng.js) is also experimental but can't appear in
+// either list - it matches by URL pattern (*.php?personID=...) across
+// whatever arbitrary domain a site self-hosts TNG under, not a fixed
+// hostname, so there's no host list entry that could represent it. A TNG
+// site currently gets no badge at all rather than the wrong one - a known
+// gap in this host-list-based approach, not an oversight.
+const EXPERIMENTAL_SITE_HOSTS = [
+    "online-ofb.de",
+    "ofb.genealogy.net",
+    "familytreemaker.genealogy.com",
+    "genealogy.com",
+    "worldconnect.rootsweb.ancestry.com",
+    "wc.rootsweb.ancestry.com"
+];
+
+function matchesAnyHost(hostname, hosts) {
+    return hosts.some(function (host) {
+        return isSubdomainOf(hostname, host);
+    });
+}
+
+function isExperimentalSite(url) {
+    try {
+        return matchesAnyHost(new URL(url).hostname, EXPERIMENTAL_SITE_HOSTS);
+    } catch (error) {
+        return false;
+    }
+}
 
 function isSupportedSite(url) {
     try {
         const hostname = new URL(url).hostname;
-        return SUPPORTED_SITE_HOSTS.some(function (host) {
-            return isSubdomainOf(hostname, host);
-        });
+        return matchesAnyHost(hostname, SUPPORTED_SITE_HOSTS) || matchesAnyHost(hostname, EXPERIMENTAL_SITE_HOSTS);
     } catch (error) {
         return false;
     }
 }
 
 function updateBadgeForTab(tabId, url) {
-    if (isSupportedSite(url)) {
+    if (isExperimentalSite(url)) {
+        chrome.action.setBadgeText({tabId: tabId, text: "✓"});
+        // Exact match for #experimentalmessage's background in popup.html -
+        // same pale yellow the in-popup warning already uses. Light enough
+        // that the default white badge text would be nearly unreadable on
+        // it, so text color is set explicitly too. setBadgeTextColor is
+        // Chrome-only (no confirmed Firefox support as of this extension's
+        // 140+ floor) - guarded so a browser without it just keeps the
+        // default (white) text rather than throwing.
+        chrome.action.setBadgeBackgroundColor({tabId: tabId, color: "#f8ff86"});
+        if (chrome.action.setBadgeTextColor) {
+            chrome.action.setBadgeTextColor({tabId: tabId, color: "#000000"});
+        }
+    } else if (isSupportedSite(url)) {
         chrome.action.setBadgeText({tabId: tabId, text: "✓"});
         chrome.action.setBadgeBackgroundColor({tabId: tabId, color: "#2e7d32"});
+        // Explicitly reset to white - badge text color is set per-tabId and
+        // otherwise persists across navigations within the same tab, so an
+        // experimental site's black text (needed for the pale yellow
+        // background above) would otherwise carry over onto this dark green
+        // one, where it'd be just as unreadable.
+        if (chrome.action.setBadgeTextColor) {
+            chrome.action.setBadgeTextColor({tabId: tabId, color: "#ffffff"});
+        }
     } else {
         chrome.action.setBadgeText({tabId: tabId, text: ""});
     }

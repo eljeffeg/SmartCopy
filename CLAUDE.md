@@ -55,8 +55,11 @@ in a directory that hasn't run this before), the hook is NOT active yet** -
 `.git/hooks/` is never tracked by git, so a plain `git clone` does not bring
 it along. Run `npm install` (or directly `node scripts/install-git-hooks.js`
 if you don't want to trigger a full install) once before relying on the
-pre-commit hook to catch anything. Check `ls -la .git/hooks/pre-commit` if
-unsure whether it's already installed in the current checkout.
+pre-commit hook to catch anything. Check installation status with:
+
+```
+test -f .git/hooks/pre-commit && echo "Hook active" || echo "Hook missing - run npm install"
+```
 
 ## What `npm test` does NOT catch
 

@@ -245,7 +245,12 @@ function buildForm() {
         if (focusgender === "male") {
             nameval.birthName = nameval.lastName;
         } else if (focusgender === "female") {
-            if (setBirthName("focus", nameval.lastName, mnameonoff)) {
+            if (isCompoundSurname(nameval.lastName)) {
+                // #206: a compound surname is already-complete - copy it to
+                // Birth Name (same as the male case above) but never clear
+                // Last Name or treat it as a confirmed maiden name below.
+                nameval.birthName = nameval.lastName;
+            } else if (setBirthName("focus", nameval.lastName, mnameonoff)) {
                 nameval.birthName = nameval.lastName;
                 nameval.lastName = "";
             } else {
@@ -763,6 +768,10 @@ function buildForm() {
             }
             if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
                 if (members[member].gender === "male") {
+                    nameval.birthName = nameval.lastName;
+                } else if (members[member].gender === "female" && isCompoundSurname(nameval.lastName)) {
+                    // #206: see isCompoundSurname() - never clear a
+                    // compound surname, just copy it to Birth Name.
                     nameval.birthName = nameval.lastName;
                 } else if (members[member].gender === "female" && setBirthName(relationship, nameval.lastName, mnameonoff)) {
                     nameval.birthName = nameval.lastName;
@@ -1779,6 +1788,21 @@ function getParentSurname(gender, mnameonoff) {
     }
     var parentNameval = NameParse.parse(matches[0].name, mnameonoff);
     return parentNameval.lastName || "";
+}
+
+// #206: a multi-word surname (e.g. Hispanic paternal+maternal compound
+// surnames like "Gomez Rodriguez") is treated as already-complete rather
+// than an ambiguous single maiden name - setBirthName()'s exact-match check
+// against a known father/spouse will essentially never match one (its
+// second component is a different relative's surname entirely), and
+// blindly moving+clearing it on a "no match" result would silently discard
+// a correctly-scraped name. There's no reliable signal to detect this is
+// specifically a Hispanic naming convention (same reasoning #204 already
+// applied), so this is a general, name-shape-based guard, not a
+// culture-specific one - a genuinely ambiguous single-word surname still
+// gets the existing move/guess treatment.
+function isCompoundSurname(lastname) {
+    return lastname.indexOf(" ") !== -1;
 }
 
 function setBirthName(relation, lastname, mnameonoff) {

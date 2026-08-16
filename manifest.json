@@ -66,6 +66,9 @@
         "*://*.geneanet.org/",
         "*://geneanet.org/",
         "*://*.bezikaron.co.il/",
-        "*://bezikaron.co.il/"
+        "*://bezikaron.co.il/",
+        "*://*.online-ofb.de/",
+        "*://online-ofb.de/",
+        "*://ofb.genealogy.net/"
     ]
 }

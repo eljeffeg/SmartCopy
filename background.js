@@ -296,7 +296,9 @@ const SUPPORTED_SITE_HOSTS = [
     "toldot.ru",
     "yadvashem.org",
     "geneanet.org",
-    "bezikaron.co.il"
+    "bezikaron.co.il",
+    "online-ofb.de",
+    "ofb.genealogy.net"
 ];
 
 function isSupportedSite(url) {

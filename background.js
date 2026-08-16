@@ -36,6 +36,13 @@ function getJsonFromUrl(query) {
     }
 }
 
+// Shared by checkGeniAuthStatus() and isSupportedSite() below - exact host
+// match or a proper dot-delimited subdomain, never a bare string suffix
+// (which would also match a spoofing host like "evilgeni.com").
+function isSubdomainOf(hostname, host) {
+    return hostname === host || hostname.endsWith("." + host);
+}
+
 // #113: Geni access tokens expire periodically, but nothing previously
 // noticed - the icon stayed the normal "logged in" blue even once a token
 // had gone stale, and the failure only ever surfaced as a confusing error
@@ -58,9 +65,7 @@ function checkGeniAuthStatus(url, status) {
     // string in a query value.
     try {
         const parsed = new URL(url);
-        const hostname = parsed.hostname;
-        const isGeniHost = hostname === "geni.com" || hostname.endsWith(".geni.com");
-        if (isGeniHost && parsed.pathname.startsWith("/api/")) {
+        if (isSubdomainOf(parsed.hostname, "geni.com") && parsed.pathname.startsWith("/api/")) {
             chrome.action.setIcon({path: "images/icon_warn.png"});
         }
     } catch (error) {
@@ -298,7 +303,7 @@ function isSupportedSite(url) {
     try {
         const hostname = new URL(url).hostname;
         return SUPPORTED_SITE_HOSTS.some(function (host) {
-            return hostname === host || hostname.endsWith("." + host);
+            return isSubdomainOf(hostname, host);
         });
     } catch (error) {
         return false;

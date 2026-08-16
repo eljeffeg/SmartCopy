@@ -1393,7 +1393,7 @@ function selfCheck(familyset, children) {
             var person_burial = unixDate(person, "burial");
             var conflicts = getGeniData(person, "data_conflict");
             if (dataconflictoption && conflicts) {
-                consistencymessage = concat("info") + escapeHtml(getGeniData(person, "name")) + _("_has_pending_") + "<a href='https://www.geni.com/merge/resolve/" + getGeniData(person, "guid") + "'>"+_("data_conflicts")+"</a>.";
+                consistencymessage = concat("info") + escapeHtml(getGeniData(person, "name").replace(/&quot;/g, '"')) + _("_has_pending_") + "<a href='https://www.geni.com/merge/resolve/" + getGeniData(person, "guid") + "'>"+_("data_conflicts")+"</a>.";
             }
             var private_bdate = person_bdate;
             if (isNaN(private_bdate) && !children) {
@@ -1820,16 +1820,16 @@ function buildEditLink(person) {
     let permissions = genifocusdata.get("actions");
     if (permissions.indexOf("update-basics") === -1) {
         if (tablink.startsWith("https://www.geni.com/people/") && tablink.endsWith(getGeniData(person, "guid"))) {
-            return "<strong>" + escapeHtml(getGeniData(person, "name")) + "</strong>";
+            return "<strong>" + escapeHtml(getGeniData(person, "name").replace(/&quot;/g, '"')) + "</strong>";
         } else {
-            return "<a target='_blank' href='https://www.geni.com/profile/index/" + getGeniData(person, "guid") + "'>" + escapeHtml(getGeniData(person, "name")) + "</a>";
+            return "<a target='_blank' href='https://www.geni.com/profile/index/" + getGeniData(person, "guid") + "'>" + escapeHtml(getGeniData(person, "name").replace(/&quot;/g, '"')) + "</a>";
         }
 
     }
     if (startsWithHTTP(tablink, "https://www.geni.com/family-tree")) {
-        return "<a href='javascript:openEditCard(\"" + getGeniData(person, "guid") + "\"); void 0'>" + escapeHtml(getGeniData(person, "name")) + "</a>";
+        return "<a href='javascript:openEditCard(\"" + getGeniData(person, "guid") + "\"); void 0'>" + escapeHtml(getGeniData(person, "name").replace(/&quot;/g, '"')) + "</a>";
     }
-    return "<a href='https://www.geni.com/profile/edit_basics/" + getGeniData(person, "guid") + "'>" + escapeHtml(getGeniData(person, "name")) + "</a>";
+    return "<a href='https://www.geni.com/profile/edit_basics/" + getGeniData(person, "guid") + "'>" + escapeHtml(getGeniData(person, "name").replace(/&quot;/g, '"')) + "</a>";
 }
 
 function buildWikiLink(person) {

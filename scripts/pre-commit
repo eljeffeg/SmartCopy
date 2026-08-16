@@ -1,17 +1,23 @@
 #!/bin/sh
-# SmartCopy pre-commit hook: runs the lightweight syntax check (npm test)
-# before allowing a commit. This file is the tracked source of truth -
-# .git/hooks/ itself is never committed by git, so `npm install` (via the
-# "prepare" script) copies this into .git/hooks/pre-commit on setup. If you
-# edit hook behavior, edit this file, then re-run `npm install` (or
-# `node scripts/install-git-hooks.js` directly) to refresh the installed copy.
+# SmartCopy pre-commit hook: runs the lightweight syntax check against only
+# the staged .js files (not the whole project - that's what `npm test` is
+# for) before allowing a commit, so this stays fast as the codebase grows.
+# Safe to scope to staged files only because this is a pure per-file syntax
+# check with no cross-file awareness - a file's syntax validity can only be
+# broken by editing that file directly.
+#
+# This file is the tracked source of truth - .git/hooks/ itself is never
+# committed by git, so `npm install` (via the "prepare" script) copies this
+# into .git/hooks/pre-commit on setup. If you edit hook behavior, edit this
+# file, then re-run `npm install` (or `node scripts/install-git-hooks.js`
+# directly) to refresh the installed copy.
 
-npm test
+node scripts/check-syntax.js --staged
 status=$?
 
 if [ $status -ne 0 ]; then
     echo ""
-    echo "Pre-commit check failed (npm test) - commit aborted."
+    echo "Pre-commit check failed - commit aborted."
     echo "Fix the syntax error above, or use 'git commit --no-verify' to bypass this check."
     exit 1
 fi

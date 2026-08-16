@@ -25,4 +25,4 @@ if (!fs.existsSync(HOOKS_DIR)) {
 
 fs.copyFileSync(SOURCE, DEST);
 fs.chmodSync(DEST, 0o755);
-console.log("Installed pre-commit hook -> .git/hooks/pre-commit (runs `npm test` before every commit)");
+console.log("Installed pre-commit hook -> .git/hooks/pre-commit (checks staged .js files before every commit)");

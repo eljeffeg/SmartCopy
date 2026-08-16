@@ -566,12 +566,13 @@ function getOFBGenderIcon(parsed) {
 // Two different name display conventions confirmed live so far, order
 // varies by generator: "SURNAME, Given" (comma-separated - the issue's
 // original technical notes) and "Given SURNAME" with no comma at all, the
-// surname distinguished only by being in caps (confirmed live on a real
-// "berlin" family report page: "Madchen MAASS", inside a <FONT> tag - not
-// covered by the original b/h1/h2/strong candidate list, which is why the
-// name went blank on that page even though father/mother were found).
-// OFB_SURNAME_PATTERN finds the all-caps run regardless of which side of
-// the name it's on, so this doesn't assume a fixed order.
+// surname distinguished only by being in caps (confirmed live on real
+// "berlin"/"juden_nw" family report pages: "Madchen MAASS"/"Hedwig WOLFF",
+// inside a <FONT> tag - not covered by the original b/h1/h2/strong
+// candidate list, which is why the name went blank before this was
+// covered even though father/mother were found). OFB_SURNAME_PATTERN
+// finds the all-caps run regardless of which side of the name it's on, so
+// this doesn't assume a fixed order.
 var OFB_SURNAME_PATTERN = /\b[A-ZÀ-ÖØ-Þ]{2,}\b/;
 
 // Name display isn't confirmed to use a literal "Name:" label across all
@@ -581,6 +582,22 @@ var OFB_SURNAME_PATTERN = /\b[A-ZÀ-ÖØ-Þ]{2,}\b/;
 // nachname= URL param alone if even that comes up empty. Never returns
 // something that throws downstream; "" is a valid (if unhelpful) result
 // like every other lookup in this file.
+//
+// Returns a PLAIN "Given Surname" string, matching every other collection
+// in this codebase (collections/geneanet.js, wikitree.js, rootsweb.js,
+// etc. all just space-join given+surname with no wrapping) - an earlier
+// version of this function wrapped the surname in parens ("Given
+// (SURNAME)"), copying collections/tng.js's own convention without
+// checking what it actually means downstream. Verified directly against
+// parse-names.js's NameParse.parse(): "(...)" specifically signals a
+// *separate* birth/maiden name ("Mary Smith (Jones)" - married name
+// Smith, maiden name Jones - see parse-names.js's own comment at that
+// check), not "this is the surname." "Hedwig (WOLFF)" parsed to
+// lastName: "" / birthName: "Wolff" - the actual last name came out
+// empty, and "Wolff" would have been submitted to Geni's maiden-name
+// field instead of the last-name field. Plain "Hedwig WOLFF" (still
+// all-caps, no parens) correctly parses to lastName: "Wolff" - fix_case()
+// already title-cases it, so no manual case conversion is needed here.
 function getOFBName(parsed, url) {
     var cells = getOFBCells(parsed);
     var raw = getOFBFieldText(cells, ["Name:"]);
@@ -598,7 +615,7 @@ function getOFBName(parsed, url) {
         var parts = raw.split(",");
         var surname = parts[0].trim();
         var given = parts.slice(1).join(",").trim();
-        return given + " (" + surname + ")";
+        return given + " " + surname;
     }
     if (raw !== "") {
         var surnameMatch = raw.match(OFB_SURNAME_PATTERN);
@@ -606,7 +623,7 @@ function getOFBName(parsed, url) {
             var capsSurname = surnameMatch[0];
             var restOfName = (raw.substring(0, surnameMatch.index) + raw.substring(surnameMatch.index + capsSurname.length)).trim();
             if (restOfName !== "") {
-                return restOfName + " (" + capsSurname + ")";
+                return restOfName + " " + capsSurname;
             }
         }
         return raw;

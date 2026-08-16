@@ -364,6 +364,12 @@ function updateBadgeForTab(tabId, url) {
         if (chrome.action.setBadgeTextColor) {
             chrome.action.setBadgeTextColor({tabId: tabId, color: "#000000"});
         }
+        // The amber/green distinction was color-only until now - no
+        // difference for anyone who can't rely on color (colorblind, low
+        // contrast display) beyond opening the popup itself. setTitle()
+        // doesn't touch the badge's own color/glyph, just adds a hover
+        // tooltip carrying the same distinction in text.
+        chrome.action.setTitle({tabId: tabId, title: "SmartCopy - experimental site support, double-check results"});
     } else if (isSupportedSite(url)) {
         chrome.action.setBadgeText({tabId: tabId, text: "✓"});
         chrome.action.setBadgeBackgroundColor({tabId: tabId, color: "#2e7d32"});
@@ -375,8 +381,13 @@ function updateBadgeForTab(tabId, url) {
         if (chrome.action.setBadgeTextColor) {
             chrome.action.setBadgeTextColor({tabId: tabId, color: "#ffffff"});
         }
+        chrome.action.setTitle({tabId: tabId, title: "SmartCopy - supported site"});
     } else {
         chrome.action.setBadgeText({tabId: tabId, text: ""});
+        // Reset back to the manifest default (extension name) - title is
+        // also set per-tabId and would otherwise carry over from whichever
+        // badge state this tab last had.
+        chrome.action.setTitle({tabId: tabId, title: ""});
     }
 }
 

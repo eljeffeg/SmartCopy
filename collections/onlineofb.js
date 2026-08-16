@@ -155,6 +155,20 @@ function parseOnlineOFB(htmlstring, familymembers, relation) {
         profiledata["about"] = about;
     }
 
+    // Photo, when present - a jQuery "imagescroller" widget (confirmed
+    // live on the juden_nw sample: a 135px gallery linking to the
+    // full-size image, e.g. "./juden_nw/Bilder/I97113.jpg", resolved
+    // against the page's own URL to get the absolute path). Not every
+    // profile has one ("on 'some' profiles" per the user) - degrades to
+    // no photo fields set when the widget isn't found. Takes only the
+    // first photo if the scroller ever has more than one - SmartCopy's
+    // own profile data model is a single thumb/image pair, not a gallery.
+    var photoUrl = getOFBPhotoUrl(parsed, relation.url || tablink);
+    if (photoUrl !== "") {
+        profiledata["thumb"] = photoUrl;
+        profiledata["image"] = photoUrl;
+    }
+
     if (checkLiving(focusperson)) {
         profiledata["alive"] = true;
     }
@@ -616,6 +630,30 @@ function getOFBGenderIcon(parsed) {
         return "unknown";
     }
     return (icon.attr("src") || "").toLowerCase().contains("female") ? "female" : "male";
+}
+
+// Finds the first photo link inside a ".imagescroller" widget (the <a> tag
+// wrapping the thumbnail, not the <track>-substituted <img> itself - the
+// href and src point to the same file in the confirmed sample, and the
+// <a> survives this file's <img>-to-<track> substitution untouched, so
+// reading it avoids depending on that substitution having happened first).
+// Resolved against `url` (the page's own URL) to turn the relative path
+// ("./juden_nw/Bilder/I97113.jpg") into an absolute one. Returns "" - not
+// a throw - if there's no scroller, no link, or the href doesn't resolve.
+function getOFBPhotoUrl(parsed, url) {
+    var link = parsed.find(".imagescroller a[href]").first();
+    if (link.length === 0) {
+        return "";
+    }
+    var href = link.attr("href");
+    if (!exists(href) || href === "") {
+        return "";
+    }
+    try {
+        return new URL(href, url).href;
+    } catch (error) {
+        return "";
+    }
 }
 
 // Two different name display conventions confirmed live so far, order

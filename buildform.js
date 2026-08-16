@@ -528,9 +528,19 @@ function buildForm() {
                             if (dateAmbigous(dateval)) {
                                 dateambig = 'style="color: #ff0000;" ';
                             }
-                        membersstring = membersstring +
-                            '<tr id="' + title + 'date"><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored, false, genifocusdata.get(title, "date.formatted_date")) + '>' +
-                            capFL(title) + ' Date:</td><td style="float:right;padding: 0;"><input type="text" class="formtext dateform" ' + dateambig + 'name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored, false, genifocusdata.get(title, "date.formatted_date")) + '></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "date.formatted_date") + '" disabled></td></tr>';
+                        // #210: escapes dateval before it reaches value="...".
+                        membersstring = membersstring + buildDateFieldRow({
+                            label: capFL(title),
+                            fieldName: title,
+                            value: dateval,
+                            checkedAttr: isChecked(dateval, scored, false, genifocusdata.get(title, "date.formatted_date")),
+                            enabledAttr: isEnabled(dateval, scored, false, genifocusdata.get(title, "date.formatted_date")),
+                            dateambig: dateambig,
+                            geniValue: genifocusdata.get(title, "date.formatted_date"),
+                            icon: dateicon,
+                            rowIdAttr: ' id="' + title + 'date"',
+                            tdStyle: "float:right;padding: 0;"
+                        });
                         dateadded = true;
 
                         //div[0].style.display = "block";
@@ -1079,8 +1089,18 @@ function buildForm() {
                                     dateambig = 'style="color: #ff0000;" ';
                                     ambigdatecheck.push(i);
                                 }
-                                membersstring = membersstring +
-                                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(dateval, scored, false, "") + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" ' + dateambig + 'name="' + title + ':date" value="' + dateval + '" ' + isEnabled(dateval, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                                // #210: escapes dateval before it reaches value="...".
+                                membersstring = membersstring + buildDateFieldRow({
+                                    label: capFL(title),
+                                    fieldName: title,
+                                    value: dateval,
+                                    checkedAttr: isChecked(dateval, scored, false, ""),
+                                    enabledAttr: isEnabled(dateval, scored, false, ""),
+                                    dateambig: dateambig,
+                                    geniInputId: i + "_geni_" + title + "_date",
+                                    imgIdAttr: ' imgid="' + i + '"',
+                                    labelSuffix: " "
+                                });
                                 dateadded = true;
                             }
                             if (exists(memberobj[item].location)) {
@@ -1710,6 +1730,28 @@ function buildTextFieldRow(label, fieldName, value, checkedAttr, enabledAttr, ge
     return '<tr' + rowAttrs + '><td class="profilediv"><input type="checkbox" class="checknext" ' + checkedAttr + '>' + label + '</td>' +
         '<td style="float:right; padding: 0px;"><input type="text" class="formtext" name="' + fieldName + '" value="' + escapeHtml(value) + '" ' + enabledAttr + '></td>' +
         '<td class="genisliderow"><img' + imgIdAttr + ' src="images/' + icon + '" class="genislideimage"><input' + inputIdAttr + ' type="text" class="formtext genislideinput" value="' + geniValue + '" disabled></td></tr>';
+}
+
+// #210: shared builder for a date-input field row (birth/baptism/death/
+// burial/marriage/divorce, both focus profile and family members) - same
+// unescaped-attribute-breakout issue buildTextFieldRow() above already
+// fixes for text fields, just in the date-specific templates. Takes an
+// options object rather than another long positional list - the two
+// contexts differ in enough small ways (an imgid attribute the
+// family-member variant needs for a JS lookup elsewhere, a row id vs.
+// none, differing <td> style/label spacing) that named fields are
+// clearer here than tracking positions.
+function buildDateFieldRow(opts) {
+    var rowIdAttr = opts.rowIdAttr || "";
+    var tdStyle = opts.tdStyle || "float:right;";
+    var imgIdAttr = opts.imgIdAttr || "";
+    var geniInputIdAttr = opts.geniInputId ? ' id="' + opts.geniInputId + '"' : "";
+    var geniValue = opts.geniValue || "";
+    var icon = opts.icon || "right.png";
+    var labelSuffix = exists(opts.labelSuffix) ? opts.labelSuffix : "";
+    return '<tr' + rowIdAttr + '><td class="profilediv"><input type="checkbox" class="checknext" ' + opts.checkedAttr + '>' + opts.label + ' Date:' + labelSuffix + '</td>' +
+        '<td style="' + tdStyle + '"><input type="text"' + imgIdAttr + ' class="formtext dateform" ' + (opts.dateambig || "") + 'name="' + opts.fieldName + ':date" value="' + escapeHtml(opts.value) + '" ' + opts.enabledAttr + '></td>' +
+        '<td class="genisliderow"><img src="images/' + icon + '" class="genislideimage"><input' + geniInputIdAttr + ' type="text" class="formtext genislideinput" value="' + geniValue + '" disabled></td></tr>';
 }
 
 // currentValue is optional and only changes behavior when explicitly passed

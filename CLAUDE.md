@@ -39,6 +39,14 @@ via `npm install`'s `prepare` script, or directly via
 every commit and blocks the commit on failure. Bypass with
 `git commit --no-verify` if you genuinely need to.
 
+**On a fresh clone, or a fresh environment (a new Claude Code session working
+in a directory that hasn't run this before), the hook is NOT active yet** -
+`.git/hooks/` is never tracked by git, so a plain `git clone` does not bring
+it along. Run `npm install` (or directly `node scripts/install-git-hooks.js`
+if you don't want to trigger a full install) once before relying on the
+pre-commit hook to catch anything. Check `ls -la .git/hooks/pre-commit` if
+unsure whether it's already installed in the current checkout.
+
 ## What `npm test` does NOT catch
 
 Syntax validation only. It will not catch:

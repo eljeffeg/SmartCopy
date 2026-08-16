@@ -291,7 +291,6 @@ const SUPPORTED_SITE_HOSTS = [
     "ancestry.com",
     "myheritage.com",
     "sites-cf.mhcache.com",
-    "filae.com",
     "gravez.me",
     "toldot.ru",
     "yadvashem.org",
@@ -324,7 +323,8 @@ const EXPERIMENTAL_SITE_HOSTS = [
     "familytreemaker.genealogy.com",
     "genealogy.com",
     "worldconnect.rootsweb.ancestry.com",
-    "wc.rootsweb.ancestry.com"
+    "wc.rootsweb.ancestry.com",
+    "filae.com"
 ];
 
 function matchesAnyHost(hostname, hosts) {

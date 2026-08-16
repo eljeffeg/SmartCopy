@@ -32,6 +32,7 @@
 // attempted here since that wasn't observed directly.
 registerCollection({
     "reload": false,
+    "experimental": true,
     "recordtype": "Filae Genealogy",
     "prepareUrl": function(url) {
         return url;

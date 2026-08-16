@@ -79,7 +79,7 @@ function buildGenealogy(responsedata) {
     } else if (exists(responsedata.maiden_name)) {
         lastname = responsedata.maiden_name;
     }
-    let query = firstname + " " + lastname;
+    let query = encodeURIComponent(firstname + " " + lastname);
     let researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Genealogy.com</strong>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.genealogy.com/search/result?type=ftmcontent&keyword=' + query + '">Genealogy.com (' + _("Genealogies") + ')</a></li>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.genealogy.com/search/result?type=forumposts&keyword=' + query + '">Genealogy.com (' + _("MessageBoard") + ')</a></li>';
@@ -88,7 +88,7 @@ function buildGenealogy(responsedata) {
 }
 
 function buildGeni(responsedata) {
-    let query = responsedata.name.replace(/ /g, "+");
+    let query = encodeURIComponent(responsedata.name).replace(/%20/g, "+");
     let researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Geni</strong>';
     researchstring += '<li style="padding-left: 5px;"><a class="ctrllink" url="https://www.geni.com/search?search_type=people&names=' + query + '">' + _("Geni_Search") + ' (' + _("Genealogies") + ')</a></li>';
     researchstring += '</div>';
@@ -162,12 +162,12 @@ function buildBillionGraves(responsedata) {
     let lastname = "";
     let firstname = "";
     if (responsedata.first_name) {
-        firstname = responsedata.first_name;
+        firstname = encodeURIComponent(responsedata.first_name);
     }
     if (exists(responsedata.last_name)) {
-        lastname = responsedata.last_name;
+        lastname = encodeURIComponent(responsedata.last_name);
     } else if (exists(responsedata.maiden_name)) {
-        lastname = responsedata.maiden_name;
+        lastname = encodeURIComponent(responsedata.maiden_name);
     }
     //https://billiongraves.com/search/results?given_names=John&family_names=Smith&birth_year=1830&death_year=1880&year_range=5&lim=0&num=10&action=search&exact=false&phonetic=true&record_type=0&country=United+States&state=Arizona&county=0
     let query = 'https://billiongraves.com/search/results?given_names=' + firstname + '&family_names=' + lastname;
@@ -180,10 +180,10 @@ function buildBillionGraves(responsedata) {
         if (exists(responsedata.death.location)) {
             let location = responsedata.death.location;
             if (exists(location.country)) {
-                query += '&country=' + location.country;
+                query += '&country=' + encodeURIComponent(location.country);
             }
             if (exists(location.state)) {
-                query += '&state=' + location.state;
+                query += '&state=' + encodeURIComponent(location.state);
             }
             query += '&county=0';
         }
@@ -204,17 +204,17 @@ function buildGeneanet(responsedata) {
     let firstname = "";
 	let searchname = "";
     if (responsedata.first_name) {
-        firstname = responsedata.first_name;
+        firstname = encodeURIComponent(responsedata.first_name);
     }
     if (exists(responsedata.last_name)) {
-        lastname = responsedata.last_name;
+        lastname = encodeURIComponent(responsedata.last_name);
     } else if (exists(responsedata.maiden_name)) {
-        lastname = responsedata.maiden_name;
+        lastname = encodeURIComponent(responsedata.maiden_name);
     }
     if (exists(responsedata.maiden_name)) {
-        searchname = responsedata.maiden_name;
+        searchname = encodeURIComponent(responsedata.maiden_name);
     } else if (exists(responsedata.last_name)) {
-        searchname = responsedata.last_name;
+        searchname = encodeURIComponent(responsedata.last_name);
     }
     
     let researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>Geneanet</strong>';
@@ -228,12 +228,12 @@ function buildAncestry(responsedata) {
     let lastname = "";
     let firstname = "";
     if (responsedata.first_name) {
-        firstname = responsedata.first_name;
+        firstname = encodeURIComponent(responsedata.first_name);
     }
     if (exists(responsedata.last_name)) {
-        lastname = responsedata.last_name;
+        lastname = encodeURIComponent(responsedata.last_name);
     } else if (exists(responsedata.maiden_name)) {
-        lastname = responsedata.maiden_name;
+        lastname = encodeURIComponent(responsedata.maiden_name);
     }
     let query = 'https://www.ancestry.com/genealogy/records/results?firstName=' + firstname + '&lastName=' + lastname;
     if (exists(responsedata.birth)) {
@@ -258,12 +258,12 @@ function buildLegacy(responsedata) {
     let lastname = "";
     let firstname = "";
     if (responsedata.first_name) {
-        firstname = responsedata.first_name;
+        firstname = encodeURIComponent(responsedata.first_name);
     }
     if (exists(responsedata.last_name)) {
-        lastname = responsedata.last_name;
+        lastname = encodeURIComponent(responsedata.last_name);
     } else if (exists(responsedata.maiden_name)) {
-        lastname = responsedata.maiden_name;
+        lastname = encodeURIComponent(responsedata.maiden_name);
     }
     let daterange = "All";
     if (exists(responsedata.death)) {
@@ -289,12 +289,12 @@ function buildFilae(responsedata) {
     let lastname = "";
     let firstname = "";
     if (responsedata.first_name) {
-        firstname = responsedata.first_name;
+        firstname = encodeURIComponent(responsedata.first_name);
     }
     if (exists(responsedata.last_name)) {
-        lastname = responsedata.last_name;
+        lastname = encodeURIComponent(responsedata.last_name);
     } else if (exists(responsedata.maiden_name)) {
-        lastname = responsedata.maiden_name;
+        lastname = encodeURIComponent(responsedata.maiden_name);
     }
     let query = "ln=" + lastname + "&fn=" + firstname;
     if (exists(responsedata.birth)) {
@@ -354,12 +354,12 @@ function buildNationalArchive(responsedata) {
     let lastname = "";
     let firstname = "";
     if (responsedata.first_name) {
-        firstname = responsedata.first_name;
+        firstname = encodeURIComponent(responsedata.first_name);
     }
     if (exists(responsedata.last_name)) {
-        lastname = responsedata.last_name;
+        lastname = encodeURIComponent(responsedata.last_name);
     } else if (exists(responsedata.maiden_name)) {
-        lastname = responsedata.maiden_name;
+        lastname = encodeURIComponent(responsedata.maiden_name);
     }
     let query = "https://aad.archives.gov/aad/free-text-search-results.jsp?cat=all&q=" + firstname + '+' + lastname;
     let researchstring = '<div style="text-align: left; padding-top: 4px; padding-left: 5px;"><strong>National Archives</strong>';
@@ -369,16 +369,16 @@ function buildNationalArchive(responsedata) {
 }
 
 function buildYadVashem(responsedata) {
-    // 
+    //
     let lastname = "";
     let firstname = "";
     if (responsedata.first_name) {
-        firstname = responsedata.first_name;
+        firstname = encodeURIComponent(responsedata.first_name);
     }
     if (exists(responsedata.last_name)) {
-        lastname = responsedata.last_name;
+        lastname = encodeURIComponent(responsedata.last_name);
     } else if (exists(responsedata.maiden_name)) {
-        lastname = responsedata.maiden_name;
+        lastname = encodeURIComponent(responsedata.maiden_name);
     }
     let query = "&s_firstName=" + firstname + "&s_lastName=" + lastname;
     if (exists(responsedata.birth)) {

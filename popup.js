@@ -213,7 +213,7 @@ function buildHistoryBox() {
             } else {
                 focusprofileurl = "https://www.geni.com/" + displayId;
             }
-            var nameLink = '<a href="' + focusprofileurl + '" target="_blank">' + name + '</a>' + (normalizedId !== "" ? ' (' + normalizedId + ')' : '');
+            var nameLink = '<a href="' + focusprofileurl + '" target="_blank">' + escapeHtml(name) + '</a>' + (normalizedId !== "" ? ' (' + normalizedId + ')' : '');
             if (hasHistoryDetails(buildhistory[i].data)) {
                 historytext += '<span class="expandhistory" name="history' + buildhistory[i].id + '" style="font-size: large; cursor: pointer;">▸</span> ' + nameLink + '<br/>';
                 historytext += formatHistoryDetails(buildhistory[i].data, buildhistory[i].id);
@@ -282,7 +282,7 @@ function formatJSON(datastring, historytext, id) {
                     historytext += '<b>' + key + "</b>: " + formatJSON(p[key], "", "");
 
                 } else {
-                    historytext += '<b>' + key + "</b> -> " + p[key] + " ";
+                    historytext += '<b>' + key + "</b> -> " + escapeHtml(p[key]) + " ";
                 }
                 if (typeof datastring === 'string') {
                     historytext += '</li>';
@@ -303,7 +303,7 @@ function buildHistorySelect() {
         if (exists(buildhistory[i].name)) {
             name = buildhistory[i].name;
         }
-        historytext += '<option value="' + buildhistory[i].id + '">History: ' + name + '</option>';
+        historytext += '<option value="' + buildhistory[i].id + '">History: ' + escapeHtml(name) + '</option>';
         if (i > 30) {
             break;
         }
@@ -729,7 +729,7 @@ function loadPage(request) {
                     return;
                 }
             }
-            $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + getProfileName(focusname) + "</a></span>");
+            $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + escapeHtml(getProfileName(focusname)) + "</a></span>");
             if (focusrange !== "") {
                 $("#focusrange").text(focusrange);
             }
@@ -805,7 +805,7 @@ function loadPage(request) {
                     }
                 };
                 //Update focusname again in case there is a merge_into
-                $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + getProfileName(focusname) + "</a></span>");
+                $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + escapeHtml(getProfileName(focusname)) + "</a></span>");
 
                 var byear = genifocusdata.get("birth", "date.year");
                 var dyear = genifocusdata.get("death", "date.year");
@@ -928,13 +928,13 @@ function loadSelectPage(request) {
                     return 1;
                 return 0; //default return value (no sorting)
             });
-            var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select relative of ' + focusperson + '</option>';
+            var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select relative of ' + escapeHtml(focusperson) + '</option>';
             if (exists(result)) {
-                selectsrt += '<option value="' + focusprofile + '">Self: ' + focusperson + '</option>';
+                selectsrt += '<option value="' + focusprofile + '">Self: ' + escapeHtml(focusperson) + '</option>';
                 for (var key in result) if (result.hasOwnProperty(key)) {
                     var person = result[key];
                     if (exists(person) && person.get("relation") !== "self") {
-                        selectsrt += '<option value="' + person.get("id") + '">' + capFL(person.get("relation")) + ": " + person.get("name") + '</option>';
+                        selectsrt += '<option value="' + person.get("id") + '">' + capFL(person.get("relation")) + ": " + escapeHtml(person.get("name")) + '</option>';
                     }
                 }
                 if (buildhistory.length > 0) {

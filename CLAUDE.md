@@ -11,6 +11,55 @@ load `jquery.js` or `shared.js` - anything it needs (helpers, polyfills like
 `.contains()`) must be self-contained or use native equivalents (e.g.
 `.includes()` instead of the `.contains()` polyfill from `shared.js`).
 
+## MV3 service worker guardrails
+
+Chrome's MV3 service worker (`background.js`) is ephemeral - it terminates
+after idle periods and restarts on the next event. These guardrails are
+already correctly followed by the existing code; keep following them for
+anything new added to `background.js`, verified against the current file
+rather than asserted:
+
+- **No persistent state in module-level variables.** `background.js` has
+  none today - its two module-level vars (`sandboxIframeReady`, `creating`,
+  both in the offscreen-document setup) are lazy, self-healing caches that
+  regenerate fine if wiped by a restart, not session/token state. The real
+  example of "durable state" in this extension - `accountinfo` (the Geni
+  access token) - correctly lives in `chrome.storage.local`, written from
+  `popup.js`. Follow that pattern for anything that needs to survive a
+  restart or be shared across contexts; don't cache it in a `background.js`
+  variable.
+- **Register every top-level listener synchronously, at the root of the
+  file** (not inside a callback or conditional) - `chrome.runtime.onMessage`,
+  `onInstalled`, `onStartup`, `chrome.tabs.onActivated`/`onUpdated` all
+  already are. A listener registered inside an async callback can miss
+  events that arrive while the worker is waking up.
+- **Return `true` from an `onMessage` listener whenever a response will be
+  sent asynchronously** via the `callback`/`sendResponse` parameter -
+  otherwise Chrome closes the message channel before the async work
+  finishes. The existing `xhttp`/`eval` handler already does this
+  correctly; match it for any new message action.
+- **Host permissions are required for background fetches to a domain**,
+  separately from that domain appearing in a content script's `matches` -
+  confirmed directly by #202 (MyHeritage's `cf.mhcache.com` fetches failed
+  until added to `host_permissions`, even though `myheritage.com` itself was
+  already covered). Adding a new source site's parser means adding its
+  domain(s) to `host_permissions` too, not just `collections/*.js` and
+  `content_scripts`/`SUPPORTED_SITE_HOSTS`.
+- **Match the existing callback-style `chrome.*` API convention** -
+  `chrome.storage.local.get/set`, `chrome.tabs.query/get`,
+  `chrome.action.setIcon`/`setBadgeText` are all called with callbacks
+  throughout this codebase (one pre-existing exception:
+  `await chrome.tabs.query()` in `popup.js`'s `getTabId()`). This isn't
+  because Firefox can't handle promises - the manifest already requires
+  Firefox 140+, which supports promise-based WebExtension APIs fine - it's
+  just internal consistency. Match whichever style the surrounding code
+  already uses rather than mixing styles in the same file.
+
+None of this is automatically checked - `npm test` only validates syntax, not
+service-worker lifecycle correctness. If a change relies on background state
+surviving across events, that's exactly the kind of thing to flag as
+Unverified and worth a live reload-and-retest rather than assuming it's fine.
+
 ## Verification & Testing Commands
 
 There is no linter, type checker, or test framework in this project -

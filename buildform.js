@@ -319,26 +319,31 @@ function buildForm() {
     }
     if (expand) {
         if (namescore && mnameonoff) {
+            // #210: each row now goes through buildTextFieldRow(), which
+            // escapes the scraped value before it reaches the value="..."
+            // attribute - previously none of these did (the same fix
+            // already applied to the family-member equivalent rows).
             membersstring +=
-                '<tr><td class="profilediv"><input type="checkbox" class="checknext">Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_title" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".title") + '" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_first_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".first_name") + '" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" checked>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '"></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_middle_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".middle_name") + '" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_last_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".last_name") + '" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_maiden_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".maiden_name") + '" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_suffix" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".suffix") + '" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_display_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".display_name") + '" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" disabled></td><td class="genisliderow"><img src="images/append.png" class="genislideimage"><input id="focus_geni_nicknames" type="text" class="formtext genislideinput" value="' + genifocusdata.get("nicknames") + '" disabled></td></tr>';
+                buildTextFieldRow("Title:", "title", nameval.prefix, "", "disabled", "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage) +
+                buildTextFieldRow("First Name:", "first_name", nameval.firstName, "", "disabled", "focus_geni_first_name", null, genifocusdata.get("names", namelang + ".first_name"), nameimage) +
+                buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, "checked", "", "focus_geni_middle_name", null, genifocusdata.get("names", namelang + ".middle_name"), nameimage) +
+                buildTextFieldRow("Last Name:", "last_name", nameval.lastName, "", "disabled", "focus_geni_last_name", null, genifocusdata.get("names", namelang + ".last_name"), nameimage) +
+                buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", "disabled", "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage) +
+                buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", "disabled", "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage) +
+                buildTextFieldRow("Display Name: ", "display_name", displayname, "", "disabled", "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage) +
+                buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", "disabled", "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png");
             x += 1;
         } else {
+            var hiddenRowAttrs = ' style="display: ' + isHidden(hidden) + ';" class="hiddenrow"';
             membersstring +=
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_title" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".title") + '" disabled></td></tr>' +
-                    '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_first_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".first_name") + '" disabled></td></tr>' +
-                    '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_middle_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".middle_name") + '" disabled></td></tr>' +
-                    '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_last_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".last_name") + '" disabled></td></tr>' +
-                    '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_maiden_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".maiden_name") + '" disabled></td></tr>' +
-                    '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_suffix" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".suffix") + '" disabled></td></tr>' +
-                    '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" disabled></td><td class="genisliderow"><img src="images/' + nameimage + '" class="genislideimage"><input id="focus_geni_display_name" type="text" class="formtext genislideinput" value="' + genifocusdata.get("names", namelang + ".display_name") + '" disabled></td></tr>' +
-                    '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" disabled><td class="genisliderow"><img src="images/append.png" class="genislideimage"><input id="focus_geni_nicknames" type="text" class="formtext genislideinput" value="' + genifocusdata.get("nicknames") + '" disabled></td></td></tr>';
+                buildTextFieldRow("Title:", "title", nameval.prefix, "", "disabled", "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage, hiddenRowAttrs) +
+                buildTextFieldRow("First Name:", "first_name", nameval.firstName, "", "disabled", "focus_geni_first_name", null, genifocusdata.get("names", namelang + ".first_name"), nameimage, hiddenRowAttrs) +
+                buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, "", "disabled", "focus_geni_middle_name", null, genifocusdata.get("names", namelang + ".middle_name"), nameimage, hiddenRowAttrs) +
+                buildTextFieldRow("Last Name:", "last_name", nameval.lastName, "", "disabled", "focus_geni_last_name", null, genifocusdata.get("names", namelang + ".last_name"), nameimage, hiddenRowAttrs) +
+                buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", "disabled", "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage, hiddenRowAttrs) +
+                buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", "disabled", "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage, hiddenRowAttrs) +
+                buildTextFieldRow("Display Name: ", "display_name", displayname, "", "disabled", "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage, hiddenRowAttrs) +
+                buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", "disabled", "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png", hiddenRowAttrs);
         }
         $(div[0]).html(membersstring);
         if (exists(alldata["profile"]["thumb"])) {
@@ -1683,12 +1688,28 @@ function placementUpdate() {
 // attribute out entirely, matching call sites that don't need an id on
 // one or the other (most rows only need geniInputId; the "Also Known As"
 // row is the one exception that also needs a distinct icon id).
-function buildTextFieldRow(label, fieldName, value, checkedAttr, enabledAttr, geniInputId, geniImgId) {
+//
+// geniValue/icon are also optional, appended at the end so every existing
+// call (family-member rows, which don't know the Geni value yet at
+// render time and always use the same "right.png" placeholder) keeps
+// working unchanged - default to "" and "right.png" respectively. The
+// focus-profile rows are the one caller that needs both: geniValue is
+// already known via genifocusdata at render time, and icon varies
+// (nameimage/"append.png") depending on field/lock state.
+//
+// rowAttrs is the last optional param - lets the focus-profile "hidden
+// when pre-1600/collapsed" variant wrap the <tr> with
+// style="display: ...;" class="hiddenrow" without every other caller
+// needing to pass an empty string for it.
+function buildTextFieldRow(label, fieldName, value, checkedAttr, enabledAttr, geniInputId, geniImgId, geniValue, icon, rowAttrs) {
+    geniValue = geniValue || "";
+    icon = icon || "right.png";
+    rowAttrs = rowAttrs || "";
     var imgIdAttr = geniImgId ? ' id="' + geniImgId + '"' : '';
     var inputIdAttr = geniInputId ? ' id="' + geniInputId + '"' : '';
-    return '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + checkedAttr + '>' + label + '</td>' +
+    return '<tr' + rowAttrs + '><td class="profilediv"><input type="checkbox" class="checknext" ' + checkedAttr + '>' + label + '</td>' +
         '<td style="float:right; padding: 0px;"><input type="text" class="formtext" name="' + fieldName + '" value="' + escapeHtml(value) + '" ' + enabledAttr + '></td>' +
-        '<td class="genisliderow"><img' + imgIdAttr + ' src="images/right.png" class="genislideimage"><input' + inputIdAttr + ' type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+        '<td class="genisliderow"><img' + imgIdAttr + ' src="images/' + icon + '" class="genislideimage"><input' + inputIdAttr + ' type="text" class="formtext genislideinput" value="' + geniValue + '" disabled></td></tr>';
 }
 
 // currentValue is optional and only changes behavior when explicitly passed

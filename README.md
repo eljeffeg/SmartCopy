@@ -62,6 +62,10 @@ Install directly from the [Firefox Add-ons listing](https://addons.mozilla.org/e
 4. Select `manifest.json` from the repository folder (not the folder itself).
 5. The SmartCopy icon will appear in the toolbar. This install is temporary and is removed when Firefox restarts - reload it the same way after pulling new changes, or for each new browser session.
 
+## Release notes
+
+See the [Releases page](https://github.com/eljeffeg/SmartCopy/releases) for version history and what's changed in each release.
+
 ## Getting help
 
 SmartCopy has a [Project page on Geni](https://www.geni.com/projects/SmartCopy/18783), with a [discussion board](https://www.geni.com/discussions?discussion_type=project-18783) for questions, discussion, and support.

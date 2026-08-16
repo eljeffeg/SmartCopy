@@ -586,17 +586,59 @@ function buildForm() {
                         var geoScored = scored && geoqueryCheck();
                         locationval = locationval +
                             '<tr id="focus_'+title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
-                            '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + geoicon + '" height="14px">'; 
+                            '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + geoicon + '" height="14px">';
                             if (geoqueryCheck()) {
                                 locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                             }
                             locationval = locationval + '<img class="geopin" title="' + pintitle + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
-                            '<tr class="geoplace' + geoplacehidden + '"style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, placeScored, false, genifocusdata.get(title, "location_string")) + '>' + capFL(title) + ' Place:</td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, placeScored, false, genifocusdata.get(title, "location_string")) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location_string") + '" disabled></td></tr>' +
-                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name")) + '>Place: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name")) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.place_name") + '" disabled></td></tr>' +
-                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, geoScored, geoone, genifocusdata.get(title, "location.city")) + '>City: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, geoScored, geoone, genifocusdata.get(title, "location.city")) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.city") + '" disabled></td></tr>' +
-                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, geoScored, geoone, genifocusdata.get(title, "location.county")) + '>County: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:county" value="' + county + '" ' + isEnabled(county, geoScored, geoone, genifocusdata.get(title, "location.county")) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.county") + '" disabled></td></tr>' +
-                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(state, geoScored, geoone, genifocusdata.get(title, "location.state")) + '>State: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:state" value="' + state + '" ' + isEnabled(state, geoScored, geoone, genifocusdata.get(title, "location.state")) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.state") + '" disabled></td></tr>' +
-                            '<tr class="geoloc' + geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(country, geoScored, geoone, genifocusdata.get(title, "location.country")) + '>Country: </td><td style="float:right;padding: 0;"><input type="text" class="formtext" name="' + title + ':location:country" value="' + country + '" ' + isEnabled(country, geoScored, geoone, genifocusdata.get(title, "location.country")) + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get(title, "location.country") + '" disabled></td></tr>';
+                            buildLocationFieldRow({
+                                trClass: "geoplace" + geoplacehidden, classStyleSep: "", displayVal: geoplace,
+                                checkedAttr: isChecked(place, placeScored, false, genifocusdata.get(title, "location_string")),
+                                enabledAttr: isEnabled(place, placeScored, false, genifocusdata.get(title, "location_string")),
+                                label: capFL(title) + " Place:", tdStyle: "float:right;padding: 0;",
+                                fieldName: title + ":location:place_name", value: place, icon: locationicon,
+                                geniValue: genifocusdata.get(title, "location_string")
+                            }) +
+                            buildLocationFieldRow({
+                                trClass: "geoloc" + geolochidden, displayVal: geoauto,
+                                checkedAttr: isChecked(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name")),
+                                enabledAttr: isEnabled(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name")),
+                                label: "Place: ", tdStyle: "float:right;padding: 0;",
+                                fieldName: title + ":location:place_name_geo", value: placegeo, icon: locationicon,
+                                geniValue: genifocusdata.get(title, "location.place_name")
+                            }) +
+                            buildLocationFieldRow({
+                                trClass: "geoloc" + geolochidden, displayVal: geoauto,
+                                checkedAttr: isChecked(city, geoScored, geoone, genifocusdata.get(title, "location.city")),
+                                enabledAttr: isEnabled(city, geoScored, geoone, genifocusdata.get(title, "location.city")),
+                                label: "City: ", tdStyle: "float:right;padding: 0;",
+                                fieldName: title + ":location:city", value: city, icon: locationicon,
+                                geniValue: genifocusdata.get(title, "location.city")
+                            }) +
+                            buildLocationFieldRow({
+                                trClass: "geoloc" + geolochidden, displayVal: geoauto,
+                                checkedAttr: isChecked(county, geoScored, geoone, genifocusdata.get(title, "location.county")),
+                                enabledAttr: isEnabled(county, geoScored, geoone, genifocusdata.get(title, "location.county")),
+                                label: "County: ", tdStyle: "float:right;padding: 0;",
+                                fieldName: title + ":location:county", value: county, icon: locationicon,
+                                geniValue: genifocusdata.get(title, "location.county")
+                            }) +
+                            buildLocationFieldRow({
+                                trClass: "geoloc" + geolochidden, displayVal: geoauto,
+                                checkedAttr: isChecked(state, geoScored, geoone, genifocusdata.get(title, "location.state")),
+                                enabledAttr: isEnabled(state, geoScored, geoone, genifocusdata.get(title, "location.state")),
+                                label: "State: ", tdStyle: "float:right;padding: 0;",
+                                fieldName: title + ":location:state", value: state, icon: locationicon,
+                                geniValue: genifocusdata.get(title, "location.state")
+                            }) +
+                            buildLocationFieldRow({
+                                trClass: "geoloc" + geolochidden, displayVal: geoauto,
+                                checkedAttr: isChecked(country, geoScored, geoone, genifocusdata.get(title, "location.country")),
+                                enabledAttr: isEnabled(country, geoScored, geoone, genifocusdata.get(title, "location.country")),
+                                label: "Country: ", tdStyle: "float:right;padding: 0;",
+                                fieldName: title + ":location:country", value: country, icon: locationicon,
+                                geniValue: genifocusdata.get(title, "location.country")
+                            });
                         locationadded = true;
                         //div[0].style.display = "block";
                     }
@@ -1150,12 +1192,54 @@ function buildForm() {
                                         locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
                                     }
                                     locationval = locationval + '<img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + pintitle + '" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
-                                    '<tr class="geoplace' +  geoplacehidden + '" style="display: ' + geoplace + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(place, placeScored, false, "") + '>' + Abbr(capFL(title)) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name" value="' + place + '" ' + isEnabled(place, placeScored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(placegeo, geoScored, geoone, "") + '>Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo" value="' + placegeo + '" ' + isEnabled(placegeo, geoScored, geoone, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(city, geoScored, geoone, "") + '>City: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:city" value="' + city + '" ' + isEnabled(city, geoScored, geoone, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_city" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(county, geoScored, geoone, "") + '>County: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:county" value="' + county + '" ' + isEnabled(county, geoScored, geoone, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_county" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(state, geoScored, geoone, "") + '>State: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:state" value="' + state + '" ' + isEnabled(state, geoScored, geoone, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_state" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                                    '<tr class="geoloc' +  geolochidden + '" style="display: ' + geoauto + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + isChecked(country, geoScored, geoone, "") + '>Country: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:country" value="' + country + '" ' + isEnabled(country, geoScored, geoone, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_country" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                                    buildLocationFieldRow({
+                                        trClass: "geoplace" + geoplacehidden, displayVal: geoplace,
+                                        checkedAttr: isChecked(place, placeScored, false, ""),
+                                        enabledAttr: isEnabled(place, placeScored, false, ""),
+                                        label: Abbr(capFL(title)) + " Place: ", tdStyle: "float:right;",
+                                        fieldName: title + ":location:place_name", value: place,
+                                        geniInputId: i + "_geni_" + title + "_location_string"
+                                    }) +
+                                    buildLocationFieldRow({
+                                        trClass: "geoloc" + geolochidden, displayVal: geoauto,
+                                        checkedAttr: isChecked(placegeo, geoScored, geoone, ""),
+                                        enabledAttr: isEnabled(placegeo, geoScored, geoone, ""),
+                                        label: "Place: ", tdStyle: "float:right;",
+                                        fieldName: title + ":location:place_name_geo", value: placegeo,
+                                        geniInputId: i + "_geni_" + title + "_place"
+                                    }) +
+                                    buildLocationFieldRow({
+                                        trClass: "geoloc" + geolochidden, displayVal: geoauto,
+                                        checkedAttr: isChecked(city, geoScored, geoone, ""),
+                                        enabledAttr: isEnabled(city, geoScored, geoone, ""),
+                                        label: "City: ", tdStyle: "float:right;",
+                                        fieldName: title + ":location:city", value: city,
+                                        geniInputId: i + "_geni_" + title + "_city"
+                                    }) +
+                                    buildLocationFieldRow({
+                                        trClass: "geoloc" + geolochidden, displayVal: geoauto,
+                                        checkedAttr: isChecked(county, geoScored, geoone, ""),
+                                        enabledAttr: isEnabled(county, geoScored, geoone, ""),
+                                        label: "County: ", tdStyle: "float:right;",
+                                        fieldName: title + ":location:county", value: county,
+                                        geniInputId: i + "_geni_" + title + "_county"
+                                    }) +
+                                    buildLocationFieldRow({
+                                        trClass: "geoloc" + geolochidden, displayVal: geoauto,
+                                        checkedAttr: isChecked(state, geoScored, geoone, ""),
+                                        enabledAttr: isEnabled(state, geoScored, geoone, ""),
+                                        label: "State: ", tdStyle: "float:right;",
+                                        fieldName: title + ":location:state", value: state,
+                                        geniInputId: i + "_geni_" + title + "_state"
+                                    }) +
+                                    buildLocationFieldRow({
+                                        trClass: "geoloc" + geolochidden, displayVal: geoauto,
+                                        checkedAttr: isChecked(country, geoScored, geoone, ""),
+                                        enabledAttr: isEnabled(country, geoScored, geoone, ""),
+                                        label: "Country: ", tdStyle: "float:right;",
+                                        fieldName: title + ":location:country", value: country,
+                                        geniInputId: i + "_geni_" + title + "_country"
+                                    });
                                 locationadded = true;
                             }
                         }
@@ -1784,6 +1868,23 @@ function buildAboutFieldRow(opts) {
     var divStyle = opts.divStyle || "width: 100%;";
     var geniCompanionInput = opts.geniInputId ? '<input id="' + opts.geniInputId + '" type="text" class="formtext genislideinput" value="" disabled style="display:none;">' : "";
     return '<tr><td colspan="3"' + tdStyle + '><div class="profilediv" style="' + divStyle + '"><input type="checkbox" class="checknext" ' + opts.checkedAttr + '>About:<img class="genisliderow" src="images/' + opts.icon + '" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;">' + geniCompanionInput + '</div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + opts.enabledAttr + '>' + escapeHtml(opts.value) + '</textarea></div></td></tr>';
+}
+
+// #210: shared builder for a single geo/location field row (Place, Place
+// (geo), City, County, State, Country - focus profile and family members
+// each render six of these). Same attribute-breakout shape as
+// buildTextFieldRow/buildDateFieldRow; escapeHtml() applied to the scraped
+// value in exactly one place. classStyleSep exists only to preserve a
+// pre-existing, harmless quirk in the focus-profile "Place" row's markup
+// (no space between the class and style attributes, unlike every other
+// row here) - browsers parse it fine either way, but the fix is scoped to
+// closing the XSS hole, not to also "improving" unrelated formatting.
+function buildLocationFieldRow(opts) {
+    var geniInputIdAttr = opts.geniInputId ? ' id="' + opts.geniInputId + '"' : "";
+    var icon = opts.icon || "right.png";
+    var geniValue = opts.geniValue || "";
+    var sep = exists(opts.classStyleSep) ? opts.classStyleSep : " ";
+    return '<tr class="' + opts.trClass + '"' + sep + 'style="display: ' + opts.displayVal + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + opts.checkedAttr + '>' + opts.label + '</td><td style="' + opts.tdStyle + '"><input type="text" class="formtext" name="' + opts.fieldName + '" value="' + escapeHtml(opts.value) + '" ' + opts.enabledAttr + '></td><td class="genisliderow"><img src="images/' + icon + '" class="genislideimage"><input' + geniInputIdAttr + ' type="text" class="formtext genislideinput" value="' + geniValue + '" disabled></td></tr>';
 }
 
 // currentValue is optional and only changes behavior when explicitly passed

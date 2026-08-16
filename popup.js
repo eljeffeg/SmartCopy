@@ -2177,7 +2177,18 @@ function summarizeUpdatedCategories(fields, includesPhoto) {
         "is_alive": "living status",
         "public": "privacy",
         "occupation": "occupation",
-        "cause_of_death": "cause of death"
+        "cause_of_death": "cause of death",
+        // about_me is genuinely different from every other excluded key
+        // here (profile_id, action): both call sites (~line 1429, ~1527)
+        // run this BEFORE profileout/familyout["about_me"] gets overwritten
+        // with the appended "* Reference: ..." line, so at this point it
+        // still holds only the real, checked-and-submitted about content
+        // (a collection's own scraped notes - e.g. Online-OFB's misc
+        // fields folded into "about" - or a manually-checked About edit),
+        // never the mechanical reference note itself. Excluding it
+        // unconditionally (as a stale version of this did) silently hid a
+        // real content category from the summary every time.
+        "about_me": "about"
     };
     var categories = [];
     if (includesPhoto) {
@@ -2185,7 +2196,7 @@ function summarizeUpdatedCategories(fields, includesPhoto) {
     }
     if (exists(fields)) {
         for (var key in fields) {
-            if (fields.hasOwnProperty(key) && key !== "about_me" && key !== "profile_id" && key !== "action") {
+            if (fields.hasOwnProperty(key) && key !== "profile_id" && key !== "action") {
                 var category;
                 if (categoryMap.hasOwnProperty(key)) {
                     category = categoryMap[key];

@@ -46,11 +46,25 @@ function getJsonFromUrl(query) {
 // independently, so re-triggering login from here should re-authorize
 // near-instantly rather than requiring the user to re-enter anything.
 function checkGeniAuthStatus(url, status) {
-    // Uses the native .includes() rather than the .contains() polyfill the
-    // rest of the codebase relies on - that polyfill lives in shared.js,
-    // which background.js never loads.
-    if (status === 401 && exists(url) && url.includes("geni.com/api")) {
-        chrome.action.setIcon({path: "images/icon_warn.png"});
+    if (status !== 401 || !exists(url)) {
+        return;
+    }
+    // Parse the actual hostname/path rather than substring-matching the raw
+    // URL (matches the pattern isSupportedSite() already uses below for the
+    // same reason) - some call sites in this codebase build URLs with other
+    // URLs embedded as query parameters (e.g. the FamilySearch image-proxy
+    // redirect-chasing in smartmatch.js), so a raw .includes("geni.com/api")
+    // check could false-positive on a non-Geni host that merely carries that
+    // string in a query value.
+    try {
+        const parsed = new URL(url);
+        const hostname = parsed.hostname;
+        const isGeniHost = hostname === "geni.com" || hostname.endsWith(".geni.com");
+        if (isGeniHost && parsed.pathname.startsWith("/api/")) {
+            chrome.action.setIcon({path: "images/icon_warn.png"});
+        }
+    } catch (error) {
+        // Not a parseable absolute URL - nothing to check.
     }
 }
 

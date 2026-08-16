@@ -21,12 +21,13 @@
 // prompt-injection trap aimed at AI/scraper agents reading page source,
 // not real site content for a human visitor. This parser only ever
 // extracts links matching the exact expected pattern
-// (famreport.php?...&ID=...) via getOFBFamilyLinks() below - it never
-// enumerates or follows arbitrary <a> tags found on the page, and never
-// treats any text extracted from fetched HTML as an instruction to act
-// on. That scoped-link-matching approach is what defeats this trap; if
-// this file is ever changed to walk all <a> tags on the page "for
-// simplicity," that protection is gone.
+// (famreport.php?...&ID=...) via OFB_FAMILY_LINK_SELECTOR, used by
+// getOFBSameRowLink()/getOFBChildrenLinks()/getOFBSiblingsLinks()/
+// getOFBSpouseLinks() below - it never enumerates or follows arbitrary <a>
+// tags found on the page, and never treats any text extracted from fetched
+// HTML as an instruction to act on. That scoped-link-matching approach is
+// what defeats this trap; if this file is ever changed to walk all <a>
+// tags on the page "for simplicity," that protection is gone.
 
 registerCollection({
     "reload": false,
@@ -146,7 +147,7 @@ function parseOnlineOFB(htmlstring, familymembers, relation) {
     // rather than given dedicated profile fields, same treatment
     // collections/geneanet.js gives its own individual/family notes.
     OFB_MISC_TEXT_FIELDS.forEach(function (field) {
-        var value = getOFBFieldText(cells, field.labels);
+        var value = getOFBFieldText(cells, field.labels).replace(OFB_FOOTNOTE_PATTERN, "").trim();
         if (value !== "") {
             about += (about !== "" ? "\n" : "") + field.name + ": " + value;
         }
@@ -270,8 +271,14 @@ var OFB_MOTHER_LABELS = ["Mother:", "Mutter:"];
 // Per-row label, present only when a spouse actually exists (confirmed on
 // both full real samples - when there's no spouse, there's no "Spouse:"
 // label anywhere on the page at all, just the group header below and the
-// empty-state text - see getOFBSpouseLinks()).
-var OFB_SPOUSE_LABELS = ["Spouse:", "Spouses:", "Ehegatte:", "Ehegatten:"];
+// empty-state text - see getOFBSpouseLinks()). "Partner:" is a fourth
+// generator's wording for the same row (the "kempen" OFB, exported from
+// AGES software - confirmed live, and present verbatim even with &lang=en
+// forced, since &lang=en only translates the surrounding site chrome/group
+// headers, not every book generator's own field labels - see prepareUrl's
+// comment above and OFB_FATHER_LABELS/OFB_MOTHER_LABELS, which already
+// carry both languages for the same reason).
+var OFB_SPOUSE_LABELS = ["Spouse:", "Spouses:", "Ehegatte:", "Ehegatten:", "Partner:", "Partners:"];
 // Group header only - confirmed on both full real samples that there is no
 // per-row "Children:"/"Siblings:" label at all, only these two-column
 // section headers ("Marriages / Partnerships" | "Children",
@@ -287,7 +294,8 @@ var OFB_MISC_TEXT_FIELDS = [
     {"name": "Chronicle", "labels": ["Chronicle:", "Chronik:"]},
     {"name": "Godfather", "labels": ["Godfather:", "Pate:", "Patin:"]},
     {"name": "Events", "labels": ["Ereignisse:"]},
-    {"name": "Notes", "labels": ["Anmerkung:"]}
+    {"name": "Notes", "labels": ["Anmerkung:"]},
+    {"name": "Occupation", "labels": ["Occupation:", "Beruf:"]}
 ];
 // Empty-relationship states render as explicit text rather than an omitted
 // row (issue #197) - recognized here so a genuinely empty section reads as
@@ -384,6 +392,15 @@ function getOFBDate(cells, variants) {
     return parseOFBDateString(raw);
 }
 
+// Source-citation footnote markers (confirmed live: "06 Jan 1860 in
+// Schroda [1]", the "[1]" referencing a "Sources" list elsewhere on the
+// page, and again on a misc field: "1846 Metzger in Darfeld [1]") - shared
+// so both a date value (parseOFBDateString below) and a misc free-text
+// field (OFB_MISC_TEXT_FIELDS' loop in parseOnlineOFB) strip it the same
+// way, rather than leaving it dangling only on the fields someone happened
+// to test against a footnoted sample first.
+var OFB_FOOTNOTE_PATTERN = /\s*\[\s*\d+\s*\]\s*$/;
+
 // Shared by getOFBDate() (looks up a labeled cell first) and
 // getOFBMarriageDate() below (extracts a symbol-marked segment out of a
 // cell that mixes several dates together) - everything past "found the
@@ -393,12 +410,24 @@ function parseOFBDateString(raw) {
     if (raw === "") {
         return data;
     }
-    // Source-citation footnote markers (confirmed live: "06 Jan 1860 in
-    // Schroda [1]", the "[1]" referencing a "Sources" list elsewhere on the
-    // page) - stripped rather than left dangling on the end of the place
-    // value. Stripped from the raw string up front so this also covers a
-    // footnote with no place at all (e.g. a bare "1813 [1]").
-    raw = raw.replace(/\s*\[\s*\d+\s*\]\s*$/, "").trim();
+    // Stripped from the raw string up front so this also covers a footnote
+    // with no place at all (e.g. a bare "1813 [1]").
+    raw = raw.replace(OFB_FOOTNOTE_PATTERN, "").trim();
+    // German circa/relative-date words - confirmed live: "um 1840 in
+    // Drensteinfurt" ("um" = "about"). Raw field text can't be assumed
+    // English even with &lang=en forced (see prepareUrl's own comment), so
+    // this translates to the same English markers cleanDate()
+    // (buildform.js, shared across every collection) already recognizes
+    // ("ABT"/"about" -> "Circa", etc.), rather than teaching that shared
+    // function a new language for one collection's benefit. Anchored to the
+    // start of the string, matching where these words actually appear
+    // (immediately before the year) rather than replacing anywhere in the
+    // string, which could otherwise mangle an unrelated place name later in
+    // the same value.
+    raw = raw.replace(/^um\s+/i, "Circa ")
+        .replace(/^vor\s+/i, "Before ")
+        .replace(/^nach\s+/i, "After ")
+        .replace(/^zwischen\s+/i, "Between ");
     var datepart = raw;
     var placepart = "";
     var inIndex = raw.indexOf(" in ");

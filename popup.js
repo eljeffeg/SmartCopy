@@ -2377,6 +2377,56 @@ function mergeAboutText(existingAbout, newContent) {
     return existingAbout + "\n" + newContent;
 }
 
+// #212: exact dates compare unreliably as raw strings, because
+// SmartCopy's own date format ("D MMMM YYYY", e.g. "15 January 1847",
+// from cleanDate()) and Geni's own formatted_date rendering
+// ("MMMM D, YYYY", e.g. "January 15, 1847") differ in word order for the
+// IDENTICAL date - confirmed live: every exact-date field on a real
+// profile showed this exact reordering, so parseForm()'s no-op check
+// (below) never recognized an unchanged date as unchanged, and it got
+// reported as "updated" on every single resubmission regardless of
+// whether it actually was. Also confirmed live: "Circa"/"After"/"Before"
+// qualifiers are capitalized by cleanDate() but rendered lowercase by
+// Geni ("Circa 1822" vs "circa 1822"), and ordinal day suffixes ("1st")
+// don't survive Geni's own rendering either.
+//
+// Parses both sides into a normalized {qualifier, year, month, day} shape
+// and compares that instead of the raw text. Falls back to false (not
+// equivalent - i.e. still reported as changed, same as today) whenever
+// either side fails to parse, e.g. a "Between X and Y" range - never
+// silently treats an unparseable pair as equivalent just because parsing
+// failed.
+// Optional trailing "the " handles a real case confirmed live -
+// "After the 1st September 1919" - a qualifier followed by an article
+// before the date itself, not just "After 1919".
+var DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
+var DATE_PARSE_FORMATS = ["D MMMM YYYY", "MMMM D, YYYY", "MMMM D YYYY", "YYYY-MM-DD", "YYYY"];
+function datesAreEquivalent(a, b) {
+    if (a === b) {
+        return true;
+    }
+    if (!exists(a) || !exists(b) || a === "" || b === "") {
+        return false;
+    }
+    var qualifierMatchA = a.match(DATE_QUALIFIER_PATTERN);
+    var qualifierMatchB = b.match(DATE_QUALIFIER_PATTERN);
+    var normalizeQualifier = function (q) {
+        q = (q || "").toLowerCase();
+        return q === "about" ? "circa" : q;
+    };
+    if (normalizeQualifier(qualifierMatchA && qualifierMatchA[1]) !== normalizeQualifier(qualifierMatchB && qualifierMatchB[1])) {
+        return false;
+    }
+    var restA = a.replace(DATE_QUALIFIER_PATTERN, "").replace(/(\d+)(st|nd|rd|th)\b/i, "$1").trim();
+    var restB = b.replace(DATE_QUALIFIER_PATTERN, "").replace(/(\d+)(st|nd|rd|th)\b/i, "$1").trim();
+    var momentA = moment(restA, DATE_PARSE_FORMATS, true);
+    var momentB = moment(restB, DATE_PARSE_FORMATS, true);
+    if (!momentA.isValid() || !momentB.isValid()) {
+        return false;
+    }
+    return momentA.format("YYYY-MM-DD") === momentB.format("YYYY-MM-DD");
+}
+
 function parseForm(fs) {
     let name_element = ["title", "first_name", "middle_name", "last_name", "maiden_name", "suffix", "display_name"]
     let name_language = "en-US"
@@ -2436,6 +2486,14 @@ function parseForm(fs) {
                     comparableValue = fsinput[item].value === "true" ? "Living" : (fsinput[item].value === "false" ? "Deceased" : "");
                 }
                 if (geniCompanionValue === comparableValue) {
+                    continue;
+                } else if (fsinput[item].name.endsWith(":date") && datesAreEquivalent(comparableValue, geniCompanionValue)) {
+                    // #212 - see datesAreEquivalent()'s own comment. Only
+                    // for :date fields specifically, not e.g. location
+                    // sub-fields - Geni legitimately expanding a bare
+                    // scraped place name into full city/county/state/
+                    // country detail is a real difference worth reporting,
+                    // not a formatting artifact to normalize away.
                     continue;
                 }
             }

@@ -239,14 +239,23 @@ function buildFilaeEventData(sentence) {
 // name paragraph, which nests any nickname as a <span class="nickname">
 // rather than a separate paragraph.
 function extractFilaeHeader(parsed) {
+    // #207: Filae prefixes an uncertain/approximate year with "±" (e.g.
+    // "± 1822  - 1888 " for a person with an approximate rather than exact
+    // birth date) - confirmed live against a real profile whose header
+    // capture was coming back completely empty. The life-dates paragraph
+    // match below is what identifies which <p> is the real name (the one
+    // immediately before it) in the first place, so missing this prefix on
+    // either side of the range meant the whole header - name included, not
+    // just the dates - silently failed to extract at all for any profile
+    // with an uncertain year.
     var lifeDatesPara = parsed.find("p").filter(function () {
-        return /^\d{4}\s*-\s*\d{0,4}\s*$/.test($(this).text().trim()) && !$(this).closest("a").length;
+        return /^±?\s*\d{4}\s*-\s*±?\s*\d{0,4}\s*$/.test($(this).text().trim()) && !$(this).closest("a").length;
     }).first();
     var nameEl = lifeDatesPara.length ? lifeDatesPara.prev("p") : $();
     var name = "";
     var birthYear, deathYear;
     if (nameEl.length) {
-        var yearMatch = lifeDatesPara.text().trim().match(/^(\d{4})\s*-\s*(\d{4})?/);
+        var yearMatch = lifeDatesPara.text().trim().match(/^±?\s*(\d{4})\s*-\s*±?\s*(\d{4})?/);
         if (yearMatch) {
             birthYear = yearMatch[1];
             deathYear = yearMatch[2];

@@ -302,6 +302,15 @@ don't flatten those down to this same voice.
   the outcome (e.g. "**Import a whole new family in fewer clicks**"),
   normal weight for the elaboration that follows. Lets someone scan the
   whole release in bold-only and still get the gist.
+- **Impersonal and imperative, not conversational.** No "you"/"your," no
+  rhetorical questions ("Adding a new wife with no scraped last name?").
+  State the outcome as a fact or an instruction, third person, the way a
+  changelog reads rather than the way a support article talks to someone:
+  "Protect existing Geni data from accidental overwrite" or "Ensure
+  current Geni fields are never accidentally cleared," not "Your existing
+  Geni data is safer by default" or "Adding a new wife...?" This keeps
+  bullets terse and prevents an actual benefit from getting buried under
+  chatty framing.
 - **Before publishing, audit for completeness**: `git log <prev-tag>..HEAD
   --format="%B" | grep -oE '#[0-9]+' | sort -u` against the actual release
   range, then check every number found appears somewhere in the notes.

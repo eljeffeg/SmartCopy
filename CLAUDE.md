@@ -139,6 +139,60 @@ already factored out as `isSubdomainOf()` in `background.js` - reuse it (or
 its logic if working in a file that can't reach it) rather than writing a new
 inline check.
 
+## Family-member checkbox pre-selection rules
+
+When deciding whether a field/checkbox in the "add family member" or "update
+profile" forms should start checked, compare the freshly-scraped value
+against what Geni currently has for that field, not just whether the scraped
+value is non-empty:
+
+- **Scraped blank, Geni has real data:** stays unchecked/disabled - protects
+  existing data from being blanked. Still manually overridable (an explicit,
+  deliberate "clear this field" action), just never pre-checked into it.
+- **Scraped blank, Geni also blank:** starts checked/enabled - nothing to
+  protect, saves a click before typing.
+- **Scraped has data:** checked/enabled as before, regardless of Geni's side.
+
+**Checking a box must only ever be the result of an explicit user action** -
+an individual field checkbox, or a person's "select all" button - never a
+side effect of picking an action from the "Add Profile / Update: existing
+person" dropdown, or of any other field changing. A collapsed/hidden row
+should never end up with real fields silently queued for submission while
+its own top-level checkbox still shows unchecked with no visible sign
+anything would happen. `refreshFieldCheckState()`/`applySelectAllState()` in
+`buildform.js` only ever toggle `disabled`, never `checked`, for exactly this
+reason - re-syncing field state when the action dropdown or Vital status
+changes is fine, auto-checking as a side effect of that is not. If "select
+all" is already checked for a person, a dropdown/status change re-applies
+`applySelectAllState()` to keep everything in sync (previously the only way
+to force this was manually unchecking then rechecking "select all").
+
+**Read Geni's comparison value from the row's own `.genislideinput` field,
+not from the checkbox/input's current `disabled` attribute** - `disabled`
+gets toggled by these same handlers on every check/uncheck cycle and goes
+stale the moment "select all" is unchecked once, even for a field that was
+correctly deemed safe moments earlier. `isFieldEmptyForCheckAll()` (popup.js)
+and its "select all" companions were a real bug here before this was fixed.
+
+**A checkbox being checked does not mean the value gets submitted.**
+`parseForm()` (popup.js) independently excludes any field whose value is
+identical to what Geni already has, checked or not - covers the blank-to-
+blank case above, and also a checked field whose non-blank value happens to
+already match Geni (e.g. a birth year of 1821 landing on a profile Geni
+already has as 1821, or a Privacy value Geni already has). This is what lets
+"select all" stay simple (always checks everything it safely can, no
+no-op-skipping logic in the UI itself) without submitting a pointless update
+or logging a false "(updated: ...)" reference-note category.
+
+**Category-level "add all parents/siblings/children/partners" and each
+individual member's own auto-select both fire when Geni has zero existing
+members of that category at all** (`geniHasAnyOfCategory()`), independent of
+the source's own SmartMatch relevance signal (`scorefactors`) - a
+deterministic signal, since there's nothing on Geni to conflict with. The
+per-member SmartMatch signal still separately drives auto-select when Geni
+already has *some* (but not all) of a category - e.g. one parent present,
+the other missing.
+
 ## Background service worker centralization
 
 `background.js` is the one place that sees every outbound request this

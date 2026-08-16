@@ -1248,7 +1248,7 @@ function expandFamily(member) {
 }
 
 var entityMap = {
-    "& ": "&amp;",
+    "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
     '"': '&quot;',
@@ -1257,8 +1257,16 @@ var entityMap = {
     "`": '&DiacriticalGrave;'
 };
 
+// #210: the ampersand entry was previously keyed to "& " (with a trailing
+// space) in both entityMap and this regex, so a bare "&" not immediately
+// followed by a space - "AT&T", or one at the end of a string - was never
+// escaped at all. Order matters here: "&" must be replaced by the same
+// single pass as the others (one combined regex/replace, not "&" first
+// then the rest as two separate calls) - replacing "&" in an earlier pass
+// would then have its own output's "&" re-matched by a later pass over
+// "<>\"'`/", double-escaping entities this function just introduced.
 function escapeHtml(string) {
-    return String(string).replace(/& |[<>"'`\/]/g, function (s) {
+    return String(string).replace(/[&<>"'`\/]/g, function (s) {
         return entityMap[s];
     });
 }

@@ -994,26 +994,28 @@ function buildForm() {
                 $(langtarget).find("select").attr("id", i + "_geni_name_language");
                 let regex = new RegExp('value="' + namelang + '">',"gm");
                 membersstring += '<tr><td colspan="2"></td><td>' + $(langtarget).html().replace(regex, "value='" + namelang + "' selected>"); + '</td></tr>'
+                // #210: each row below now goes through buildTextFieldRow(),
+                // which escapes the scraped value before it reaches the
+                // value="..." attribute - previously none of these did.
+                // lastNameAutoFilled (#204) still controls Last Name's
+                // checked/enabled state exactly as before: the value came
+                // from a guess (the focus person's surname), not scraped
+                // source data - starts enabled (typeable/reviewable) like
+                // any other blank-safe field, but deliberately never
+                // pre-checked, unlike a real scraped value. Checking it
+                // remains an explicit user action.
                 membersstring +=
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.prefix, scored, false, "") + '>Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" ' + isEnabled(nameval.prefix, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_title" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored, false, "") + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_first_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.middleName, scored, false, "") + '>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '" ' + isEnabled(nameval.middleName, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_middle_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        // lastNameAutoFilled (#204): the value above came from
-                        // a guess (the focus person's surname), not scraped
-                        // source data - starts enabled (typeable/reviewable)
-                        // like any other blank-safe field, but deliberately
-                        // never pre-checked, unlike a real scraped value.
-                        // Checking it remains an explicit user action, same
-                        // as every other field this session's checkbox rules
-                        // apply to - this one just never auto-qualifies.
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + (lastNameAutoFilled ? "" : isChecked(nameval.lastName, scored, false, "")) + '>Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" ' + (lastNameAutoFilled ? "" : isEnabled(nameval.lastName, scored, false, "")) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_last_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.birthName, scored, false, "") + '>Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" ' + isEnabled(nameval.birthName, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_maiden_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.suffix, scored, false, "") + '>Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" ' + isEnabled(nameval.suffix, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_suffix" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(displayname, scored, false, "") + '>Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" ' + isEnabled(displayname, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_display_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.nickName, scored, false, "") + '>Also Known As: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="nicknames" value="' + nameval.nickName + '" ' + isEnabled(nameval.nickName, scored, false, "") + '></td><td class="genisliderow"><img id="' + i + '_geni_nickimage" src="images/right.png" class="genislideimage"><input id="' + i + '_geni_nicknames" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                    buildTextFieldRow("Title:", "title", nameval.prefix, isChecked(nameval.prefix, scored, false, ""), isEnabled(nameval.prefix, scored, false, ""), i + "_geni_title") +
+                    buildTextFieldRow("First Name:", "first_name", nameval.firstName, isChecked(nameval.firstName, scored, false, ""), isEnabled(nameval.firstName, scored, false, ""), i + "_geni_first_name") +
+                    buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, isChecked(nameval.middleName, scored, false, ""), isEnabled(nameval.middleName, scored, false, ""), i + "_geni_middle_name") +
+                    buildTextFieldRow("Last Name:", "last_name", nameval.lastName, (lastNameAutoFilled ? "" : isChecked(nameval.lastName, scored, false, "")), (lastNameAutoFilled ? "" : isEnabled(nameval.lastName, scored, false, "")), i + "_geni_last_name") +
+                    buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, isChecked(nameval.birthName, scored, false, ""), isEnabled(nameval.birthName, scored, false, ""), i + "_geni_maiden_name") +
+                    buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, isChecked(nameval.suffix, scored, false, ""), isEnabled(nameval.suffix, scored, false, ""), i + "_geni_suffix") +
+                    buildTextFieldRow("Display Name: ", "display_name", displayname, isChecked(displayname, scored, false, ""), isEnabled(displayname, scored, false, ""), i + "_geni_display_name") +
+                    buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, isChecked(nameval.nickName, scored, false, ""), isEnabled(nameval.nickName, scored, false, ""), i + "_geni_nicknames", i + "_geni_nickimage");
                 if (exists(members[member]["occupation"])) {
                     var occupation = members[member]["occupation"].trim();
-                    membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(occupation, scored, false, "") + '>Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" value="' + occupation + '" ' + isEnabled(occupation, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                    membersstring = membersstring + buildTextFieldRow("Occupation: ", "occupation", occupation, isChecked(occupation, scored, false, ""), isEnabled(occupation, scored, false, ""), i + "_geni_occupation");
                 } else {
                     membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 }
@@ -1662,6 +1664,31 @@ function placementUpdate() {
             updateClassResponse();
         }
     });
+}
+
+// #210: shared builder for a single-line text-input field row (name
+// parts, occupation, display name, etc.) - the same shape was previously
+// hand-copy-pasted ~20+ times across the focus-profile and family-member
+// templates, and NONE of those copies escaped the scraped value before
+// concatenating it into the value="..." attribute (a real, live-confirmed
+// attribute-breakout XSS - see issue #210). escapeHtml() runs here, in
+// exactly one place, rather than being left to each call site to
+// remember individually - that's the actual point of this consolidation,
+// not just deduplication for its own sake. Geni-sourced companion values
+// (geniValue) keep using their own existing, separate &quot;-only
+// escaping from GeniPerson.get()/getGeniData() - untouched here, since
+// #210 is scoped to scraped/external data specifically.
+//
+// geniInputId/geniImgId are optional - omit either to render that
+// attribute out entirely, matching call sites that don't need an id on
+// one or the other (most rows only need geniInputId; the "Also Known As"
+// row is the one exception that also needs a distinct icon id).
+function buildTextFieldRow(label, fieldName, value, checkedAttr, enabledAttr, geniInputId, geniImgId) {
+    var imgIdAttr = geniImgId ? ' id="' + geniImgId + '"' : '';
+    var inputIdAttr = geniInputId ? ' id="' + geniInputId + '"' : '';
+    return '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + checkedAttr + '>' + label + '</td>' +
+        '<td style="float:right; padding: 0px;"><input type="text" class="formtext" name="' + fieldName + '" value="' + escapeHtml(value) + '" ' + enabledAttr + '></td>' +
+        '<td class="genisliderow"><img' + imgIdAttr + ' src="images/right.png" class="genislideimage"><input' + inputIdAttr + ' type="text" class="formtext genislideinput" value="" disabled></td></tr>';
 }
 
 // currentValue is optional and only changes behavior when explicitly passed

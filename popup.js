@@ -2842,6 +2842,10 @@ $(function () {
         }
     });
 
+    $('#marriednameonoffswitch').on('click', function () {
+        chrome.storage.local.set({'derivemarriednames': this.checked});
+    });
+
     $('#birthonoffswitch').on('click', function () {
         chrome.storage.local.set({'autobirth': this.checked});
         var profilegroup = $('.checkall');
@@ -3417,6 +3421,13 @@ chrome.storage.local.get('autobirth', function (result) {
     var birthchecked = result.autobirth;
     if (exists(birthchecked)) {
         $('#birthonoffswitch').prop('checked', birthchecked);
+    }
+});
+
+chrome.storage.local.get('derivemarriednames', function (result) {
+    var marriednameschecked = result.derivemarriednames;
+    if (exists(marriednameschecked)) {
+        $('#marriednameonoffswitch').prop('checked', marriednameschecked);
     }
 });
 

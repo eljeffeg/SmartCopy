@@ -446,6 +446,9 @@
 	"Auto_populate_empty_birth_name_fields": {
 		"message": "Lege geboortenaam velden automatisch vullen"
 	},
+	"Auto_fill_married_last_name": {
+		"message": "Getrouwde achternaam automatisch invullen"
+	},
 	"Parse_for_middle_names_automatically": {
 		"message": "Automatisch zoeken naar patroniemen"
 	},

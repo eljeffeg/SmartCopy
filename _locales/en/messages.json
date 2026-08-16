@@ -470,6 +470,9 @@
     "Auto_populate_empty_birth_name_fields": {
     "message": "Auto populate empty birth name fields"
     },
+    "Auto_fill_married_last_name": {
+    "message": "Auto-fill married last name"
+    },
     "Parse_for_middle_names_automatically": {
     "message": "Parse for middle names automatically"
     },

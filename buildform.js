@@ -232,27 +232,46 @@ function buildForm() {
     if (focusgender === "unknown" && alldata["profile"].gender !== "unknown") {
         focusgender = alldata["profile"].gender;
     }
+    // focusLastNameConfirmedMaiden: setBirthName() returns false specifically
+    // when nameval.lastName already exactly matches a scraped father's
+    // surname - the common "source lists her under her maiden name" case -
+    // and deliberately leaves lastName untouched (non-blank) rather than
+    // clearing it, since as far as this base feature is concerned there's
+    // nothing to move. The #204 block below still needs to know this
+    // happened, since a confirmed maiden-name match is exactly the case it
+    // should override, even though lastName isn't blank.
+    var focusLastNameConfirmedMaiden = false;
     if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
         if (focusgender === "male") {
             nameval.birthName = nameval.lastName;
-        } else if (focusgender === "female" && setBirthName("focus", nameval.lastName, mnameonoff)) {
-            nameval.birthName = nameval.lastName;
-            nameval.lastName = "";
+        } else if (focusgender === "female") {
+            if (setBirthName("focus", nameval.lastName, mnameonoff)) {
+                nameval.birthName = nameval.lastName;
+                nameval.lastName = "";
+            } else {
+                focusLastNameConfirmedMaiden = true;
+            }
         }
     }
     // #204: symmetric with the family-member direction below - a female
     // focus person's Last Name gets auto-filled from her spouse's surname
-    // too, when there's exactly one spouse. Independent of the
-    // setBirthName() check above for the same reason documented in the
-    // family-member direction: that check can leave nameval.lastName
-    // holding her current (often maiden) surname untouched rather than
-    // cleared, which is why this handles both outcomes uniformly - moving
-    // whatever's currently in lastName into birthName first (only if
-    // birthName is still empty; a no-op if setBirthName() already moved
-    // it above) before replacing lastName with the spouse's surname.
-    if ($('#birthonoffswitch').prop('checked') && focusgender === "female") {
+    // too, when there's exactly one spouse. Fires when nameval.lastName is
+    // blank (nothing scraped) OR confirmed-maiden (matches her scraped
+    // father, per focusLastNameConfirmedMaiden above) - deliberately NOT for
+    // any other non-blank value, since some genealogical naming conventions
+    // (e.g. Mexican civil-registry names, which are always the birth
+    // compound surname and never legally change at marriage) will correctly
+    // yield a non-blank, non-father-matching scraped Last Name here, and
+    // guessing over it would replace a correct birth surname with a guessed
+    // married one. Gated behind its own toggle (#marriednameonoffswitch, on
+    // by default) in addition to the existing birthonoffswitch check - this
+    // feature is strictly more speculative than the base maiden-name-move it
+    // builds on (it derives/guesses a value, not just relocates an existing
+    // one), so a user can keep the base feature while opting out of just
+    // this.
+    if ($('#birthonoffswitch').prop('checked') && $('#marriednameonoffswitch').prop('checked') && focusgender === "female" && (nameval.lastName === "" || focusLastNameConfirmedMaiden)) {
         var focusSpouseSurname = getFocusSpouseSurname(mnameonoff);
-        if (focusSpouseSurname !== "" && nameval.lastName !== focusSpouseSurname) {
+        if (focusSpouseSurname !== "" && focusSpouseSurname !== nameval.lastName) {
             if (nameval.birthName === "") {
                 nameval.birthName = nameval.lastName;
             }
@@ -770,20 +789,16 @@ function buildForm() {
             }
 
             // #204: auto-fill a new female spouse's Last Name with the
-            // focus person's own surname, when she doesn't already show a
-            // married name matching it. Deliberately independent of
-            // setBirthName()'s "does her current surname match a known
-            // male relative" check above - that check can leave her
-            // current surname sitting in Last Name untouched (e.g. it
-            // already matches her own father, so there was nothing to
-            // "move") rather than cleared to "", which is what the
-            // original blank-Last-Name feature needed to even apply. This
-            // covers both cases uniformly: if nameval.birthName is still
-            // empty, whatever's currently in Last Name becomes her Birth
-            // Name (maiden name) before being replaced - correct whether
-            // that got there via the untouched-original-value path or was
-            // already moved by setBirthName() above (in which case
-            // birthName is already set and this is a no-op).
+            // focus person's own surname, when nothing was scraped for it
+            // at all. Blank-only (nameval.lastName === "") - never
+            // overwrites a Last Name the source actually provided, even if
+            // it differs from the focus person's surname. That's not just
+            // caution: some genealogical naming conventions (e.g. Mexican
+            // civil-registry names, which are always the birth compound
+            // surname and never legally change at marriage) will correctly
+            // yield a non-blank scraped Last Name here, and guessing over
+            // it would replace a correct birth surname with a guessed
+            // married one.
             //
             // Scoped tightly per the issue's own discussion: exactly one
             // spouse only (members.length - a second spouse, e.g.
@@ -800,19 +815,39 @@ function buildForm() {
             // cultural conventions (e.g. Spanish/Hispanic naming) - there's
             // no reliable signal for this anywhere in the scraped data, and
             // guessing wrong would submit incorrect data, exactly what this
-            // feature should avoid. lastNameAutoFilled (used below, where
-            // the field actually renders) is the real mitigation: the value
-            // is filled in but never pre-checked, so it always requires the
-            // user's own review before it can be submitted.
+            // feature should avoid. The blank-only gate above is the real
+            // mitigation for those conventions (a correctly-scraped birth
+            // surname is never blank, so this never fires for one);
+            // lastNameAutoFilled (used below, where the field actually
+            // renders) is a second layer on top - the value is filled in
+            // but never pre-checked, so it always requires the user's own
+            // review before it can be submitted.
+            // Gated behind its own toggle (#marriednameonoffswitch, on by
+            // default) in addition to birthonoffswitch - see the matching
+            // comment on the focus-person direction above.
             var lastNameAutoFilled = false;
-            if ($('#birthonoffswitch').prop('checked') && relationship === "partner" && isFemale(gender) && isMale(focusgender) && members.length === 1) {
+            if ($('#birthonoffswitch').prop('checked') && $('#marriednameonoffswitch').prop('checked') && relationship === "partner" && isFemale(gender) && isMale(focusgender) && members.length === 1 && nameval.lastName === "") {
                 var focusnamelang = genifocusdata.get("name_language");
                 var spouseSurnameForMember = genifocusdata.get("names", focusnamelang + ".last_name");
-                if (exists(spouseSurnameForMember) && spouseSurnameForMember !== "" && nameval.lastName !== spouseSurnameForMember) {
-                    if (nameval.birthName === "") {
-                        nameval.birthName = nameval.lastName;
-                    }
+                if (exists(spouseSurnameForMember) && spouseSurnameForMember !== "") {
                     nameval.lastName = spouseSurnameForMember;
+                    lastNameAutoFilled = true;
+                }
+            }
+
+            // #204 (parents): same married-name derivation, applied to the
+            // focus person's MOTHER - a "parent" family member, not a
+            // "partner" one, so it needed its own case rather than falling
+            // out of the block above. Finds the FATHER's surname via
+            // getParentSurname() (mirrors getFocusSpouseSurname() - exactly
+            // one male among all parent-type entries, or give up) and fills
+            // it in only when her own Last Name is blank, same rationale
+            // and same cultural-naming caveat as the spouse direction
+            // above.
+            if ($('#birthonoffswitch').prop('checked') && $('#marriednameonoffswitch').prop('checked') && relationship === "parent" && isFemale(gender) && nameval.lastName === "") {
+                var fatherSurnameForMember = getParentSurname("male", mnameonoff);
+                if (fatherSurnameForMember !== "") {
+                    nameval.lastName = fatherSurnameForMember;
                     lastNameAutoFilled = true;
                 }
             }
@@ -1722,6 +1757,28 @@ function getFocusSpouseSurname(mnameonoff) {
     }
     var spouseNameval = NameParse.parse(spouses[0].name, mnameonoff);
     return spouseNameval.lastName || "";
+}
+
+// #204 (parents): mirrors getFocusSpouseSurname() but for the parent
+// category - finds a parent's surname among all parent-type family
+// members (every raw relationship key isParent() recognizes, collected
+// together, not just one), filtered to the requested gender and requiring
+// exactly one match. An ambiguous source (e.g. two father entries from a
+// remarriage) returns "" rather than guessing which one to use.
+function getParentSurname(gender, mnameonoff) {
+    var obj = alldata["family"];
+    var matches = [];
+    for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
+        if (isParent(relationship)) {
+            matches = matches.concat(obj[relationship]);
+        }
+    }
+    matches = matches.filter(function (m) { return m.gender === gender; });
+    if (matches.length !== 1 || !exists(matches[0].name)) {
+        return "";
+    }
+    var parentNameval = NameParse.parse(matches[0].name, mnameonoff);
+    return parentNameval.lastName || "";
 }
 
 function setBirthName(relation, lastname, mnameonoff) {

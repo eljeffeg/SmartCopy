@@ -168,47 +168,47 @@ function parseOnlineOFB(htmlstring, familymembers, relation) {
         // isn't confirmed - not implemented in this pass rather than
         // guessing at markup that could misparse the parent link itself,
         // which matters far more than the sub-label. Known gap.
-        var father = getOFBFamilyLinks(cells, OFB_FATHER_LABELS, OFB_EMPTY_MARKERS.spouse);
+        var father = getOFBParentLink(cells, OFB_FATHER_LABELS);
         if (father.length > 0) {
             processOFBFamily(father[0], "father", famid);
             famid++;
         }
-        var mother = getOFBFamilyLinks(cells, OFB_MOTHER_LABELS, OFB_EMPTY_MARKERS.spouse);
+        var mother = getOFBParentLink(cells, OFB_MOTHER_LABELS);
         if (mother.length > 0) {
             processOFBFamily(mother[0], "mother", famid);
             famid++;
         }
-        var spouses = getOFBFamilyLinks(cells, OFB_SPOUSE_LABELS, OFB_EMPTY_MARKERS.spouse);
+        var spouses = getOFBSpouseLinks(cells);
         for (var s = 0; s < spouses.length; s++) {
             processOFBFamily(spouses[s], "spouse", famid);
             myhspouse.push(famid);
             famid++;
         }
-        var children = getOFBFamilyLinks(cells, OFB_CHILDREN_LABELS, OFB_EMPTY_MARKERS.children);
+        var children = getOFBChildrenLinks(cells);
         for (var c = 0; c < children.length; c++) {
             processOFBFamily(children[c], "child", famid);
             famid++;
         }
-        var siblings = getOFBFamilyLinks(cells, OFB_SIBLING_LABELS, OFB_EMPTY_MARKERS.siblings);
+        var siblings = getOFBSiblingsLinks(cells);
         for (var sib = 0; sib < siblings.length; sib++) {
             processOFBFamily(siblings[sib], "sibling", famid);
             famid++;
         }
     } else if (isParent(relation.title)) {
-        var childrensection = getOFBFamilyLinks(cells, OFB_CHILDREN_LABELS, OFB_EMPTY_MARKERS.children);
+        var childrensection = getOFBChildrenLinks(cells);
         for (var i = 0; i < childrensection.length; i++) {
             processOFBFamily(childrensection[i], "sibling", 0);
         }
     } else if (isChild(relation.title) || isSibling(relation.title)) {
         var parentIds = [];
-        var f = getOFBFamilyLinks(cells, OFB_FATHER_LABELS, OFB_EMPTY_MARKERS.spouse);
+        var f = getOFBParentLink(cells, OFB_FATHER_LABELS);
         if (f.length > 0) {
             var fid = getOFBItemId($(f[0]).attr("href"));
             if (fid !== "") {
                 parentIds.push(fid);
             }
         }
-        var m = getOFBFamilyLinks(cells, OFB_MOTHER_LABELS, OFB_EMPTY_MARKERS.spouse);
+        var m = getOFBParentLink(cells, OFB_MOTHER_LABELS);
         if (m.length > 0) {
             var mid = getOFBItemId($(m[0]).attr("href"));
             if (mid !== "") {
@@ -246,9 +246,20 @@ var OFB_BAPTISM_LABELS = ["Baptism:", "Taufe:"];
 var OFB_DEATH_LABELS = ["✡", "▭", "†", "Death:", "Tod:"];
 var OFB_FATHER_LABELS = ["Father:", "Vater:"];
 var OFB_MOTHER_LABELS = ["Mother:", "Mutter:"];
+// Per-row label, present only when a spouse actually exists (confirmed on
+// both full real samples - when there's no spouse, there's no "Spouse:"
+// label anywhere on the page at all, just the group header below and the
+// empty-state text - see getOFBSpouseLinks()).
 var OFB_SPOUSE_LABELS = ["Spouse:", "Spouses:", "Ehegatte:", "Ehegatten:"];
-var OFB_CHILDREN_LABELS = ["Children:", "Kinder:"];
-var OFB_SIBLING_LABELS = ["Siblings:", "Geschwister:"];
+// Group header only - confirmed on both full real samples that there is no
+// per-row "Children:"/"Siblings:" label at all, only these two-column
+// section headers ("Marriages / Partnerships" | "Children",
+// "Parents" | "Siblings"). Kept the old colon-suffixed forms too in case a
+// different generator does use a simpler flat label - tried as an
+// additional variant, not instead of the confirmed header text.
+var OFB_MARRIAGES_HEADER_LABELS = ["Marriages / Partnerships"];
+var OFB_CHILDREN_LABELS = ["Children", "Children:", "Kinder", "Kinder:"];
+var OFB_SIBLING_LABELS = ["Siblings", "Siblings:", "Geschwister", "Geschwister:"];
 // Free-text fields, all generator-specific and all optional.
 var OFB_MISC_TEXT_FIELDS = [
     {"name": "Religion", "labels": ["Religion:"]},
@@ -266,7 +277,9 @@ var OFB_MISC_TEXT_FIELDS = [
 var OFB_EMPTY_MARKERS = {
     "spouse": ["No spouse found!", "Kein Ehegatte gefunden!"],
     "children": ["No children found!", "Keine Kinder gefunden!"],
-    "siblings": ["Keine Geschwister gefunden!"]
+    // "No siblings found!" (English) confirmed live on the "berlin" sample -
+    // the original English variant list here only had the German text.
+    "siblings": ["No siblings found!", "Keine Geschwister gefunden!"]
 };
 
 // Cell-by-cell text is used for label matching (getOFBFieldText/
@@ -348,6 +361,12 @@ function getOFBDate(cells, variants) {
     if (raw === "") {
         return data;
     }
+    // Source-citation footnote markers (confirmed live: "06 Jan 1860 in
+    // Schroda [1]", the "[1]" referencing a "Sources" list elsewhere on the
+    // page) - stripped rather than left dangling on the end of the place
+    // value. Stripped from the raw string up front so this also covers a
+    // footnote with no place at all (e.g. a bare "1813 [1]").
+    raw = raw.replace(/\s*\[\s*\d+\s*\]\s*$/, "").trim();
     var datepart = raw;
     var placepart = "";
     var inIndex = raw.indexOf(" in ");
@@ -375,35 +394,154 @@ function getOFBDate(cells, variants) {
     return data;
 }
 
-// Finds every famreport.php family-member link within the closest <table>
-// ancestor of a matched relationship label - scoped to that table (not the
-// whole page) so an unrelated link elsewhere never gets pulled into the
-// wrong relationship bucket, and bounded to exactly this link pattern (see
-// the file-level SECURITY comment at the top - this is the one and only
-// place this file extracts links from the page, deliberately never
-// walking arbitrary <a> tags). Recognizes the site's own "no X found"
-// text (OFB_EMPTY_MARKERS) as a confirmed-empty state; either way,
-// degrades to [] rather than throwing when the section isn't found at all.
-function getOFBFamilyLinks(cells, labelVariants, emptyMarkers) {
+// Every family-member link this file extracts goes through this one
+// pattern (see the file-level SECURITY comment at the top - this parser
+// never enumerates or follows arbitrary <a> tags found on the page).
+var OFB_FAMILY_LINK_SELECTOR = 'a[href*="famreport.php"]';
+
+// Father/Mother/Spouse: on both full real pages checked, the value (when
+// present) is the single <td> immediately following the label's own cell,
+// in the same row. Deliberately takes only that ONE next cell, not a
+// wider same-row scan - Father's row also has a third cell (Siblings'
+// value, see getOFBSiblingsLinks() below) that a broader scan would
+// wrongly fold into Father's own result.
+//
+// An earlier version of this function scoped to the label's closest
+// ancestor <table> instead. That was wrong: Father: and Mother: turned out
+// to sit as adjacent rows within one large shared grid table (which also
+// holds Marriages/Partnerships, Children, Parents, and Siblings), so both
+// labels' "closest table" resolved to that same big table, and both
+// lookups returned the same first link found in it - reported live as
+// "mother" showing a duplicate of "father." This function - and the
+// row-based ones below it - replace that with the structure actually
+// confirmed live.
+function getOFBSameRowLink(labelCell) {
+    var next = $(labelCell).next("td");
+    if (next.length === 0) {
+        return [];
+    }
+    return next.find(OFB_FAMILY_LINK_SELECTOR).toArray();
+}
+
+// Father/Mother: single expected match, single link.
+function getOFBParentLink(cells, labelVariants) {
     var match = getOFBFieldCell(cells, labelVariants);
     if (!exists(match)) {
         return [];
     }
-    var scope = $(cells[match.index]).closest("table");
-    if (scope.length === 0) {
-        scope = $(cells[match.index]).closest("tr");
-    }
-    var links = scope.find('a[href*="famreport.php"]').toArray();
-    if (links.length === 0 && exists(emptyMarkers)) {
-        var scopeText = scope.text();
-        var recognized = emptyMarkers.some(function (marker) {
-            return scopeText.contains(marker);
+    return getOFBSameRowLink(cells[match.index]);
+}
+
+// Spouse: unlike Father/Mother, more than one "Spouse:" row is plausible
+// (remarriage) even though neither confirmed sample happens to show it -
+// collects every matching label's same-row link rather than assuming
+// exactly one. When there's no spouse at all, there is no "Spouse:" label
+// anywhere on the page (confirmed live - the empty case renders as
+// "No spouse found!" directly, with no per-row label) - checked via
+// OFB_MARRIAGES_HEADER_LABELS + getOFBGridValueRow() instead, purely to
+// decide whether an unrecognized-shape warning is worth logging, since
+// either way the functional result is already the same empty list.
+function getOFBSpouseLinks(cells) {
+    var links = [];
+    for (var i = 0; i < cells.length; i++) {
+        var cellText = $(cells[i]).text().trim();
+        var isSpouseLabel = OFB_SPOUSE_LABELS.some(function (label) {
+            return cellText.indexOf(label) === 0;
         });
-        if (!recognized) {
-            console.warn("SmartCopy: Online-OFB relationship section matched \"" + labelVariants[0] + "\" but has no links and no recognized empty-state text - possibly an unrecognized page shape.");
+        if (isSpouseLabel) {
+            links = links.concat(getOFBSameRowLink(cells[i]));
+        }
+    }
+    if (links.length === 0) {
+        var valueRow = getOFBGridValueRow(cells, OFB_MARRIAGES_HEADER_LABELS);
+        if (exists(valueRow)) {
+            var recognized = OFB_EMPTY_MARKERS.spouse.some(function (marker) {
+                return valueRow.text().contains(marker);
+            });
+            if (!recognized) {
+                console.warn("SmartCopy: Online-OFB spouse section found no links and no recognized empty-state text - possibly an unrecognized page shape.");
+            }
         }
     }
     return links;
+}
+
+// Children: no per-row "Children:" label was found on either confirmed
+// real sample, only the "Children" group header (paired with "Marriages /
+// Partnerships" in the same header row). The value - or the "No children
+// found!"/"Keine Kinder gefunden!" empty-state text - is always the LAST
+// <td> in the row immediately following that header row, regardless of
+// how many cells precede it: 3 cells (Spouse: label, spouse value,
+// children value) when there's a spouse, 2 cells ("No spouse found!",
+// children value/empty-text) when there isn't. Confirmed on both full
+// real samples either way.
+function getOFBChildrenLinks(cells) {
+    var valueRow = getOFBGridValueRow(cells, OFB_CHILDREN_LABELS);
+    if (!exists(valueRow)) {
+        return [];
+    }
+    var lastCell = valueRow.find("td").last();
+    if (lastCell.length === 0) {
+        return [];
+    }
+    var links = lastCell.find(OFB_FAMILY_LINK_SELECTOR).toArray();
+    if (links.length === 0) {
+        var recognized = OFB_EMPTY_MARKERS.children.some(function (marker) {
+            return lastCell.text().contains(marker);
+        });
+        if (!recognized) {
+            console.warn("SmartCopy: Online-OFB children section found no links and no recognized empty-state text - possibly an unrecognized page shape.");
+        }
+    }
+    return links;
+}
+
+// Siblings: same situation as Children - no per-row "Siblings:" label
+// confirmed, only the "Siblings" group header (paired with "Parents").
+// Unlike Children, though, the value isn't in the row right after the
+// header - it's a ROWSPAN=2 cell that's visually beside both the Father
+// and Mother rows, but structurally is the LAST <td> of Father's row
+// specifically (confirmed on both full real samples). Depends on Father's
+// own row being found first; if a profile ever omits the Father: row
+// entirely for an unknown father (rather than showing it empty), this
+// won't find the siblings value either - not confirmed either way from
+// the samples checked so far.
+function getOFBSiblingsLinks(cells) {
+    var father = getOFBFieldCell(cells, OFB_FATHER_LABELS);
+    if (!exists(father)) {
+        return [];
+    }
+    var fatherRow = $(cells[father.index]).closest("tr");
+    var lastCell = fatherRow.find("td").last();
+    if (lastCell.length === 0) {
+        return [];
+    }
+    var links = lastCell.find(OFB_FAMILY_LINK_SELECTOR).toArray();
+    if (links.length === 0) {
+        var recognized = OFB_EMPTY_MARKERS.siblings.some(function (marker) {
+            return lastCell.text().contains(marker);
+        });
+        if (!recognized) {
+            console.warn("SmartCopy: Online-OFB siblings section found no links and no recognized empty-state text - possibly an unrecognized page shape.");
+        }
+    }
+    return links;
+}
+
+// Shared by getOFBSpouseLinks()/getOFBChildrenLinks() - finds a two-column
+// grid section's header row (matching any of the given header label
+// variants) and returns the very next sibling <tr>, which is where that
+// section's actual value or empty-state text lives on both confirmed real
+// samples. Returns null (not a throw) if the header isn't found or has no
+// following row.
+function getOFBGridValueRow(cells, headerLabelVariants) {
+    var header = getOFBFieldCell(cells, headerLabelVariants);
+    if (!exists(header)) {
+        return null;
+    }
+    var headerRow = $(cells[header.index]).closest("tr");
+    var valueRow = headerRow.next("tr");
+    return valueRow.length > 0 ? valueRow : null;
 }
 
 // Confirmed live on a real "berlin" family report page: a male.gif/

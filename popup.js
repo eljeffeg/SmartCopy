@@ -2253,14 +2253,14 @@ function summarizeUpdatedCategories(fields, includesPhoto) {
         // "names" object (one per language), so it's that plural literal
         // key that needs mapping, not the individual field names (those
         // entries are kept anyway in case a future caller ever does pass
-        // them flat). "nicknames" gets its own distinct "AKA" category
-        // (matching Geni's own "Also Known As" field label) rather than
-        // folding into "names" - it's a genuinely different field from the
-        // actual given/family name, and collapsing the two together would
-        // hide that a submission touched one but not the other.
+        // them flat). "nicknames" gets its own distinct "alias" category
+        // rather than folding into "names" - it's a genuinely different
+        // field from the actual given/family name, and collapsing the two
+        // together would hide that a submission touched one but not the
+        // other.
         "names": "names",
         "title": "names", "first_name": "names", "middle_name": "names", "last_name": "names",
-        "maiden_name": "names", "suffix": "names", "display_name": "names", "nicknames": "AKA",
+        "maiden_name": "names", "suffix": "names", "display_name": "names", "nicknames": "alias",
         "gender": "gender",
         "is_alive": "living status",
         "public": "privacy",

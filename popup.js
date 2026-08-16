@@ -1420,8 +1420,14 @@ var submitform = function () {
                 // merge on a repeat submission (as a stale version of this
                 // check used to) silently dropped about_me from the request
                 // whenever the source page itself had no free-text notes.
-                if (focusabout !== "") {
-                    about = focusabout + "\n" + about;
+                // mergeAboutText() (#209) skips re-adding `about` if it's
+                // already present in focusabout (post-normalization) -
+                // without this, re-running "select all" + update on the
+                // same profile appended a second (then third, ...) copy of
+                // the same scraped About content on every repeat touch.
+                about = mergeAboutText(focusabout, about);
+                if (about !== "" && !about.endsWith("\n")) {
+                    about += "\n";
                 }
                 // Category-level summary of what this submission actually
                 // touched, appended to the same Reference note rather than
@@ -1504,6 +1510,15 @@ var submitform = function () {
                     var fdata = databyid[familyout.profile_id];
                     if (exists(fdata)) {
                         about = "";
+                        // #209: kept separate from `about` below (which goes
+                        // on to have the "* Reference: ..." line appended)
+                        // so the fetch-and-merge step further down (~line
+                        // 1610) can dedup against just this raw content -
+                        // by the time that step runs, `about` already has
+                        // the reference line glued onto it, which would
+                        // never match twice (fresh timestamp every time)
+                        // even when the About content itself is a repeat.
+                        var rawAbout = "";
                         if (exists(familyout["about_me"])) {
                             about = familyout["about_me"];
                             // Unconditional, matching the focus-profile path
@@ -1516,6 +1531,7 @@ var submitform = function () {
                             if (!about.endsWith("\n")) {
                                 about += "\n";
                             }
+                            rawAbout = about;
                         }
                         if (sourcecheck) {
                             var focusprofileurl = "";
@@ -1596,13 +1612,28 @@ var submitform = function () {
                                 method: "GET",
                                 action: "xhttp",
                                 url: abouturl,
-                                variable: {pid: pid, familyout: familyout}
+                                variable: {pid: pid, familyout: familyout, rawAbout: rawAbout}
                             }, function (response) {
                                 var geni_return = JSON.parse(response.source);
                                 var familyout = response.variable.familyout;
+                                var rawAbout = response.variable.rawAbout;
                                 if (!$.isEmptyObject(geni_return)) {
                                     if (exists(familyout["about_me"]) && exists(geni_return.about_me)) {
-                                        familyout["about_me"] = geni_return.about_me + "\n" + familyout["about_me"];
+                                        // #209: dedup against rawAbout (the
+                                        // About content alone, before the
+                                        // "* Reference: ..." line got
+                                        // appended above) rather than the
+                                        // whole familyout["about_me"] - that
+                                        // already has the reference line
+                                        // glued on, which carries a fresh
+                                        // timestamp every time and so would
+                                        // never match twice even when the
+                                        // About content itself is a repeat.
+                                        if (rawAbout !== "" && isAboutContentPresent(geni_return.about_me, rawAbout)) {
+                                            familyout["about_me"] = geni_return.about_me + "\n" + familyout["about_me"].substring(rawAbout.length);
+                                        } else {
+                                            familyout["about_me"] = geni_return.about_me + "\n" + familyout["about_me"];
+                                        }
                                     }
                                     if (exists(familyout["nicknames"]) && exists(geni_return.nicknames)) {
                                         if (geni_return instanceof Array) {
@@ -2246,6 +2277,49 @@ function getReferencedCategories(existingAbout, token) {
     return categories;
 }
 
+// #209: whitespace-only normalization for comparing About content - collapses
+// any run of whitespace (including newlines) to a single space and trims.
+// Deliberately just this, not fuzzy/similarity matching - a genuine edit to
+// the text on Geni still reads as different and gets appended as expected;
+// this only absorbs incidental formatting differences (e.g. how Geni may
+// normalize whitespace on save).
+function normalizeAboutForComparison(text) {
+    return (text || "").replace(/\s+/g, " ").trim();
+}
+
+// True if `content` (post-normalization) already appears anywhere inside
+// `existingAbout` - used to skip re-appending an About block that's already
+// there rather than duplicating it on every repeat submission (#209).
+function isAboutContentPresent(existingAbout, content) {
+    if (!exists(content) || content === "") {
+        return true;
+    }
+    if (!exists(existingAbout) || existingAbout === "") {
+        return false;
+    }
+    var normalizedContent = normalizeAboutForComparison(content);
+    return normalizedContent !== "" && normalizeAboutForComparison(existingAbout).indexOf(normalizedContent) !== -1;
+}
+
+// Appends newContent to existingAbout, skipping the append entirely (rather
+// than duplicating it) when that content is already present - see
+// isAboutContentPresent() above. Shared by both the focus-profile and
+// family-member submission paths, which otherwise each unconditionally
+// concatenated the existing About text with whatever was about to be
+// (re-)submitted, regardless of whether it was already there.
+function mergeAboutText(existingAbout, newContent) {
+    if (!exists(newContent) || newContent === "") {
+        return existingAbout || "";
+    }
+    if (!exists(existingAbout) || existingAbout === "") {
+        return newContent;
+    }
+    if (isAboutContentPresent(existingAbout, newContent)) {
+        return existingAbout;
+    }
+    return existingAbout + "\n" + newContent;
+}
+
 function parseForm(fs) {
     let name_element = ["title", "first_name", "middle_name", "last_name", "maiden_name", "suffix", "display_name"]
     let name_language = "en-US"
@@ -2288,10 +2362,21 @@ function parseForm(fs) {
                 // companion displays the human label ("Public"/"Private"/"")
                 // via isPublic() - map through the same labels before
                 // comparing, since the raw strings would never match even
-                // when they mean the same thing.
+                // when they mean the same thing. Gender and Vital status
+                // (is_alive) have the identical mismatch and were missing
+                // this same mapping - confirmed live: both always showed up
+                // in the "(updated: ...)" summary (and got needlessly
+                // resubmitted) even when genuinely unchanged, since
+                // "male"/"female"/"unknown" and "true"/"false" never equal
+                // their companion's capFL()/isAlive() display labels
+                // ("Male"/"Female"/"Unknown", "Living"/"Deceased").
                 var comparableValue = fsinput[item].value;
                 if (fsinput[item].name === "public") {
                     comparableValue = fsinput[item].value === "true" ? "Public" : (fsinput[item].value === "false" ? "Private" : "");
+                } else if (fsinput[item].name === "gender") {
+                    comparableValue = fsinput[item].value === "" ? "" : capFL(fsinput[item].value);
+                } else if (fsinput[item].name === "is_alive") {
+                    comparableValue = fsinput[item].value === "true" ? "Living" : (fsinput[item].value === "false" ? "Deceased" : "");
                 }
                 if (geniCompanionValue === comparableValue) {
                     continue;

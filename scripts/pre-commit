@@ -1,0 +1,19 @@
+#!/bin/sh
+# SmartCopy pre-commit hook: runs the lightweight syntax check (npm test)
+# before allowing a commit. This file is the tracked source of truth -
+# .git/hooks/ itself is never committed by git, so `npm install` (via the
+# "prepare" script) copies this into .git/hooks/pre-commit on setup. If you
+# edit hook behavior, edit this file, then re-run `npm install` (or
+# `node scripts/install-git-hooks.js` directly) to refresh the installed copy.
+
+npm test
+status=$?
+
+if [ $status -ne 0 ]; then
+    echo ""
+    echo "Pre-commit check failed (npm test) - commit aborted."
+    echo "Fix the syntax error above, or use 'git commit --no-verify' to bypass this check."
+    exit 1
+fi
+
+exit 0

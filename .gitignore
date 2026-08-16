@@ -1,3 +1,4 @@
 example*
 .*
 *.zip
+node_modules/

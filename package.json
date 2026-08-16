@@ -3,5 +3,11 @@
       "jquery": "^3.3.1",
       "moment": "^2.29.3",
       "jquery-csv": "^1.0.21"
+    },
+    "scripts": {
+      "test": "node scripts/check-syntax.js",
+      "lint": "npm test",
+      "check": "npm test",
+      "prepare": "node scripts/install-git-hooks.js"
     }
 }

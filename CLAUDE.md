@@ -311,6 +311,22 @@ don't flatten those down to this same voice.
   Geni data is safer by default" or "Adding a new wife...?" This keeps
   bullets terse and prevents an actual benefit from getting buried under
   chatty framing.
+- **Concrete over vague - state specifically what changes or stays safe.**
+  "Safer by default" and "better experience" don't say what's actually
+  different; "Protect existing Geni data from accidental overwrite" earns
+  its claim right in the sentence (blank scraped fields stay unchecked
+  whenever Geni already has real data there). If a bolded lead could
+  describe two unrelated fixes equally well, it's too vague - tighten it
+  until it only fits the one change it's naming. Good opening verbs to
+  reach for: Ensure, Protect, Prevent, Auto-fill, Skip, Default, Reduce,
+  Fix.
+- This is benefit-focused release copy for a genealogy hobbyist audience,
+  not a dry technical log entry and not marketing copy either - impersonal
+  and imperative per the rule above, but still written around what
+  changed for someone doing genealogy work, not compressed into changelog
+  shorthand. If a rewrite starts reading like a git log one-liner, it's
+  gone too far in the terse direction; loosen it back toward a plain
+  sentence a non-engineer would still find natural.
 - **Before publishing, audit for completeness**: `git log <prev-tag>..HEAD
   --format="%B" | grep -oE '#[0-9]+' | sort -u` against the actual release
   range, then check every number found appears somewhere in the notes.

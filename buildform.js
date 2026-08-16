@@ -240,6 +240,25 @@ function buildForm() {
             nameval.lastName = "";
         }
     }
+    // #204: symmetric with the family-member direction below - a female
+    // focus person's Last Name gets auto-filled from her spouse's surname
+    // too, when there's exactly one spouse. Independent of the
+    // setBirthName() check above for the same reason documented in the
+    // family-member direction: that check can leave nameval.lastName
+    // holding her current (often maiden) surname untouched rather than
+    // cleared, which is why this handles both outcomes uniformly - moving
+    // whatever's currently in lastName into birthName first (only if
+    // birthName is still empty; a no-op if setBirthName() already moved
+    // it above) before replacing lastName with the spouse's surname.
+    if ($('#birthonoffswitch').prop('checked') && focusgender === "female") {
+        var focusSpouseSurname = getFocusSpouseSurname(mnameonoff);
+        if (focusSpouseSurname !== "" && nameval.lastName !== focusSpouseSurname) {
+            if (nameval.birthName === "") {
+                nameval.birthName = nameval.lastName;
+            }
+            nameval.lastName = focusSpouseSurname;
+        }
+    }
     if (exists(alldata["profile"].nicknames)) {
         if (nameval.nickName !== "") {
             nameval.nickName += ",";
@@ -750,6 +769,54 @@ function buildForm() {
                 gender = reverseGender(focusgender);
             }
 
+            // #204: auto-fill a new female spouse's Last Name with the
+            // focus person's own surname, when she doesn't already show a
+            // married name matching it. Deliberately independent of
+            // setBirthName()'s "does her current surname match a known
+            // male relative" check above - that check can leave her
+            // current surname sitting in Last Name untouched (e.g. it
+            // already matches her own father, so there was nothing to
+            // "move") rather than cleared to "", which is what the
+            // original blank-Last-Name feature needed to even apply. This
+            // covers both cases uniformly: if nameval.birthName is still
+            // empty, whatever's currently in Last Name becomes her Birth
+            // Name (maiden name) before being replaced - correct whether
+            // that got there via the untouched-original-value path or was
+            // already moved by setBirthName() above (in which case
+            // birthName is already set and this is a no-op).
+            //
+            // Scoped tightly per the issue's own discussion: exactly one
+            // spouse only (members.length - a second spouse, e.g.
+            // remarriage, makes which surname to default to ambiguous, so
+            // this leaves it manual rather than guessing), and only for a
+            // female spouse with a male focus person (explicitly not
+            // assumed for any other gender combination - see #204's
+            // "Same-Sex Marriage Logic" note). Hyphenated/multi-word
+            // surnames need no special handling here - this only ever
+            // copies the focus person's own already-parsed last_name
+            // verbatim, never re-parses or re-derives anything.
+            //
+            // Deliberately NOT attempting to detect maiden-name-retention
+            // cultural conventions (e.g. Spanish/Hispanic naming) - there's
+            // no reliable signal for this anywhere in the scraped data, and
+            // guessing wrong would submit incorrect data, exactly what this
+            // feature should avoid. lastNameAutoFilled (used below, where
+            // the field actually renders) is the real mitigation: the value
+            // is filled in but never pre-checked, so it always requires the
+            // user's own review before it can be submitted.
+            var lastNameAutoFilled = false;
+            if ($('#birthonoffswitch').prop('checked') && relationship === "partner" && isFemale(gender) && isMale(focusgender) && members.length === 1) {
+                var focusnamelang = genifocusdata.get("name_language");
+                var spouseSurnameForMember = genifocusdata.get("names", focusnamelang + ".last_name");
+                if (exists(spouseSurnameForMember) && spouseSurnameForMember !== "" && nameval.lastName !== spouseSurnameForMember) {
+                    if (nameval.birthName === "") {
+                        nameval.birthName = nameval.lastName;
+                    }
+                    nameval.lastName = spouseSurnameForMember;
+                    lastNameAutoFilled = true;
+                }
+            }
+
             // Siblings/children re-checked on a re-run: unlike parent, which
             // is guarded above by geniHas(), sibling/child/partner had no
             // "already in Geni's tree" check at all - only whether
@@ -887,7 +954,15 @@ function buildForm() {
                     '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.prefix, scored, false, "") + '>Title:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="title" value="' + nameval.prefix + '" ' + isEnabled(nameval.prefix, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_title" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                         '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.firstName, scored, false, "") + '>First Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="first_name" value="' + nameval.firstName + '" ' + isEnabled(nameval.firstName, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_first_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                         '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.middleName, scored, false, "") + '>Middle Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="middle_name" value="' + nameval.middleName + '" ' + isEnabled(nameval.middleName, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_middle_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.lastName, scored, false, "") + '>Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" ' + isEnabled(nameval.lastName, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_last_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                        // lastNameAutoFilled (#204): the value above came from
+                        // a guess (the focus person's surname), not scraped
+                        // source data - starts enabled (typeable/reviewable)
+                        // like any other blank-safe field, but deliberately
+                        // never pre-checked, unlike a real scraped value.
+                        // Checking it remains an explicit user action, same
+                        // as every other field this session's checkbox rules
+                        // apply to - this one just never auto-qualifies.
+                        '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + (lastNameAutoFilled ? "" : isChecked(nameval.lastName, scored, false, "")) + '>Last Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="last_name" value="' + nameval.lastName + '" ' + (lastNameAutoFilled ? "" : isEnabled(nameval.lastName, scored, false, "")) + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_last_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                         '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.birthName, scored, false, "") + '>Birth Name:</td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="maiden_name" value="' + nameval.birthName + '" ' + isEnabled(nameval.birthName, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_maiden_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                         '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(nameval.suffix, scored, false, "") + '>Suffix: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="suffix" value="' + nameval.suffix + '" ' + isEnabled(nameval.suffix, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_suffix" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                         '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(displayname, scored, false, "") + '>Display Name: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="display_name" value="' + displayname + '" ' + isEnabled(displayname, scored, false, "") + '></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_display_name" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -1623,6 +1698,30 @@ function isChecked(value, score, force, currentValue) {
     } else {
         return "";
     }
+}
+
+// #204: finds the focus person's spouse's surname, but only when that's
+// unambiguous - exactly one spouse total (alldata["family"]'s raw,
+// un-normalized keys can include more than one that classifies as a
+// partner, e.g. separate "husband"/"spouse" keys both present - collected
+// across all of them, not just the first match), and that spouse is male
+// (explicitly not assumed for any other gender combination - see #204's
+// "Same-Sex Marriage Logic" note). Returns "" - never throws - for zero,
+// multiple, or non-male spouses, or if the single spouse's own name
+// doesn't parse out a surname at all.
+function getFocusSpouseSurname(mnameonoff) {
+    var obj = alldata["family"];
+    var spouses = [];
+    for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
+        if (isPartner(relationship)) {
+            spouses = spouses.concat(obj[relationship]);
+        }
+    }
+    if (spouses.length !== 1 || spouses[0].gender !== "male" || !exists(spouses[0].name)) {
+        return "";
+    }
+    var spouseNameval = NameParse.parse(spouses[0].name, mnameonoff);
+    return spouseNameval.lastName || "";
 }
 
 function setBirthName(relation, lastname, mnameonoff) {

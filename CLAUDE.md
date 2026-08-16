@@ -253,6 +253,47 @@ cannot backdate `published_at`, so for a not-yet-shipped version the notes
 body should say `**Released:** TBD`, never a specific date, until it's
 actually live in the Chrome/Firefox stores.
 
+**Release notes voice:** the audience is SmartCopy users - people with a
+little technical fluency who care about how a release makes their genealogy
+work easier, not the implementation. It is a different audience than a GitHub
+issue comment or a commit message, which are written for whoever picks up
+the code next and should stay as technical and precise as that requires -
+don't flatten those down to this same voice.
+
+- **Benefit first, every bullet.** Open with what changed for the user
+  ("Adding a new wife now auto-fills her married surname"), not the
+  mechanism ("getFocusSpouseSurname() now checks..."). If a bullet can't be
+  rephrased to open with a concrete outcome, it likely belongs in a commit
+  message instead of the release notes.
+- **Cut verification narration from the body.** "(live-verified)",
+  "confirmed via a 4-scenario Node harness," "traced synthetically," exact
+  reproduction steps - none of this belongs in front of a user. It matters
+  enormously in an issue comment or a commit message (that's how a
+  dev/reviewer judges whether to trust a fix), but a release note is not
+  that audience. State the fix and its benefit; leave the how-we-know-it-
+  works out.
+  - **One exception:** when the testing/QA process *itself* is the
+    benefit being described - e.g. "this release went through a dedicated
+    review pass that caught and fixed several bugs before they could reach
+    a real submission" - that's a legitimate trust/reliability signal for
+    a user and can stay. Keep it to that one framing, though: state that
+    the review happened and what kind of confidence it buys, don't
+    re-narrate each bug's technical root cause underneath it.
+- **File each fix under the feature it affects, not a catch-all "bug
+  fixes" dump.** A Privacy-checkbox fix reads as "this got better" next to
+  the checkbox feature it's part of; lumped into a generic list of
+  unrelated technical bugs, it reads as noise. Group by user-facing area
+  first, chronology/PR-order a distant second.
+- **Purely internal tooling (dev scripts, CLAUDE.md itself, pre-commit
+  hooks, syntax checkers) has no place here at all** - it doesn't affect
+  what the extension does for a user. Leave it out of the notes entirely
+  rather than compressing it; it belongs in commit messages only.
+- **Keep the issue number on every bullet that has one, as a bare `(#123)`
+  - GitHub auto-links it.** That's where the nerdy stuff already lives (the
+  root cause, the exact repro, how it was verified) via the issue's own
+  comments - the release note doesn't need to duplicate any of that, it
+  just needs to point there for whoever wants it.
+
 **Building the release zip:**
 
 ```

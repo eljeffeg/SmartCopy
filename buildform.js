@@ -465,7 +465,14 @@ function buildForm() {
     //            scoreabout = false;
     //        }
             var about = alldata["profile"].about;
-            membersstring = membersstring + '<tr><td colspan="3" style="padding: 0px;"><div class="profilediv" style="width: 100%;"><input type="checkbox" class="checknext" ' + isChecked(about, scoreabout) + '>About:<img class="genisliderow" src="images/append.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scoreabout) + '>' + about + '</textarea></div></td></tr>';
+            // #210: escapes `about` before it reaches the textarea's text content.
+            membersstring = membersstring + buildAboutFieldRow({
+                value: about,
+                checkedAttr: isChecked(about, scoreabout),
+                enabledAttr: isEnabled(about, scoreabout),
+                icon: "append.png",
+                tdStyle: "padding: 0px;"
+            });
             $(div[0]).html(membersstring);
         } else {
             membersstring = $(div[0]).html();
@@ -1066,7 +1073,15 @@ function buildForm() {
                 // existing bio text is picked.
                 if (exists(members[member].about)) {
                     var about = members[member].about;
-                    membersstring = membersstring + '<tr><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext" ' + isChecked(about, scored, false, "") + '>About:<img class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"><input id="' + i + '_geni_about" type="text" class="formtext genislideinput" value="" disabled style="display:none;"></div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + isEnabled(about, scored, false, "") + '>' + about + '</textarea></div></td></tr>';
+                    // #210: escapes `about` before it reaches the textarea's text content.
+                    membersstring = membersstring + buildAboutFieldRow({
+                        value: about,
+                        checkedAttr: isChecked(about, scored, false, ""),
+                        enabledAttr: isEnabled(about, scored, false, ""),
+                        icon: "right.png",
+                        divStyle: "width: 100%; font-size: 80%;",
+                        geniInputId: i + "_geni_about"
+                    });
                 } else {
                     membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext">About:<img class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"><input id="' + i + '_geni_about" type="text" class="formtext genislideinput" value="" disabled style="display:none;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
                 }
@@ -1752,6 +1767,23 @@ function buildDateFieldRow(opts) {
     return '<tr' + rowIdAttr + '><td class="profilediv"><input type="checkbox" class="checknext" ' + opts.checkedAttr + '>' + opts.label + ' Date:' + labelSuffix + '</td>' +
         '<td style="' + tdStyle + '"><input type="text"' + imgIdAttr + ' class="formtext dateform" ' + (opts.dateambig || "") + 'name="' + opts.fieldName + ':date" value="' + escapeHtml(opts.value) + '" ' + opts.enabledAttr + '></td>' +
         '<td class="genisliderow"><img src="images/' + icon + '" class="genislideimage"><input' + geniInputIdAttr + ' type="text" class="formtext genislideinput" value="' + geniValue + '" disabled></td></tr>';
+}
+
+// #210: shared builder for the About/notes textarea row (focus profile
+// and family members) - a different breakout shape from the helpers
+// above: the scraped value is inserted as TEXT-NODE content inside
+// <textarea>...</textarea>, not an HTML attribute, so a value containing
+// a literal "</textarea>" could prematurely close the element and let
+// anything after it be parsed as real markup instead of textarea text -
+// live-confirmed as a second breakout shape alongside the attribute one,
+// see #210. escapeHtml() neutralizes this the same way it neutralizes
+// attribute-breakout: escaping "<" turns "</textarea>" into
+// "&lt;/textarea&gt;", which can't be interpreted as a real closing tag.
+function buildAboutFieldRow(opts) {
+    var tdStyle = opts.tdStyle ? ' style="' + opts.tdStyle + '"' : "";
+    var divStyle = opts.divStyle || "width: 100%;";
+    var geniCompanionInput = opts.geniInputId ? '<input id="' + opts.geniInputId + '" type="text" class="formtext genislideinput" value="" disabled style="display:none;">' : "";
+    return '<tr><td colspan="3"' + tdStyle + '><div class="profilediv" style="' + divStyle + '"><input type="checkbox" class="checknext" ' + opts.checkedAttr + '>About:<img class="genisliderow" src="images/' + opts.icon + '" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;">' + geniCompanionInput + '</div><div style="padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ' + opts.enabledAttr + '>' + escapeHtml(opts.value) + '</textarea></div></td></tr>';
 }
 
 // currentValue is optional and only changes behavior when explicitly passed

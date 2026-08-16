@@ -84,10 +84,7 @@ registerCollection({
 var ancestrymrglist = [];
 
 function resolveAncestryUrl(url) {
-    if (exists(url) && url.startsWith("/")) {
-        return "https://www.ancestry.com" + url;
-    }
-    return url;
+    return resolveRelativeUrl(url, "https://www.ancestry.com");
 }
 
 // Ancestry (as of 2026) embeds all person data as a single JSON blob in

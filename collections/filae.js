@@ -92,12 +92,8 @@ function extractFilaeProfileId(url) {
 // verbatim to build the Geni About-reference link for that person (see
 // popup.js submitform()'s family-member reference path) - a relative path
 // there produces a broken/non-clickable reference instead of a real link.
-// Same fix as resolveAncestryUrl() in ancestrynew.js.
 function resolveFilaeUrl(url) {
-    if (exists(url) && url.startsWith("/")) {
-        return "https://www.filae.com" + url;
-    }
-    return url;
+    return resolveRelativeUrl(url, "https://www.filae.com");
 }
 
 // Gender is encoded as an avatar background color, not a semantic class or

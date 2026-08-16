@@ -510,10 +510,24 @@ function getUrlParam(url, paramName, defaultValue = undefined) {
     params = parser.search.substring(1)
 
     let searchParams = new URLSearchParams(params)
-    
+
     if (searchParams.has(paramName)) {
         return searchParams.get(paramName);
     }
 
     return defaultValue;
+}
+
+// Family card/profile hrefs on some sites (e.g. React Router links) are
+// site-relative ("/individualsheet?...") rather than absolute - fine for
+// same-site navigation, but this same value is also carried through as a
+// family member's "url" and used verbatim to build the Geni About-reference
+// link, where a relative path produces a broken/non-clickable reference.
+// Shared by collections/ancestrynew.js and collections/filae.js, which
+// each had their own byte-identical copy of this before.
+function resolveRelativeUrl(url, baseOrigin) {
+    if (exists(url) && url.startsWith("/")) {
+        return baseOrigin + url;
+    }
+    return url;
 }

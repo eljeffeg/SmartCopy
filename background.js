@@ -36,6 +36,24 @@ function getJsonFromUrl(query) {
     }
 }
 
+// #113: Geni access tokens expire periodically, but nothing previously
+// noticed - the icon stayed the normal "logged in" blue even once a token
+// had gone stale, and the failure only ever surfaced as a confusing error
+// on whatever action the user happened to be doing (e.g. generating a
+// biography). A 401 from any geni.com/api call is Geni's own signal that
+// the token isn't valid anymore, so flip to the same grey warning icon
+// already used for the logged-out case - HistoryLink's own session persists
+// independently, so re-triggering login from here should re-authorize
+// near-instantly rather than requiring the user to re-enter anything.
+function checkGeniAuthStatus(url, status) {
+    // Uses the native .includes() rather than the .contains() polyfill the
+    // rest of the codebase relies on - that polyfill lives in shared.js,
+    // which background.js never loads.
+    if (status === 401 && exists(url) && url.includes("geni.com/api")) {
+        chrome.action.setIcon({path: "images/icon_warn.png"});
+    }
+}
+
 // listen for messages - if they include photo URLs, intercept and get them
 chrome.runtime.onMessage.addListener( function(request, sender, callback) {
     if (request.action == "xhttp") {
@@ -71,6 +89,7 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
                         headers: {"Content-Type": "application/x-www-form-urlencoded"}
                     });
                     const responseText = await response.text();
+                    checkGeniAuthStatus(request.url, response.status);
                     if (!response.ok) {
                         console.error("Unable to get XMLHttpRequest: " + request.url);
                         // response.error was always undefined here - a fetch()
@@ -105,6 +124,7 @@ chrome.runtime.onMessage.addListener( function(request, sender, callback) {
             ).then((response) => {
                 vartn.responseURL = response.url;
                 vartn.status = response.status;
+                checkGeniAuthStatus(request.url, response.status);
                 return response.text();
             }).then((source) => {
                 vartn.source = source;

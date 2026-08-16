@@ -120,6 +120,64 @@ Unverified, say so plainly and give a concrete, human-executable manual QA
 checklist (exact steps, preconditions, expected result) rather than letting
 "the code looks right" stand in for confirmation it actually behaves right.
 
+## Release process
+
+This project has no separate "dist" build step - the working tree at a given
+commit/tag *is* the shipped extension, modulo a short dev-only exclusion
+list. Releases go directly to `master` (no feature branches, no PRs - this
+has been the workflow throughout, not a one-off shortcut).
+
+**Tagging:** version releases use an annotated tag (`v<version>`, matching
+`manifest.json`'s `version` field). Moving a tag forward to a later commit
+(common while a release is still being iterated on pre-launch) requires
+delete + recreate + force-push, not `git tag -f` alone reaching the remote:
+
+```
+git tag -d v<version>
+git tag -a v<version> <commit> -m "v<version>"
+git push origin v<version> --force
+```
+
+**Known gotcha:** deleting and recreating a tag for an *existing* GitHub
+Release can orphan it into Draft state (losing its Pre-release/Latest
+designation) - `gh release list` will show it as plain "Draft" afterward.
+Fix immediately with `gh release edit <tag> --tag <tag> --draft=false
+[--latest|--prerelease]` (must pass `--tag` again explicitly). Always check
+`gh release list` right after moving a tag to catch this.
+
+**Release notes:** `gh release edit <tag> --notes-file <file>` - GitHub's API
+cannot backdate `published_at`, so for a not-yet-shipped version the notes
+body should say `**Released:** TBD`, never a specific date, until it's
+actually live in the Chrome/Firefox stores.
+
+**Building the release zip:**
+
+```
+node scripts/build-release-zip.js [ref]     # defaults to HEAD
+```
+
+Wraps `git archive --format=zip`, which excludes dev-only files via
+`export-ignore` entries in `.gitattributes` (currently: `.gitattributes`
+itself, `.gitignore`, `CLAUDE.md`, `package.json`, `scripts/`) - add new
+dev-only paths there, not as custom exclusion logic in the script. Output is
+named from `manifest.json`'s version automatically
+(`smartcopy-<version>.zip`). **Only one zip, not separate Chrome/Firefox
+builds** - the same source tree loads as both an unpacked Chrome extension
+and a temporary Firefox add-on. Before trusting a freshly-built zip, spot
+check with `unzip -l` that dev-only files are actually absent and that
+files loaded at runtime via a bare relative path rather than referenced in
+`manifest.json` (e.g. `location-test.txt`, fetched by `buildform.js` via
+`$.get('location-test.txt', ...)`) are still present - a change to the
+exclusion list could plausibly catch one of these by accident.
+
+**This script only builds a local zip file. It does not upload or attach
+anything, and building a zip is not itself confirmation the release is
+ready.** Attaching an asset (`gh release upload <tag> <zip>`) and flipping a
+release from Pre-release to Latest are both real publish actions - always
+confirm explicitly with the user before either, the same as any other
+"publish/make public" action. Don't treat "I built the zip" as license to
+proceed to uploading or flipping status without that confirmation.
+
 ## Software Engineering Design Principles (apply to all planning, prompts, and reviews)
 
 **Scaling caveat, added for this project specifically (not part of the

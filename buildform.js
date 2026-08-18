@@ -1470,9 +1470,9 @@ function updateClassResponse() {
                 var nameicon = "images/" + genifocusdata.lockIcon("name");
                 $("#focus_geni_title").val(genifocusdata.get("names", namelang + ".title"));
                 $("#focus_geni_title").prev().attr('src', nameicon);
-                $("#focus_geni_first_name").val(genifocusdata.get("names", namelang + ".first_name").replace(/&quot;/g, '"'));
+                $("#focus_geni_first_name").val(String(genifocusdata.get("names", namelang + ".first_name")).replace(/&quot;/g, '"'));
                 $("#focus_geni_first_name").prev().attr('src', nameicon);
-                $("#focus_geni_middle_name").val(genifocusdata.get("names", namelang + ".middle_name").replace(/&quot;/g, '"'));
+                $("#focus_geni_middle_name").val(String(genifocusdata.get("names", namelang + ".middle_name")).replace(/&quot;/g, '"'));
                 $("#focus_geni_middle_name").prev().attr('src', nameicon);
                 $("#focus_geni_last_name").val(genifocusdata.get("names", namelang + ".last_name"));
                 $("#focus_geni_last_name").prev().attr('src', nameicon);
@@ -1480,7 +1480,7 @@ function updateClassResponse() {
                 $("#focus_geni_maiden_name").prev().attr('src', nameicon);
                 $("#focus_geni_suffix").val(genifocusdata.get("names", namelang + ".suffix"));
                 $("#focus_geni_suffix").prev().attr('src', nameicon);
-                $("#focus_geni_display_name").val(genifocusdata.get("names", namelang + ".display_name").replace(/&quot;/g, '"'));
+                $("#focus_geni_display_name").val(String(genifocusdata.get("names", namelang + ".display_name")).replace(/&quot;/g, '"'));
                 $("#focus_geni_display_name").prev().attr('src', nameicon);
                 $("#focus_geni_nicknames").val(genifocusdata.get("nicknames"));
             } else {
@@ -1491,9 +1491,9 @@ function updateClassResponse() {
                 $("#" + id + "_geni_mugshot").attr('src', isAppend(getGeniData(profile, "photo_urls")));
                 $("#" + id + "_geni_title").val(getGeniData(profile,  "names", namelang + ".title"));
                 $("#" + id + "_geni_title").prev().attr('src', nameicon);
-                $("#" + id + "_geni_first_name").val(getGeniData(profile, "names", namelang + ".first_name").replace(/&quot;/g, '"'));
+                $("#" + id + "_geni_first_name").val(String(getGeniData(profile, "names", namelang + ".first_name")).replace(/&quot;/g, '"'));
                 $("#" + id + "_geni_first_name").prev().attr('src', nameicon);
-                $("#" + id + "_geni_middle_name").val(getGeniData(profile, "names", namelang + ".middle_name").replace(/&quot;/g, '"'));
+                $("#" + id + "_geni_middle_name").val(String(getGeniData(profile, "names", namelang + ".middle_name")).replace(/&quot;/g, '"'));
                 $("#" + id + "_geni_middle_name").prev().attr('src', nameicon);
                 $("#" + id + "_geni_last_name").val(getGeniData(profile, "names", namelang + ".last_name"));
                 $("#" + id + "_geni_last_name").prev().attr('src', nameicon);
@@ -1501,7 +1501,7 @@ function updateClassResponse() {
                 $("#" + id + "_geni_maiden_name").prev().attr('src', nameicon);
                 $("#" + id + "_geni_suffix").val(getGeniData(profile, "names", namelang + ".suffix"));
                 $("#" + id + "_geni_suffix").prev().attr('src', nameicon);
-                $("#" + id + "_geni_display_name").val(getGeniData(profile, "names", namelang + ".display_name").replace(/&quot;/g, '"'));
+                $("#" + id + "_geni_display_name").val(String(getGeniData(profile, "names", namelang + ".display_name")).replace(/&quot;/g, '"'));
                 $("#" + id + "_geni_display_name").prev().attr('src', nameicon);
                 $("#" + id + "_geni_nicknames").val(getGeniData(profile, "nicknames"));
             }
@@ -2836,11 +2836,11 @@ function setGeniFamilyData(id, profile) {
     $("#" + id + "_geni_title").val(geniTitle);
     $("#" + id + "_geni_title").prev().attr('src', nameicon);
     refreshFieldCheckState(id, "title", geniTitle);
-    var geniFirstName = getGeniData(profile, "names", namelang + ".first_name").replace(/&quot;/g, '"');
+    var geniFirstName = String(getGeniData(profile, "names", namelang + ".first_name")).replace(/&quot;/g, '"');
     $("#" + id + "_geni_first_name").val(geniFirstName);
     $("#" + id + "_geni_first_name").prev().attr('src', nameicon);
     refreshFieldCheckState(id, "first_name", geniFirstName);
-    var geniMiddleName = getGeniData(profile, "names", namelang + ".middle_name").replace(/&quot;/g, '"');
+    var geniMiddleName = String(getGeniData(profile, "names", namelang + ".middle_name")).replace(/&quot;/g, '"');
     $("#" + id + "_geni_middle_name").val(geniMiddleName);
     $("#" + id + "_geni_middle_name").prev().attr('src', nameicon);
     refreshFieldCheckState(id, "middle_name", geniMiddleName);
@@ -2856,7 +2856,7 @@ function setGeniFamilyData(id, profile) {
     $("#" + id + "_geni_suffix").val(geniSuffix);
     $("#" + id + "_geni_suffix").prev().attr('src', nameicon);
     refreshFieldCheckState(id, "suffix", geniSuffix);
-    var geniDisplayName = getGeniData(profile, "names", namelang + ".display_name").replace(/&quot;/g, '"');
+    var geniDisplayName = String(getGeniData(profile, "names", namelang + ".display_name")).replace(/&quot;/g, '"');
     $("#" + id + "_geni_display_name").val(geniDisplayName);
     $("#" + id + "_geni_display_name").prev().attr('src', nameicon);
     refreshFieldCheckState(id, "display_name", geniDisplayName);

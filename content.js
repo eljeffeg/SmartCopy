@@ -1933,7 +1933,7 @@ function updateQMessage() {
             var args = {};
             var nameparts = $(this)[0].name.split(",");
             for (let i = 0; i < nameparts.length; i++) {
-                args[nameparts[i]] = getGeniData(id, nameparts[i]).replace(/  /g, " ").trim();
+                args[nameparts[i]] = String(getGeniData(id, nameparts[i])).replace(/  /g, " ").trim();
             }
             var url = "https://www.geni.com/api/" + id + "/update-basics?access_token=" + accountinfo.access_token;
             $("#space" + id).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +

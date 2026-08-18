@@ -63,8 +63,17 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                     let arg = response.variable;
                     let person = parseFindAGrave(response.source, familymembers, response.variable);
                     person = updateInfoData(person, arg);
-                    databyid[arg.profile_id] = person;
-                    alldata["family"][arg.title].push(person);
+                    // arg is the relation object for this person - shaped
+                    // {title, proid, itemId} for family members (see
+                    // getFindAGraveFamily() above), or the string "" for the
+                    // focus person (no family context to file this under).
+                    // Only family members have a real slot to record - a
+                    // merged focus-person memorial has nothing meaningful to
+                    // attribute this redirect's result to.
+                    if (exists(arg.proid)) {
+                        databyid[arg.proid] = person;
+                        alldata["family"][arg.title].push(person);
+                    }
                     familystatus.pop();
                 });
             }

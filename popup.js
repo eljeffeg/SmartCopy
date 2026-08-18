@@ -1525,6 +1525,19 @@ var submitform = function () {
                 var familyout = parseForm(fs);
                 var tempfamilyout = jQuery.extend(true, {}, familyout);
                 delete tempfamilyout.profile_id;  //check to see if it's only the hidden profile_id
+                // #216: a missing/non-numeric profile_id here (a parser bug
+                // upstream, e.g. the FindAGrave merge-redirect field-name
+                // mismatch) must never fall through to indexing databyid/
+                // photosubmit - "" and undefined are both falsy array
+                // indices that silently collide with whichever OTHER family
+                // member's data last landed there, misattributing that
+                // person's photo/fields to a completely different Geni
+                // profile. Skip this member entirely instead - losing one
+                // person's submission is safe; guessing wrong isn't.
+                if (!exists(familyout.profile_id) || isNaN(parseInt(familyout.profile_id))) {
+                    console.warn("Skipping family member with missing/invalid profile_id - see #216", familyout);
+                    continue;
+                }
                 if (!$.isEmptyObject(tempfamilyout)) {
                     var fdata = databyid[familyout.profile_id];
                     if (exists(fdata)) {

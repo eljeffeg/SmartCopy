@@ -1476,9 +1476,9 @@ var submitform = function () {
                 });
                 if (!alreadyReferenced || newCategories.length > 0) {
                     if (exists(refurl)) {
-                        profileout["about_me"] = about + "* '''Reference:''' [" + encodeURI(refurl) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                        profileout["about_me"] = about + "* '''[" + encodeURI(refurl) + " " + recordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                     } else {
-                        profileout["about_me"] = about + "* '''Reference:''' " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                        profileout["about_me"] = about + "* '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                     }
                 } else if (about !== "") {
                     profileout["about_me"] = about;
@@ -1562,9 +1562,9 @@ var submitform = function () {
                             var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]));
                             var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
                             if (exists(fdata.url)) {
-                                about = about + "* '''Reference:''' [" + encodeURI(fdata.url) + " " + recordtype + "] - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                                about = about + "* '''[" + encodeURI(fdata.url) + " " + recordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                             } else {
-                                about = about + "* '''Reference:''' " + recordtype + " - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                                about = about + "* '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                             }
                             
                         }

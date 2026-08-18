@@ -934,7 +934,7 @@ function loadSelectPage(request) {
                 for (var key in result) if (result.hasOwnProperty(key)) {
                     var person = result[key];
                     if (exists(person) && person.get("relation") !== "self") {
-                        selectsrt += '<option value="' + person.get("id") + '">' + capFL(person.get("relation")) + ": " + escapeHtml(person.get("name").replace(/&quot;/g, '"')) + '</option>';
+                        selectsrt += '<option value="' + person.get("id") + '">' + capFL(person.get("relation")) + ": " + escapeHtml(String(person.get("name")).replace(/&quot;/g, '"')) + '</option>';
                     }
                 }
                 if (buildhistory.length > 0) {

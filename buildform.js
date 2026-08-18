@@ -1821,7 +1821,7 @@ function placementUpdate() {
 // style="display: ...;" class="hiddenrow" without every other caller
 // needing to pass an empty string for it.
 function buildTextFieldRow(label, fieldName, value, checkedAttr, enabledAttr, geniInputId, geniImgId, geniValue, icon, rowAttrs) {
-    geniValue = geniValue || "";
+    geniValue = escapeHtml((geniValue || "").replace(/&quot;/g, '"'));
     icon = icon || "right.png";
     rowAttrs = rowAttrs || "";
     var imgIdAttr = geniImgId ? ' id="' + geniImgId + '"' : '';
@@ -1845,7 +1845,7 @@ function buildDateFieldRow(opts) {
     var tdStyle = opts.tdStyle || "float:right;";
     var imgIdAttr = opts.imgIdAttr || "";
     var geniInputIdAttr = opts.geniInputId ? ' id="' + opts.geniInputId + '"' : "";
-    var geniValue = opts.geniValue || "";
+    var geniValue = escapeHtml((opts.geniValue || "").replace(/&quot;/g, '"'));
     var icon = opts.icon || "right.png";
     var labelSuffix = exists(opts.labelSuffix) ? opts.labelSuffix : "";
     return '<tr' + rowIdAttr + '><td class="profilediv"><input type="checkbox" class="checknext" ' + opts.checkedAttr + '>' + opts.label + ' Date:' + labelSuffix + '</td>' +
@@ -1882,7 +1882,7 @@ function buildAboutFieldRow(opts) {
 function buildLocationFieldRow(opts) {
     var geniInputIdAttr = opts.geniInputId ? ' id="' + opts.geniInputId + '"' : "";
     var icon = opts.icon || "right.png";
-    var geniValue = opts.geniValue || "";
+    var geniValue = escapeHtml((opts.geniValue || "").replace(/&quot;/g, '"'));
     var sep = exists(opts.classStyleSep) ? opts.classStyleSep : " ";
     return '<tr class="' + opts.trClass + '"' + sep + 'style="display: ' + opts.displayVal + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + opts.checkedAttr + '>' + opts.label + '</td><td style="' + opts.tdStyle + '"><input type="text" class="formtext" name="' + opts.fieldName + '" value="' + escapeHtml(opts.value) + '" ' + opts.enabledAttr + '></td><td class="genisliderow"><img src="images/' + icon + '" class="genislideimage"><input' + geniInputIdAttr + ' type="text" class="formtext genislideinput" value="' + geniValue + '" disabled></td></tr>';
 }

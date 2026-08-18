@@ -1116,7 +1116,7 @@ function buildConsistency() {
             genifocusdata = genifamilydata[publiclist[i]];
             let permissions = genifocusdata.get("actions");
             if (permissions.indexOf("update") !== -1) {
-                namelist.push(getGeniData(publiclist[i], "name"));
+                namelist.push(escapeHtml(getGeniData(publiclist[i], "name").replace(/&quot;/g, '"')));
             }
         }
         if (namelist.length > 0) {

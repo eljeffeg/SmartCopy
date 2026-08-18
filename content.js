@@ -1457,7 +1457,7 @@ function checkSpace(person, quickfix) {
             var name = getGeniData(person, namevalues[i]);
             if (improperSapce(name)) {
                 namevaluecheck.push(namevalues[i]);
-                nameupdate.push(name.replace("  ", " ").trim());
+                nameupdate.push(escapeHtml(name.replace(/&quot;/g, '"')).replace("  ", " ").trim());
             }
         }
         //Name contains double space

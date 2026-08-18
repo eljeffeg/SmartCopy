@@ -175,21 +175,12 @@ function displayDate(vardate) {
     return formattedDate;
 }
 
-function addEvent(profiledata, event, dateval, eventlocation) {
-    data = []
-    if (exists(dateval) && dateval.contains(" (")) {
-        dateval = dateval.split(" (")[0];
-    }
-    dateval = cleanDate(dateval);
-    if (dateval !== "unknown" && dateval !== "") {
-        data.push({date: dateval});
-    }
-    if (eventlocation !== "") {
-        data.push({id: geoid, location: eventlocation});
-        geoid++;
-    }
-    if (!$.isEmptyObject(data)) {
-        profiledata[event] = data;
-    }
-    return profiledata;
-}
+// addEvent() used to be duplicated here with different logic (no "/" ->
+// "-" normalization, a dateval.contains(" (") strip step, no moment-based
+// reformat) than the shared one in buildform.js. Since collections/*.js
+// and buildform.js load into the same popup.html script chain and
+// buildform.js's copy loads after this file, its definition silently won
+// every time - this file's own version was dead code, never actually
+// executed. Removed rather than kept as a second, unreachable copy; the
+// call sites above already resolve to buildform.js's addEvent(), exactly
+// as they always have.

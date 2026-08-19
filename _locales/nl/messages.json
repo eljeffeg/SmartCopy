@@ -8,6 +8,12 @@
     "appDesc": {
         "message": "Hulpmiddel voor het kopiëren van genealogische gegevens naar Geni."
     },
+    "switchOn": {
+        "message": "AAN"
+    },
+    "switchOff": {
+        "message": "UIT"
+    },
     "consistencyCheck": {
         "message": "Consistentie controle"
     },
@@ -110,6 +116,9 @@
     "fixTitle": {
         "message": "herstel titel"
     },
+    "noPermission": {
+        "message": "Geen toestemming om te corrigeren"
+    },
     "makePublic": {
         "message": "maak openbaar"
     },
@@ -192,6 +201,12 @@
     "Loading___": {
         "message": "Laden..."
     },
+    "HistoryLink_unreachable_message": {
+        "message": "Kan de aanmeldservice van HistoryLink niet bereiken. Controleer uw internetverbinding en probeer het opnieuw."
+    },
+    "HistoryLink": {
+        "message": "HistoryLink-tools"
+    },
     "Ancestor_Graph": {
         "message": "Vooroudergrafiek"
     },
@@ -200,6 +215,12 @@
     },
     "History_Search": {
         "message": "Historie onderzoek"
+    },
+    "Forest_Density_Calculator": {
+        "message": "Dichtheidscalculator"
+    },
+    "Path_To_User": {
+        "message": "Pad naar gebruiker"
     },
     "Configuration": {
         "message": "Configuratie"
@@ -365,6 +386,9 @@
     },
     "Show_History": {
         "message": "Laat de historie zien"
+    },
+    "Hide_History": {
+        "message": "Geschiedenis verbergen"
     },
     "Clear_History": {
         "message": "Maak historie leeg"

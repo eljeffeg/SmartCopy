@@ -11,7 +11,7 @@ var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefa
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [], addsiblinglist = [];
 var genibuildaction = {}, updatecount = 1, updatetotal = 0;
 var errormsg = "#f9acac", warningmsg = "#f8ff86", infomsg = "#afd2ff";
-var lastResearchFocus = null, tablinkTabId = undefined, tablinkInResearchChain = false; // #218: see research.js's .ctrllink handler and loadPage() below
+var lastResearchFocus = null, tablinkTabId = undefined, tablinkResolvedFocusId = undefined; // #218/#227: see research.js's .ctrllink handler and loadPage() below
 
 document.addEventListener('DOMContentLoaded', function () {
   Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
@@ -370,18 +370,19 @@ function get_tab() {
         if (tab !== undefined) {
             tablink = tab.url;
             tablinkTabId = tab.id; // #218: see loadPage()'s lastResearchFocus fallback
-            resolveResearchChainMatch(tab.id, tab.openerTabId, 0, function (matched) {
-                tablinkInResearchChain = matched;
-                // #218: deliberately left in (not a temporary debug log) -
-                // this is the one place that shows whether the
+            resolveResearchChainMatch(tab.id, tab.openerTabId, 0, function (resolvedFocusId) {
+                tablinkResolvedFocusId = resolvedFocusId;
+                // #218/#227: deliberately left in (not a temporary debug
+                // log) - this is the one place that shows whether the
                 // lastResearchFocus fallback will fire for the current tab,
                 // and why not when it doesn't (no stored value at all vs. a
-                // chain that didn't resolve) - cheap, low-volume (once per
-                // popup open), and exactly what's needed to diagnose a
-                // report of "it didn't auto-resolve" without guessing.
-                console.log("SmartCopy #218: tab " + tab.id + " (opener " + tab.openerTabId + ") vs lastResearchFocus " +
+                // chain that didn't resolve, vs. no Geni ancestor found
+                // either) - cheap, low-volume (once per popup open), and
+                // exactly what's needed to diagnose a report of "it didn't
+                // auto-resolve" without guessing.
+                console.log("SmartCopy #218/#227: tab " + tab.id + " (opener " + tab.openerTabId + ") vs lastResearchFocus " +
                     (exists(lastResearchFocus) ? JSON.stringify(lastResearchFocus) : "none") +
-                    " -> tablinkInResearchChain=" + matched);
+                    " -> tablinkResolvedFocusId=" + tablinkResolvedFocusId);
                 loginProcess();
             });
         } else {
@@ -390,43 +391,66 @@ function get_tab() {
     });
 }
 
-// #218: a single openerTabId hop only recognizes a result opened in a NEW
-// tab DIRECTLY from the research tab - live testing found real source sites
-// sometimes go two hops deep (e.g. a search-results tab opens an
+// #218/#227: a single openerTabId hop only recognizes a result opened in a
+// NEW tab DIRECTLY from the research tab - live testing found real source
+// sites sometimes go two hops deep (e.g. a search-results tab opens an
 // intermediate tab, which itself opens the actual record tab), which a
 // single-hop check misses entirely. openerTabId only ever points to a tab's
 // IMMEDIATE parent and never updates on navigation, so recognizing a deeper
 // chain requires walking it: repeatedly asking Chrome for each ancestor
 // tab's own openerTabId via chrome.tabs.get() (permission already granted -
-// "tabs" - works for any tab, not just the active one) until either a match
-// against lastResearchFocus.tabId is found or the chain runs out.
-// MAX_OPENER_CHAIN_DEPTH bounds this - an extremely deep or cyclic opener
-// chain (shouldn't happen in practice, but Chrome doesn't guarantee it
-// can't) must not hang this lookup indefinitely.
+// "tabs" - works for any tab, not just the active one) until a match is
+// found or the chain runs out. MAX_OPENER_CHAIN_DEPTH bounds this - an
+// extremely deep or cyclic opener chain (shouldn't happen in practice, but
+// Chrome doesn't guarantee it can't) must not hang this lookup indefinitely.
+//
+// #227: two independent ways an ancestor can resolve a focus profile, most
+// precise first:
+//   1. Exact match against lastResearchFocus.tabId - SmartCopy's OWN
+//      "Research this Person" (research.js's .ctrllink handler) wrote this
+//      for the specific tab it opened. Resolves to lastResearchFocus.id.
+//   2. An ancestor tab's CURRENT url is itself a Geni profile page
+//      (isGeni()/getProfile(), shared.js - the same extraction
+//      loginProcess() uses for the active tab) - covers GENI'S OWN native
+//      "Research this Person" button, a completely different, SmartCopy-
+//      uninvolved feature (confirmed by its URL's own trn=partner_Geni
+//      tracking param) that never writes lastResearchFocus at all, since
+//      no SmartCopy code runs on that click. Chrome tracks openerTabId for
+//      any tab opened from another tab, regardless of whether SmartCopy
+//      was ever invoked there - this needs no persisted state at all.
+// Broader than check 1 (a coincidental, unrelated tab opened from the same
+// Geni tab for an unrelated reason could still walk into this) - accepted
+// tradeoff, same class already navigated for the tabId check: this only
+// pre-selects a value in a form the user still explicitly reviews and
+// submits, a wrong guess is immediately visible via the focus-name display,
+// and manual "Set Geni Destination Profile" correction remains available.
 var MAX_OPENER_CHAIN_DEPTH = 5;
 function resolveResearchChainMatch(currentTabId, openerTabId, depth, callback) {
-    if (!exists(lastResearchFocus) || !exists(lastResearchFocus.tabId)) {
-        callback(false);
-        return;
-    }
-    if (currentTabId === lastResearchFocus.tabId) {
-        callback(true);
+    if (exists(lastResearchFocus) && exists(lastResearchFocus.tabId) && currentTabId === lastResearchFocus.tabId) {
+        callback(lastResearchFocus.id);
         return;
     }
     if (!exists(openerTabId) || depth >= MAX_OPENER_CHAIN_DEPTH) {
-        callback(false);
-        return;
-    }
-    if (openerTabId === lastResearchFocus.tabId) {
-        callback(true);
+        callback(undefined);
         return;
     }
     chrome.tabs.get(openerTabId, function (openerTab) {
         if (chrome.runtime.lastError || !exists(openerTab)) {
-            // The ancestor tab may have since been closed - nothing further
-            // to walk, this chain doesn't reach lastResearchFocus.tabId.
-            callback(false);
+            // The ancestor tab may have since been closed - nothing
+            // further to walk, this chain doesn't resolve to anything.
+            callback(undefined);
             return;
+        }
+        if (exists(lastResearchFocus) && exists(lastResearchFocus.tabId) && openerTabId === lastResearchFocus.tabId) {
+            callback(lastResearchFocus.id);
+            return;
+        }
+        if (exists(openerTab.url) && isGeni(openerTab.url)) {
+            var ancestorFocusId = getProfile(openerTab.url).replace("?profile=", "");
+            if (exists(ancestorFocusId) && ancestorFocusId !== "") {
+                callback(ancestorFocusId);
+                return;
+            }
         }
         resolveResearchChainMatch(openerTabId, openerTab.openerTabId, depth + 1, callback);
     });
@@ -757,29 +781,33 @@ function loadPage(request) {
                     }
                 }
             }
-            // #218: buildhistory above only covers a PRIOR successful
-            // submission - a brand-new "Research this Person" click with
-            // nothing submitted yet has no history entry at all. Fall back
-            // to the Geni profile that specific research link was FOR - but
-            // only when the tab being read right now is somewhere in that
-            // link's own tab-opener chain (tablinkInResearchChain, resolved
-            // in get_tab() by walking chrome.tabs.get().openerTabId up to
-            // MAX_OPENER_CHAIN_DEPTH hops - covers not just the exact tab
-            // research.js's .ctrllink handler opened, but any tab opened
+            // #218/#227: buildhistory above only covers a PRIOR successful
+            // submission - a brand-new research click with nothing
+            // submitted yet has no history entry at all. Fall back to
+            // whichever Geni profile the current tab's own opener chain
+            // resolves to (tablinkResolvedFocusId, resolved in get_tab() by
+            // walking chrome.tabs.get().openerTabId up to
+            // MAX_OPENER_CHAIN_DEPTH hops) - either the exact tab
+            // research.js's .ctrllink handler opened (or any tab opened
             // FROM it, however many hops deep a source site's own click
-            // path goes, confirmed live that a single hop wasn't always
-            // enough). Matching on tab identity at all (not just "most
-            // recently used," which an earlier version of this fallback
-            // did) is still required - that version had no per-tab anchor
-            // and applied to ANY later unmatched page, confirmed live to
-            // silently misattribute a completely unrelated page to a prior,
-            // unrelated research click. Never overrides an actual
-            // buildhistory match (checked first, above) or a manual
-            // "Set Geni Destination Profile" entry (loadSelectPage, below,
-            // still runs whenever this has nothing to offer).
-            if (!profilechanged && exists(lastResearchFocus) && exists(lastResearchFocus.id) &&
-                exists(lastResearchFocus.tabId) && tablinkInResearchChain) {
-                focusid = lastResearchFocus.id;
+            // path goes - confirmed live that a single hop wasn't always
+            // enough), OR an ancestor tab that's itself currently showing a
+            // Geni profile page (covers Geni's own native "Research this
+            // Person" button, a completely different, SmartCopy-uninvolved
+            // feature that never writes lastResearchFocus at all - see
+            // resolveResearchChainMatch()'s own comment for the full
+            // reasoning and accepted tradeoff). Matching on tab identity at
+            // all (not just "most recently used," which an earlier version
+            // of this fallback did) is still required - that version had
+            // no per-tab anchor and applied to ANY later unmatched page,
+            // confirmed live to silently misattribute a completely
+            // unrelated page to a prior, unrelated research click. Never
+            // overrides an actual buildhistory match (checked first,
+            // above) or a manual "Set Geni Destination Profile" entry
+            // (loadSelectPage, below, still runs whenever this has nothing
+            // to offer).
+            if (!profilechanged && exists(tablinkResolvedFocusId) && tablinkResolvedFocusId !== "") {
+                focusid = tablinkResolvedFocusId;
                 profilechanged = true;
                 loadPage(request);
                 return;

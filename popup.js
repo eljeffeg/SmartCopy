@@ -1292,7 +1292,13 @@ $(function () {
         // Captured before entering .filter() callbacks below, where `this`
         // is rebound by jQuery to the element currently being tested.
         var selectingAll = this.checked;
-        var ffs = fs.find('[type="checkbox"]');
+        // #217 follow-up: same reasoning as applySelectAllState()
+        // (buildform.js) - .geotopcheck has no name attribute and is never
+        // submitted, it's a one-directional cascade-select convenience
+        // control, not a state that should reflect what's selected below
+        // it. Excluded so Select All doesn't check "<...> Location:
+        // Unknown" purely as a side effect when nothing under it changed.
+        var ffs = fs.find('[type="checkbox"]').not('.geotopcheck');
         if (!$(ffs[0]).prop("disabled")) {
             var photoon = $('#photoonoffswitch').prop('checked');
             // Individual fields already default to checked/enabled only

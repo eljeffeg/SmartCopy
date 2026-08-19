@@ -2853,7 +2853,18 @@ function geniPhoto(gender) {
 // consistent. Previously the only way to force this resync was to
 // manually uncheck then recheck "all".
 function applySelectAllState(fs, selectingAll) {
-    var ffs = fs.find('[type="checkbox"]');
+    // #217 follow-up: .geotopcheck (the "Toggle Geolocation" group-header
+    // checkbox next to "<Birth/Baptism/Death/Burial> Location: Unknown")
+    // has no name attribute and is never itself submitted - it's a
+    // one-directional convenience control (click it to cascade-select the
+    // Place/City/County/State/Country rows below it), not a state that's
+    // meant to reflect whether those rows happen to be selected right now.
+    // Swept up unconditionally by a blanket [type="checkbox"] selector, it
+    // ended up checked by Select All even when every field underneath it
+    // stayed correctly unchecked/protected (e.g. Geni already has the
+    // burial place) - confusing, since a checked "Location: Unknown" reads
+    // as "this will be submitted" when nothing about it actually will be.
+    var ffs = fs.find('[type="checkbox"]').not('.geotopcheck');
     var photoon = $('#photoonoffswitch').prop('checked');
     ffs.filter(function (item) {
         // #78: a locked checkbox is disabled at render time specifically so

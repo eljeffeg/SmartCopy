@@ -2861,7 +2861,7 @@ function applySelectAllState(fs, selectingAll) {
 // user a click); scraped blank + Geni has real data -> stays unchecked
 // (protect it - the user can still manually check it to intentionally
 // clear that field, but it's never pre-checked into doing so).
-function refreshFieldCheckState(id, fieldName, currentValue) {
+function refreshFieldCheckState(id, fieldName, currentValue, locked) {
     var input = $("#familytable_" + id + " [name='" + fieldName + "']").not(".genislideinput");
     if (input.length === 0) {
         return;
@@ -2878,42 +2878,52 @@ function refreshFieldCheckState(id, fieldName, currentValue) {
     // auto-checked fields, a collapsed sibling row could end up with real
     // fields silently selected for submission while its own .checkslide
     // still showed unchecked - no visible sign anything would happen.
-    input.prop("disabled", isEnabled(scrapedValue, true, false, currentValue) === "disabled");
+    // #78: this same "never touch checked" rule is why a field found to be
+    // locked here only gets its disabled state forced (input AND the row's
+    // own checkbox, for the same click-handler/select-all bypass reasons as
+    // the focus profile's equivalent fix) rather than also being unchecked -
+    // if it happened to already be checked from the scored initial render
+    // (before this person's match, and thus their lock status, was known),
+    // it stays checked but disabled, which parseForm() already excludes
+    // from submission regardless (!fsinput[item].disabled).
+    input.prop("disabled", isEnabled(scrapedValue, true, false, currentValue, locked) === "disabled");
+    input.closest('tr').find('.checknext').prop('disabled', !!locked);
 }
 
 function setGeniFamilyData(id, profile) {
     var nameicon = getGeniLock(profile, "name");
+    var nameLocked = getGeniFieldLocked(profile, "name"); // #78
     let namelang = $("#" + id + "_geni_name_language").val();
     $("#" + id + "_geni_photo_urls").attr('src', getGeniData(profile, "photo_urls"));
     $("#" + id + "_geni_mugshot").attr('src', isAppend(getGeniData(profile, "photo_urls")));
     var geniTitle = getGeniData(profile, "names", namelang + ".title");
     $("#" + id + "_geni_title").val(geniTitle);
     $("#" + id + "_geni_title").prev().attr('src', nameicon);
-    refreshFieldCheckState(id, "title", geniTitle);
+    refreshFieldCheckState(id, "title", geniTitle, nameLocked);
     var geniFirstName = String(getGeniData(profile, "names", namelang + ".first_name")).replace(/&quot;/g, '"');
     $("#" + id + "_geni_first_name").val(geniFirstName);
     $("#" + id + "_geni_first_name").prev().attr('src', nameicon);
-    refreshFieldCheckState(id, "first_name", geniFirstName);
+    refreshFieldCheckState(id, "first_name", geniFirstName, nameLocked);
     var geniMiddleName = String(getGeniData(profile, "names", namelang + ".middle_name")).replace(/&quot;/g, '"');
     $("#" + id + "_geni_middle_name").val(geniMiddleName);
     $("#" + id + "_geni_middle_name").prev().attr('src', nameicon);
-    refreshFieldCheckState(id, "middle_name", geniMiddleName);
+    refreshFieldCheckState(id, "middle_name", geniMiddleName, nameLocked);
     var geniLastName = getGeniData(profile, "names", namelang + ".last_name");
     $("#" + id + "_geni_last_name").val(geniLastName);
     $("#" + id + "_geni_last_name").prev().attr('src', nameicon);
-    refreshFieldCheckState(id, "last_name", geniLastName);
+    refreshFieldCheckState(id, "last_name", geniLastName, nameLocked);
     var geniMaidenName = getGeniData(profile, "names", namelang + ".maiden_name");
     $("#" + id + "_geni_maiden_name").val(geniMaidenName);
     $("#" + id + "_geni_maiden_name").prev().attr('src', nameicon);
-    refreshFieldCheckState(id, "maiden_name", geniMaidenName);
+    refreshFieldCheckState(id, "maiden_name", geniMaidenName, nameLocked);
     var geniSuffix = getGeniData(profile, "names", namelang + ".suffix");
     $("#" + id + "_geni_suffix").val(geniSuffix);
     $("#" + id + "_geni_suffix").prev().attr('src', nameicon);
-    refreshFieldCheckState(id, "suffix", geniSuffix);
+    refreshFieldCheckState(id, "suffix", geniSuffix, nameLocked);
     var geniDisplayName = String(getGeniData(profile, "names", namelang + ".display_name")).replace(/&quot;/g, '"');
     $("#" + id + "_geni_display_name").val(geniDisplayName);
     $("#" + id + "_geni_display_name").prev().attr('src', nameicon);
-    refreshFieldCheckState(id, "display_name", geniDisplayName);
+    refreshFieldCheckState(id, "display_name", geniDisplayName, nameLocked);
     var geniNicknames = getGeniData(profile, "nicknames");
     $("#" + id + "_geni_nicknames").val(geniNicknames);
     $("#" + id + "_geni_nickimage").attr('src', isAppend(profile));
@@ -2925,7 +2935,7 @@ function setGeniFamilyData(id, profile) {
     var geniOccupation = getGeniData(profile, "occupation");
     $("#" + id + "_geni_occupation").val(geniOccupation);
     $("#" + id + "_geni_occupation").prev().attr('src', getGeniLock(profile, "occupation"));
-    refreshFieldCheckState(id, "occupation", geniOccupation);
+    refreshFieldCheckState(id, "occupation", geniOccupation, getGeniFieldLocked(profile, "occupation"));
     $("#" + id + "_geni_gender").val(capFL(getGeniData(profile, "gender")));
     $("#" + id + "_geni_gender").prev().attr('src', getGeniLock(profile, "gender"));
     $("#" + id + "_geni_is_alive").val(isAlive(getGeniData(profile, "is_alive")));
@@ -2942,40 +2952,42 @@ function setGeniFamilyData(id, profile) {
     var geniCauseOfDeath = getGeniData(profile, "cause_of_death");
     $("#" + id + "_geni_cause_of_death").val(geniCauseOfDeath);
     $("#" + id + "_geni_cause_of_death").prev().attr('src', getGeniLock(profile, "cause_of_death"));
-    refreshFieldCheckState(id, "cause_of_death", geniCauseOfDeath);
+    refreshFieldCheckState(id, "cause_of_death", geniCauseOfDeath, getGeniFieldLocked(profile, "cause_of_death"));
 
     var listvalues = ["birth", "baptism", "marriage", "divorce", "death", "burial"];
     for (var i = 0; i < listvalues.length; i++) {
         var title = listvalues[i];
         var locationicon = getGeniLock(profile, title, "location");
+        var locationLocked = getGeniFieldLocked(profile, title, "location"); // #78
+        var dateLocked = getGeniFieldLocked(profile, title, "date"); // #78
         var geniDate = getGeniData(profile, title, "date.formatted_date");
         $("#" + id + "_geni_" + title + "_date").val(geniDate);
         $("#" + id + "_geni_" + title + "_date").prev().attr('src', getGeniLock(profile, title, "date"));
-        refreshFieldCheckState(id, title + ":date", geniDate);
+        refreshFieldCheckState(id, title + ":date", geniDate, dateLocked);
         var geniLocationString = getGeniData(profile, title, "location_string");
         $("#" + id + "_geni_" + title + "_location_string").val(geniLocationString);
         $("#" + id + "_geni_" + title + "_location_string").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:place_name", geniLocationString);
+        refreshFieldCheckState(id, title + ":location:place_name", geniLocationString, locationLocked);
         var geniPlaceName = getGeniData(profile, title, "location.place_name");
         $("#" + id + "_geni_" + title + "_place").val(geniPlaceName);
         $("#" + id + "_geni_" + title + "_place").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:place_name_geo", geniPlaceName);
+        refreshFieldCheckState(id, title + ":location:place_name_geo", geniPlaceName, locationLocked);
         var geniCity = getGeniData(profile, title, "location.city");
         $("#" + id + "_geni_" + title + "_city").val(geniCity);
         $("#" + id + "_geni_" + title + "_city").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:city", geniCity);
+        refreshFieldCheckState(id, title + ":location:city", geniCity, locationLocked);
         var geniCounty = getGeniData(profile, title, "location.county");
         $("#" + id + "_geni_" + title + "_county").val(geniCounty);
         $("#" + id + "_geni_" + title + "_county").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:county", geniCounty);
+        refreshFieldCheckState(id, title + ":location:county", geniCounty, locationLocked);
         var geniState = getGeniData(profile, title, "location.state");
         $("#" + id + "_geni_" + title + "_state").val(geniState);
         $("#" + id + "_geni_" + title + "_state").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:state", geniState);
+        refreshFieldCheckState(id, title + ":location:state", geniState, locationLocked);
         var geniCountry = getGeniData(profile, title, "location.country");
         $("#" + id + "_geni_" + title + "_country").val(geniCountry);
         $("#" + id + "_geni_" + title + "_country").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:country", geniCountry);
+        refreshFieldCheckState(id, title + ":location:country", geniCountry, locationLocked);
     }
 
     // If this person's "select all" checkbox is already checked, the user
@@ -3163,6 +3175,27 @@ function getGeniLock(profile, value, subvalue) {
         return "images/right.png";
     }
     return "images/" + person.lockIcon(value, subvalue);
+}
+
+// #78 follow-up (part B): family-member equivalent of focusFieldLocked() -
+// same reasoning (a Geni-side lock and a missing update/update-basics
+// permission have the same consequence, so both disable the same way), but
+// checked against this specific matched person's own actions rather than
+// the focus profile's. profile === "add" (not yet matched to any existing
+// Geni person) is never locked here - there's no Geni data to lock, and the
+// permission that actually matters for a brand-new add is "add" on the
+// focus profile, a separate check (see the "add" permission gating below).
+function getGeniFieldLocked(profile, value, subvalue) {
+    if (profile === "add") {
+        return false;
+    }
+    var person = genifamilydata[profile];
+    if (!exists(person)) {
+        return false;
+    }
+    var actions = person.get("actions");
+    var canEditBasics = exists(actions) && (actions.indexOf("update-basics") !== -1 || actions.indexOf("update") !== -1);
+    return person.isLocked(value, subvalue) || !canEditBasics;
 }
 
 function isAppend(photo) {

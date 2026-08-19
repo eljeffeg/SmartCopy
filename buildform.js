@@ -2238,6 +2238,17 @@ function findExistingFamilyMatch(relationship, gender, firstName, lastName, birt
 function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
     var pselect = "";
     var selected = true;
+    // #78 part C: adding a brand-new family member requires the "add"
+    // permission on the FOCUS profile specifically (see buildTree() in
+    // popup.js, which checks exactly this for any action.startsWith("add")
+    // that isn't add-photo) - a new person has no Geni data of their own to
+    // hold a permission. Disabling the option here means a lacking-add user
+    // simply can't pick it, instead of only finding out after submission
+    // fails server-side with "Geni permission denied - No add permission".
+    // Existing-match "Update: ..." options are never affected by this -
+    // they depend on that specific person's own permissions, unrelated to
+    // "add".
+    var canAddNew = genifocusdata.get("actions").indexOf("add") !== -1;
     if (exists(genifamily)) {
         if (isParent(relationship)) {
             if (gender === "male") {
@@ -2304,9 +2315,9 @@ function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
         }
     }
     if (selected) {
-        pselect = '<option value="add" selected>Add Profile</option>' + pselect;
+        pselect = '<option value="add" selected' + (canAddNew ? '' : ' disabled') + '>Add Profile</option>' + pselect;
     } else {
-        pselect = '<option value="add">Add Profile</option>' + pselect;
+        pselect = '<option value="add"' + (canAddNew ? '' : ' disabled') + '>Add Profile</option>' + pselect;
     }
     pselect = '<select name="action" class="actionselect">' + pselect;
     pselect += '</select>';

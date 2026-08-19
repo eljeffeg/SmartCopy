@@ -1,0 +1,707 @@
+{
+    "appName": {
+        "message": "SmartCopy"
+    },
+    "appShortName": {
+        "message": "SmartCopy"
+    },
+    "appDesc": {
+        "message": "Rīks ģenealoģisko datu kopēšanai uz Geni."
+    },
+    "switchOn": {
+        "message": "IESL."
+    },
+    "switchOff": {
+        "message": "IZSL."
+    },
+    "consistencyCheck": {
+        "message": "Konsekvences pārbaude"
+    },
+    "contains_incorrect_uppercase_lowercase_in_name": {
+        "message": "$person$ $pronoun$ vārdā ir nepareizi lietoti lielie/mazie burti ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_incorrect_uppercase_lowercase_in_name_default": {
+        "message": "$person$ $pronoun$ vārdā ir nepareizi lietoti lielie/mazie burti.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_patronym_in_first_name": {
+        "message": "$person$ $pronoun$ vārdā ir tēvvārds/mātesvārds ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_patronym_in_first_name_default": {
+        "message": "$person$ $pronoun$ vārdā ir tēvvārds/mātesvārds.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name": {
+        "message": "$person$ $pronoun$ otrajā vārdā ir vērtība, kas nav tēvvārds/mātesvārds ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name_default": {
+        "message": "$person$ $pronoun$ otrajā vārdā ir vērtība, kas nav tēvvārds/mātesvārds.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "living": {
+        "message": "dzīvs"
+    },
+    "claimed": {
+        "message": "apstiprināts"
+    },
+    "fixCase": {
+        "message": "labot burtu reģistru"
+    },
+    "fixed": {
+        "message": "izlabots"
+    },
+    "fixName": {
+        "message": "labot vārdu"
+    },
+    "fixSpace": {
+        "message": "labot atstarpi"
+    },
+    "fixSuffix": {
+        "message": "labot sufiksu"
+    },
+    "fixTitle": {
+        "message": "labot titulu"
+    },
+    "noPermission": {
+        "message": "nav atļaujas labot"
+    },
+    "makePublic": {
+        "message": "padarīt publisku"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$ ģimenes locekļi, kas dzimuši pirms aptuveni $year$. gada, ir iestatīti kā privāti.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$ dzimis/dzimusi pirms aptuveni $year$. gada un ir iestatīts/iestatīta kā privāts/privāta.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "Research_this_Person": {
+        "message": "Izpētīt šo personu"
+    },
+    "All_Collections": {
+        "message": "Visas kolekcijas"
+    },
+    "Collections": {
+        "message": "Kolekcijas"
+    },
+    "Publications": {
+        "message": "Publikācijas"
+    },
+    "Holocaust": {
+        "message": "Holokausts"
+    },
+    "Name_Search": {
+        "message": "Vārda meklēšana"
+    },
+    "Gravestones": {
+        "message": "Kapakmeņi"
+    },
+    "Genealogies": {
+        "message": "Ģenealoģijas"
+    },
+    "Genealogy": {
+        "message": "Ģenealoģija"
+    },
+    "Geni_Search": {
+        "message": "Meklēt Geni"
+    },
+    "Google_Search": {
+        "message": "Meklēt Google"
+    },
+    "Records": {
+        "message": "Ieraksti"
+    },
+    "Messageboard": {
+        "message": "Ziņojumu dēlis"
+    },
+    "Newspapers": {
+        "message": "Laikraksti"
+    },
+    "Books": {
+        "message": "Grāmatas"
+    },
+    "Obituaries": {
+        "message": "Nekrologi"
+    },
+    "Other_Resources": {
+        "message": "Citi resursi"
+    },
+    "Unable_to_create_research_links_on_this_profile": {
+        "message": "Šim profilam nevar izveidot izpētes saites."
+    },
+    "Loading___": {
+        "message": "Notiek ielāde..."
+    },
+    "HistoryLink_unreachable_message": {
+        "message": "Neizdevās sasniegt HistoryLink pieteikšanās pakalpojumu. Pārbaudiet interneta savienojumu un mēģiniet vēlreiz."
+    },
+    "HistoryLink": {
+        "message": "HistoryLink rīki"
+    },
+    "Ancestor_Graph": {
+        "message": "Senču grafiks"
+    },
+    "Descendant_Graph": {
+        "message": "Pēcnācēju grafiks"
+    },
+    "History_Search": {
+        "message": "Vēstures meklēšana"
+    },
+    "Forest_Density_Calculator": {
+        "message": "Blīvuma kalkulators"
+    },
+    "Path_To_User": {
+        "message": "Ceļš līdz lietotājam"
+    },
+    "Configuration": {
+        "message": "Konfigurācija"
+    },
+    "Copy_Preferences": {
+        "message": "Kopēšanas iestatījumi"
+    },
+    "Consistency_Checks": {
+        "message": "Konsekvences pārbaudes"
+    },
+    "Geni_Customization": {
+        "message": "Geni pielāgošana"
+    },
+    "Note_Dates_that_contain_Between_Before_and_After___": {
+        "message": "Piezīme: datumi ar “Starp”, “Pirms” un “Pēc” konsekvences pārbaudēs netiek salīdzināti. Datumi ar “Aptuveni” tiek uzskatīti par precīziem datumiem."
+    },
+    "Run_consistency_checks_when_viewing_Geni_profiles": {
+        "message": "Skatot Geni profilus, palaist konsekvences pārbaudes."
+    },
+    "Age_difference_between_partners_is_significant": {
+        "message": "Vecuma starpība starp partneriem ir ievērojama"
+    },
+    "Maiden_name_same_as_husbands_last_name": {
+        "message": "Dzimtais uzvārds sakrīt ar vīra uzvārdu"
+    },
+    "Husband_and_wife_death_dates_the_same": {
+        "message": "Vīra un sievas miršanas datumi sakrīt"
+    },
+    "Husband_death_date_same_as_marriage_date": {
+        "message": "Vīra miršanas datums sakrīt ar laulības datumu"
+    },
+    "Wife_death_date_same_as_marriage_date": {
+        "message": "Sievas miršanas datums sakrīt ar laulības datumu"
+    },
+    "Born_after_marriage": {
+        "message": "Dzimis/dzimusi pēc laulības"
+    },
+    "Died_before_marriage": {
+        "message": "Miris/mirusi pirms laulības"
+    },
+    "Implausible_marriage_age_too_young": {
+        "message": "Neticams laulības vecums: pārāk jauns"
+    },
+    "Siblings_ages_too_close_together": {
+        "message": "Brāļu/māsu vecumi ir pārāk tuvi"
+    },
+    "Born_before_parent_birth": {
+        "message": "Dzimis/dzimusi pirms vecāka dzimšanas"
+    },
+    "Born_after_parent_death": {
+        "message": "Dzimis/dzimusi pēc vecāka nāves"
+    },
+    "Death_before_baptism_date": {
+        "message": "Nāve pirms kristību datuma"
+    },
+    "Death_after_burial_date": {
+        "message": "Nāve pēc apbedīšanas datuma"
+    },
+    "Parent_too_young_for_childs_birth": {
+        "message": "Vecāks bija pārāk jauns bērna dzimšanas laikā"
+    },
+    "Mother_too_old_for_childs_birth": {
+        "message": "Māte bija pārāk veca bērna dzimšanas laikā"
+    },
+    "Born_before_parent_marriage": {
+        "message": "Dzimis/dzimusi pirms vecāku laulības"
+    },
+    "Excessive_Age": {
+        "message": "Pārmērīgs vecums"
+    },
+    "Born_after_death": {
+        "message": "Dzimis/dzimusi pēc nāves"
+    },
+    "Name_contains_double_space": {
+        "message": "Vārdā ir dubulta atstarpe"
+    },
+    "Name_contains_alias": {
+        "message": "Vārdā ir pseidonīms"
+    },
+    "Name_contains_improper_use_of_uppercase_lowercase": {
+        "message": "Vārdā nepareizi lietoti lielie/mazie burti"
+    },
+    "First_Name_ends_in_suffix_eg___": {
+        "message": "Vārds beidzas ar sufiksu (piem., 'i','ii','iii','iv','jr','sr')"
+    },
+    "Salutation_or_relationship_in_title_eg___": {
+        "message": "Uzruna vai radniecības attiecība titula laukā (piem., 'Mr', 'Mrs')"
+    },
+    "Salutation_or_relationship_in_suffix_eg___": {
+        "message": "Uzruna vai radniecības attiecība sufiksa laukā (piem., 'Mr', 'Mrs')"
+    },
+    "Relationship_cycle_in_immediate_family": {
+        "message": "Radniecības cikls tuvākajā ģimenē"
+    },
+    "Check_date_formatting_for_inconsistent_values": {
+        "message": "Pārbaudīt datumu formatējumu, vai nav nekonsekventu vērtību"
+    },
+    "Check_for_pending_data_conflict_resolution": {
+        "message": "Pārbaudīt neatrisinātus datu konfliktus"
+    },
+    "Self_check_profile_for_inconsistent_dates_and_values": {
+        "message": "Automātiski pārbaudīt profilu, vai nav nekonsekventu datumu un vērtību."
+    },
+    "Check_name_fields_for_improper_values": {
+        "message": "Pārbaudīt vārdu laukus, vai nav nederīgu vērtību"
+    },
+    "Check_name_fields_for_living_profiles": {
+        "message": "Izslēgt dzīvu personu profilus no ātrās labošanas"
+    },
+    "Check_profile_for_pending_data_conflicts": {
+        "message": "Pārbaudīt profilu, vai nav gaidošu datu konfliktu"
+    },
+    "Check_date_values_for_irregular_formatting": {
+        "message": "Pārbaudīt datumu vērtības, vai nav neregulāra formatējuma"
+    },
+    "Check_when_location_is_missing_a_country": {
+        "message": "Pārbaudīt, ja atrašanās vietā nav norādīta valsts"
+    },
+    "Maximum_year_to_be_private": {
+        "message": "Vēlākais gads privātam profilam:"
+    },
+    "Maximum_age": {
+        "message": "Maksimālais vecums:"
+    },
+    "Check_the_dates_of_children_against_their_parents": {
+        "message": "Salīdzināt bērnu datumus ar viņu vecāku datumiem."
+    },
+    "Check_child_is_born_after_parent_marriage": {
+        "message": "Pārbaudīt, vai bērns dzimis pēc vecāku laulības"
+    },
+    "Age_the_parent_is_too_young_to_have_a_child": {
+        "message": "Vecums, zem kura vecāks tiek uzskatīts par pārāk jaunu bērna radīšanai"
+    },
+    "Age_the_mother_is_too_old_to_have_a_child": {
+        "message": "Vecums, virs kura māte tiek uzskatīta par pārāk vecu bērna radīšanai"
+    },
+    "Check_the_values_of_partner_spouses_against_each_other": {
+        "message": "Salīdzināt partneru/laulāto vērtības savā starpā."
+    },
+    "Identify_possible_maiden_name_copy_issues": {
+        "message": "Noteikt iespējamās dzimtā uzvārda kopēšanas problēmas"
+    },
+    "Age_the_spouse_is_too_young_to_be_married": {
+        "message": "Vecums, zem kura laulātais tiek uzskatīts par pārāk jaunu laulībai"
+    },
+    "Maximum_age_difference_between_spouses": {
+        "message": "Maksimālā vecuma starpība starp laulātajiem"
+    },
+    "Check_siblings_birth_are_over_": {
+        "message": "Pārbaudīt, vai brāļu/māsu dzimšanas ir vairāk nekā "
+    },
+    "_months_apart_excl_twins": {
+        "message": " mēnešus viena no otras (izņemot dvīņus)."
+    },
+    "Future_options_to_add_features_to_Geni": {
+        "message": "Nākotnes iespējas Geni funkciju pievienošanai."
+    },
+    "This_profile_is_not_in_the_World_Family_Tree": {
+        "message": "Šis profils nav Pasaules ģimenes kokā."
+    },
+    "Add_to_History": {
+        "message": "Pievienot vēsturei"
+    },
+    "Show_History": {
+        "message": "Rādīt vēsturi"
+    },
+    "Hide_History": {
+        "message": "Slēpt vēsturi"
+    },
+    "Clear_History": {
+        "message": "Notīrīt vēsturi"
+    },
+    "Notice___Please_Read": {
+        "message": "Paziņojums — lūdzu, izlasiet"
+    },
+    "SmartCopy_will_no_longer_do_geo_location_lookups___": {
+        "message": "Google pakalpojuma izmaksu dēļ SmartCopy vairs automātiski neveiks ģeolokācijas meklēšanu. Lai gan tā ir nepatīkama ziņa, Geni nesen ir nodrošinājis iespēju veikt ģeolokācijas meklēšanu <i>pēc</i> iesniegšanas. Kad atrašanās vieta tiek iesniegta, izmantojot vietas lauku, Geni veic vaicājumu un aizpilda atrašanās vietas laukus vietnē. Alternatīvi konfigurācijā varat norādīt savu Google API atslēgu. Joprojām varat manuāli aizpildīt atrašanās vietas datus SmartCopy, noklikšķinot uz globusa ikonas $globe_icon$, un, ja vēlaties atspējot Geni ģeolokācijas meklēšanu, to var izdarīt SmartCopy konfigurācijā.",
+        "placeholders": {
+            "globe_icon": {
+                "content": "$1"
+            }
+        }
+    },
+    "Close": {
+        "message": "Aizvērt"
+    },
+    "Display_Add_Biography_button_in_About": {
+        "message": "Sadaļā Par rādīt pogu Pievienot biogrāfiju"
+    },
+    "Add_Biography": {
+        "message": "Pievienot biogrāfiju"
+    },
+    "Export_Profiles_button_on_Project_Actions": {
+        "message": "Projekta darbībās rādīt pogu Eksportēt profilus"
+    },
+    "Export_Profiles": {
+        "message": "Eksportēt profilus"
+    },
+    "SmartCopy_does_not_currently_support_parsing": {
+        "message": "SmartCopy pašlaik neatbalsta šīs lapas / vietnes / kolekcijas parsēšanu."
+    },
+    "SmartCopy_is_having_difficulty_reading_the_page": {
+        "message": "SmartCopy ir grūtības nolasīt lapu. Mēģiniet atsvaidzināt lapu."
+    },
+    "This_website_is_not_yet_supported_by_SmartCopy": {
+        "message": "SmartCopy vēl neatbalsta šo vietni."
+    },
+    "Selection": {
+        "message": "Atlase"
+    },
+    "Simplify_form_by_hiding_unused_fields": {
+        "message": "Vienkāršot veidlapu, paslēpjot neizmantotos laukus"
+    },
+    "Enable_photo_checkbox_auto_selection": {
+        "message": "Iespējot fotoattēla izvēles rūtiņas automātisku atlasi"
+    },
+    "Reminder_user_responsible": {
+        "message": "Atgādinājums: lietotājs ir atbildīgs par<br>visu nepieciešamo atļauju saņemšanu no<br>fotogrāfa, kopējot attēlus."
+    },
+    "Exclude_private_profile_auto_select": {
+        "message": "Izslēgt <private> profilus no automātiskās atlases"
+    },
+    "Est_burial_date_from_death_if_location": {
+        "message": "Aprēķināt apbedīšanas datumu pēc nāves datuma, ja norādīta vieta"
+    },
+    "This_change_will_take_effect_at_next_use": {
+        "message": "Šīs izmaiņas stāsies spēkā nākamajā lietošanas reizē."
+    },
+    "Location": {
+        "message": "Atrašanās vieta"
+    },
+    "Enable_Geolocation": {
+        "message": "Iespējot ģeolokāciju"
+    },
+    "API_Key": {
+        "message": "API atslēga"
+    },
+    "Location_fields_auto_select_one_select_all": {
+        "message": "Atrašanās vietas laukos viena atlase atlasa visus"
+    },
+    "Naming": {
+        "message": "Vārdi"
+    },
+    "Auto_populate_empty_birth_name_fields": {
+        "message": "Automātiski aizpildīt tukšos dzimšanas vārda laukus"
+    },
+    "Auto_fill_married_last_name": {
+        "message": "Automātiski aizpildīt uzvārdu pēc laulības"
+    },
+    "Parse_for_middle_names_automatically": {
+        "message": "Automātiski noteikt otros vārdus"
+    },
+    "Auto_adjust_the_names_for_mixed_case": {
+        "message": "Automātiski pielāgot lielos/mazos burtus vārdos"
+    },
+    "Force_compound_lastname_to_lowercase": {
+        "message": "Piespiedu kārtā pārveidot saliktus uzvārdus ar mazajiem burtiem"
+    },
+    "Default_children_to_likely_Geni_parent": {
+        "message": "Pēc noklusējuma saistīt bērnus ar ticamāko Geni vecāku"
+    },
+    "Default_deceased_profiles_to_public": {
+        "message": "Pēc noklusējuma mirušo profilus padarīt publiskus"
+    },
+    "Add_reference_to_Geni_s_About_section": {
+        "message": "Pievienot avotu Geni sadaļai Par"
+    },
+    "Display_the_Geni_side_data_by_default": {
+        "message": "Pēc noklusējuma rādīt Geni puses datus"
+    },
+    "Please_select_one_of_the_Matches": {
+        "message": "Izvēlieties vienu no atbilstībām šajā rezultātu lapā."
+    },
+    "_year_age_difference_between_": {
+        "message": " gadu vecuma starpība starp "
+    },
+    "Birth_Surname_of_": {
+        "message": "Dzimtais uzvārds: "
+    },
+    "_is_the_same_as_the_last_name_of_": {
+        "message": " ir tāds pats kā personas uzvārds "
+    },
+    "Death_date_of_": {
+        "message": "Nāves datums: "
+    },
+    "_is_the_same_as_the_death_date_of_": {
+        "message": " ir tāds pats kā personas nāves datums "
+    },
+    "_is_the_same_as_": {
+        "message": " ir tāds pats kā "
+    },
+    "_marriage_date": {
+        "message": " laulības datums"
+    },
+    "_born_after_": {
+        "message": " dzimis/dzimusi pēc "
+    },
+    "_died_before_": {
+        "message": " miris/mirusi pirms "
+    },
+    "_years_old_for_": {
+        "message": " gadus vecs/veca laikā "
+    },
+    "_marriage": {
+        "message": " laulība"
+    },
+    "Birth_date_of_": {
+        "message": "Dzimšanas datums: "
+    },
+    "_and_": {
+        "message": " un "
+    },
+    "_are_within_": {
+        "message": " atšķiras ne vairāk kā par "
+    },
+    "_months": {
+        "message": " mēnešiem"
+    },
+    "_born_before_the_birth_of_": {
+        "message": " dzimis/dzimusi pirms personas dzimšanas "
+    },
+    "death": {
+        "message": "nāve"
+    },
+    "_born_after_the_death_of_": {
+        "message": " dzimis/dzimusi pēc personas nāves "
+    },
+    "_is_under_": {
+        "message": " ir jaunāks par "
+    },
+    "_years_old_for_the_birth_of_": {
+        "message": " gadus vecs/veca personas dzimšanas laikā "
+    },
+    "_is_over_": {
+        "message": " ir vecāks par "
+    },
+    "_born_before_the_marriage_of_": {
+        "message": " dzimis/dzimusi pirms personas laulības "
+    },
+    "_parents_": {
+        "message": " vecāki "
+    },
+    "_has_pending_": {
+        "message": " ir neizskatīti "
+    },
+    "data_conflicts": {
+        "message": "datu konflikti"
+    },
+    "The_age_of_": {
+        "message": "Personas vecums: "
+    },
+    "_exceeds_": {
+        "message": " pārsniedz "
+    },
+    "_years": {
+        "message": " gadus"
+    },
+    "_is_after_": {
+        "message": " ir pēc "
+    },
+    "_death_date": {
+        "message": " nāves datums"
+    },
+    "Baptism_date_of_": {
+        "message": "Kristību datums: "
+    },
+    "_is_before_": {
+        "message": " ir pirms "
+    },
+    "_birth_date": {
+        "message": " dzimšanas datums"
+    },
+    "_burial_date": {
+        "message": " apbedīšanas datums"
+    },
+    "_contains_a_double_space_in_": {
+        "message": " satur dubultu atstarpi laukā "
+    },
+    "first_name": {
+        "message": "vārds"
+    },
+    "_contains_a_double_or_trailing_space_in_": {
+        "message": " satur dubultu vai beigu atstarpi laukā "
+    },
+    "_names": {
+        "message": " vārdi"
+    },
+    "_contains_an_alias_in_": {
+        "message": " satur pseidonīmu laukā "
+    },
+    "_appears_to_contain_a_suffix_in_": {
+        "message": " šķiet, satur sufiksu laukā "
+    },
+    "Move_Suffix": {
+        "message": "Pārvietot sufiksu"
+    },
+    "_contains_improper_use_of_salutation_in_": {
+        "message": " satur nepareizu uzrunas lietojumu laukā "
+    },
+    "_title": {
+        "message": " tituls"
+    },
+    "Remove_salutation": {
+        "message": "Noņemt uzrunu"
+    },
+    "_contains_improper_use_of_relationship_in_": {
+        "message": " satur nepareizu radniecības attiecības lietojumu laukā "
+    },
+    "_suffix": {
+        "message": " sufikss"
+    },
+    "Remove_relationship": {
+        "message": "Noņemt radniecības attiecību"
+    },
+    "_contains_improper_use_of_a_numbering_scheme_in_": {
+        "message": " satur nepareizu numerācijas lietojumu laukā "
+    },
+    "Remove_numeric": {
+        "message": "Noņemt skaitļus"
+    },
+    "_is_in_a_relationship_cycle_within_the_immediate_family": {
+        "message": " atrodas radniecības ciklā tuvākajā ģimenē"
+    },
+    "_contains_an_invalid_": {
+        "message": " satur nederīgu "
+    },
+    "_date_month_greater_than_12": {
+        "message": " datumu, mēnesis ir lielāks par 12."
+    },
+    "_date_day_greater_than_31": {
+        "message": " datumu, diena ir lielāka par 31."
+    },
+    "_date": {
+        "message": " datums"
+    },
+    "_contains_an_incomplete_": {
+        "message": " satur nepilnīgu "
+    },
+    "_date_missing_month": {
+        "message": " datumu, trūkst mēneša."
+    },
+    "_date_missing_year": {
+        "message": " datumu, trūkst gada."
+    },
+    "_contains_a_": {
+        "message": " satur "
+    },
+    "_location_without_a_country": {
+        "message": " atrašanās vietu bez valsts"
+    },
+    "his": {
+        "message": "viņa"
+    },
+    "her": {
+        "message": "viņas"
+    },
+    "their": {
+        "message": "viņu"
+    },
+    "mother": {
+        "message": "māte"
+    },
+    "father": {
+        "message": "tēvs"
+    },
+    "parent": {
+        "message": "vecāks"
+    },
+    "brother": {
+        "message": "brālis"
+    },
+    "sibling": {
+        "message": "brālis/māsa"
+    },
+    "wife": {
+        "message": "sieva"
+    },
+    "husband": {
+        "message": "vīrs"
+    },
+    "partner": {
+        "message": "partneris"
+    }
+}

@@ -171,6 +171,11 @@ function parseOnlineOFB(htmlstring, familymembers, relation) {
         profiledata["image"] = photoUrl;
     }
 
+    // Also the mechanism that correctly marks a privacy-redacted person
+    // Living, with no Online-OFB-specific code needed here at all -
+    // focusperson is OFB_PRIVACY_PLACEHOLDER ("<Private>") for one of
+    // those, and checkLiving() already recognizes that exact prefix (see
+    // OFB_PRIVACY_PLACEHOLDER's own comment above).
     if (checkLiving(focusperson)) {
         profiledata["alive"] = true;
     }
@@ -725,10 +730,32 @@ var OFB_SURNAME_PATTERN = /\b[A-ZÀ-ÖØ-Þ]{2,}\b/;
 // family member (parseOnlineOFB() calls getOFBName() again on their own
 // fetched page, same as any other family member) duplicated their own
 // father's full name onto them as if it were their own. Recognizing the
-// marker explicitly and returning "" immediately - not merely adding it to
-// the "doesn't match" filter - is required, since skipping alone still
-// falls through to the wrong next candidate.
+// marker explicitly is required - merely adding it to the "doesn't match"
+// filter isn't enough, since skipping it alone still falls through to the
+// wrong next candidate.
 var OFB_PRIVACY_MARKER = "[Datenschutz]";
+
+// What getOFBName() returns instead, once OFB_PRIVACY_MARKER is recognized -
+// deliberately NOT "" (blank/unknown). A privacy-redacted profile is a
+// stronger, more useful signal than "we found nothing": (1) it's still
+// worth a distinguishable placeholder so the row/dropdown option isn't
+// literally blank and unreviewable, requested live after the fix that
+// stopped the father's-name duplication left this case looking empty, and
+// (2) German genealogy sites only ever privacy-redact people presumed
+// still LIVING (deceased individuals' data isn't restricted the same way),
+// so the redaction itself is a reliable "Living" signal, not a guess.
+// "<Private>" (not "[Private]" or any other new wording) specifically
+// reuses this codebase's OWN pre-existing convention for exactly this
+// concept - collections/smartmatch.js already uses the identical literal
+// string for a SmartMatch-redacted candidate, and checkLiving() (buildform.js)
+// already recognizes a name starting with "<Private>" (or bare "Private")
+// as a living-person signal. Using the same string means
+// parseOnlineOFB()'s existing `if (checkLiving(focusperson))` check below
+// picks this up for free - no new living/vital-specific code needed here.
+// Verified via NameParse.parse("<Private>", ...): parses cleanly to
+// firstName "<Private>", lastName "" - lands in First Name exactly as
+// intended, nothing spills into Last Name.
+var OFB_PRIVACY_PLACEHOLDER = "<Private>";
 
 // Name display isn't confirmed to use a literal "Name:" label across all
 // samples - tries the label lookup first, falls back to the page's first
@@ -757,14 +784,14 @@ function getOFBName(parsed, url) {
     var cells = getOFBCells(parsed);
     var raw = getOFBFieldText(cells, ["Name:"]);
     if (raw === OFB_PRIVACY_MARKER) {
-        return "";
+        return OFB_PRIVACY_PLACEHOLDER;
     }
     if (raw === "") {
         var candidates = parsed.find("b, h1, h2, strong, font").toArray();
         for (var i = 0; i < candidates.length; i++) {
             var text = $(candidates[i]).text().trim();
             if (text === OFB_PRIVACY_MARKER) {
-                return "";
+                return OFB_PRIVACY_PLACEHOLDER;
             }
             if (text.length < 80 && (text.contains(",") || OFB_SURNAME_PATTERN.test(text))) {
                 raw = text;
@@ -804,17 +831,18 @@ function processOFBFamily(link, title, famid, marriageDate) {
     var name = $(link).text().trim();
     // A privacy-redacted family member's link anchor text is itself the
     // literal "[Datenschutz]" placeholder (confirmed live - see
-    // OFB_PRIVACY_MARKER above) - blank it out here too, at the very first
+    // OFB_PRIVACY_MARKER above) - normalize it to the same
+    // OFB_PRIVACY_PLACEHOLDER ("<Private>") here too, at the very first
     // point it's captured, not just in getOFBName()'s own deeper per-member
-    // fetch. Otherwise updateInfoData() (shared.js/buildform.js)'s generic
-    // "linked profile turned out blank/private, fall back to the search
-    // summary's name" rule (its own comment: "Sometimes more information is
-    // shown on the SM, but when you click the link it goes <Private>")
-    // would see getOFBName()'s now-correct "" and backfill it right back
-    // with this same "[Datenschutz]" text - a different but still fake name,
-    // not a real one, and just as wrong to submit as the father's name was.
+    // fetch. Keeps this initial value consistent with whatever the deeper
+    // fetch will independently arrive at (same marker, same placeholder),
+    // and specifically avoids leaving the literal German "[Datenschutz]"
+    // text sitting in updateInfoData()'s "linked profile turned out blank,
+    // fall back to the search summary's name" rule - that fallback only
+    // ever fires on a genuinely blank name, so it never triggers once this
+    // is normalized to a non-blank placeholder either way.
     if (name === OFB_PRIVACY_MARKER) {
-        name = "";
+        name = OFB_PRIVACY_PLACEHOLDER;
     }
     var itemid = getOFBItemId(url);
     var fullurl = new URL(url, tablink).href;

@@ -3207,10 +3207,13 @@ $(function () {
     });
     $('#hideemptyonoffswitch').on('click', function () {
         chrome.storage.local.set({'hideempty': this.checked});
+        // #219: #profiledata is never fully hidden again once shown - see
+        // buildForm()'s display-decision block (buildform.js) for the
+        // "always show at least the Update Profile header + eyeball"
+        // guarantee this would otherwise undo. Only individual rows
+        // collapse/expand here now, same as clicking the eyeball itself.
         if (!this.checked) {
             document.getElementById("profiledata").style.display = "block";
-        } else if (hideprofile) {
-            document.getElementById("profiledata").style.display = "none";
         }
         hideempty(this.checked);
     });

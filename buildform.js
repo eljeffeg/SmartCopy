@@ -12,7 +12,6 @@ var parentmarset = [];
 var parentmarriage;
 var parentlist = [];
 var parentflag = false;
-var hideprofile = false;
 var genispouse = [];
 var myhspouse = [];
 var focusabout = "";
@@ -332,32 +331,40 @@ function buildForm() {
         }
     }
     if (expand) {
-        if (namescore && mnameonoff) {
-            // #210: each row now goes through buildTextFieldRow(), which
-            // escapes the scraped value before it reaches the value="..."
-            // attribute - previously none of these did (the same fix
-            // already applied to the family-member equivalent rows).
-            membersstring +=
-                buildTextFieldRow("Title:", "title", nameval.prefix, "", "disabled", "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage, undefined, namelocked) +
-                buildTextFieldRow("First Name:", "first_name", nameval.firstName, "", "disabled", "focus_geni_first_name", null, genifocusdata.get("names", namelang + ".first_name"), nameimage, undefined, namelocked) +
-                buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, "checked", "", "focus_geni_middle_name", null, genifocusdata.get("names", namelang + ".middle_name"), nameimage, undefined, namelocked) +
-                buildTextFieldRow("Last Name:", "last_name", nameval.lastName, "", "disabled", "focus_geni_last_name", null, genifocusdata.get("names", namelang + ".last_name"), nameimage, undefined, namelocked) +
-                buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", "disabled", "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage, undefined, namelocked) +
-                buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", "disabled", "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage, undefined, namelocked) +
-                buildTextFieldRow("Display Name: ", "display_name", displayname, "", "disabled", "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage, undefined, namelocked) +
-                buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", "disabled", "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png");
+        // #219: whether these rows render always-visible (and count toward
+        // x, the "is there anything real to show" panel-visibility signal)
+        // must depend on whether there's actually real NAME data - not on
+        // namescore, which only reflects whether middle name specifically
+        // happened to be a SmartMatch factor. A record with just a first/
+        // last name and no middle-name signal at all previously fell into
+        // the "hidden, doesn't count" branch even though First/Last Name
+        // were populated - the whole focus panel could end up with nothing
+        // counting toward x at all, going invisible with no way to reach
+        // it (see the min-view fallback in the x-driven display block
+        // below, which now also covers whatever isn't caught here).
+        // namescore && mnameonoff keeps its original, narrower job: only
+        // deciding whether Middle Name itself defaults to checked+enabled.
+        var hasNameData = isValue(nameval.prefix) || isValue(nameval.firstName) || isValue(nameval.middleName) ||
+            isValue(nameval.lastName) || isValue(nameval.birthName) || isValue(nameval.suffix) ||
+            isValue(displayname) || isValue(nameval.nickName);
+        var nameRowAttrs = hasNameData ? undefined : (' style="display: ' + isHidden(hidden) + ';" class="hiddenrow"');
+        var middleNameChecked = (namescore && mnameonoff) ? "checked" : "";
+        var middleNameEnabled = (namescore && mnameonoff) ? "" : "disabled";
+        // #210: each row now goes through buildTextFieldRow(), which
+        // escapes the scraped value before it reaches the value="..."
+        // attribute - previously none of these did (the same fix
+        // already applied to the family-member equivalent rows).
+        membersstring +=
+            buildTextFieldRow("Title:", "title", nameval.prefix, "", "disabled", "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage, nameRowAttrs, namelocked) +
+            buildTextFieldRow("First Name:", "first_name", nameval.firstName, "", "disabled", "focus_geni_first_name", null, genifocusdata.get("names", namelang + ".first_name"), nameimage, nameRowAttrs, namelocked) +
+            buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, middleNameChecked, middleNameEnabled, "focus_geni_middle_name", null, genifocusdata.get("names", namelang + ".middle_name"), nameimage, nameRowAttrs, namelocked) +
+            buildTextFieldRow("Last Name:", "last_name", nameval.lastName, "", "disabled", "focus_geni_last_name", null, genifocusdata.get("names", namelang + ".last_name"), nameimage, nameRowAttrs, namelocked) +
+            buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", "disabled", "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage, nameRowAttrs, namelocked) +
+            buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", "disabled", "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage, nameRowAttrs, namelocked) +
+            buildTextFieldRow("Display Name: ", "display_name", displayname, "", "disabled", "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage, nameRowAttrs, namelocked) +
+            buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", "disabled", "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png", nameRowAttrs);
+        if (hasNameData) {
             x += 1;
-        } else {
-            var hiddenRowAttrs = ' style="display: ' + isHidden(hidden) + ';" class="hiddenrow"';
-            membersstring +=
-                buildTextFieldRow("Title:", "title", nameval.prefix, "", "disabled", "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage, hiddenRowAttrs, namelocked) +
-                buildTextFieldRow("First Name:", "first_name", nameval.firstName, "", "disabled", "focus_geni_first_name", null, genifocusdata.get("names", namelang + ".first_name"), nameimage, hiddenRowAttrs, namelocked) +
-                buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, "", "disabled", "focus_geni_middle_name", null, genifocusdata.get("names", namelang + ".middle_name"), nameimage, hiddenRowAttrs, namelocked) +
-                buildTextFieldRow("Last Name:", "last_name", nameval.lastName, "", "disabled", "focus_geni_last_name", null, genifocusdata.get("names", namelang + ".last_name"), nameimage, hiddenRowAttrs, namelocked) +
-                buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", "disabled", "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage, hiddenRowAttrs, namelocked) +
-                buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", "disabled", "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage, hiddenRowAttrs, namelocked) +
-                buildTextFieldRow("Display Name: ", "display_name", displayname, "", "disabled", "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage, hiddenRowAttrs, namelocked) +
-                buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", "disabled", "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png", hiddenRowAttrs);
         }
         $(div[0]).html(membersstring);
         if (exists(alldata["profile"]["thumb"])) {
@@ -729,9 +736,16 @@ function buildForm() {
     } else if (!hidden) {
         document.getElementById("profiledata").style.display = "block";
         document.getElementById("genislider").style.display = "block";
-        hideprofile = true;
     } else {
-        hideprofile = true;
+        // #219: even in the genuinely-degenerate case (nothing at all
+        // scored - no name, no birth/death, no gender, no occupation),
+        // still show at least the Update Profile header row + eyeball
+        // toggle (.showhide/#focusshowhide). Previously left #profiledata
+        // fully hidden here, with no way to even reach the toggle that
+        // reveals whatever Hide Empty Fields collapsed - individual rows
+        // still collapse/expand under this exactly as that setting already
+        // governs, only the panel itself is now guaranteed reachable.
+        document.getElementById("profiledata").style.display = "block";
     }
 
     // ---------------------- Family Data --------------------

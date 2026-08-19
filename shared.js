@@ -32,6 +32,66 @@ function exists(object) {
     return (typeof object !== "undefined" && object !== null);
 }
 
+// #211: chrome.i18n.getMessage() has no fallback option of its own - if the
+// browser's active locale (e.g. es/fi/he, all badly incomplete as of this
+// writing) is missing a key, it returns "" rather than falling back to
+// manifest.json's declared default_locale ("en"), even though Chrome does
+// use default_locale when NO locale folder at all matches the browser's
+// language. That fallback only ever applies at the whole-locale level, never
+// per-key. There's also no API to ask chrome.i18n for a specific locale's
+// text at runtime - the only way to get a per-key fallback is a JS-side copy
+// of the English text this wrapper can reach for when Chrome's own lookup
+// comes back empty. EN_FALLBACK_MESSAGES (locale_fallback_en.js, loaded
+// before this file) is that copy, generated from the real
+// _locales/en/messages.json by scripts/generate-locale-fallback.js rather
+// than hand-duplicated.
+//
+// This is now the one canonical _() - it used to be defined identically
+// (a bare chrome.i18n.getMessage() passthrough, no fallback) in popup.js,
+// research.js, and content.js separately; centralized here since all three
+// contexts already load shared.js.
+function _(messageName, substitutions) {
+    var result = chrome.i18n.getMessage(messageName, substitutions);
+    if (result !== "") {
+        return result;
+    }
+    if (typeof EN_FALLBACK_MESSAGES === "undefined" || !EN_FALLBACK_MESSAGES.hasOwnProperty(messageName)) {
+        return result;
+    }
+    return applyLocaleFallbackSubstitutions(EN_FALLBACK_MESSAGES[messageName], substitutions);
+}
+
+// Replays chrome.i18n's own message-substitution algorithm
+// (https://developer.chrome.com/docs/extensions/reference/api/i18n#placeholders)
+// against a raw messages.json entry, since the fallback path bypasses
+// chrome.i18n.getMessage() entirely (that's the whole point - it's the one
+// that just returned "") and so never gets Chrome's own substitution
+// handling for free.
+function applyLocaleFallbackSubstitutions(entry, substitutions) {
+    var message = entry.message;
+    var placeholders = entry.placeholders || {};
+    // $placeholderName$ -> the placeholder's own "content" template (e.g.
+    // "$1") - matched case-insensitively per Chrome's spec, hence the
+    // lowercase lookup against placeholder keys (which the real
+    // messages.json always defines in lowercase).
+    message = message.replace(/\$([A-Za-z0-9_@]+)\$/g, function (match, name) {
+        var key = name.toLowerCase();
+        return placeholders.hasOwnProperty(key) ? placeholders[key].content : match;
+    });
+    // $1, $2, ... -> the caller's substitutions. Chrome's own API accepts
+    // either a single string (treated as just $1) or an array - matched
+    // here for parity.
+    var subs = Array.isArray(substitutions) ? substitutions : (exists(substitutions) ? [substitutions] : []);
+    message = message.replace(/\$(\d+)/g, function (match, num) {
+        var index = parseInt(num, 10) - 1;
+        return exists(subs[index]) ? subs[index] : match;
+    });
+    // $$ -> a literal $ - Chrome's escape mechanism. Applied last so it
+    // can't interfere with the $name$/$digit patterns matched above.
+    message = message.replace(/\$\$/g, "$");
+    return message;
+}
+
 function isValidDate(d) {
     return d instanceof Date && !isNaN(d);
 }

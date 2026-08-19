@@ -1,11 +1,5 @@
 var tabplacement = 0;
 
-var _ = function(messageName, substitutions) {
-    return chrome.i18n.getMessage(messageName, substitutions);
-};
-
-
-
 function buildResearch() {
     let fields = "name,first_name,last_name,maiden_name,birth,baptism,death,burial,gender";
     chrome.runtime.sendMessage({

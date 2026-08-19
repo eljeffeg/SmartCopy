@@ -12,10 +12,6 @@ var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = 
 var genibuildaction = {}, updatecount = 1, updatetotal = 0;
 var errormsg = "#f9acac", warningmsg = "#f8ff86", infomsg = "#afd2ff";
 
-var _ = function(messageName, substitutions) {
-    return chrome.i18n.getMessage(messageName, substitutions);
-};
-
 document.addEventListener('DOMContentLoaded', function () {
   Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
     if ( el.hasAttribute('data-i18n') ){

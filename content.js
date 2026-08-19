@@ -37,10 +37,6 @@ var getsettingsdone = false;
 var accountinfo;
 var GeniTaal="en";
 
-var _ = function (messageName, substitutions) {
-    return chrome.i18n.getMessage(messageName, substitutions);
-};
-
 function initializeContent() {
     if (isGeni(tablink) || isGeniProject(tablink)) {
         getGeniLanguage();

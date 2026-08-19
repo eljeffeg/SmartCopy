@@ -724,5 +724,8 @@ var EN_FALLBACK_MESSAGES = {
     },
     "Deep_Research_skipped_for_this_run": {
         "message": "Skipping remaining lookups..."
+    },
+    "Estimate_birth_years": {
+        "message": "Estimate birth years"
     }
 };

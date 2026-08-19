@@ -3259,6 +3259,10 @@ $(function () {
         deepResearchOn = this.checked;
         updateSkipDeepResearchVisibility();
     });
+    $('#estimatebirthyearsonoffswitch').on('click', function () {
+        chrome.storage.local.set({'estimatebirthyears': this.checked});
+        estimateBirthYearsOn = this.checked;
+    });
     $('#skipdeepresearch').on('click', function () {
         deepResearchSkipRun = true;
         // Stop future tabs (the runNext*TabFetch gate) AND end whatever's
@@ -3798,6 +3802,14 @@ chrome.storage.local.get('deepresearchenabled', function (result) {
     if (exists(deepresearchchecked)) {
         $('#deepresearchonoffswitch').prop('checked', deepresearchchecked);
         deepResearchOn = deepresearchchecked;
+    }
+});
+
+chrome.storage.local.get('estimatebirthyears', function (result) {
+    var estimatebirthyearschecked = result.estimatebirthyears;
+    if (exists(estimatebirthyearschecked)) {
+        $('#estimatebirthyearsonoffswitch').prop('checked', estimatebirthyearschecked);
+        estimateBirthYearsOn = estimatebirthyearschecked;
     }
 });
 

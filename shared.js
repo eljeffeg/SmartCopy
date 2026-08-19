@@ -27,6 +27,21 @@ var deepResearchSkipRun = false;
 // the skip button (popup.js) calls every entry immediately on click.
 var deepResearchInFlightAborts = [];
 
+// #208: mirrors chrome.storage.local's 'estimatebirthyears' key (see
+// popup.js), default OFF - this feature writes inferred, not sourced,
+// data. Not read directly inside the pure estimation functions in
+// buildform.js (getMemberSpouse()/getChildGroupAnchorYear()/
+// estimateBirthYear()) - those stay DOM/global-free on purpose so they can
+// be extracted and run standalone in this project's synthetic test
+// harnesses; the actual on/off gate is checked via
+// $('#estimatebirthyearsonoffswitch').prop('checked') at the two call
+// sites in buildForm() instead, matching how most other per-feature
+// toggles are already read directly in buildform.js (e.g.
+// birthonoffswitch). This global exists for consistency with the Deep
+// Research pattern above and for any future use outside buildForm()'s
+// own scope.
+var estimateBirthYearsOn = false;
+
 // Run script as soon as the document's DOM is ready.
 if (typeof String.prototype.startsWith != 'function') {
     String.prototype.startsWith = function (str) {

@@ -438,6 +438,23 @@ function buildForm() {
                 '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + capFL(genifocusdata.get("gender")) + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         }
+        // #208: fills a genuinely-blank focus-profile birth date with an
+        // inferred "Circa <year>" estimate, opt-in and default OFF. Runs
+        // BEFORE the 95-year-old deceased check just below (which reads
+        // alldata["profile"]["birth"]) and before the profile date-row
+        // loop further down, so both pick up the estimate automatically -
+        // no separate recompute needed here, unlike the family-member
+        // injection point (see there for why that one's different).
+        if ($('#estimatebirthyearsonoffswitch').prop('checked') &&
+            !exists(getBirthYear(alldata["profile"]["birth"]))) {
+            var geniFocusBirth = genifocusdata.get("birth", "date.formatted_date");
+            if (!exists(geniFocusBirth) || !isValue(geniFocusBirth)) {
+                var focusEstimate = estimateBirthYear("focus", undefined, focusgender);
+                if (exists(focusEstimate)) {
+                    applyEstimatedBirth(alldata["profile"], focusEstimate.year);
+                }
+            }
+        }
         var living = false;
         if (exists(alldata["profile"].alive)) {
             living = alldata["profile"].alive;
@@ -556,6 +573,18 @@ function buildForm() {
                             scored = true;
                             //div.find("input:checkbox").prop('checked', true);
                             ck++;
+                        }
+                        // #208: an injected estimate was never actually
+                        // scraped, so scorefactors will never contain
+                        // "birth date" for it - without this, isChecked()/
+                        // isEnabled() would render it disabled+unchecked
+                        // (both require score truthy before their blank-
+                        // both-sides branch can fire), contradicting the
+                        // "starts checked+enabled" requirement every other
+                        // genuinely-blank-both-sides field already gets.
+                        // Scoped to just this one field, not the whole row.
+                        if (title === "birth" && exists(obj[item].estimated) && obj[item].estimated === true) {
+                            scored = true;
                         }
 
                         var dateval = obj[item].date;
@@ -983,6 +1012,47 @@ function buildForm() {
                 }
             }
 
+            // #208: fills a genuinely-blank family-member birth date with
+            // an inferred "Circa <year>" estimate, opt-in and default OFF.
+            // Runs here - after gender/halfsibling are resolved and after
+            // the dedup match above (so an invented estimate never
+            // influences "does this scraped person match an existing Geni
+            // profile"), before the pre-1600 datelimit check and the
+            // Vital/date-row rendering below, so both pick it up.
+            // Deliberately doesn't check Geni's own value for this member -
+            // the family-member buildDateFieldRow call site below already
+            // hardcodes currentValue="" rather than reading Geni's real
+            // per-member date (a pre-existing quirk, out of scope to fix
+            // here) - "scraped side blank" is already the full trigger
+            // condition used everywhere else in this path for family
+            // members, so this stays consistent with that.
+            if ($('#estimatebirthyearsonoffswitch').prop('checked') &&
+                !exists(getBirthYear(members[member]["birth"]))) {
+                var memberEstimate = estimateBirthYear(relationship, members[member], focusgender);
+                if (exists(memberEstimate)) {
+                    applyEstimatedBirth(members[member], memberEstimate.year);
+                    // The 95-year-old default (unlike the focus profile's
+                    // inline check above) runs at PARSE time inside
+                    // updateInfoData(), called from each collections/*.js
+                    // parser BEFORE any cross-person family context exists -
+                    // so members[member].alive is already fixed by now and
+                    // won't pick up this estimate on its own. Recompute it
+                    // explicitly, guarded so an explicit parser-set value
+                    // (e.g. from a real death/burial record) is never
+                    // overridden. livingScraped=true (not just living)
+                    // matters too - it's what the Vital <select>'s own
+                    // data-scraped attribute reflects, consumed by
+                    // isFieldEmptyForCheckAll()/Select All (#217) to know
+                    // this value is determined, not a render-time guess.
+                    if (!exists(members[member].alive)) {
+                        var estimateAgeLimit = moment.utc().format("YYYY") - 95;
+                        members[member].alive = (memberEstimate.year >= estimateAgeLimit);
+                        living = members[member].alive;
+                        livingScraped = true;
+                    }
+                }
+            }
+
             var bgcolor = genderColor(gender);
 
             var actionicon = "add";
@@ -1184,13 +1254,29 @@ function buildForm() {
                                     dateambig = 'style="color: #ff0000;" ';
                                     ambigdatecheck.push(i);
                                 }
+                                // #208: scored here is the whole-member-level
+                                // value shared by every field row (name,
+                                // gender, living, birth, etc.) - forcing it
+                                // globally for an estimated birth would
+                                // incorrectly auto-check unrelated fields
+                                // too, so this override is scoped to just
+                                // the birth row's own isChecked()/isEnabled()
+                                // call via a local fieldScored, not scored
+                                // itself. Same reasoning as the focus-profile
+                                // equivalent above - an injected estimate
+                                // was never scraped, so nothing else would
+                                // otherwise mark it as checkable.
+                                var fieldScored = scored;
+                                if (title === "birth" && exists(memberobj[item].estimated) && memberobj[item].estimated === true) {
+                                    fieldScored = true;
+                                }
                                 // #210: escapes dateval before it reaches value="...".
                                 membersstring = membersstring + buildDateFieldRow({
                                     label: capFL(title),
                                     fieldName: title,
                                     value: dateval,
-                                    checkedAttr: isChecked(dateval, scored, false, ""),
-                                    enabledAttr: isEnabled(dateval, scored, false, ""),
+                                    checkedAttr: isChecked(dateval, fieldScored, false, ""),
+                                    enabledAttr: isEnabled(dateval, fieldScored, false, ""),
                                     dateambig: dateambig,
                                     geniInputId: i + "_geni_" + title + "_date",
                                     imgIdAttr: ' imgid="' + i + '"',
@@ -2059,6 +2145,31 @@ function isChecked(value, score, force, currentValue, locked) {
     }
 }
 
+// #208: shared "get the year from a birth array" lookup - scans for the
+// FIRST element with a non-blank .date (matching the correct pattern the
+// 95-year check below already uses, buildform.js:447-462, rather than the
+// [0]-only shortcut some other call sites use - a location-only first
+// element, e.g. [{location:"..."}, {date:"1850"}], would otherwise be
+// missed). excludeEstimated skips any element this feature itself wrote
+// (estimated===true) - the one mechanism satisfying "never anchor off
+// another estimated date," checked at read time (not just relying on pass
+// ordering) since family members are processed in whatever order
+// alldata["family"]'s keys iterate.
+function getBirthYear(birthArray, excludeEstimated) {
+    if (!exists(birthArray)) {
+        return undefined;
+    }
+    for (var b = 0; b < birthArray.length; b++) {
+        if (exists(birthArray[b]) && exists(birthArray[b].date) && birthArray[b].date.trim() !== "") {
+            if (excludeEstimated && birthArray[b].estimated === true) {
+                continue;
+            }
+            return moment(birthArray[b].date, getDateFormat(birthArray[b].date)).get('year');
+        }
+    }
+    return undefined;
+}
+
 // #204: finds the focus person's spouse's surname, but only when that's
 // unambiguous - exactly one spouse total (alldata["family"]'s raw,
 // un-normalized keys can include more than one that classifies as a
@@ -2103,6 +2214,142 @@ function getParentSurname(gender, mnameonoff) {
     }
     var parentNameval = NameParse.parse(matches[0].name, mnameonoff);
     return parentNameval.lastName || "";
+}
+
+// #208: finds `member`'s real spouse record, for Rule 1 (spousal age gap)
+// of the birth-year estimation feature. Spouse data only exists in the
+// scraped model for two of the four relationship categories - no parser
+// ever records who a sibling's or child's own spouse is (confirmed: no
+// collections/*.js file scrapes that relationship at all), so this
+// deliberately returns null for those rather than guessing.
+//   "parent"  -> the OTHER isParent() entry (mirrors getParentSurname()'s
+//                aggregation above), excluding `member` itself.
+//   "partner" -> the focus person (alldata["profile"]) directly.
+//   "focus"   -> (member omitted) the one isPartner() entry - unlike
+//                getFocusSpouseSurname() above, NOT restricted to a male
+//                spouse only (that restriction is #204-specific to
+//                married-name direction; Rule 1 needs both directions).
+//   "sibling"/"child" -> null, no spouse data exists for these categories.
+function getMemberSpouse(category, member) {
+    var obj = alldata["family"];
+    if (category === "parent") {
+        var parents = [];
+        for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
+            if (isParent(relationship)) {
+                parents = parents.concat(obj[relationship]);
+            }
+        }
+        parents = parents.filter(function (p) { return p !== member; });
+        return parents.length === 1 ? parents[0] : null;
+    }
+    if (category === "partner") {
+        return alldata["profile"];
+    }
+    if (category === "focus") {
+        var spouses = [];
+        for (var relationship2 in obj) if (obj.hasOwnProperty(relationship2)) {
+            if (isPartner(relationship2)) {
+                spouses = spouses.concat(obj[relationship2]);
+            }
+        }
+        return spouses.length === 1 ? spouses[0] : null;
+    }
+    return null;
+}
+
+// #208: finds the anchor year for `member`'s own blank birth via Rule 2
+// (parent age from oldest child) - the earliest REAL birth year among
+// `member`'s children. Only "parent" (children = focus + real siblings,
+// excluding halfsibling - see below) and "focus" (children = real
+// isChild() entries) have a valid "their own children" pool under this
+// feature's scope; sibling/child/partner-category members have no such
+// data (no grandchildren are ever scraped) and always return undefined.
+// Half-siblings are excluded from the "parent" pool deliberately: a
+// halfsibling-flagged entry might be shared through the OTHER parent's
+// separate relationship, not this one, so including it risks anchoring
+// off a child who isn't actually this parent's.
+function getChildGroupAnchorYear(category, member) {
+    var obj = alldata["family"];
+    var pool = [];
+    if (category === "parent") {
+        pool.push(alldata["profile"]);
+        for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
+            if (isSibling(relationship)) {
+                pool = pool.concat(obj[relationship].filter(function (s) { return s.halfsibling !== true; }));
+            }
+        }
+    } else if (category === "focus") {
+        for (var relationship2 in obj) if (obj.hasOwnProperty(relationship2)) {
+            if (isChild(relationship2)) {
+                pool = pool.concat(obj[relationship2]);
+            }
+        }
+    } else {
+        return undefined;
+    }
+    var anchor = undefined;
+    for (var p = 0; p < pool.length; p++) {
+        var year = getBirthYear(pool[p]["birth"], true);
+        if (exists(year) && (!exists(anchor) || year < anchor)) {
+            anchor = year;
+        }
+    }
+    return anchor;
+}
+
+// #208: ties Rule 1 (spousal age gap) and Rule 2 (parent age from oldest
+// child) together - both confirmed math, husband ~5yr older than wife,
+// father/mother ~30/25yr older than their oldest child. Tries Rule 1
+// first, falls back to Rule 2. Same-gender pairs and gender==="unknown"
+// targets never fire either rule - no valid husband/wife or father/mother
+// mapping exists, matching this codebase's existing culture of leaving
+// ambiguous cases blank (see getFocusSpouseSurname()'s own male-only
+// restriction above) rather than guessing.
+function estimateBirthYear(category, member, focusGender) {
+    var targetGender = member ? member.gender : focusGender;
+    var spouse = getMemberSpouse(category, member);
+    if (exists(spouse) && exists(spouse.gender) && exists(targetGender) &&
+        spouse.gender !== targetGender && spouse.gender !== "unknown" && targetGender !== "unknown") {
+        var spouseYear = getBirthYear(spouse["birth"], true);
+        if (exists(spouseYear)) {
+            if (targetGender === "male") {
+                return { year: spouseYear - 5 };
+            }
+            if (targetGender === "female") {
+                return { year: spouseYear + 5 };
+            }
+        }
+    }
+    var anchor = getChildGroupAnchorYear(category, member);
+    if (exists(anchor) && exists(targetGender)) {
+        if (targetGender === "male") {
+            return { year: anchor - 30 };
+        }
+        if (targetGender === "female") {
+            return { year: anchor - 25 };
+        }
+    }
+    return undefined;
+}
+
+// #208: writes the actual estimate. unshift, not push/overwrite - the
+// family-member pre-1600 datelimit check (below, in the per-member render
+// loop) reads birth[0] directly rather than scanning, so the estimate must
+// land at index 0 to be picked up there; the trigger condition only
+// guarantees no element has a real .date, not that the array is empty, so
+// an existing location-only element must be preserved, not clobbered.
+// "Circa <year>" (capital C) is this codebase's actual internal convention
+// for an approximate date - cleanDate()/parseDate() recognize this exact
+// string and turn it into Geni's circa:true API field (which Geni then
+// displays back as "About <year>") - NOT "About <year>" directly, which
+// would not be recognized and would break.
+function applyEstimatedBirth(target, year) {
+    var entry = { date: "Circa " + year, estimated: true };
+    if (!exists(target["birth"])) {
+        target["birth"] = [entry];
+    } else {
+        target["birth"].unshift(entry);
+    }
 }
 
 // #206: a multi-word surname (e.g. Hispanic paternal+maternal compound

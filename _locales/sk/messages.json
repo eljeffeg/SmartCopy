@@ -1,0 +1,707 @@
+{
+    "appName": {
+        "message": "SmartCopy"
+    },
+    "appShortName": {
+        "message": "SmartCopy"
+    },
+    "appDesc": {
+        "message": "Nástroj na kopírovanie genealogických údajov do Geni."
+    },
+    "switchOn": {
+        "message": "ZAP."
+    },
+    "switchOff": {
+        "message": "VYP."
+    },
+    "consistencyCheck": {
+        "message": "Kontrola konzistencie"
+    },
+    "contains_incorrect_uppercase_lowercase_in_name": {
+        "message": "$person$ obsahuje nesprávne použitie veľkých/malých písmen v $pronoun$ mene ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_incorrect_uppercase_lowercase_in_name_default": {
+        "message": "$person$ obsahuje nesprávne použitie veľkých/malých písmen v $pronoun$ mene.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_patronym_in_first_name": {
+        "message": "$person$ obsahuje patronymum/matronymum v $pronoun$ krstnom mene ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_patronym_in_first_name_default": {
+        "message": "$person$ obsahuje patronymum/matronymum v $pronoun$ krstnom mene.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name": {
+        "message": "$person$ obsahuje hodnotu, ktorá nie je patronymom/matronymom, v $pronoun$ druhom mene ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name_default": {
+        "message": "$person$ obsahuje hodnotu, ktorá nie je patronymom/matronymom, v $pronoun$ druhom mene.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "living": {
+        "message": "žijúci"
+    },
+    "claimed": {
+        "message": "prevzatý"
+    },
+    "fixCase": {
+        "message": "opraviť veľkosť písmen"
+    },
+    "fixed": {
+        "message": "opravené"
+    },
+    "fixName": {
+        "message": "opraviť meno"
+    },
+    "fixSpace": {
+        "message": "opraviť medzeru"
+    },
+    "fixSuffix": {
+        "message": "opraviť príponu"
+    },
+    "fixTitle": {
+        "message": "opraviť titul"
+    },
+    "noPermission": {
+        "message": "bez oprávnenia na opravu"
+    },
+    "makePublic": {
+        "message": "zverejniť"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$ členov rodiny narodených pred približne rokom $year$ je nastavených ako súkromných.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$ sa narodil/a pred približne rokom $year$ a je nastavený/á ako súkromný/á.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "Research_this_Person": {
+        "message": "Preskúmať túto osobu"
+    },
+    "All_Collections": {
+        "message": "Všetky kolekcie"
+    },
+    "Collections": {
+        "message": "Kolekcie"
+    },
+    "Publications": {
+        "message": "Publikácie"
+    },
+    "Holocaust": {
+        "message": "Holokaust"
+    },
+    "Name_Search": {
+        "message": "Vyhľadávanie mena"
+    },
+    "Gravestones": {
+        "message": "Náhrobky"
+    },
+    "Genealogies": {
+        "message": "Genealógie"
+    },
+    "Genealogy": {
+        "message": "Genealógia"
+    },
+    "Geni_Search": {
+        "message": "Vyhľadávanie v Geni"
+    },
+    "Google_Search": {
+        "message": "Vyhľadávanie v Google"
+    },
+    "Records": {
+        "message": "Záznamy"
+    },
+    "Messageboard": {
+        "message": "Diskusné fórum"
+    },
+    "Newspapers": {
+        "message": "Noviny"
+    },
+    "Books": {
+        "message": "Knihy"
+    },
+    "Obituaries": {
+        "message": "Nekrológy"
+    },
+    "Other_Resources": {
+        "message": "Ďalšie zdroje"
+    },
+    "Unable_to_create_research_links_on_this_profile": {
+        "message": "Pre tento profil nie je možné vytvoriť výskumné odkazy."
+    },
+    "Loading___": {
+        "message": "Načítava sa..."
+    },
+    "HistoryLink_unreachable_message": {
+        "message": "Nepodarilo sa pripojiť k prihlasovacej službe HistoryLink. Skontrolujte internetové pripojenie a skúste to znova."
+    },
+    "HistoryLink": {
+        "message": "Nástroje HistoryLink"
+    },
+    "Ancestor_Graph": {
+        "message": "Graf predkov"
+    },
+    "Descendant_Graph": {
+        "message": "Graf potomkov"
+    },
+    "History_Search": {
+        "message": "Historické vyhľadávanie"
+    },
+    "Forest_Density_Calculator": {
+        "message": "Kalkulačka hustoty"
+    },
+    "Path_To_User": {
+        "message": "Cesta k používateľovi"
+    },
+    "Configuration": {
+        "message": "Konfigurácia"
+    },
+    "Copy_Preferences": {
+        "message": "Nastavenia kopírovania"
+    },
+    "Consistency_Checks": {
+        "message": "Kontroly konzistencie"
+    },
+    "Geni_Customization": {
+        "message": "Prispôsobenie Geni"
+    },
+    "Note_Dates_that_contain_Between_Before_and_After___": {
+        "message": "Poznámka: dátumy obsahujúce „Medzi“, „Pred“ a „Po“ sa pri kontrolách konzistencie neporovnávajú. Dátumy s označením „Približne“ sa považujú za presné dátumy."
+    },
+    "Run_consistency_checks_when_viewing_Geni_profiles": {
+        "message": "Spúšťať kontroly konzistencie pri prezeraní profilov Geni."
+    },
+    "Age_difference_between_partners_is_significant": {
+        "message": "Vekový rozdiel medzi partnermi je významný"
+    },
+    "Maiden_name_same_as_husbands_last_name": {
+        "message": "Rodné priezvisko je rovnaké ako priezvisko manžela"
+    },
+    "Husband_and_wife_death_dates_the_same": {
+        "message": "Dátumy úmrtia manžela a manželky sú rovnaké"
+    },
+    "Husband_death_date_same_as_marriage_date": {
+        "message": "Dátum úmrtia manžela je rovnaký ako dátum sobáša"
+    },
+    "Wife_death_date_same_as_marriage_date": {
+        "message": "Dátum úmrtia manželky je rovnaký ako dátum sobáša"
+    },
+    "Born_after_marriage": {
+        "message": "Narodený/á po sobáši"
+    },
+    "Died_before_marriage": {
+        "message": "Zomrel/a pred sobášom"
+    },
+    "Implausible_marriage_age_too_young": {
+        "message": "Nepravdepodobný vek pri sobáši: príliš mladý"
+    },
+    "Siblings_ages_too_close_together": {
+        "message": "Vek súrodencov je príliš blízky"
+    },
+    "Born_before_parent_birth": {
+        "message": "Narodený/á pred narodením rodiča"
+    },
+    "Born_after_parent_death": {
+        "message": "Narodený/á po úmrtí rodiča"
+    },
+    "Death_before_baptism_date": {
+        "message": "Úmrtie pred dátumom krstu"
+    },
+    "Death_after_burial_date": {
+        "message": "Úmrtie po dátume pochovania"
+    },
+    "Parent_too_young_for_childs_birth": {
+        "message": "Rodič bol pri narodení dieťaťa príliš mladý"
+    },
+    "Mother_too_old_for_childs_birth": {
+        "message": "Matka bola pri narodení dieťaťa príliš stará"
+    },
+    "Born_before_parent_marriage": {
+        "message": "Narodený/á pred sobášom rodičov"
+    },
+    "Excessive_Age": {
+        "message": "Príliš vysoký vek"
+    },
+    "Born_after_death": {
+        "message": "Narodený/á po smrti"
+    },
+    "Name_contains_double_space": {
+        "message": "Meno obsahuje dvojitú medzeru"
+    },
+    "Name_contains_alias": {
+        "message": "Meno obsahuje prezývku"
+    },
+    "Name_contains_improper_use_of_uppercase_lowercase": {
+        "message": "Meno obsahuje nesprávne použitie veľkých/malých písmen"
+    },
+    "First_Name_ends_in_suffix_eg___": {
+        "message": "Krstné meno končí príponou (napr. 'i','ii','iii','iv','jr','sr')"
+    },
+    "Salutation_or_relationship_in_title_eg___": {
+        "message": "Oslovenie alebo príbuzenský vzťah v titule (napr. 'Mr', 'Mrs')"
+    },
+    "Salutation_or_relationship_in_suffix_eg___": {
+        "message": "Oslovenie alebo príbuzenský vzťah v prípone (napr. 'Mr', 'Mrs')"
+    },
+    "Relationship_cycle_in_immediate_family": {
+        "message": "Cyklus príbuzenských vzťahov v najbližšej rodine"
+    },
+    "Check_date_formatting_for_inconsistent_values": {
+        "message": "Kontrolovať formát dátumov na nekonzistentné hodnoty"
+    },
+    "Check_for_pending_data_conflict_resolution": {
+        "message": "Kontrolovať nevyriešené konflikty údajov"
+    },
+    "Self_check_profile_for_inconsistent_dates_and_values": {
+        "message": "Automaticky kontrolovať profil na nekonzistentné dátumy a hodnoty."
+    },
+    "Check_name_fields_for_improper_values": {
+        "message": "Kontrolovať polia mien na nesprávne hodnoty"
+    },
+    "Check_name_fields_for_living_profiles": {
+        "message": "Vylúčiť profily žijúcich osôb z rýchlej opravy"
+    },
+    "Check_profile_for_pending_data_conflicts": {
+        "message": "Kontrolovať profil na čakajúce konflikty údajov"
+    },
+    "Check_date_values_for_irregular_formatting": {
+        "message": "Kontrolovať hodnoty dátumov na nepravidelné formátovanie"
+    },
+    "Check_when_location_is_missing_a_country": {
+        "message": "Kontrolovať, keď v lokalite chýba krajina"
+    },
+    "Maximum_year_to_be_private": {
+        "message": "Najneskorší rok pre súkromný profil:"
+    },
+    "Maximum_age": {
+        "message": "Maximálny vek:"
+    },
+    "Check_the_dates_of_children_against_their_parents": {
+        "message": "Porovnať dátumy detí s dátumami ich rodičov."
+    },
+    "Check_child_is_born_after_parent_marriage": {
+        "message": "Kontrolovať, či sa dieťa narodilo po sobáši rodičov"
+    },
+    "Age_the_parent_is_too_young_to_have_a_child": {
+        "message": "Vek, pod ktorým sa rodič považuje za príliš mladého na dieťa"
+    },
+    "Age_the_mother_is_too_old_to_have_a_child": {
+        "message": "Vek, nad ktorým sa matka považuje za príliš starú na dieťa"
+    },
+    "Check_the_values_of_partner_spouses_against_each_other": {
+        "message": "Porovnať hodnoty partnerov/manželov medzi sebou."
+    },
+    "Identify_possible_maiden_name_copy_issues": {
+        "message": "Identifikovať možné problémy pri kopírovaní rodného priezviska"
+    },
+    "Age_the_spouse_is_too_young_to_be_married": {
+        "message": "Vek, pod ktorým sa manžel/manželka považuje za príliš mladého/mladú na sobáš"
+    },
+    "Maximum_age_difference_between_spouses": {
+        "message": "Maximálny vekový rozdiel medzi manželmi"
+    },
+    "Check_siblings_birth_are_over_": {
+        "message": "Kontrolovať, či sú narodenia súrodencov od seba viac ako "
+    },
+    "_months_apart_excl_twins": {
+        "message": " mesiacov (okrem dvojčiat)."
+    },
+    "Future_options_to_add_features_to_Geni": {
+        "message": "Budúce možnosti pridania funkcií do Geni."
+    },
+    "This_profile_is_not_in_the_World_Family_Tree": {
+        "message": "Tento profil nie je vo Svetovom rodokmeni."
+    },
+    "Add_to_History": {
+        "message": "Pridať do histórie"
+    },
+    "Show_History": {
+        "message": "Zobraziť históriu"
+    },
+    "Hide_History": {
+        "message": "Skryť históriu"
+    },
+    "Clear_History": {
+        "message": "Vymazať históriu"
+    },
+    "Notice___Please_Read": {
+        "message": "Upozornenie – prečítajte si"
+    },
+    "SmartCopy_will_no_longer_do_geo_location_lookups___": {
+        "message": "SmartCopy už nebude automaticky vykonávať vyhľadávanie geolokácie z dôvodu ceny služby Google. Hoci je to nepríjemná správa, Geni nedávno umožnilo vykonávať vyhľadávanie geolokácie <i>po</i> odoslaní. Keď sa lokalita odošle prostredníctvom poľa miesta, Geni vykoná dotaz a vyplní polia lokality na webovej stránke. Prípadne môžete v konfigurácii uviesť vlastný kľúč Google API. Údaje o lokalite môžete v SmartCopy stále vyplniť ručne kliknutím na ikonu glóbusu $globe_icon$ a ak chcete vypnúť geolokačné vyhľadávanie Geni, môžete tak urobiť v konfigurácii SmartCopy.",
+        "placeholders": {
+            "globe_icon": {
+                "content": "$1"
+            }
+        }
+    },
+    "Close": {
+        "message": "Zavrieť"
+    },
+    "Display_Add_Biography_button_in_About": {
+        "message": "Zobraziť tlačidlo Pridať životopis v časti O profile"
+    },
+    "Add_Biography": {
+        "message": "Pridať životopis"
+    },
+    "Export_Profiles_button_on_Project_Actions": {
+        "message": "Zobraziť tlačidlo Exportovať profily v Akciách projektu"
+    },
+    "Export_Profiles": {
+        "message": "Exportovať profily"
+    },
+    "SmartCopy_does_not_currently_support_parsing": {
+        "message": "SmartCopy momentálne nepodporuje spracovanie tejto stránky / webu / kolekcie."
+    },
+    "SmartCopy_is_having_difficulty_reading_the_page": {
+        "message": "SmartCopy má problém prečítať stránku. Skúste stránku obnoviť."
+    },
+    "This_website_is_not_yet_supported_by_SmartCopy": {
+        "message": "SmartCopy túto webovú stránku zatiaľ nepodporuje."
+    },
+    "Selection": {
+        "message": "Výber"
+    },
+    "Simplify_form_by_hiding_unused_fields": {
+        "message": "Zjednodušiť formulár skrytím nepoužívaných polí"
+    },
+    "Enable_photo_checkbox_auto_selection": {
+        "message": "Povoliť automatický výber začiarkavacieho políčka fotografie"
+    },
+    "Reminder_user_responsible": {
+        "message": "Pripomienka: používateľ zodpovedá za<br>získanie všetkých potrebných povolení od<br>fotografa pri kopírovaní obrázkov."
+    },
+    "Exclude_private_profile_auto_select": {
+        "message": "Vylúčiť profily <private> z automatického výberu"
+    },
+    "Est_burial_date_from_death_if_location": {
+        "message": "Odhadnúť dátum pochovania podľa dátumu úmrtia, ak je uvedená lokalita"
+    },
+    "This_change_will_take_effect_at_next_use": {
+        "message": "Táto zmena sa prejaví pri ďalšom použití."
+    },
+    "Location": {
+        "message": "Lokalita"
+    },
+    "Enable_Geolocation": {
+        "message": "Povoliť geolokáciu"
+    },
+    "API_Key": {
+        "message": "Kľúč API"
+    },
+    "Location_fields_auto_select_one_select_all": {
+        "message": "V poliach lokality výber jedného vyberie všetky"
+    },
+    "Naming": {
+        "message": "Mená"
+    },
+    "Auto_populate_empty_birth_name_fields": {
+        "message": "Automaticky vyplniť prázdne polia rodného mena"
+    },
+    "Auto_fill_married_last_name": {
+        "message": "Automaticky vyplniť priezvisko po sobáši"
+    },
+    "Parse_for_middle_names_automatically": {
+        "message": "Automaticky rozpoznávať druhé mená"
+    },
+    "Auto_adjust_the_names_for_mixed_case": {
+        "message": "Automaticky upravovať veľké/malé písmená v menách"
+    },
+    "Force_compound_lastname_to_lowercase": {
+        "message": "Vynútiť malé písmená v zloženom priezvisku"
+    },
+    "Default_children_to_likely_Geni_parent": {
+        "message": "Predvolene priradiť deti k najpravdepodobnejšiemu rodičovi v Geni"
+    },
+    "Default_deceased_profiles_to_public": {
+        "message": "Predvolene nastaviť profily zosnulých ako verejné"
+    },
+    "Add_reference_to_Geni_s_About_section": {
+        "message": "Pridať zdroj do sekcie O profile v Geni"
+    },
+    "Display_the_Geni_side_data_by_default": {
+        "message": "Predvolene zobrazovať údaje zo strany Geni"
+    },
+    "Please_select_one_of_the_Matches": {
+        "message": "Vyberte jednu zo zhôd na tejto stránke výsledkov."
+    },
+    "_year_age_difference_between_": {
+        "message": " rokov vekového rozdielu medzi "
+    },
+    "Birth_Surname_of_": {
+        "message": "Rodné priezvisko osoby "
+    },
+    "_is_the_same_as_the_last_name_of_": {
+        "message": " je rovnaké ako priezvisko osoby "
+    },
+    "Death_date_of_": {
+        "message": "Dátum úmrtia osoby "
+    },
+    "_is_the_same_as_the_death_date_of_": {
+        "message": " je rovnaký ako dátum úmrtia osoby "
+    },
+    "_is_the_same_as_": {
+        "message": " je rovnaký ako "
+    },
+    "_marriage_date": {
+        "message": " dátum sobáša"
+    },
+    "_born_after_": {
+        "message": " narodený/á po "
+    },
+    "_died_before_": {
+        "message": " zomrel/a pred "
+    },
+    "_years_old_for_": {
+        "message": " rokov pri "
+    },
+    "_marriage": {
+        "message": " sobáš"
+    },
+    "Birth_date_of_": {
+        "message": "Dátum narodenia osoby "
+    },
+    "_and_": {
+        "message": " a "
+    },
+    "_are_within_": {
+        "message": " sú od seba menej ako "
+    },
+    "_months": {
+        "message": " mesiacov"
+    },
+    "_born_before_the_birth_of_": {
+        "message": " narodený/á pred narodením osoby "
+    },
+    "death": {
+        "message": "smrť"
+    },
+    "_born_after_the_death_of_": {
+        "message": " narodený/á po úmrtí osoby "
+    },
+    "_is_under_": {
+        "message": " má menej ako "
+    },
+    "_years_old_for_the_birth_of_": {
+        "message": " rokov pri narodení osoby "
+    },
+    "_is_over_": {
+        "message": " má viac ako "
+    },
+    "_born_before_the_marriage_of_": {
+        "message": " narodený/á pred sobášom osoby "
+    },
+    "_parents_": {
+        "message": " rodičia "
+    },
+    "_has_pending_": {
+        "message": " má čakajúce "
+    },
+    "data_conflicts": {
+        "message": "konflikty údajov"
+    },
+    "The_age_of_": {
+        "message": "Vek osoby "
+    },
+    "_exceeds_": {
+        "message": " presahuje "
+    },
+    "_years": {
+        "message": " rokov"
+    },
+    "_is_after_": {
+        "message": " je po "
+    },
+    "_death_date": {
+        "message": " dátum úmrtia"
+    },
+    "Baptism_date_of_": {
+        "message": "Dátum krstu osoby "
+    },
+    "_is_before_": {
+        "message": " je pred "
+    },
+    "_birth_date": {
+        "message": " dátum narodenia"
+    },
+    "_burial_date": {
+        "message": " dátum pochovania"
+    },
+    "_contains_a_double_space_in_": {
+        "message": " obsahuje dvojitú medzeru v "
+    },
+    "first_name": {
+        "message": "krstné meno"
+    },
+    "_contains_a_double_or_trailing_space_in_": {
+        "message": " obsahuje dvojitú alebo koncovú medzeru v "
+    },
+    "_names": {
+        "message": " mená"
+    },
+    "_contains_an_alias_in_": {
+        "message": " obsahuje prezývku v "
+    },
+    "_appears_to_contain_a_suffix_in_": {
+        "message": " zrejme obsahuje príponu v "
+    },
+    "Move_Suffix": {
+        "message": "Presunúť príponu"
+    },
+    "_contains_improper_use_of_salutation_in_": {
+        "message": " obsahuje nesprávne použitie oslovenia v "
+    },
+    "_title": {
+        "message": " titul"
+    },
+    "Remove_salutation": {
+        "message": "Odstrániť oslovenie"
+    },
+    "_contains_improper_use_of_relationship_in_": {
+        "message": " obsahuje nesprávne použitie príbuzenského vzťahu v "
+    },
+    "_suffix": {
+        "message": " prípona"
+    },
+    "Remove_relationship": {
+        "message": "Odstrániť príbuzenský vzťah"
+    },
+    "_contains_improper_use_of_a_numbering_scheme_in_": {
+        "message": " obsahuje nesprávne použitie číslovania v "
+    },
+    "Remove_numeric": {
+        "message": "Odstrániť čísla"
+    },
+    "_is_in_a_relationship_cycle_within_the_immediate_family": {
+        "message": " je v cykle príbuzenských vzťahov v najbližšej rodine"
+    },
+    "_contains_an_invalid_": {
+        "message": " obsahuje neplatný "
+    },
+    "_date_month_greater_than_12": {
+        "message": " dátum, mesiac je väčší ako 12."
+    },
+    "_date_day_greater_than_31": {
+        "message": " dátum, deň je väčší ako 31."
+    },
+    "_date": {
+        "message": " dátum"
+    },
+    "_contains_an_incomplete_": {
+        "message": " obsahuje neúplný "
+    },
+    "_date_missing_month": {
+        "message": " dátum, chýba mesiac."
+    },
+    "_date_missing_year": {
+        "message": " dátum, chýba rok."
+    },
+    "_contains_a_": {
+        "message": " obsahuje "
+    },
+    "_location_without_a_country": {
+        "message": " lokalitu bez krajiny"
+    },
+    "his": {
+        "message": "jeho"
+    },
+    "her": {
+        "message": "jej"
+    },
+    "their": {
+        "message": "ich"
+    },
+    "mother": {
+        "message": "matka"
+    },
+    "father": {
+        "message": "otec"
+    },
+    "parent": {
+        "message": "rodič"
+    },
+    "brother": {
+        "message": "brat"
+    },
+    "sibling": {
+        "message": "súrodenec"
+    },
+    "wife": {
+        "message": "manželka"
+    },
+    "husband": {
+        "message": "manžel"
+    },
+    "partner": {
+        "message": "partner"
+    }
+}

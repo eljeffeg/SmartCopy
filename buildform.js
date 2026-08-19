@@ -219,6 +219,19 @@ function reverseGender(gender) {
     return "unknown";
 }
 
+// #78 follow-up: a field the current user simply lacks permission to save
+// must be disabled the same way a Geni-side field lock is - the two have
+// identical consequences (this edit can never take effect) even though the
+// cause is different. update-basics is the narrower, basics-only grant;
+// "update" is a broader permission that implies it (see buildTree()'s own
+// "update" -> "update-basics" downgrade fallback in popup.js) - either one
+// is sufficient to edit the fields this covers.
+function focusFieldLocked(path, subpath) {
+    var actions = genifocusdata.get("actions");
+    var canEditBasics = exists(actions) && (actions.indexOf("update-basics") !== -1 || actions.indexOf("update") !== -1);
+    return genifocusdata.isLocked(path, subpath) || !canEditBasics;
+}
+
 function buildForm() {
     var obj;
     var listvalues = ["birth", "baptism", "death", "burial"];
@@ -296,7 +309,7 @@ function buildForm() {
     }
 
     var nameimage = genifocusdata.lockIcon("name");
-    var namelocked = genifocusdata.isLocked("name"); // #78
+    var namelocked = focusFieldLocked("name"); // #78
     var namescore = scorefactors.contains("middle name");
     let namelang = genifocusdata.get("name_language");
     let langtarget = Object.assign({}, $("#language_selector"));
@@ -391,7 +404,7 @@ function buildForm() {
                 ck++;
             }
             var occupation = alldata["profile"]["occupation"].trim();
-            var occlocked = genifocusdata.isLocked("occupation"); // #78
+            var occlocked = focusFieldLocked("occupation"); // #78
             membersstring = membersstring +
                 '<tr id="occupation"><td class="profilediv"><input type="checkbox" class="checknext" ' + (occlocked ? 'disabled ' : '') + isChecked(occupation, scoreoccupation, false, genifocusdata.get("occupation"), occlocked) + '>' +
                 capFL(title) + ': </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="' + title + '" value="' + occupation + '" ' + isEnabled(occupation, scoreoccupation, false, genifocusdata.get("occupation"), occlocked) + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
@@ -399,10 +412,10 @@ function buildForm() {
         } else {
             membersstring = $(div[0]).html();
             membersstring = membersstring +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td class="profilediv"><input type="checkbox" class="checknext"' + (genifocusdata.isLocked("occupation") ? ' disabled' : '') + '>Occupation: </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
+                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("occupation") ? ' disabled' : '') + '>Occupation: </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         }
-        var genderlocked = genifocusdata.isLocked("gender"); // #78
+        var genderlocked = focusFieldLocked("gender"); // #78
         if (genigender === "unknown" && focusgender !== "unknown") {
             var gender = focusgender;
             sepx++;
@@ -441,7 +454,7 @@ function buildForm() {
             }
         }
         membersstring = $(div[0]).html();
-        var livinglocked = genifocusdata.isLocked("living"); // #78
+        var livinglocked = focusFieldLocked("living"); // #78
         if (geniliving && !living) {
             sepx++;
             membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + (livinglocked ? 'disabled ' : '') + isChecked(living, true, false, undefined, livinglocked) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, true, false, undefined, livinglocked) + '>' +
@@ -458,7 +471,7 @@ function buildForm() {
             focusBirthYear = moment(alldata["profile"]["birth"][0]["date"], getDateFormat(alldata["profile"]["birth"][0]["date"])).get('year');
         }
         var focusPrivacy = buildPrivacySelect(living, focusBirthYear, genifocusdata.get("public") === true);
-        var publiclocked = genifocusdata.isLocked("public"); // #78
+        var publiclocked = focusFieldLocked("public"); // #78
         membersstring = membersstring + '<tr style="display: table-row;" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + (publiclocked ? 'disabled ' : '') + (focusPrivacy.enabled && !publiclocked ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (focusPrivacy.enabled && !publiclocked ? "" : "disabled") + '>' +
         focusPrivacy.options + '</select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
         $(div[0]).html(membersstring);
@@ -516,8 +529,8 @@ function buildForm() {
             membersstring = $(div[0]).html();
             var dateicon = genifocusdata.lockIcon(title, "date");
             var locationicon = genifocusdata.lockIcon(title, "location");
-            var datelocked = genifocusdata.isLocked(title, "date"); // #78
-            var locationlocked = genifocusdata.isLocked(title, "location"); // #78 - one flag covers all 6 location sub-rows, same as locationicon
+            var datelocked = focusFieldLocked(title, "date"); // #78
+            var locationlocked = focusFieldLocked(title, "location"); // #78 - one flag covers all 6 location sub-rows, same as locationicon
             if (exists(obj) && obj.length > 0) {
                 if (x > 0) {
                     membersstring = membersstring + '<tr><td colspan="3" style="padding: 0;"><div class="separator"></div></td></tr>';
@@ -656,7 +669,7 @@ function buildForm() {
                         '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext"' + (datelocked ? ' disabled' : '') + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "date.formatted_date")).replace(/&quot;/g, '"')) + '" disabled></td></tr>';
                 }
                 if (title === "death") {
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext"' + (genifocusdata.isLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
+                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
                 }
                 if (!locationadded) {
                     locationval = locationval +
@@ -681,7 +694,7 @@ function buildForm() {
                 membersstring = membersstring +
                     '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext"' + (datelocked ? ' disabled' : '') + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "date.formatted_date")).replace(/&quot;/g, '"')) + '" disabled></td></tr>';
                 if (title === "death") {
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext"' + (genifocusdata.isLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
+                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
                 }
                 membersstring = membersstring +
                     '<tr id="focus_'+title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck"><img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;"  alt="Toggle Geolocation" title="Toggle Geolocation"  src="images/' + geoicon + '" height="14px">';

@@ -12,6 +12,14 @@ function buildResearch() {
         if (exists(responsedata.name)) {
             focusname = responsedata.name;
         }
+        // #218: clicking a research link below opens a new active tab,
+        // which closes this popup and wipes focusid along with every other
+        // in-memory var. Without this, reopening the popup on the
+        // resulting source-site tab has no way to know which Geni profile
+        // to associate results with. Simply overwritten on the next
+        // "Research this Person" run - see popup.js's loadPage() consumer
+        // for why no separate expiry/invalidation is warranted.
+        chrome.storage.local.set({'lastResearchFocus': {id: focusid, name: focusname, ts: Date.now()}});
         let accessdialog = document.querySelector('#useraccess');
         let researchstring = "<div style='font-size: 115%;'><strong>" + _("Research_this_Person") + "</strong><div style='font-size: 85%; font-style: italic;'>" + focusname + "</div></div><div style='padding-top: 2px; padding-bottom: 5px;'>";
         if (exists(responsedata.first_name)) {

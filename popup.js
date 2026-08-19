@@ -11,6 +11,7 @@ var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefa
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [], addsiblinglist = [];
 var genibuildaction = {}, updatecount = 1, updatetotal = 0;
 var errormsg = "#f9acac", warningmsg = "#f8ff86", infomsg = "#afd2ff";
+var lastResearchFocus = null; // #218: see research.js's buildResearch() and loadPage() below
 
 document.addEventListener('DOMContentLoaded', function () {
   Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
@@ -346,9 +347,10 @@ if (navigator.serviceWorker) {
 // regardless of which actually finishes first - see issue #193.
 var domReady = false;
 var geonoticeLoaded = false;
+var lastFocusLoaded = false; // #218: same race-avoidance shape, for lastResearchFocus
 
 function maybeStartLogin() {
-    if (domReady && geonoticeLoaded) {
+    if (domReady && geonoticeLoaded && lastFocusLoaded) {
         get_tab();
     }
 }
@@ -698,6 +700,20 @@ function loadPage(request) {
                         return;
                     }
                 }
+            }
+            // #218: buildhistory above only covers a PRIOR successful
+            // submission - a brand-new "Research this Person" click with
+            // nothing submitted yet has no history entry at all. Fall back
+            // to whichever Geni profile most recently generated research
+            // links (research.js's buildResearch()). Never overrides an
+            // actual buildhistory match (checked first, above) or a manual
+            // "Set Geni Destination Profile" entry (loadSelectPage, below,
+            // still runs whenever this has nothing to offer).
+            if (!profilechanged && exists(lastResearchFocus) && exists(lastResearchFocus.id)) {
+                focusid = lastResearchFocus.id;
+                profilechanged = true;
+                loadPage(request);
+                return;
             }
             if (collection.parseProfileData && !profilechanged) {
                 loadSelectPage(request);
@@ -1289,10 +1305,15 @@ $(function () {
                 // Geni's value straight from this row's .genislideinput
                 // companion rather than the field's own disabled attribute,
                 // which this very filter mutates on every check/uncheck
-                // cycle and would otherwise go stale.
-                if (selectingAll && (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA") && !isValue(ffs[item].value)) {
+                // cycle and would otherwise go stale. #217: also covers
+                // Gender/Living's <select> fields, matching buildform.js's
+                // applySelectAllState() equivalent.
+                if (selectingAll &&
+                    (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA" ||
+                     (ffs[item].tagName === "SELECT" && (ffs[item].name === "gender" || ffs[item].name === "is_alive"))) &&
+                    isFieldValueBlank(ffs[item])) {
                     var companionVal = $(ffs[item]).closest("tr").find(".genislideinput").val();
-                    if (exists(companionVal) && companionVal !== "") {
+                    if (!isCompanionBlank(companionVal, ffs[item])) {
                         return false;
                     }
                 }
@@ -1303,15 +1324,15 @@ $(function () {
 });
 
 function isFieldEmptyForCheckAll(row) {
-    var valueFields = row.find('input[type="text"],textarea').not(".genislideinput").not(".parentselector");
+    // #217: Gender/Living's <select> fields are included here now too -
+    // they DO have a real "blank" state (Gender's "unknown" option;
+    // Living's data-scraped flag), this just used to assume otherwise.
+    var valueFields = row.find('input[type="text"],textarea,select[name="gender"],select[name="is_alive"]').not(".genislideinput").not(".parentselector");
     if (valueFields.length === 0) {
-        // No plain text/textarea value field on this row (e.g. a <select>
-        // like Gender or Vital status) - those always resolve to a real
-        // value, not a blank one, so there's nothing to guard against here.
         return false;
     }
     for (var i = 0; i < valueFields.length; i++) {
-        if (isValue(valueFields[i].value)) {
+        if (!isFieldValueBlank(valueFields[i])) {
             return false;
         }
     }
@@ -1328,7 +1349,7 @@ function isFieldEmptyForCheckAll(row) {
     // setGeniFamilyData()/render-time genifocusdata actually updates it,
     // which is exactly when this determination should change too.
     var companion = row.find(".genislideinput").val();
-    return exists(companion) && companion !== "";
+    return !isCompanionBlank(companion, valueFields[0]);
 }
 
 $(function () {
@@ -3406,6 +3427,12 @@ chrome.storage.local.get('geonotice', function(result) {
         geonotice = true;
     }
     geonoticeLoaded = true;
+    maybeStartLogin();
+});
+
+chrome.storage.local.get('lastResearchFocus', function (result) {
+    lastResearchFocus = exists(result.lastResearchFocus) ? result.lastResearchFocus : null;
+    lastFocusLoaded = true;
     maybeStartLogin();
 });
 

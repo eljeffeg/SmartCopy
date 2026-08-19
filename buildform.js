@@ -822,6 +822,7 @@ function buildForm() {
                 scored = false;
             }
             var living = false;
+            var livingScraped = false;
             var halfsibling = false;
             if (!scored && relationship === "parent") {
                 //used !== to also select unknown gender
@@ -850,6 +851,7 @@ function buildForm() {
             }
             if (exists(members[member].alive)) {
                 living = members[member].alive;
+                livingScraped = true;
             }
             if ($('#birthonoffswitch').prop('checked') && nameval.birthName === "") {
                 if (members[member].gender === "male") {
@@ -1106,7 +1108,7 @@ function buildForm() {
                 }
                 membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect genderselect" update="'+ i + '" relationship="' + relationship + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
                     '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_gender" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
-                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, scored) + '>Vital: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect livingselect" update="'+ i + '"  style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, scored) + '>' +
+                    '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, scored) + '>Vital: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect livingselect" data-scraped="' + livingScraped + '" update="'+ i + '"  style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, scored) + '>' +
                     '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_is_alive" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 var memberBirthYear = undefined;
                 if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
@@ -1409,6 +1411,33 @@ function buildForm() {
 
 function isValue(object) {
     return (object !== "");
+}
+
+// #217: whether a field's OWN current value represents "no real data," for
+// Select All purposes. Text/textarea use isValue() (blank == ""); Gender's
+// <select> uses its literal "unknown" option as its blank state; Living's
+// <select> has no blank option at all (Deceased/Living are both real
+// values) so its blank state is tracked via data-scraped, stamped at
+// render time on the "Vital:" row (see the family-member render loop).
+function isFieldValueBlank(field) {
+    if (field.tagName === "SELECT" && field.name === "gender") {
+        return field.value === "unknown";
+    }
+    if (field.tagName === "SELECT" && field.name === "is_alive") {
+        return $(field).attr("data-scraped") !== "true";
+    }
+    return !isValue(field.value);
+}
+
+// #217: whether a row's .genislideinput companion represents "Geni has no
+// real data here." "" for every field type except Gender, whose companion
+// is always capFL()'d, so "no data" displays as the literal string
+// "Unknown" rather than "".
+function isCompanionBlank(companionVal, field) {
+    if (!exists(companionVal) || companionVal === "") {
+        return true;
+    }
+    return field.tagName === "SELECT" && field.name === "gender" && companionVal === "Unknown";
 }
 
 // German transliteration is a deterministic convention, not a stylistic
@@ -2848,10 +2877,16 @@ function applySelectAllState(fs, selectingAll) {
         // Geni's value straight from this row's .genislideinput companion
         // rather than the field's own disabled attribute, which this very
         // filter mutates on every check/uncheck cycle and would otherwise
-        // go stale.
-        if (selectingAll && (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA") && !isValue(ffs[item].value)) {
+        // go stale. #217: also covers Gender/Living's <select> fields, not
+        // just text/textarea - isFieldValueBlank()/isCompanionBlank() know
+        // each field's own blank sentinel (Gender: "unknown"; Living:
+        // data-scraped) rather than assuming "" is the only blank state.
+        if (selectingAll &&
+            (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA" ||
+             (ffs[item].tagName === "SELECT" && (ffs[item].name === "gender" || ffs[item].name === "is_alive"))) &&
+            isFieldValueBlank(ffs[item])) {
             var companionVal = $(ffs[item]).closest("tr").find(".genislideinput").val();
-            if (exists(companionVal) && companionVal !== "") {
+            if (!isCompanionBlank(companionVal, ffs[item])) {
                 return false;
             }
         }
@@ -2872,12 +2907,24 @@ function applySelectAllState(fs, selectingAll) {
 // user a click); scraped blank + Geni has real data -> stays unchecked
 // (protect it - the user can still manually check it to intentionally
 // clear that field, but it's never pre-checked into doing so).
-function refreshFieldCheckState(id, fieldName, currentValue, locked) {
+function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue) {
     var input = $("#familytable_" + id + " [name='" + fieldName + "']").not(".genislideinput");
     if (input.length === 0) {
         return;
     }
     var scrapedValue = input.val();
+    // #217: some fields (Gender) use a literal sentinel value - "unknown" -
+    // rather than "" to mean "no real data," on both the scraped side and
+    // Geni's own currentValue. isEnabled()/isValue() only ever treat ""
+    // as blank, so without this normalization "unknown" reads as a real,
+    // intentional value and never gets the blank-protection treatment
+    // below. blankValue is only ever passed for fields with this kind of
+    // non-"" sentinel - every other call site leaves it undefined and
+    // behaves exactly as before.
+    if (blankValue !== undefined) {
+        if (scrapedValue === blankValue) { scrapedValue = ""; }
+        if (currentValue === blankValue) { currentValue = ""; }
+    }
     // Only ever toggles disabled (typeable or not) - never checked. Checking
     // a field is what tells the person's top-level "select all" checkbox
     // (.checkslide) that something is about to be submitted for them; that
@@ -2897,6 +2944,22 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked) {
     // (before this person's match, and thus their lock status, was known),
     // it stays checked but disabled, which parseForm() already excludes
     // from submission regardless (!fsinput[item].disabled).
+    input.prop("disabled", isEnabled(scrapedValue, true, false, currentValue, locked) === "disabled");
+    input.closest('tr').find('.checknext').prop('disabled', !!locked);
+}
+
+// #217: Living's <select> only ever holds a real true/false value - never a
+// blank sentinel like Gender's "unknown" option - so refreshFieldCheckState()'s
+// generic input.val() read can't tell "no living data was scraped" (which
+// renders as a defaulted Deceased/false, see the family-member render loop)
+// apart from "source really said deceased." data-scraped, stamped on the
+// <select> at render time, disambiguates the two.
+function refreshLivingCheckState(id, currentValue, locked) {
+    var input = $("#familytable_" + id + " select[name='is_alive']").not(".genislideinput");
+    if (input.length === 0) {
+        return;
+    }
+    var scrapedValue = (input.attr("data-scraped") === "true") ? input.val() : "";
     input.prop("disabled", isEnabled(scrapedValue, true, false, currentValue, locked) === "disabled");
     input.closest('tr').find('.checknext').prop('disabled', !!locked);
 }
@@ -2949,8 +3012,10 @@ function setGeniFamilyData(id, profile) {
     refreshFieldCheckState(id, "occupation", geniOccupation, getGeniFieldLocked(profile, "occupation"));
     $("#" + id + "_geni_gender").val(capFL(getGeniData(profile, "gender")));
     $("#" + id + "_geni_gender").prev().attr('src', getGeniLock(profile, "gender"));
+    refreshFieldCheckState(id, "gender", getGeniData(profile, "gender"), getGeniFieldLocked(profile, "gender"), "unknown");
     $("#" + id + "_geni_is_alive").val(isAlive(getGeniData(profile, "is_alive")));
     $("#" + id + "_geni_is_alive").prev().attr('src', getGeniLock(profile, "living"));
+    refreshLivingCheckState(id, getGeniData(profile, "is_alive"), getGeniFieldLocked(profile, "living"));
     $("#" + id + "_geni_public").val(isPublic(getGeniData(profile, "public")));
     $("#" + id + "_geni_public").prev().attr('src', getGeniLock(profile, "public"));
 

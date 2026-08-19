@@ -58,7 +58,12 @@ function buildResearch() {
                         // this when the tab it's currently reading matches
                         // newTab.id exactly.
                         if (exists(newTab) && exists(newTab.id)) {
-                            chrome.storage.local.set({'lastResearchFocus': {id: focusid, name: focusname, ts: Date.now(), tabId: newTab.id}});
+                            var focusToStore = {id: focusid, name: focusname, ts: Date.now(), tabId: newTab.id};
+                            // #218: deliberately left in - confirms the write
+                            // side actually ran and what it stored, pairs
+                            // with the read-side log in popup.js's get_tab().
+                            console.log("SmartCopy #218: storing lastResearchFocus " + JSON.stringify(focusToStore));
+                            chrome.storage.local.set({'lastResearchFocus': focusToStore});
                         }
                     });
                 });

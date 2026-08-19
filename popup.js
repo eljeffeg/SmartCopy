@@ -372,6 +372,16 @@ function get_tab() {
             tablinkTabId = tab.id; // #218: see loadPage()'s lastResearchFocus fallback
             resolveResearchChainMatch(tab.id, tab.openerTabId, 0, function (matched) {
                 tablinkInResearchChain = matched;
+                // #218: deliberately left in (not a temporary debug log) -
+                // this is the one place that shows whether the
+                // lastResearchFocus fallback will fire for the current tab,
+                // and why not when it doesn't (no stored value at all vs. a
+                // chain that didn't resolve) - cheap, low-volume (once per
+                // popup open), and exactly what's needed to diagnose a
+                // report of "it didn't auto-resolve" without guessing.
+                console.log("SmartCopy #218: tab " + tab.id + " (opener " + tab.openerTabId + ") vs lastResearchFocus " +
+                    (exists(lastResearchFocus) ? JSON.stringify(lastResearchFocus) : "none") +
+                    " -> tablinkInResearchChain=" + matched);
                 loginProcess();
             });
         } else {

@@ -558,6 +558,13 @@ function fetchGeneanetFamilyViaTab(famid, url, arg) {
 }
 
 function runNextGeneanetTabFetch() {
+    if (!deepResearchOn || deepResearchSkipRun) {
+        while (geneanetTabQueue.length > 0) {
+            var skipped = geneanetTabQueue.shift();
+            finishGeneanetFamilyMember(skipped.famid, "", skipped.arg);
+        }
+        return;
+    }
     if (geneanetTabRunning || geneanetTabQueue.length === 0) {
         return;
     }

@@ -490,6 +490,13 @@ function fetchMHFamilyViaTab(famid, url, arg) {
 }
 
 function runNextMHTabFetch() {
+    if (!deepResearchOn || deepResearchSkipRun) {
+        while (mhTabQueue.length > 0) {
+            var skipped = mhTabQueue.shift();
+            finishMHFamilyMember(skipped.famid, "", skipped.arg);
+        }
+        return;
+    }
     if (mhTabActive >= MH_TAB_CONCURRENCY || mhTabQueue.length === 0) {
         return;
     }

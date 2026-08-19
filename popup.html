@@ -323,6 +323,31 @@
                                     <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" data-i18n="Display_the_Geni_side_data_by_default">Display the Geni side data
                                         by default</td>
                                 </tr>
+                                <tr>
+                                    <td colspan="2">
+                                        <table style="width: 100%;">
+                                            <tr>
+                                                <td style="padding-left: 10px; padding-right: 10px; text-align: left; font-size: small; float: left;"><strong data-i18n="Family_Data">Family Data</strong></td>
+                                                <td style="width: 100%">
+                                                    <hr />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 6px 0 25px; width: 58px;">
+                                        <div class="onoffswitch">
+                                            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="deepresearchonoffswitch"
+                                                checked>
+                                            <label class="onoffswitch-label" for="deepresearchonoffswitch">
+                                                <span class="onoffswitch-inner"></span>
+                                                <span class="onoffswitch-switch"></span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" data-i18n="Deep_Research_for_full_details_takes_longer">Deep Research for full details (takes longer)</td>
+                                </tr>
                             </table>
                         </td>
                         <td id="controlimage"><img style="margin-left: -10px; width: 140px;" src="images/control.png" alt="Control"></td>
@@ -794,7 +819,9 @@
         <div id="bottomsubmit" style="display: none; padding-top: 10px; padding-bottom: 5px; text-align: center;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;">Submit</a></div>
 
         <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px; margin-bottom: 15px;">
-            <div style="text-align: center; padding-top: 2px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Reading Family Data...</strong><div id="readstatus"></div></div>
+            <div style="text-align: center; padding-top: 2px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Reading Family Data...</strong><div id="readstatus"></div>
+                <div style="padding-top: 2px;"><a id="skipdeepresearch" style="cursor: pointer; font-size: x-small;" data-i18n="Skip_Deep_Research_for_this_run">Skip Deep Research for this run</a></div>
+            </div>
         </div>
         <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
             <div style="text-align: center; padding-top: 2px; padding-right: 10px; padding-left: 10px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Updating Geni (<span id="updatecount">1</span> of <span id="updatetotal">1</span>)</strong>

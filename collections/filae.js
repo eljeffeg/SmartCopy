@@ -654,6 +654,13 @@ function fetchFilaeFamilyViaTab(famid, url, arg) {
 }
 
 function runNextFilaeTabFetch() {
+    if (!deepResearchOn || deepResearchSkipRun) {
+        while (filaeTabQueue.length > 0) {
+            var skipped = filaeTabQueue.shift();
+            finishFilaeFamilyMember(skipped.famid, "", skipped.arg);
+        }
+        return;
+    }
     if (filaeTabActive >= FILAE_TAB_CONCURRENCY || filaeTabQueue.length === 0) {
         return;
     }

@@ -5,6 +5,18 @@ var familystatus = [], genifamilydata = {};
 var focusgender = "unknown";
 var uniondata = [];
 
+// #213: Deep Research controls (persistent on/off setting + a live per-run
+// skip), declared here rather than popup.js since every collections/*.js
+// tab-fetch queue needs to read them directly as bare globals, and
+// shared.js is the one script guaranteed to load before both popup.js and
+// every collections/*.js file. deepResearchOn mirrors chrome.storage.local's
+// 'deepresearchenabled' key (see popup.js) and is fixed for the popup's
+// lifetime otherwise. deepResearchSkipRun is never persisted - it's reset to
+// false at the start of every new "read family data" run so a skip never
+// silently carries over onto the next profile.
+var deepResearchOn = true;
+var deepResearchSkipRun = false;
+
 // Run script as soon as the document's DOM is ready.
 if (typeof String.prototype.startsWith != 'function') {
     String.prototype.startsWith = function (str) {

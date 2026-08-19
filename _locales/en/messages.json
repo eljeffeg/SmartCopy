@@ -708,5 +708,17 @@
     },
     "partner": {
         "message": "partner"
+    },
+    "Family_Data": {
+        "message": "Family Data"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Deep Research for full details (takes longer)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Skip Deep Research for this run"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Skipped for this run"
     }
 }

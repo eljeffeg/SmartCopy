@@ -882,6 +882,13 @@ function fetchOFBFamilyViaTab(famid, url, arg) {
 }
 
 function runNextOFBTabFetch() {
+    if (!deepResearchOn || deepResearchSkipRun) {
+        while (ofbTabQueue.length > 0) {
+            var skipped = ofbTabQueue.shift();
+            finishOFBFamilyMember(skipped.famid, "", skipped.arg);
+        }
+        return;
+    }
     if (ofbTabRunning || ofbTabQueue.length === 0) {
         return;
     }

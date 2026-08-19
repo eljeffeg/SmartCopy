@@ -889,6 +889,8 @@ function loadSelectPage(request) {
             document.querySelector('#message').style.display = "none";
             document.getElementById("smartcopy-container").style.display = "block";
             document.getElementById("loading").style.display = "block";
+            deepResearchSkipRun = false;
+            $('#skipdeepresearch').text(_('Skip_Deep_Research_for_this_run'));
             profilechanged = true;
             loadPage(request);
         } else {
@@ -1110,6 +1112,8 @@ async function getPageCode() {
         document.querySelector('#loginspinner').style.display = "none";
         document.getElementById("smartcopy-container").style.display = "block";
         document.getElementById("loading").style.display = "block";
+        deepResearchSkipRun = false;
+        $('#skipdeepresearch').text(_('Skip_Deep_Research_for_this_run'));
 
         if (collection.reload) {
             chrome.runtime.sendMessage({
@@ -3136,6 +3140,14 @@ $(function () {
     $('#sourceonoffswitch').on('click', function () {
         chrome.storage.local.set({'addsource': this.checked});
     });
+    $('#deepresearchonoffswitch').on('click', function () {
+        chrome.storage.local.set({'deepresearchenabled': this.checked});
+        deepResearchOn = this.checked;
+    });
+    $('#skipdeepresearch').on('click', function () {
+        deepResearchSkipRun = true;
+        $(this).text(_('Deep_Research_skipped_for_this_run'));
+    });
     $('#photoonoffswitch').on('click', function () {
         if (this.checked) {
             $("#photochange").css("display", "block");
@@ -3646,6 +3658,14 @@ chrome.storage.local.get('automname', function (result) {
     if (exists(mnamechecked)) {
         $('#mnameonoffswitch').prop('checked', mnamechecked);
         mnameonoff = mnamechecked;
+    }
+});
+
+chrome.storage.local.get('deepresearchenabled', function (result) {
+    var deepresearchchecked = result.deepresearchenabled;
+    if (exists(deepresearchchecked)) {
+        $('#deepresearchonoffswitch').prop('checked', deepresearchchecked);
+        deepResearchOn = deepresearchchecked;
     }
 });
 

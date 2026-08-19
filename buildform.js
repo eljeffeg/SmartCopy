@@ -331,23 +331,24 @@ function buildForm() {
         }
     }
     if (expand) {
-        // #219: whether these rows render always-visible (and count toward
-        // x, the "is there anything real to show" panel-visibility signal)
-        // must depend on whether there's actually real NAME data - not on
-        // namescore, which only reflects whether middle name specifically
-        // happened to be a SmartMatch factor. A record with just a first/
-        // last name and no middle-name signal at all previously fell into
-        // the "hidden, doesn't count" branch even though First/Last Name
-        // were populated - the whole focus panel could end up with nothing
-        // counting toward x at all, going invisible with no way to reach
-        // it (see the min-view fallback in the x-driven display block
-        // below, which now also covers whatever isn't caught here).
-        // namescore && mnameonoff keeps its original, narrower job: only
-        // deciding whether Middle Name itself defaults to checked+enabled.
+        // #219/#220: First and Last Name always render visible - they're
+        // the two fields worth seeing at a glance regardless of "Hide
+        // Empty Fields," and the true minimum view when nothing else
+        // scores. The other six (Title, Middle Name, Birth Name, Suffix,
+        // Display Name, Nicknames) are genuinely secondary - they go back
+        // to respecting Hide Empty Fields like Occupation/Gender/dates
+        // already do, hidden by default, one eyeball click away. x (the
+        // "is there anything real to show" panel-visibility signal) still
+        // counts this block whenever ANY of the 8 fields has real data -
+        // independent of namescore, which only reflects whether middle
+        // name specifically happened to be a SmartMatch factor and has no
+        // bearing on whether there's real name data at all. namescore &&
+        // mnameonoff keeps its original, narrower job: only deciding
+        // whether Middle Name itself defaults to checked+enabled.
         var hasNameData = isValue(nameval.prefix) || isValue(nameval.firstName) || isValue(nameval.middleName) ||
             isValue(nameval.lastName) || isValue(nameval.birthName) || isValue(nameval.suffix) ||
             isValue(displayname) || isValue(nameval.nickName);
-        var nameRowAttrs = hasNameData ? undefined : (' style="display: ' + isHidden(hidden) + ';" class="hiddenrow"');
+        var secondaryNameRowAttrs = ' style="display: ' + isHidden(hidden) + ';" class="hiddenrow"';
         var middleNameChecked = (namescore && mnameonoff) ? "checked" : "";
         var middleNameEnabled = (namescore && mnameonoff) ? "" : "disabled";
         // #210: each row now goes through buildTextFieldRow(), which
@@ -355,14 +356,14 @@ function buildForm() {
         // attribute - previously none of these did (the same fix
         // already applied to the family-member equivalent rows).
         membersstring +=
-            buildTextFieldRow("Title:", "title", nameval.prefix, "", "disabled", "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage, nameRowAttrs, namelocked) +
-            buildTextFieldRow("First Name:", "first_name", nameval.firstName, "", "disabled", "focus_geni_first_name", null, genifocusdata.get("names", namelang + ".first_name"), nameimage, nameRowAttrs, namelocked) +
-            buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, middleNameChecked, middleNameEnabled, "focus_geni_middle_name", null, genifocusdata.get("names", namelang + ".middle_name"), nameimage, nameRowAttrs, namelocked) +
-            buildTextFieldRow("Last Name:", "last_name", nameval.lastName, "", "disabled", "focus_geni_last_name", null, genifocusdata.get("names", namelang + ".last_name"), nameimage, nameRowAttrs, namelocked) +
-            buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", "disabled", "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage, nameRowAttrs, namelocked) +
-            buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", "disabled", "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage, nameRowAttrs, namelocked) +
-            buildTextFieldRow("Display Name: ", "display_name", displayname, "", "disabled", "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage, nameRowAttrs, namelocked) +
-            buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", "disabled", "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png", nameRowAttrs);
+            buildTextFieldRow("Title:", "title", nameval.prefix, "", "disabled", "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage, secondaryNameRowAttrs, namelocked) +
+            buildTextFieldRow("First Name:", "first_name", nameval.firstName, "", "disabled", "focus_geni_first_name", null, genifocusdata.get("names", namelang + ".first_name"), nameimage, undefined, namelocked) +
+            buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, middleNameChecked, middleNameEnabled, "focus_geni_middle_name", null, genifocusdata.get("names", namelang + ".middle_name"), nameimage, secondaryNameRowAttrs, namelocked) +
+            buildTextFieldRow("Last Name:", "last_name", nameval.lastName, "", "disabled", "focus_geni_last_name", null, genifocusdata.get("names", namelang + ".last_name"), nameimage, undefined, namelocked) +
+            buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", "disabled", "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage, secondaryNameRowAttrs, namelocked) +
+            buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", "disabled", "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage, secondaryNameRowAttrs, namelocked) +
+            buildTextFieldRow("Display Name: ", "display_name", displayname, "", "disabled", "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage, secondaryNameRowAttrs, namelocked) +
+            buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", "disabled", "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png", secondaryNameRowAttrs);
         if (hasNameData) {
             x += 1;
         }

@@ -3263,6 +3263,12 @@ $(function () {
         chrome.storage.local.set({'estimatebirthyears': this.checked});
         estimateBirthYearsOn = this.checked;
     });
+    $('#generationalgapyears').on('change', function () {
+        chrome.storage.local.set({'generationalgap': this.value});
+    });
+    $('#spousalgapyears').on('change', function () {
+        chrome.storage.local.set({'spousalgap': this.value});
+    });
     $('#skipdeepresearch').on('click', function () {
         deepResearchSkipRun = true;
         // Stop future tabs (the runNext*TabFetch gate) AND end whatever's
@@ -3810,6 +3816,18 @@ chrome.storage.local.get('estimatebirthyears', function (result) {
     if (exists(estimatebirthyearschecked)) {
         $('#estimatebirthyearsonoffswitch').prop('checked', estimatebirthyearschecked);
         estimateBirthYearsOn = estimatebirthyearschecked;
+    }
+});
+
+chrome.storage.local.get('generationalgap', function (result) {
+    if (exists(result.generationalgap)) {
+        $('#generationalgapyears').prop('value', result.generationalgap);
+    }
+});
+
+chrome.storage.local.get('spousalgap', function (result) {
+    if (exists(result.spousalgap)) {
+        $('#spousalgapyears').prop('value', result.spousalgap);
     }
 });
 

@@ -360,6 +360,14 @@
                                     </td>
                                     <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" data-i18n="Estimate_birth_years">Estimate birth years</td>
                                 </tr>
+                                <tr>
+                                    <td style="padding: 3px 6px 0 25px; width: 58px;"></td>
+                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;"><span data-i18n="Average_generational_gap_years">Average generational gap (years):</span> <input style="width: 40px; height: 14px;" type="number" name="generationalgap" min="1" id="generationalgapyears" value="30"></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 6px 0 25px; width: 58px;"></td>
+                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;"><span data-i18n="Average_spousal_age_gap_years">Average spousal age gap (years):</span> <input style="width: 40px; height: 14px;" type="number" name="spousalgap" min="1" id="spousalgapyears" value="5"></td>
+                                </tr>
                             </table>
                         </td>
                         <td id="controlimage"><img style="margin-left: -10px; width: 140px;" src="images/control.png" alt="Control"></td>
@@ -832,7 +840,7 @@
 
         <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px; margin-bottom: 15px;">
             <div style="text-align: center; padding-top: 2px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Reading Family Data...</strong><div id="readstatus"></div>
-                <div style="padding-top: 2px;"><a id="skipdeepresearch" style="cursor: pointer; font-size: x-small;" data-i18n="Skip_Deep_Research_for_this_run">Skip Deep Research for this run</a></div>
+                <div style="padding-top: 6px;"><button type="button" id="skipdeepresearch" class="cta cta-yellow" data-i18n="Skip_Deep_Research_for_this_run">Skip Deep Research for this run</button></div>
             </div>
         </div>
         <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">

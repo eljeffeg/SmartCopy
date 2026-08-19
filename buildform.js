@@ -449,7 +449,8 @@ function buildForm() {
             !exists(getBirthYear(alldata["profile"]["birth"]))) {
             var geniFocusBirth = genifocusdata.get("birth", "date.formatted_date");
             if (!exists(geniFocusBirth) || !isValue(geniFocusBirth)) {
-                var focusEstimate = estimateBirthYear("focus", undefined, focusgender);
+                var focusEstimate = estimateBirthYear("focus", undefined, focusgender,
+                    parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
                 if (exists(focusEstimate)) {
                     applyEstimatedBirth(alldata["profile"], focusEstimate.year);
                 }
@@ -1028,7 +1029,8 @@ function buildForm() {
             // members, so this stays consistent with that.
             if ($('#estimatebirthyearsonoffswitch').prop('checked') &&
                 !exists(getBirthYear(members[member]["birth"]))) {
-                var memberEstimate = estimateBirthYear(relationship, members[member], focusgender);
+                var memberEstimate = estimateBirthYear(relationship, members[member], focusgender,
+                    parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
                 if (exists(memberEstimate)) {
                     applyEstimatedBirth(members[member], memberEstimate.year);
                     // The 95-year-old default (unlike the focus profile's
@@ -2298,14 +2300,28 @@ function getChildGroupAnchorYear(category, member) {
 }
 
 // #208: ties Rule 1 (spousal age gap) and Rule 2 (parent age from oldest
-// child) together - both confirmed math, husband ~5yr older than wife,
-// father/mother ~30/25yr older than their oldest child. Tries Rule 1
-// first, falls back to Rule 2. Same-gender pairs and gender==="unknown"
-// targets never fire either rule - no valid husband/wife or father/mother
-// mapping exists, matching this codebase's existing culture of leaving
-// ambiguous cases blank (see getFocusSpouseSurname()'s own male-only
-// restriction above) rather than guessing.
-function estimateBirthYear(category, member, focusGender) {
+// child) together - husband older than wife by spousalGap years,
+// father/mother older than their oldest child by generationalGap /
+// (generationalGap - spousalGap) years respectively (mother is assumed
+// spousalGap years younger than father, the same relationship Rule 1
+// itself uses - not a separate, independently-configurable third number).
+// Both gaps are user-configurable (#208 follow-up: originally hardcoded
+// 5/30, made editable after the first live use) - passed in explicitly
+// rather than read from the DOM here, so this function stays pure/
+// testable; defaults match this feature's original hardcoded values, used
+// only if a caller omits them (e.g. a synthetic test not exercising this
+// part). Tries Rule 1 first, falls back to Rule 2. Same-gender pairs and
+// gender==="unknown" targets never fire either rule - no valid husband/
+// wife or father/mother mapping exists, matching this codebase's existing
+// culture of leaving ambiguous cases blank (see getFocusSpouseSurname()'s
+// own male-only restriction above) rather than guessing.
+function estimateBirthYear(category, member, focusGender, generationalGap, spousalGap) {
+    if (!exists(generationalGap) || isNaN(generationalGap)) {
+        generationalGap = 30;
+    }
+    if (!exists(spousalGap) || isNaN(spousalGap)) {
+        spousalGap = 5;
+    }
     var targetGender = member ? member.gender : focusGender;
     var spouse = getMemberSpouse(category, member);
     if (exists(spouse) && exists(spouse.gender) && exists(targetGender) &&
@@ -2313,20 +2329,20 @@ function estimateBirthYear(category, member, focusGender) {
         var spouseYear = getBirthYear(spouse["birth"], true);
         if (exists(spouseYear)) {
             if (targetGender === "male") {
-                return { year: spouseYear - 5 };
+                return { year: spouseYear - spousalGap };
             }
             if (targetGender === "female") {
-                return { year: spouseYear + 5 };
+                return { year: spouseYear + spousalGap };
             }
         }
     }
     var anchor = getChildGroupAnchorYear(category, member);
     if (exists(anchor) && exists(targetGender)) {
         if (targetGender === "male") {
-            return { year: anchor - 30 };
+            return { year: anchor - generationalGap };
         }
         if (targetGender === "female") {
-            return { year: anchor - 25 };
+            return { year: anchor - (generationalGap - spousalGap) };
         }
     }
     return undefined;

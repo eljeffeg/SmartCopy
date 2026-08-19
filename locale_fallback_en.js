@@ -727,5 +727,11 @@ var EN_FALLBACK_MESSAGES = {
     },
     "Estimate_birth_years": {
         "message": "Estimate birth years"
+    },
+    "Average_generational_gap_years": {
+        "message": "Average generational gap (years):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Average spousal age gap (years):"
     }
 };

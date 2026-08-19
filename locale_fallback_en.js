@@ -720,7 +720,7 @@ var EN_FALLBACK_MESSAGES = {
         "message": "Deep Research for full details (takes longer)"
     },
     "Skip_Deep_Research_for_this_run": {
-        "message": "Skip Deep Research for this run"
+        "message": "Skip Deep Dive"
     },
     "Deep_Research_skipped_for_this_run": {
         "message": "Skipping remaining lookups..."

@@ -11,7 +11,7 @@ var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefa
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [], addsiblinglist = [];
 var genibuildaction = {}, updatecount = 1, updatetotal = 0;
 var errormsg = "#f9acac", warningmsg = "#f8ff86", infomsg = "#afd2ff";
-var lastResearchFocus = null, tablinkTabId = undefined, tablinkOpenerTabId = undefined; // #218: see research.js's .ctrllink handler and loadPage() below
+var lastResearchFocus = null, tablinkTabId = undefined, tablinkInResearchChain = false; // #218: see research.js's .ctrllink handler and loadPage() below
 
 document.addEventListener('DOMContentLoaded', function () {
   Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
@@ -370,11 +370,55 @@ function get_tab() {
         if (tab !== undefined) {
             tablink = tab.url;
             tablinkTabId = tab.id; // #218: see loadPage()'s lastResearchFocus fallback
-            tablinkOpenerTabId = tab.openerTabId; // #218: covers a result opened in a NEW tab from the research tab, not just navigated in place
-            loginProcess();
+            resolveResearchChainMatch(tab.id, tab.openerTabId, 0, function (matched) {
+                tablinkInResearchChain = matched;
+                loginProcess();
+            });
         } else {
             window.setTimeout(get_tab, 1000);
         }
+    });
+}
+
+// #218: a single openerTabId hop only recognizes a result opened in a NEW
+// tab DIRECTLY from the research tab - live testing found real source sites
+// sometimes go two hops deep (e.g. a search-results tab opens an
+// intermediate tab, which itself opens the actual record tab), which a
+// single-hop check misses entirely. openerTabId only ever points to a tab's
+// IMMEDIATE parent and never updates on navigation, so recognizing a deeper
+// chain requires walking it: repeatedly asking Chrome for each ancestor
+// tab's own openerTabId via chrome.tabs.get() (permission already granted -
+// "tabs" - works for any tab, not just the active one) until either a match
+// against lastResearchFocus.tabId is found or the chain runs out.
+// MAX_OPENER_CHAIN_DEPTH bounds this - an extremely deep or cyclic opener
+// chain (shouldn't happen in practice, but Chrome doesn't guarantee it
+// can't) must not hang this lookup indefinitely.
+var MAX_OPENER_CHAIN_DEPTH = 5;
+function resolveResearchChainMatch(currentTabId, openerTabId, depth, callback) {
+    if (!exists(lastResearchFocus) || !exists(lastResearchFocus.tabId)) {
+        callback(false);
+        return;
+    }
+    if (currentTabId === lastResearchFocus.tabId) {
+        callback(true);
+        return;
+    }
+    if (!exists(openerTabId) || depth >= MAX_OPENER_CHAIN_DEPTH) {
+        callback(false);
+        return;
+    }
+    if (openerTabId === lastResearchFocus.tabId) {
+        callback(true);
+        return;
+    }
+    chrome.tabs.get(openerTabId, function (openerTab) {
+        if (chrome.runtime.lastError || !exists(openerTab)) {
+            // The ancestor tab may have since been closed - nothing further
+            // to walk, this chain doesn't reach lastResearchFocus.tabId.
+            callback(false);
+            return;
+        }
+        resolveResearchChainMatch(openerTabId, openerTab.openerTabId, depth + 1, callback);
     });
 }
 
@@ -707,28 +751,24 @@ function loadPage(request) {
             // submission - a brand-new "Research this Person" click with
             // nothing submitted yet has no history entry at all. Fall back
             // to the Geni profile that specific research link was FOR - but
-            // only when the tab being read right now is either the exact
-            // tab that link opened (tablinkTabId === lastResearchFocus.tabId,
-            // set by research.js's .ctrllink handler) OR a tab opened
-            // DIRECTLY FROM that tab (tablinkOpenerTabId === ...tabId) -
-            // confirmed live that source sites commonly open an individual
-            // search result in a new child tab rather than navigating the
-            // search-results tab in place (e.g. MyHeritage), which the
-            // exact-tab-only version of this check missed entirely, right
-            // back to "unable to determine the Geni profile" for the exact
-            // flow this fallback exists for. Matching on tab identity at
-            // all (not just "most recently used," which an earlier version
-            // of this fallback did) is still required - that version had
-            // no per-tab anchor and applied to ANY later unmatched page,
-            // confirmed live to silently misattribute a completely
-            // unrelated page to a prior, unrelated research click. Never
-            // overrides an actual buildhistory match (checked first,
-            // above) or a manual "Set Geni Destination Profile" entry
-            // (loadSelectPage, below, still runs whenever this has nothing
-            // to offer).
+            // only when the tab being read right now is somewhere in that
+            // link's own tab-opener chain (tablinkInResearchChain, resolved
+            // in get_tab() by walking chrome.tabs.get().openerTabId up to
+            // MAX_OPENER_CHAIN_DEPTH hops - covers not just the exact tab
+            // research.js's .ctrllink handler opened, but any tab opened
+            // FROM it, however many hops deep a source site's own click
+            // path goes, confirmed live that a single hop wasn't always
+            // enough). Matching on tab identity at all (not just "most
+            // recently used," which an earlier version of this fallback
+            // did) is still required - that version had no per-tab anchor
+            // and applied to ANY later unmatched page, confirmed live to
+            // silently misattribute a completely unrelated page to a prior,
+            // unrelated research click. Never overrides an actual
+            // buildhistory match (checked first, above) or a manual
+            // "Set Geni Destination Profile" entry (loadSelectPage, below,
+            // still runs whenever this has nothing to offer).
             if (!profilechanged && exists(lastResearchFocus) && exists(lastResearchFocus.id) &&
-                exists(lastResearchFocus.tabId) &&
-                (lastResearchFocus.tabId === tablinkTabId || lastResearchFocus.tabId === tablinkOpenerTabId)) {
+                exists(lastResearchFocus.tabId) && tablinkInResearchChain) {
                 focusid = lastResearchFocus.id;
                 profilechanged = true;
                 loadPage(request);

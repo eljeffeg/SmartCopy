@@ -15,7 +15,7 @@
         "message": "UIT"
     },
     "consistencyCheck": {
-        "message": "Consistentie controle"
+        "message": "Consistentiecontrole"
     },
     "contains_incorrect_uppercase_lowercase_in_name": {
         "message": "$person$ bevat onjuist gebruik van hoofd/kleine letters in $pronoun$ naam ($lang$).",
@@ -196,7 +196,7 @@
         "message": "Andere bronnen"
     },
     "Unable_to_create_research_links_on_this_profile": {
-        "message": "Kan geen onderzoek links aanmaken voor dit profiel."
+        "message": "Kan geen onderzoekslinks aanmaken voor dit profiel."
     },
     "Loading___": {
         "message": "Laden..."
@@ -226,13 +226,13 @@
         "message": "Configuratie"
     },
     "Copy_Preferences": {
-        "message": "Copieer voorkeuren"
+        "message": "Kopieervoorkeuren"
     },
     "Consistency_Checks": {
         "message": "Consistentiecontroles"
     },
     "Geni_Customization": {
-        "message": "Geni Aanpassingen"
+        "message": "Geni-aanpassingen"
     },
     "Note_Dates_that_contain_Between_Before_and_After___": {
         "message": "Opmerking: Datums die tussen, voor, of na bevatten worden niet vergeleken in consistentiecontroles. Data met Circa worden beschouwd als exacte data."
@@ -310,7 +310,7 @@
         "message": "Aanhef of relatie in titel (bijv. 'Mr', 'Mrs')"
     },
     "Salutation_or_relationship_in_suffix_eg___": {
-        "message": "Aanhef of relatie in achtervoegsel (eg. 'Mr', 'Mrs')"
+        "message": "Aanhef of relatie in achtervoegsel (bijv. 'Mr', 'Mrs')"
     },
     "Relationship_cycle_in_immediate_family": {
         "message": "Relatiekringloop in naaste familie"
@@ -459,25 +459,25 @@
 		"message": "Geolocatie inschakelen"
 	},
 	"API_Key": {
-		"message": "API Sleutel"
+		"message": "API-sleutel"
 	},
 	"Location_fields_auto_select_one_select_all": {
 		"message": "Bij selectie van één locatieveld alle locatievelden selecteren"
 	},
 	"Naming": {
-		"message": "Namen"
+		"message": "Naamgeving"
 	},
 	"Auto_populate_empty_birth_name_fields": {
-		"message": "Lege geboortenaam velden automatisch vullen"
+		"message": "Lege geboortenaamvelden automatisch invullen"
 	},
 	"Auto_fill_married_last_name": {
-		"message": "Getrouwde achternaam automatisch invullen"
+		"message": "Achternaam na huwelijk automatisch invullen"
 	},
 	"Parse_for_middle_names_automatically": {
-		"message": "Automatisch zoeken naar patroniemen"
+		"message": "Middelnamen automatisch herkennen"
 	},
 	"Auto_adjust_the_names_for_mixed_case": {
-		"message": "Namen aanpassen voor hoofdletter gebruik"
+		"message": "Hoofd-/kleinelettergebruik in namen automatisch aanpassen"
 	},
 	"Force_compound_lastname_to_lowercase": {
 		"message": "Zet samengestelde achternaam om naar kleine letters"
@@ -489,7 +489,7 @@
 		"message": "Overleden profielen standaard openbaar maken"
 	},
 	"Add_reference_to_Geni_s_About_section": {
-		"message": "Verwijzing toevoegen aan Geni's Over sectie"
+		"message": "Verwijzing toevoegen aan Geni's Over-sectie"
 	},
 	"Display_the_Geni_side_data_by_default": {
 		"message": "Standaard de Geni-gegevens weergeven"
@@ -503,7 +503,7 @@
 		"message": " jaar verschil in leeftijd tussen "
 	},
 	"Birth_Surname_of_": {
-		"message": "Geboorte achternaam van "
+		"message": "Achternaam bij geboorte van "
 	},
 	"_is_the_same_as_the_last_name_of_": {
 		"message": " is hetzelfde als de achternaam van "
@@ -527,7 +527,7 @@
 		"message": " overleden voor "
 	},
 	"_years_old_for_": {
-		"message": " jaar oud voor "
+		"message": " jaar oud bij "
 	},
 	"_marriage": {
 		"message": " huwelijk"
@@ -554,22 +554,22 @@
 		"message": " geboren na het overlijden van "
 	},
 	"_is_under_": {
-		"message": " is under "
+		"message": " is jonger dan "
 	},
 	"_years_old_for_the_birth_of_": {
-		"message": " jaar oud voor de geboorte van "
+		"message": " jaar oud bij de geboorte van "
 	},
 	"_is_over_": {
 		"message": " is meer dan "
 	},
 	"_born_before_the_marriage_of_": {
-		"message": " geboorte voor het huwelijk van "
+		"message": " geboren vóór het huwelijk van "
 	},
 	"_parents_": {
 		"message": " ouders "
 	},
 	"_has_pending_": {
-		"message": " heeft lopende "
+		"message": " heeft openstaande "
 	},
 	"data_conflicts": {
 		"message": "dataconflicten"
@@ -608,7 +608,7 @@
 		"message": "voornaam"
 	},
 	"_contains_a_double_or_trailing_space_in_": {
-		"message": " bevat een dubbele or achterliggende spatie in "
+		"message": " bevat een dubbele spatie of een spatie aan het einde in "
 	},
 	"_names": {
 		"message": " namen"
@@ -674,7 +674,7 @@
 		"message": " bevat een "
 	},
 	"_location_without_a_country": {
-		"message": " lokatie zonder een land."
+		"message": " locatie zonder land"
 	},
 	"his": {
 		"message": "zijn"
@@ -695,16 +695,16 @@
 		"message": "ouder"
 	},
 	"brother": {
-		"message": "brother"
+		"message": "broer"
 	},
 	"sibling": {
 		"message": "broer of zus"
 	},
 	"wife": {
-		"message": "vrouw"
+		"message": "echtgenote"
 	},
 	"husband": {
-		"message": "man"
+		"message": "echtgenoot"
 	},
 	"partner": {
 		"message": "partner"

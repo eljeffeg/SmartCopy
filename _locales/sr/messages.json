@@ -1,0 +1,707 @@
+{
+    "appName": {
+        "message": "SmartCopy"
+    },
+    "appShortName": {
+        "message": "SmartCopy"
+    },
+    "appDesc": {
+        "message": "Алат за копирање генеалошких података у Geni."
+    },
+    "switchOn": {
+        "message": "УКЉ."
+    },
+    "switchOff": {
+        "message": "ИСКЉ."
+    },
+    "consistencyCheck": {
+        "message": "Провера доследности"
+    },
+    "contains_incorrect_uppercase_lowercase_in_name": {
+        "message": "$person$ садржи неправилну употребу великих/малих слова у $pronoun$ имену ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_incorrect_uppercase_lowercase_in_name_default": {
+        "message": "$person$ садржи неправилну употребу великих/малих слова у $pronoun$ имену.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_patronym_in_first_name": {
+        "message": "$person$ садржи патроним/матроним у $pronoun$ имену ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_patronym_in_first_name_default": {
+        "message": "$person$ садржи патроним/матроним у $pronoun$ имену.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name": {
+        "message": "$person$ садржи вредност која није патроним/матроним у $pronoun$ средњем имену ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name_default": {
+        "message": "$person$ садржи вредност која није патроним/матроним у $pronoun$ средњем имену.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "living": {
+        "message": "жив"
+    },
+    "claimed": {
+        "message": "преузет"
+    },
+    "fixCase": {
+        "message": "исправи велика/мала слова"
+    },
+    "fixed": {
+        "message": "исправљено"
+    },
+    "fixName": {
+        "message": "исправи име"
+    },
+    "fixSpace": {
+        "message": "исправи размак"
+    },
+    "fixSuffix": {
+        "message": "исправи суфикс"
+    },
+    "fixTitle": {
+        "message": "исправи титулу"
+    },
+    "noPermission": {
+        "message": "нема дозволе за исправку"
+    },
+    "makePublic": {
+        "message": "учини јавним"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$ чланова породице рођених пре отприлике $year$. године постављено је као приватно.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$ је рођен/а пре отприлике $year$. године и постављен/а је као приватан/приватна.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "Research_this_Person": {
+        "message": "Истражи ову особу"
+    },
+    "All_Collections": {
+        "message": "Све збирке"
+    },
+    "Collections": {
+        "message": "Збирке"
+    },
+    "Publications": {
+        "message": "Публикације"
+    },
+    "Holocaust": {
+        "message": "Холокауст"
+    },
+    "Name_Search": {
+        "message": "Претрага имена"
+    },
+    "Gravestones": {
+        "message": "Надгробни споменици"
+    },
+    "Genealogies": {
+        "message": "Генеалогије"
+    },
+    "Genealogy": {
+        "message": "Генеалогија"
+    },
+    "Geni_Search": {
+        "message": "Претражи Geni"
+    },
+    "Google_Search": {
+        "message": "Претражи Google"
+    },
+    "Records": {
+        "message": "Записи"
+    },
+    "Messageboard": {
+        "message": "Форум"
+    },
+    "Newspapers": {
+        "message": "Новине"
+    },
+    "Books": {
+        "message": "Књиге"
+    },
+    "Obituaries": {
+        "message": "Некролози"
+    },
+    "Other_Resources": {
+        "message": "Други извори"
+    },
+    "Unable_to_create_research_links_on_this_profile": {
+        "message": "Није могуће направити истраживачке везе за овај профил."
+    },
+    "Loading___": {
+        "message": "Учитавање..."
+    },
+    "HistoryLink_unreachable_message": {
+        "message": "Није могуће приступити HistoryLink услузи за пријаву. Проверите интернет везу и покушајте поново."
+    },
+    "HistoryLink": {
+        "message": "HistoryLink алати"
+    },
+    "Ancestor_Graph": {
+        "message": "Граф предака"
+    },
+    "Descendant_Graph": {
+        "message": "Граф потомака"
+    },
+    "History_Search": {
+        "message": "Историјска претрага"
+    },
+    "Forest_Density_Calculator": {
+        "message": "Калкулатор густине"
+    },
+    "Path_To_User": {
+        "message": "Путања до корисника"
+    },
+    "Configuration": {
+        "message": "Подешавања"
+    },
+    "Copy_Preferences": {
+        "message": "Подешавања копирања"
+    },
+    "Consistency_Checks": {
+        "message": "Провере доследности"
+    },
+    "Geni_Customization": {
+        "message": "Прилагођавање Geni-ја"
+    },
+    "Note_Dates_that_contain_Between_Before_and_After___": {
+        "message": "Напомена: датуми који садрже „Између“, „Пре“ и „После“ не упоређују се у проверама доследности. Датуми са ознаком „Око“ сматрају се тачним датумима."
+    },
+    "Run_consistency_checks_when_viewing_Geni_profiles": {
+        "message": "Покрени провере доследности приликом прегледа Geni профила."
+    },
+    "Age_difference_between_partners_is_significant": {
+        "message": "Разлика у годинама између партнера је значајна"
+    },
+    "Maiden_name_same_as_husbands_last_name": {
+        "message": "Девојачко презиме је исто као презиме мужа"
+    },
+    "Husband_and_wife_death_dates_the_same": {
+        "message": "Датуми смрти мужа и жене су исти"
+    },
+    "Husband_death_date_same_as_marriage_date": {
+        "message": "Датум смрти мужа је исти као датум брака"
+    },
+    "Wife_death_date_same_as_marriage_date": {
+        "message": "Датум смрти жене је исти као датум брака"
+    },
+    "Born_after_marriage": {
+        "message": "Рођен/а после брака"
+    },
+    "Died_before_marriage": {
+        "message": "Умро/ла пре брака"
+    },
+    "Implausible_marriage_age_too_young": {
+        "message": "Невероватна старост за брак: превише млад/а"
+    },
+    "Siblings_ages_too_close_together": {
+        "message": "Године браће/сестара су превише близу"
+    },
+    "Born_before_parent_birth": {
+        "message": "Рођен/а пре рођења родитеља"
+    },
+    "Born_after_parent_death": {
+        "message": "Рођен/а после смрти родитеља"
+    },
+    "Death_before_baptism_date": {
+        "message": "Смрт пре датума крштења"
+    },
+    "Death_after_burial_date": {
+        "message": "Смрт после датума сахране"
+    },
+    "Parent_too_young_for_childs_birth": {
+        "message": "Родитељ је био превише млад при рођењу детета"
+    },
+    "Mother_too_old_for_childs_birth": {
+        "message": "Мајка је била престара при рођењу детета"
+    },
+    "Born_before_parent_marriage": {
+        "message": "Рођен/а пре брака родитеља"
+    },
+    "Excessive_Age": {
+        "message": "Превисока старост"
+    },
+    "Born_after_death": {
+        "message": "Рођен/а после смрти"
+    },
+    "Name_contains_double_space": {
+        "message": "Име садржи двоструки размак"
+    },
+    "Name_contains_alias": {
+        "message": "Име садржи надимак"
+    },
+    "Name_contains_improper_use_of_uppercase_lowercase": {
+        "message": "Име садржи неправилну употребу великих/малих слова"
+    },
+    "First_Name_ends_in_suffix_eg___": {
+        "message": "Име се завршава суфиксом (нпр. 'i','ii','iii','iv','jr','sr')"
+    },
+    "Salutation_or_relationship_in_title_eg___": {
+        "message": "Ословљавање или сроднички однос у титули (нпр. 'Mr', 'Mrs')"
+    },
+    "Salutation_or_relationship_in_suffix_eg___": {
+        "message": "Ословљавање или сроднички однос у суфиксу (нпр. 'Mr', 'Mrs')"
+    },
+    "Relationship_cycle_in_immediate_family": {
+        "message": "Циклус сродничких односа у ужој породици"
+    },
+    "Check_date_formatting_for_inconsistent_values": {
+        "message": "Провери формат датума због недоследних вредности"
+    },
+    "Check_for_pending_data_conflict_resolution": {
+        "message": "Провери нерешене сукобе података"
+    },
+    "Self_check_profile_for_inconsistent_dates_and_values": {
+        "message": "Аутоматски провери профил због недоследних датума и вредности."
+    },
+    "Check_name_fields_for_improper_values": {
+        "message": "Провери поља имена због неисправних вредности"
+    },
+    "Check_name_fields_for_living_profiles": {
+        "message": "Искључи профиле живих особа из брзе исправке"
+    },
+    "Check_profile_for_pending_data_conflicts": {
+        "message": "Провери профил због нерешених сукоба података"
+    },
+    "Check_date_values_for_irregular_formatting": {
+        "message": "Провери вредности датума због неправилног форматирања"
+    },
+    "Check_when_location_is_missing_a_country": {
+        "message": "Провери када локацији недостаје држава"
+    },
+    "Maximum_year_to_be_private": {
+        "message": "Најкаснија година за приватни профил:"
+    },
+    "Maximum_age": {
+        "message": "Највећа старост:"
+    },
+    "Check_the_dates_of_children_against_their_parents": {
+        "message": "Упореди датуме деце са датумима њихових родитеља."
+    },
+    "Check_child_is_born_after_parent_marriage": {
+        "message": "Провери да ли је дете рођено после брака родитеља"
+    },
+    "Age_the_parent_is_too_young_to_have_a_child": {
+        "message": "Старост испод које се родитељ сматра превише младим за дете"
+    },
+    "Age_the_mother_is_too_old_to_have_a_child": {
+        "message": "Старост изнад које се мајка сматра престаром за дете"
+    },
+    "Check_the_values_of_partner_spouses_against_each_other": {
+        "message": "Упореди вредности партнера/супружника међусобно."
+    },
+    "Identify_possible_maiden_name_copy_issues": {
+        "message": "Препознај могуће проблеме при копирању девојачког презимена"
+    },
+    "Age_the_spouse_is_too_young_to_be_married": {
+        "message": "Старост испод које се супружник сматра превише младим за брак"
+    },
+    "Maximum_age_difference_between_spouses": {
+        "message": "Највећа разлика у годинама између супружника"
+    },
+    "Check_siblings_birth_are_over_": {
+        "message": "Провери да ли су рођења браће/сестара удаљена више од "
+    },
+    "_months_apart_excl_twins": {
+        "message": " месеци (осим близанаца)."
+    },
+    "Future_options_to_add_features_to_Geni": {
+        "message": "Будуће могућности за додавање функција у Geni."
+    },
+    "This_profile_is_not_in_the_World_Family_Tree": {
+        "message": "Овај профил није у Светском породичном стаблу."
+    },
+    "Add_to_History": {
+        "message": "Додај у историју"
+    },
+    "Show_History": {
+        "message": "Прикажи историју"
+    },
+    "Hide_History": {
+        "message": "Сакриј историју"
+    },
+    "Clear_History": {
+        "message": "Обриши историју"
+    },
+    "Notice___Please_Read": {
+        "message": "Обавештење – молимо прочитајте"
+    },
+    "SmartCopy_will_no_longer_do_geo_location_lookups___": {
+        "message": "SmartCopy више неће аутоматски обављати претраге геолокације због цене Google-ове услуге. Иако је то лоша вест, Geni је недавно омогућио претрагу геолокације <i>после</i> слања. Када се локација пошаље преко поља места, Geni ће извршити упит и попунити поља локације на веб-сајту. Као алтернативу, у подешавањима можете навести сопствени Google API кључ. И даље можете ручно попунити податке о локацији у SmartCopy-ју кликом на икону глобуса $globe_icon$, а ако желите да онемогућите Geni-јеву претрагу геолокације, то можете учинити у подешавањима SmartCopy-ја.",
+        "placeholders": {
+            "globe_icon": {
+                "content": "$1"
+            }
+        }
+    },
+    "Close": {
+        "message": "Затвори"
+    },
+    "Display_Add_Biography_button_in_About": {
+        "message": "Прикажи дугме Додај биографију у одељку О профилу"
+    },
+    "Add_Biography": {
+        "message": "Додај биографију"
+    },
+    "Export_Profiles_button_on_Project_Actions": {
+        "message": "Прикажи дугме Извези профиле у Радњама пројекта"
+    },
+    "Export_Profiles": {
+        "message": "Извези профиле"
+    },
+    "SmartCopy_does_not_currently_support_parsing": {
+        "message": "SmartCopy тренутно не подржава рашчлањивање ове странице / сајта / збирке."
+    },
+    "SmartCopy_is_having_difficulty_reading_the_page": {
+        "message": "SmartCopy има потешкоћа са читањем странице. Покушајте да освежите страницу."
+    },
+    "This_website_is_not_yet_supported_by_SmartCopy": {
+        "message": "SmartCopy још не подржава овај веб-сајт."
+    },
+    "Selection": {
+        "message": "Избор"
+    },
+    "Simplify_form_by_hiding_unused_fields": {
+        "message": "Поједностави образац скривањем неискоришћених поља"
+    },
+    "Enable_photo_checkbox_auto_selection": {
+        "message": "Омогући аутоматски избор поља за потврду фотографије"
+    },
+    "Reminder_user_responsible": {
+        "message": "Подсетник: корисник је одговоран за<br>добијање свих потребних дозвола од<br>фотографа приликом копирања слика."
+    },
+    "Exclude_private_profile_auto_select": {
+        "message": "Искључи профиле <private> из аутоматског избора"
+    },
+    "Est_burial_date_from_death_if_location": {
+        "message": "Процени датум сахране на основу датума смрти ако постоји локација"
+    },
+    "This_change_will_take_effect_at_next_use": {
+        "message": "Ова промена ће ступити на снагу при следећем коришћењу."
+    },
+    "Location": {
+        "message": "Локација"
+    },
+    "Enable_Geolocation": {
+        "message": "Омогући геолокацију"
+    },
+    "API_Key": {
+        "message": "API кључ"
+    },
+    "Location_fields_auto_select_one_select_all": {
+        "message": "У пољима локације избор једног бира све"
+    },
+    "Naming": {
+        "message": "Имена"
+    },
+    "Auto_populate_empty_birth_name_fields": {
+        "message": "Аутоматски попуни празна поља имена при рођењу"
+    },
+    "Auto_fill_married_last_name": {
+        "message": "Аутоматски попуни презиме после брака"
+    },
+    "Parse_for_middle_names_automatically": {
+        "message": "Аутоматски препознај средња имена"
+    },
+    "Auto_adjust_the_names_for_mixed_case": {
+        "message": "Аутоматски прилагоди велика/мала слова у именима"
+    },
+    "Force_compound_lastname_to_lowercase": {
+        "message": "Присилно претвори сложена презимена у мала слова"
+    },
+    "Default_children_to_likely_Geni_parent": {
+        "message": "Подразумевано повежи децу са највероватнијим Geni родитељем"
+    },
+    "Default_deceased_profiles_to_public": {
+        "message": "Подразумевано постави профиле преминулих као јавне"
+    },
+    "Add_reference_to_Geni_s_About_section": {
+        "message": "Додај извор у Geni одељак О профилу"
+    },
+    "Display_the_Geni_side_data_by_default": {
+        "message": "Подразумевано прикажи податке са Geni стране"
+    },
+    "Please_select_one_of_the_Matches": {
+        "message": "Изаберите једно од подударања на овој страници резултата."
+    },
+    "_year_age_difference_between_": {
+        "message": " година разлике у годинама између "
+    },
+    "Birth_Surname_of_": {
+        "message": "Презиме при рођењу особе "
+    },
+    "_is_the_same_as_the_last_name_of_": {
+        "message": " исто је као презиме особе "
+    },
+    "Death_date_of_": {
+        "message": "Датум смрти особе "
+    },
+    "_is_the_same_as_the_death_date_of_": {
+        "message": " исти је као датум смрти особе "
+    },
+    "_is_the_same_as_": {
+        "message": " исто је као "
+    },
+    "_marriage_date": {
+        "message": " датум брака"
+    },
+    "_born_after_": {
+        "message": " рођен/а после "
+    },
+    "_died_before_": {
+        "message": " умро/ла пре "
+    },
+    "_years_old_for_": {
+        "message": " година при "
+    },
+    "_marriage": {
+        "message": " брак"
+    },
+    "Birth_date_of_": {
+        "message": "Датум рођења особе "
+    },
+    "_and_": {
+        "message": " и "
+    },
+    "_are_within_": {
+        "message": " разликују се мање од "
+    },
+    "_months": {
+        "message": " месеци"
+    },
+    "_born_before_the_birth_of_": {
+        "message": " рођен/а пре рођења особе "
+    },
+    "death": {
+        "message": "смрт"
+    },
+    "_born_after_the_death_of_": {
+        "message": " рођен/а после смрти особе "
+    },
+    "_is_under_": {
+        "message": " има мање од "
+    },
+    "_years_old_for_the_birth_of_": {
+        "message": " година при рођењу особе "
+    },
+    "_is_over_": {
+        "message": " има више од "
+    },
+    "_born_before_the_marriage_of_": {
+        "message": " рођен/а пре брака особе "
+    },
+    "_parents_": {
+        "message": " родитељи "
+    },
+    "_has_pending_": {
+        "message": " има нерешене "
+    },
+    "data_conflicts": {
+        "message": "сукобе података"
+    },
+    "The_age_of_": {
+        "message": "Старост особе "
+    },
+    "_exceeds_": {
+        "message": " премашује "
+    },
+    "_years": {
+        "message": " година"
+    },
+    "_is_after_": {
+        "message": " је после "
+    },
+    "_death_date": {
+        "message": " датум смрти"
+    },
+    "Baptism_date_of_": {
+        "message": "Датум крштења особе "
+    },
+    "_is_before_": {
+        "message": " је пре "
+    },
+    "_birth_date": {
+        "message": " датум рођења"
+    },
+    "_burial_date": {
+        "message": " датум сахране"
+    },
+    "_contains_a_double_space_in_": {
+        "message": " садржи двоструки размак у "
+    },
+    "first_name": {
+        "message": "име"
+    },
+    "_contains_a_double_or_trailing_space_in_": {
+        "message": " садржи двоструки или завршни размак у "
+    },
+    "_names": {
+        "message": " имена"
+    },
+    "_contains_an_alias_in_": {
+        "message": " садржи надимак у "
+    },
+    "_appears_to_contain_a_suffix_in_": {
+        "message": " изгледа да садржи суфикс у "
+    },
+    "Move_Suffix": {
+        "message": "Премести суфикс"
+    },
+    "_contains_improper_use_of_salutation_in_": {
+        "message": " садржи неправилну употребу ословљавања у "
+    },
+    "_title": {
+        "message": " титула"
+    },
+    "Remove_salutation": {
+        "message": "Уклони ословљавање"
+    },
+    "_contains_improper_use_of_relationship_in_": {
+        "message": " садржи неправилну употребу сродничког односа у "
+    },
+    "_suffix": {
+        "message": " суфикс"
+    },
+    "Remove_relationship": {
+        "message": "Уклони сроднички однос"
+    },
+    "_contains_improper_use_of_a_numbering_scheme_in_": {
+        "message": " садржи неправилну употребу нумерисања у "
+    },
+    "Remove_numeric": {
+        "message": "Уклони број"
+    },
+    "_is_in_a_relationship_cycle_within_the_immediate_family": {
+        "message": " налази се у циклусу сродничких односа у ужој породици"
+    },
+    "_contains_an_invalid_": {
+        "message": " садржи неважећи "
+    },
+    "_date_month_greater_than_12": {
+        "message": " датум, месец је већи од 12."
+    },
+    "_date_day_greater_than_31": {
+        "message": " датум, дан је већи од 31."
+    },
+    "_date": {
+        "message": " датум"
+    },
+    "_contains_an_incomplete_": {
+        "message": " садржи непотпуни "
+    },
+    "_date_missing_month": {
+        "message": " датум, недостаје месец."
+    },
+    "_date_missing_year": {
+        "message": " датум, недостаје година."
+    },
+    "_contains_a_": {
+        "message": " садржи "
+    },
+    "_location_without_a_country": {
+        "message": " локацију без државе"
+    },
+    "his": {
+        "message": "његово"
+    },
+    "her": {
+        "message": "њено"
+    },
+    "their": {
+        "message": "њихово"
+    },
+    "mother": {
+        "message": "мајка"
+    },
+    "father": {
+        "message": "отац"
+    },
+    "parent": {
+        "message": "родитељ"
+    },
+    "brother": {
+        "message": "брат"
+    },
+    "sibling": {
+        "message": "брат/сестра"
+    },
+    "wife": {
+        "message": "супруга"
+    },
+    "husband": {
+        "message": "супруг"
+    },
+    "partner": {
+        "message": "партнер"
+    }
+}

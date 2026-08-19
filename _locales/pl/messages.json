@@ -1,0 +1,707 @@
+{
+    "appName": {
+        "message": "SmartCopy"
+    },
+    "appShortName": {
+        "message": "SmartCopy"
+    },
+    "appDesc": {
+        "message": "Narzędzie do kopiowania danych genealogicznych do Geni."
+    },
+    "switchOn": {
+        "message": "WŁ."
+    },
+    "switchOff": {
+        "message": "WYŁ."
+    },
+    "consistencyCheck": {
+        "message": "Kontrola spójności"
+    },
+    "contains_incorrect_uppercase_lowercase_in_name": {
+        "message": "$person$ zawiera nieprawidłowe użycie wielkich/małych liter w $pronoun$ imieniu/nazwisku ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_incorrect_uppercase_lowercase_in_name_default": {
+        "message": "$person$ zawiera nieprawidłowe użycie wielkich/małych liter w $pronoun$ imieniu/nazwisku.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_patronym_in_first_name": {
+        "message": "$person$ zawiera patronimik/matronimik w $pronoun$ imieniu ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_patronym_in_first_name_default": {
+        "message": "$person$ zawiera patronimik/matronimik w $pronoun$ imieniu.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name": {
+        "message": "$person$ zawiera element niebędący patronimikiem/matronimikiem w $pronoun$ drugim imieniu ($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name_default": {
+        "message": "$person$ zawiera element niebędący patronimikiem/matronimikiem w $pronoun$ drugim imieniu.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "living": {
+        "message": "żyjący"
+    },
+    "claimed": {
+        "message": "przejęty"
+    },
+    "fixCase": {
+        "message": "popraw wielkość liter"
+    },
+    "fixed": {
+        "message": "poprawiono"
+    },
+    "fixName": {
+        "message": "popraw nazwę"
+    },
+    "fixSpace": {
+        "message": "popraw spację"
+    },
+    "fixSuffix": {
+        "message": "popraw sufiks"
+    },
+    "fixTitle": {
+        "message": "popraw tytuł"
+    },
+    "noPermission": {
+        "message": "brak uprawnień do poprawy"
+    },
+    "makePublic": {
+        "message": "ustaw jako publiczny"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$ członków rodziny urodzonych przed ok. $year$ ma ustawiony profil prywatny.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$ urodził(a) się przed ok. $year$ i ma ustawiony profil prywatny.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "Research_this_Person": {
+        "message": "Zbadaj tę osobę"
+    },
+    "All_Collections": {
+        "message": "Wszystkie kolekcje"
+    },
+    "Collections": {
+        "message": "Kolekcje"
+    },
+    "Publications": {
+        "message": "Publikacje"
+    },
+    "Holocaust": {
+        "message": "Holokaust"
+    },
+    "Name_Search": {
+        "message": "Wyszukiwanie nazwiska"
+    },
+    "Gravestones": {
+        "message": "Nagrobki"
+    },
+    "Genealogies": {
+        "message": "Genealogie"
+    },
+    "Genealogy": {
+        "message": "Genealogia"
+    },
+    "Geni_Search": {
+        "message": "Wyszukiwanie w Geni"
+    },
+    "Google_Search": {
+        "message": "Wyszukiwanie w Google"
+    },
+    "Records": {
+        "message": "Dokumenty"
+    },
+    "Messageboard": {
+        "message": "Forum"
+    },
+    "Newspapers": {
+        "message": "Gazety"
+    },
+    "Books": {
+        "message": "Książki"
+    },
+    "Obituaries": {
+        "message": "Nekrologi"
+    },
+    "Other_Resources": {
+        "message": "Inne źródła"
+    },
+    "Unable_to_create_research_links_on_this_profile": {
+        "message": "Nie można utworzyć linków badawczych dla tego profilu."
+    },
+    "Loading___": {
+        "message": "Ładowanie..."
+    },
+    "HistoryLink_unreachable_message": {
+        "message": "Nie udało się połączyć z usługą logowania HistoryLink. Sprawdź połączenie z Internetem i spróbuj ponownie."
+    },
+    "HistoryLink": {
+        "message": "Narzędzia HistoryLink"
+    },
+    "Ancestor_Graph": {
+        "message": "Wykres przodków"
+    },
+    "Descendant_Graph": {
+        "message": "Wykres potomków"
+    },
+    "History_Search": {
+        "message": "Wyszukiwanie historyczne"
+    },
+    "Forest_Density_Calculator": {
+        "message": "Kalkulator gęstości"
+    },
+    "Path_To_User": {
+        "message": "Ścieżka do użytkownika"
+    },
+    "Configuration": {
+        "message": "Konfiguracja"
+    },
+    "Copy_Preferences": {
+        "message": "Preferencje kopiowania"
+    },
+    "Consistency_Checks": {
+        "message": "Kontrole spójności"
+    },
+    "Geni_Customization": {
+        "message": "Dostosowanie Geni"
+    },
+    "Note_Dates_that_contain_Between_Before_and_After___": {
+        "message": "Uwaga: daty zawierające „Między”, „Przed” i „Po” nie są porównywane w kontrolach spójności. Daty z określeniem „około” są traktowane jako daty dokładne."
+    },
+    "Run_consistency_checks_when_viewing_Geni_profiles": {
+        "message": "Uruchamiaj kontrole spójności podczas przeglądania profili Geni."
+    },
+    "Age_difference_between_partners_is_significant": {
+        "message": "Różnica wieku między partnerami jest znaczna"
+    },
+    "Maiden_name_same_as_husbands_last_name": {
+        "message": "Nazwisko rodowe jest takie samo jak nazwisko męża"
+    },
+    "Husband_and_wife_death_dates_the_same": {
+        "message": "Daty śmierci męża i żony są takie same"
+    },
+    "Husband_death_date_same_as_marriage_date": {
+        "message": "Data śmierci męża jest taka sama jak data ślubu"
+    },
+    "Wife_death_date_same_as_marriage_date": {
+        "message": "Data śmierci żony jest taka sama jak data ślubu"
+    },
+    "Born_after_marriage": {
+        "message": "Urodzony(a) po ślubie"
+    },
+    "Died_before_marriage": {
+        "message": "Zmarł(a) przed ślubem"
+    },
+    "Implausible_marriage_age_too_young": {
+        "message": "Nieprawdopodobny wiek zawarcia małżeństwa: zbyt młody"
+    },
+    "Siblings_ages_too_close_together": {
+        "message": "Wiek rodzeństwa jest zbyt zbliżony"
+    },
+    "Born_before_parent_birth": {
+        "message": "Urodzony(a) przed narodzinami rodzica"
+    },
+    "Born_after_parent_death": {
+        "message": "Urodzony(a) po śmierci rodzica"
+    },
+    "Death_before_baptism_date": {
+        "message": "Śmierć przed datą chrztu"
+    },
+    "Death_after_burial_date": {
+        "message": "Śmierć po dacie pochówku"
+    },
+    "Parent_too_young_for_childs_birth": {
+        "message": "Rodzic zbyt młody w chwili narodzin dziecka"
+    },
+    "Mother_too_old_for_childs_birth": {
+        "message": "Matka zbyt stara w chwili narodzin dziecka"
+    },
+    "Born_before_parent_marriage": {
+        "message": "Urodzony(a) przed ślubem rodziców"
+    },
+    "Excessive_Age": {
+        "message": "Nadmierny wiek"
+    },
+    "Born_after_death": {
+        "message": "Urodzony(a) po śmierci"
+    },
+    "Name_contains_double_space": {
+        "message": "Nazwa zawiera podwójną spację"
+    },
+    "Name_contains_alias": {
+        "message": "Nazwa zawiera alias"
+    },
+    "Name_contains_improper_use_of_uppercase_lowercase": {
+        "message": "Nazwa zawiera nieprawidłowe użycie wielkich/małych liter"
+    },
+    "First_Name_ends_in_suffix_eg___": {
+        "message": "Imię kończy się sufiksem (np. 'i','ii','iii','iv','jr','sr')"
+    },
+    "Salutation_or_relationship_in_title_eg___": {
+        "message": "Zwrot grzecznościowy lub relacja w polu tytułu (np. 'Mr', 'Mrs')"
+    },
+    "Salutation_or_relationship_in_suffix_eg___": {
+        "message": "Zwrot grzecznościowy lub relacja w polu sufiksu (np. 'Mr', 'Mrs')"
+    },
+    "Relationship_cycle_in_immediate_family": {
+        "message": "Cykl relacji w najbliższej rodzinie"
+    },
+    "Check_date_formatting_for_inconsistent_values": {
+        "message": "Sprawdzaj format dat pod kątem niespójnych wartości"
+    },
+    "Check_for_pending_data_conflict_resolution": {
+        "message": "Sprawdzaj nierozwiązane konflikty danych"
+    },
+    "Self_check_profile_for_inconsistent_dates_and_values": {
+        "message": "Automatycznie sprawdzaj profil pod kątem niespójnych dat i wartości."
+    },
+    "Check_name_fields_for_improper_values": {
+        "message": "Sprawdzaj pola nazw pod kątem nieprawidłowych wartości"
+    },
+    "Check_name_fields_for_living_profiles": {
+        "message": "Wyklucz profile osób żyjących z szybkiej poprawy"
+    },
+    "Check_profile_for_pending_data_conflicts": {
+        "message": "Sprawdzaj profil pod kątem oczekujących konfliktów danych"
+    },
+    "Check_date_values_for_irregular_formatting": {
+        "message": "Sprawdzaj wartości dat pod kątem nieregularnego formatowania"
+    },
+    "Check_when_location_is_missing_a_country": {
+        "message": "Sprawdzaj, gdy w lokalizacji brakuje kraju"
+    },
+    "Maximum_year_to_be_private": {
+        "message": "Najpóźniejszy rok dla profilu prywatnego:"
+    },
+    "Maximum_age": {
+        "message": "Maksymalny wiek:"
+    },
+    "Check_the_dates_of_children_against_their_parents": {
+        "message": "Porównuj daty dzieci z datami ich rodziców."
+    },
+    "Check_child_is_born_after_parent_marriage": {
+        "message": "Sprawdzaj, czy dziecko urodziło się po ślubie rodziców"
+    },
+    "Age_the_parent_is_too_young_to_have_a_child": {
+        "message": "Wiek, poniżej którego rodzic jest uznawany za zbyt młodego, aby mieć dziecko"
+    },
+    "Age_the_mother_is_too_old_to_have_a_child": {
+        "message": "Wiek, powyżej którego matka jest uznawana za zbyt starą, aby mieć dziecko"
+    },
+    "Check_the_values_of_partner_spouses_against_each_other": {
+        "message": "Porównuj wzajemnie wartości partnerów/małżonków."
+    },
+    "Identify_possible_maiden_name_copy_issues": {
+        "message": "Wykrywaj możliwe problemy z kopiowaniem nazwiska rodowego"
+    },
+    "Age_the_spouse_is_too_young_to_be_married": {
+        "message": "Wiek, poniżej którego małżonek jest uznawany za zbyt młodego do zawarcia małżeństwa"
+    },
+    "Maximum_age_difference_between_spouses": {
+        "message": "Maksymalna różnica wieku między małżonkami"
+    },
+    "Check_siblings_birth_are_over_": {
+        "message": "Sprawdzaj, czy daty urodzenia rodzeństwa różnią się o więcej niż "
+    },
+    "_months_apart_excl_twins": {
+        "message": " miesięcy (z wyjątkiem bliźniąt)."
+    },
+    "Future_options_to_add_features_to_Geni": {
+        "message": "Przyszłe opcje dodawania funkcji do Geni."
+    },
+    "This_profile_is_not_in_the_World_Family_Tree": {
+        "message": "Ten profil nie znajduje się w Światowym Drzewie Rodzinnym."
+    },
+    "Add_to_History": {
+        "message": "Dodaj do historii"
+    },
+    "Show_History": {
+        "message": "Pokaż historię"
+    },
+    "Hide_History": {
+        "message": "Ukryj historię"
+    },
+    "Clear_History": {
+        "message": "Wyczyść historię"
+    },
+    "Notice___Please_Read": {
+        "message": "Uwaga — przeczytaj"
+    },
+    "SmartCopy_will_no_longer_do_geo_location_lookups___": {
+        "message": "SmartCopy nie będzie już automatycznie wykonywać wyszukiwań geolokalizacyjnych ze względu na koszt usługi Google. Choć to zła wiadomość, Geni niedawno udostępniło możliwość wykonywania wyszukiwań geolokalizacyjnych <i>po</i> przesłaniu danych. Gdy lokalizacja zostanie przesłana przez pole miejsca, Geni wykona zapytanie i wypełni pola lokalizacji w witrynie. Alternatywnie możesz podać własny klucz Google API w konfiguracji. Nadal możesz też ręcznie uzupełniać dane lokalizacji w SmartCopy, klikając ikonę globu $globe_icon$, a jeśli chcesz wyłączyć wyszukiwanie geolokalizacyjne Geni, możesz to zrobić w konfiguracji SmartCopy.",
+        "placeholders": {
+            "globe_icon": {
+                "content": "$1"
+            }
+        }
+    },
+    "Close": {
+        "message": "Zamknij"
+    },
+    "Display_Add_Biography_button_in_About": {
+        "message": "Pokaż przycisk Dodaj biografię w sekcji O mnie"
+    },
+    "Add_Biography": {
+        "message": "Dodaj biografię"
+    },
+    "Export_Profiles_button_on_Project_Actions": {
+        "message": "Pokaż przycisk Eksportuj profile w Akcjach projektu"
+    },
+    "Export_Profiles": {
+        "message": "Eksportuj profile"
+    },
+    "SmartCopy_does_not_currently_support_parsing": {
+        "message": "SmartCopy obecnie nie obsługuje analizowania tej strony / witryny / kolekcji."
+    },
+    "SmartCopy_is_having_difficulty_reading_the_page": {
+        "message": "SmartCopy ma problem z odczytaniem strony. Spróbuj odświeżyć stronę."
+    },
+    "This_website_is_not_yet_supported_by_SmartCopy": {
+        "message": "Ta witryna nie jest jeszcze obsługiwana przez SmartCopy."
+    },
+    "Selection": {
+        "message": "Wybór"
+    },
+    "Simplify_form_by_hiding_unused_fields": {
+        "message": "Uprość formularz, ukrywając nieużywane pola"
+    },
+    "Enable_photo_checkbox_auto_selection": {
+        "message": "Włącz automatyczne zaznaczanie pola wyboru zdjęcia"
+    },
+    "Reminder_user_responsible": {
+        "message": "Przypomnienie: użytkownik jest odpowiedzialny za<br>uzyskanie wszelkich wymaganych zezwoleń od<br>fotografa podczas kopiowania zdjęć."
+    },
+    "Exclude_private_profile_auto_select": {
+        "message": "Wyklucz profile <private> z automatycznego zaznaczania"
+    },
+    "Est_burial_date_from_death_if_location": {
+        "message": "Oszacuj datę pochówku na podstawie daty śmierci, jeśli podano lokalizację"
+    },
+    "This_change_will_take_effect_at_next_use": {
+        "message": "Ta zmiana zacznie obowiązywać przy następnym użyciu."
+    },
+    "Location": {
+        "message": "Lokalizacja"
+    },
+    "Enable_Geolocation": {
+        "message": "Włącz geolokalizację"
+    },
+    "API_Key": {
+        "message": "Klucz API"
+    },
+    "Location_fields_auto_select_one_select_all": {
+        "message": "W polach lokalizacji zaznaczenie jednego zaznacza wszystkie"
+    },
+    "Naming": {
+        "message": "Nazewnictwo"
+    },
+    "Auto_populate_empty_birth_name_fields": {
+        "message": "Automatycznie uzupełniaj puste pola nazwiska rodowego"
+    },
+    "Auto_fill_married_last_name": {
+        "message": "Automatycznie uzupełniaj nazwisko po ślubie"
+    },
+    "Parse_for_middle_names_automatically": {
+        "message": "Automatycznie wykrywaj drugie imiona"
+    },
+    "Auto_adjust_the_names_for_mixed_case": {
+        "message": "Automatycznie poprawiaj wielkość liter w nazwach"
+    },
+    "Force_compound_lastname_to_lowercase": {
+        "message": "Wymuś małe litery w złożonych nazwiskach"
+    },
+    "Default_children_to_likely_Geni_parent": {
+        "message": "Domyślnie przypisuj dzieci do najbardziej prawdopodobnego rodzica w Geni"
+    },
+    "Default_deceased_profiles_to_public": {
+        "message": "Domyślnie ustawiaj profile osób zmarłych jako publiczne"
+    },
+    "Add_reference_to_Geni_s_About_section": {
+        "message": "Dodaj źródło do sekcji O mnie w Geni"
+    },
+    "Display_the_Geni_side_data_by_default": {
+        "message": "Domyślnie wyświetlaj dane po stronie Geni"
+    },
+    "Please_select_one_of_the_Matches": {
+        "message": "Wybierz jedno z dopasowań na tej stronie wyników."
+    },
+    "_year_age_difference_between_": {
+        "message": " lat różnicy wieku między "
+    },
+    "Birth_Surname_of_": {
+        "message": "Nazwisko rodowe osoby "
+    },
+    "_is_the_same_as_the_last_name_of_": {
+        "message": " jest takie samo jak nazwisko osoby "
+    },
+    "Death_date_of_": {
+        "message": "Data śmierci osoby "
+    },
+    "_is_the_same_as_the_death_date_of_": {
+        "message": " jest taka sama jak data śmierci osoby "
+    },
+    "_is_the_same_as_": {
+        "message": " jest takie samo jak "
+    },
+    "_marriage_date": {
+        "message": " data ślubu"
+    },
+    "_born_after_": {
+        "message": " urodzony(a) po "
+    },
+    "_died_before_": {
+        "message": " zmarł(a) przed "
+    },
+    "_years_old_for_": {
+        "message": " lat w chwili "
+    },
+    "_marriage": {
+        "message": " ślub"
+    },
+    "Birth_date_of_": {
+        "message": "Data urodzenia osoby "
+    },
+    "_and_": {
+        "message": " i "
+    },
+    "_are_within_": {
+        "message": " różnią się o nie więcej niż "
+    },
+    "_months": {
+        "message": " miesięcy"
+    },
+    "_born_before_the_birth_of_": {
+        "message": " urodzony(a) przed narodzinami osoby "
+    },
+    "death": {
+        "message": "śmierć"
+    },
+    "_born_after_the_death_of_": {
+        "message": " urodzony(a) po śmierci osoby "
+    },
+    "_is_under_": {
+        "message": " ma mniej niż "
+    },
+    "_years_old_for_the_birth_of_": {
+        "message": " lat w chwili narodzin osoby "
+    },
+    "_is_over_": {
+        "message": " ma więcej niż "
+    },
+    "_born_before_the_marriage_of_": {
+        "message": " urodzony(a) przed ślubem osoby "
+    },
+    "_parents_": {
+        "message": " rodzice "
+    },
+    "_has_pending_": {
+        "message": " ma oczekujące "
+    },
+    "data_conflicts": {
+        "message": "konflikty danych"
+    },
+    "The_age_of_": {
+        "message": "Wiek osoby "
+    },
+    "_exceeds_": {
+        "message": " przekracza "
+    },
+    "_years": {
+        "message": " lat"
+    },
+    "_is_after_": {
+        "message": " jest późniejsza niż "
+    },
+    "_death_date": {
+        "message": " data śmierci"
+    },
+    "Baptism_date_of_": {
+        "message": "Data chrztu osoby "
+    },
+    "_is_before_": {
+        "message": " jest wcześniejsza niż "
+    },
+    "_birth_date": {
+        "message": " data urodzenia"
+    },
+    "_burial_date": {
+        "message": " data pochówku"
+    },
+    "_contains_a_double_space_in_": {
+        "message": " zawiera podwójną spację w "
+    },
+    "first_name": {
+        "message": "imię"
+    },
+    "_contains_a_double_or_trailing_space_in_": {
+        "message": " zawiera podwójną spację lub spację na końcu w "
+    },
+    "_names": {
+        "message": " nazwy"
+    },
+    "_contains_an_alias_in_": {
+        "message": " zawiera alias w "
+    },
+    "_appears_to_contain_a_suffix_in_": {
+        "message": " prawdopodobnie zawiera sufiks w "
+    },
+    "Move_Suffix": {
+        "message": "Przenieś sufiks"
+    },
+    "_contains_improper_use_of_salutation_in_": {
+        "message": " zawiera nieprawidłowe użycie zwrotu grzecznościowego w "
+    },
+    "_title": {
+        "message": " tytuł"
+    },
+    "Remove_salutation": {
+        "message": "Usuń zwrot grzecznościowy"
+    },
+    "_contains_improper_use_of_relationship_in_": {
+        "message": " zawiera nieprawidłowe użycie relacji w "
+    },
+    "_suffix": {
+        "message": " sufiks"
+    },
+    "Remove_relationship": {
+        "message": "Usuń relację"
+    },
+    "_contains_improper_use_of_a_numbering_scheme_in_": {
+        "message": " zawiera nieprawidłowe użycie schematu numeracji w "
+    },
+    "Remove_numeric": {
+        "message": "Usuń element numeryczny"
+    },
+    "_is_in_a_relationship_cycle_within_the_immediate_family": {
+        "message": " znajduje się w cyklu relacji w najbliższej rodzinie"
+    },
+    "_contains_an_invalid_": {
+        "message": " zawiera nieprawidłowy "
+    },
+    "_date_month_greater_than_12": {
+        "message": " data, miesiąc większy niż 12."
+    },
+    "_date_day_greater_than_31": {
+        "message": " data, dzień większy niż 31."
+    },
+    "_date": {
+        "message": " data"
+    },
+    "_contains_an_incomplete_": {
+        "message": " zawiera niekompletny "
+    },
+    "_date_missing_month": {
+        "message": " data, brak miesiąca."
+    },
+    "_date_missing_year": {
+        "message": " data, brak roku."
+    },
+    "_contains_a_": {
+        "message": " zawiera "
+    },
+    "_location_without_a_country": {
+        "message": " lokalizacja bez kraju"
+    },
+    "his": {
+        "message": "jego"
+    },
+    "her": {
+        "message": "jej"
+    },
+    "their": {
+        "message": "ich"
+    },
+    "mother": {
+        "message": "matka"
+    },
+    "father": {
+        "message": "ojciec"
+    },
+    "parent": {
+        "message": "rodzic"
+    },
+    "brother": {
+        "message": "brat"
+    },
+    "sibling": {
+        "message": "rodzeństwo"
+    },
+    "wife": {
+        "message": "żona"
+    },
+    "husband": {
+        "message": "mąż"
+    },
+    "partner": {
+        "message": "partner"
+    }
+}

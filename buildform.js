@@ -1183,13 +1183,26 @@ function buildForm() {
                 // from a guess (the focus person's surname), not scraped
                 // source data - starts enabled (typeable/reviewable) like
                 // any other blank-safe field, but deliberately never
-                // pre-checked, unlike a real scraped value. Checking it
-                // remains an explicit user action.
+                // pre-checked at render time, unlike a real scraped value.
+                // Select All is the one exception (follow-up to #204,
+                // requested live): 'data-guessed="true"' is injected via
+                // the enabledAttr slot (buildTextFieldRow() splices it
+                // straight into the <input>'s attribute list, same trick
+                // "disabled" already uses there) so isFieldValueBlank()
+                // treats this guessed value as blank for Select All
+                // purposes specifically - it then falls through to the
+                // same blank-scraped-vs-blank-Geni-target rule every other
+                // field follows: Select All checks it only when Geni's own
+                // value is ALSO blank (nothing real to protect), and still
+                // leaves it alone whenever Geni already has real data
+                // there. Outside of Select All (the initial per-member
+                // auto-check, and typing in the field by hand), nothing
+                // changes - the guess still never pre-checks itself.
                 membersstring +=
                     buildTextFieldRow("Title:", "title", nameval.prefix, isChecked(nameval.prefix, scored, false, ""), isEnabled(nameval.prefix, scored, false, ""), i + "_geni_title") +
                     buildTextFieldRow("First Name:", "first_name", nameval.firstName, isChecked(nameval.firstName, scored, false, ""), isEnabled(nameval.firstName, scored, false, ""), i + "_geni_first_name") +
                     buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, isChecked(nameval.middleName, scored, false, ""), isEnabled(nameval.middleName, scored, false, ""), i + "_geni_middle_name") +
-                    buildTextFieldRow("Last Name:", "last_name", nameval.lastName, (lastNameAutoFilled ? "" : isChecked(nameval.lastName, scored, false, "")), (lastNameAutoFilled ? "" : isEnabled(nameval.lastName, scored, false, "")), i + "_geni_last_name") +
+                    buildTextFieldRow("Last Name:", "last_name", nameval.lastName, (lastNameAutoFilled ? "" : isChecked(nameval.lastName, scored, false, "")), (lastNameAutoFilled ? 'data-guessed="true"' : isEnabled(nameval.lastName, scored, false, "")), i + "_geni_last_name") +
                     buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, isChecked(nameval.birthName, scored, false, ""), isEnabled(nameval.birthName, scored, false, ""), i + "_geni_maiden_name") +
                     buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, isChecked(nameval.suffix, scored, false, ""), isEnabled(nameval.suffix, scored, false, ""), i + "_geni_suffix") +
                     buildTextFieldRow("Display Name: ", "display_name", displayname, isChecked(displayname, scored, false, ""), isEnabled(displayname, scored, false, ""), i + "_geni_display_name") +
@@ -1535,6 +1548,16 @@ function isFieldValueBlank(field) {
     }
     if (field.tagName === "SELECT" && field.name === "is_alive") {
         return $(field).attr("data-scraped") !== "true";
+    }
+    // #204 follow-up: a married-name guess (data-guessed, stamped by
+    // buildform.js's family-member Last Name row when lastNameAutoFilled)
+    // isn't real scraped data, so for Select All purposes it should be
+    // treated exactly like an unscraped blank field - safe to check only
+    // when Geni's own value (the companion check right after this,
+    // isCompanionBlank()) is ALSO blank, never when it'd override real
+    // Geni data with a guess.
+    if ($(field).attr("data-guessed") === "true") {
+        return true;
     }
     return !isValue(field.value);
 }

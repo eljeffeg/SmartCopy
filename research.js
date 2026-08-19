@@ -12,14 +12,6 @@ function buildResearch() {
         if (exists(responsedata.name)) {
             focusname = responsedata.name;
         }
-        // #218: clicking a research link below opens a new active tab,
-        // which closes this popup and wipes focusid along with every other
-        // in-memory var. Without this, reopening the popup on the
-        // resulting source-site tab has no way to know which Geni profile
-        // to associate results with. Simply overwritten on the next
-        // "Research this Person" run - see popup.js's loadPage() consumer
-        // for why no separate expiry/invalidation is warranted.
-        chrome.storage.local.set({'lastResearchFocus': {id: focusid, name: focusname, ts: Date.now()}});
         let accessdialog = document.querySelector('#useraccess');
         let researchstring = "<div style='font-size: 115%;'><strong>" + _("Research_this_Person") + "</strong><div style='font-size: 85%; font-style: italic;'>" + focusname + "</div></div><div style='padding-top: 2px; padding-bottom: 5px;'>";
         if (exists(responsedata.first_name)) {
@@ -52,7 +44,23 @@ function buildResearch() {
                 let tab = tabs[0];
                     tabplacement += 1;
                     let index = tab.index + tabplacement;
-                    chrome.tabs.create({'url': url, active: !ctrlpressed, 'index': index});
+                    chrome.tabs.create({'url': url, active: !ctrlpressed, 'index': index}, function (newTab) {
+                        // #218 fix: scope lastResearchFocus to THIS specific
+                        // new tab, not "whatever research link was clicked
+                        // most recently, on any page, ever." Without a
+                        // per-tab anchor, any later UNRELATED page visited
+                        // while this value was still in storage would
+                        // silently inherit it as its focus profile too -
+                        // confirmed as a real regression live: an earlier
+                        // research click's focus profile got auto-applied
+                        // to a completely unrelated MyHeritage page opened
+                        // much later. loadPage() (popup.js) only honors
+                        // this when the tab it's currently reading matches
+                        // newTab.id exactly.
+                        if (exists(newTab) && exists(newTab.id)) {
+                            chrome.storage.local.set({'lastResearchFocus': {id: focusid, name: focusname, ts: Date.now(), tabId: newTab.id}});
+                        }
+                    });
                 });
             });
         });

@@ -11,7 +11,7 @@ var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefa
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [], addsiblinglist = [];
 var genibuildaction = {}, updatecount = 1, updatetotal = 0;
 var errormsg = "#f9acac", warningmsg = "#f8ff86", infomsg = "#afd2ff";
-var lastResearchFocus = null; // #218: see research.js's buildResearch() and loadPage() below
+var lastResearchFocus = null, tablinkTabId = undefined; // #218: see research.js's .ctrllink handler and loadPage() below
 
 document.addEventListener('DOMContentLoaded', function () {
   Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
@@ -369,6 +369,7 @@ function get_tab() {
         var tab = tabs[0];
         if (tab !== undefined) {
             tablink = tab.url;
+            tablinkTabId = tab.id; // #218: see loadPage()'s lastResearchFocus fallback
             loginProcess();
         } else {
             window.setTimeout(get_tab, 1000);
@@ -704,12 +705,21 @@ function loadPage(request) {
             // #218: buildhistory above only covers a PRIOR successful
             // submission - a brand-new "Research this Person" click with
             // nothing submitted yet has no history entry at all. Fall back
-            // to whichever Geni profile most recently generated research
-            // links (research.js's buildResearch()). Never overrides an
-            // actual buildhistory match (checked first, above) or a manual
+            // to the Geni profile that specific research link was FOR - but
+            // only when the tab being read right now (tablinkTabId) is the
+            // exact tab that link opened (lastResearchFocus.tabId, set by
+            // research.js's .ctrllink handler once a specific link is
+            // actually clicked). Matching on tabId, not just "most recently
+            // used," is required: an earlier version of this fallback had
+            // no per-tab anchor at all and applied to ANY later unmatched
+            // page - confirmed live to silently misattribute a completely
+            // unrelated page to whatever profile a prior, unrelated
+            // research click had used. Never overrides an actual
+            // buildhistory match (checked first, above) or a manual
             // "Set Geni Destination Profile" entry (loadSelectPage, below,
             // still runs whenever this has nothing to offer).
-            if (!profilechanged && exists(lastResearchFocus) && exists(lastResearchFocus.id)) {
+            if (!profilechanged && exists(lastResearchFocus) && exists(lastResearchFocus.id) &&
+                exists(lastResearchFocus.tabId) && lastResearchFocus.tabId === tablinkTabId) {
                 focusid = lastResearchFocus.id;
                 profilechanged = true;
                 loadPage(request);

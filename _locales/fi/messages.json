@@ -8,6 +8,12 @@
     "appDesc": {
         "message": "Työkalu sukututkimustietojen kopioimiseen Geniin."
     },
+    "switchOn": {
+        "message": "PÄÄLLÄ"
+    },
+    "switchOff": {
+        "message": "POIS"
+    },
     "consistencyCheck": {
         "message": "Johdonmukaisuus"
     },
@@ -110,6 +116,9 @@
     "fixTitle": {
         "message": "korjaa"
     },
+    "noPermission": {
+        "message": "ei oikeutta korjata"
+    },
     "makePublic": {
         "message": "julkista"
     },
@@ -137,6 +146,21 @@
     },
     "Research_this_Person": {
         "message": "Tutki tätä henkilöä"
+    },
+    "All_Collections": {
+        "message": "Kaikki kokoelmat"
+    },
+    "Collections": {
+        "message": "Kokoelmat"
+    },
+    "Publications": {
+        "message": "Julkaisut"
+    },
+    "Holocaust": {
+        "message": "Holokausti"
+    },
+    "Name_Search": {
+        "message": "Nimihaku"
     },
     "Gravestones": {
         "message": "hautakiviä"
@@ -177,6 +201,12 @@
     "Loading___": {
         "message": "Ladataan..."
     },
+    "HistoryLink_unreachable_message": {
+        "message": "HistoryLinkin kirjautumispalveluun ei saatu yhteyttä. Tarkista internetyhteytesi ja yritä uudelleen."
+    },
+    "HistoryLink": {
+        "message": "HistoryLink-työkalut"
+    },
     "Ancestor_Graph": {
         "message": "Esivanhempikaavio"
     },
@@ -185,6 +215,12 @@
     },
     "History_Search": {
         "message": "Historiahaku"
+    },
+    "Forest_Density_Calculator": {
+        "message": "Tiheyslaskuri"
+    },
+    "Path_To_User": {
+        "message": "Polku käyttäjään"
     },
     "Configuration": {
         "message": "Asetukset"
@@ -351,6 +387,9 @@
     "Show_History": {
         "message": "Näytä historia"
     },
+    "Hide_History": {
+        "message": "Piilota historia"
+    },
     "Clear_History": {
         "message": "Tyhjennä historia"
     },
@@ -379,5 +418,290 @@
     },
     "Export_Profiles": {
         "message": "Vie profiilit"
+    },
+    "SmartCopy_does_not_currently_support_parsing": {
+        "message": "SmartCopy ei tällä hetkellä tue tämän sivun / sivuston / kokoelman jäsentämistä."
+    },
+    "SmartCopy_is_having_difficulty_reading_the_page": {
+        "message": "SmartCopylla on vaikeuksia lukea sivua. Yritä päivittää sivu."
+    },
+    "This_website_is_not_yet_supported_by_SmartCopy": {
+        "message": "SmartCopy ei vielä tue tätä verkkosivustoa."
+    },
+    "Selection": {
+        "message": "Valinta"
+    },
+    "Simplify_form_by_hiding_unused_fields": {
+        "message": "Yksinkertaista lomaketta piilottamalla käyttämättömät kentät"
+    },
+    "Enable_photo_checkbox_auto_selection": {
+        "message": "Ota valokuvan valintaruudun automaattinen valinta käyttöön"
+    },
+    "Reminder_user_responsible": {
+        "message": "Muistutus: Käyttäjä on vastuussa<br>tarvittavan luvan hankkimisesta<br>valokuvaajalta kuvia kopioitaessa."
+    },
+    "Exclude_private_profile_auto_select": {
+        "message": "Älä valitse <private>-profiileja automaattisesti"
+    },
+    "Est_burial_date_from_death_if_location": {
+        "message": "Arvioi hautauspäivä kuolinpäivästä, jos sijainti tunnetaan"
+    },
+    "This_change_will_take_effect_at_next_use": {
+        "message": "Tämä muutos tulee voimaan seuraavalla käyttökerralla."
+    },
+    "Location": {
+        "message": "Sijainti"
+    },
+    "Enable_Geolocation": {
+        "message": "Ota maantieteellinen paikannus käyttöön"
+    },
+    "API_Key": {
+        "message": "API-avain"
+    },
+    "Location_fields_auto_select_one_select_all": {
+        "message": "Sijaintikentissä yhden valitseminen valitsee kaikki"
+    },
+    "Naming": {
+        "message": "Nimeäminen"
+    },
+    "Auto_populate_empty_birth_name_fields": {
+        "message": "Täytä tyhjät syntymänimikentät automaattisesti"
+    },
+    "Auto_fill_married_last_name": {
+        "message": "Täytä aviosukunimi automaattisesti"
+    },
+    "Parse_for_middle_names_automatically": {
+        "message": "Tunnista toiset nimet automaattisesti"
+    },
+    "Auto_adjust_the_names_for_mixed_case": {
+        "message": "Korjaa nimien kirjainkoko automaattisesti"
+    },
+    "Force_compound_lastname_to_lowercase": {
+        "message": "Muuta yhdysmuotoisen sukunimen kirjaimet pieniksi"
+    },
+    "Default_children_to_likely_Geni_parent": {
+        "message": "Liitä lapset oletuksena todennäköiseen Geni-vanhempaan"
+    },
+    "Default_deceased_profiles_to_public": {
+        "message": "Aseta kuolleiden profiilit oletuksena julkisiksi"
+    },
+    "Add_reference_to_Geni_s_About_section": {
+        "message": "Lisää lähde Genin Tietoja-osioon"
+    },
+    "Display_the_Geni_side_data_by_default": {
+        "message": "Näytä Geni-puolen tiedot oletuksena"
+    },
+    "Please_select_one_of_the_Matches": {
+        "message": "Valitse yksi tämän tulossivun osumista."
+    },
+    "_year_age_difference_between_": {
+        "message": " vuoden ikäero välillä "
+    },
+    "Birth_Surname_of_": {
+        "message": "Syntymäsukunimi: "
+    },
+    "_is_the_same_as_the_last_name_of_": {
+        "message": " on sama kuin henkilön sukunimi: "
+    },
+    "Death_date_of_": {
+        "message": "Kuolinpäivä: "
+    },
+    "_is_the_same_as_the_death_date_of_": {
+        "message": " on sama kuin henkilön kuolinpäivä: "
+    },
+    "_is_the_same_as_": {
+        "message": " on sama kuin "
+    },
+    "_marriage_date": {
+        "message": " avioliiton päivämäärä"
+    },
+    "_born_after_": {
+        "message": " syntynyt myöhemmin kuin "
+    },
+    "_died_before_": {
+        "message": " kuollut ennen "
+    },
+    "_years_old_for_": {
+        "message": " vuoden ikäinen: "
+    },
+    "_marriage": {
+        "message": " avioliitto"
+    },
+    "Birth_date_of_": {
+        "message": "Syntymäpäivä: "
+    },
+    "_and_": {
+        "message": " ja "
+    },
+    "_are_within_": {
+        "message": " ovat enintään "
+    },
+    "_months": {
+        "message": " kuukautta"
+    },
+    "_born_before_the_birth_of_": {
+        "message": " syntynyt ennen henkilön syntymää: "
+    },
+    "death": {
+        "message": "kuolema"
+    },
+    "_born_after_the_death_of_": {
+        "message": " syntynyt henkilön kuoleman jälkeen: "
+    },
+    "_is_under_": {
+        "message": " on alle "
+    },
+    "_years_old_for_the_birth_of_": {
+        "message": " vuoden ikäinen henkilön syntyessä: "
+    },
+    "_is_over_": {
+        "message": " on yli "
+    },
+    "_born_before_the_marriage_of_": {
+        "message": " syntynyt ennen avioliittoa: "
+    },
+    "_parents_": {
+        "message": " vanhemmat "
+    },
+    "_has_pending_": {
+        "message": " sisältää odottavia "
+    },
+    "data_conflicts": {
+        "message": "tietoristiriidat"
+    },
+    "The_age_of_": {
+        "message": "Ikä: "
+    },
+    "_exceeds_": {
+        "message": " ylittää "
+    },
+    "_years": {
+        "message": " vuotta"
+    },
+    "_is_after_": {
+        "message": " on myöhemmin kuin "
+    },
+    "_death_date": {
+        "message": " kuolinpäivä"
+    },
+    "Baptism_date_of_": {
+        "message": "Kastepäivä: "
+    },
+    "_is_before_": {
+        "message": " on aikaisemmin kuin "
+    },
+    "_birth_date": {
+        "message": " syntymäpäivä"
+    },
+    "_burial_date": {
+        "message": " hautauspäivä"
+    },
+    "_contains_a_double_space_in_": {
+        "message": " sisältää kaksoisvälilyönnin kentässä "
+    },
+    "first_name": {
+        "message": "etunimi"
+    },
+    "_contains_a_double_or_trailing_space_in_": {
+        "message": " sisältää kaksoisvälilyönnin tai ylimääräisen välilyönnin lopussa kentässä "
+    },
+    "_names": {
+        "message": " nimet"
+    },
+    "_contains_an_alias_in_": {
+        "message": " sisältää aliaksen kentässä "
+    },
+    "_appears_to_contain_a_suffix_in_": {
+        "message": " näyttää sisältävän jälkiliitteen kentässä "
+    },
+    "Move_Suffix": {
+        "message": "Siirrä jälkiliite"
+    },
+    "_contains_improper_use_of_salutation_in_": {
+        "message": " sisältää puhuttelunimen virheellistä käyttöä kentässä "
+    },
+    "_title": {
+        "message": " titteli"
+    },
+    "Remove_salutation": {
+        "message": "Poista puhuttelunimi"
+    },
+    "_contains_improper_use_of_relationship_in_": {
+        "message": " sisältää sukulaisuussuhteen virheellistä käyttöä kentässä "
+    },
+    "_suffix": {
+        "message": " jälkiliite"
+    },
+    "Remove_relationship": {
+        "message": "Poista sukulaisuussuhde"
+    },
+    "_contains_improper_use_of_a_numbering_scheme_in_": {
+        "message": " sisältää numeroinnin virheellistä käyttöä kentässä "
+    },
+    "Remove_numeric": {
+        "message": "Poista numerointi"
+    },
+    "_is_in_a_relationship_cycle_within_the_immediate_family": {
+        "message": " muodostaa sukulaisuussuhdesilmukan lähisuvussa"
+    },
+    "_contains_an_invalid_": {
+        "message": " sisältää virheellisen "
+    },
+    "_date_month_greater_than_12": {
+        "message": " päivämäärä, kuukausi on suurempi kuin 12."
+    },
+    "_date_day_greater_than_31": {
+        "message": " päivämäärä, päivä on suurempi kuin 31."
+    },
+    "_date": {
+        "message": " päivämäärä"
+    },
+    "_contains_an_incomplete_": {
+        "message": " sisältää puutteellisen "
+    },
+    "_date_missing_month": {
+        "message": " päivämäärä, kuukausi puuttuu."
+    },
+    "_date_missing_year": {
+        "message": " päivämäärä, vuosi puuttuu."
+    },
+    "_contains_a_": {
+        "message": " sisältää "
+    },
+    "_location_without_a_country": {
+        "message": " sijainti ilman maata"
+    },
+    "his": {
+        "message": "hänen"
+    },
+    "her": {
+        "message": "hänen"
+    },
+    "their": {
+        "message": "heidän"
+    },
+    "mother": {
+        "message": "äiti"
+    },
+    "father": {
+        "message": "isä"
+    },
+    "parent": {
+        "message": "vanhempi"
+    },
+    "brother": {
+        "message": "veli"
+    },
+    "sibling": {
+        "message": "sisarus"
+    },
+    "wife": {
+        "message": "vaimo"
+    },
+    "husband": {
+        "message": "aviomies"
+    },
+    "partner": {
+        "message": "kumppani"
     }
 }

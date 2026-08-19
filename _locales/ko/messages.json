@@ -1,0 +1,707 @@
+{
+    "appName": {
+        "message": "SmartCopy"
+    },
+    "appShortName": {
+        "message": "SmartCopy"
+    },
+    "appDesc": {
+        "message": "계보 데이터를 Geni로 복사하는 도구입니다."
+    },
+    "switchOn": {
+        "message": "켜짐"
+    },
+    "switchOff": {
+        "message": "꺼짐"
+    },
+    "consistencyCheck": {
+        "message": "일관성 검사"
+    },
+    "contains_incorrect_uppercase_lowercase_in_name": {
+        "message": "$person$의 $pronoun$ 이름에 대문자/소문자가 잘못 사용되었습니다($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_incorrect_uppercase_lowercase_in_name_default": {
+        "message": "$person$의 $pronoun$ 이름에 대문자/소문자가 잘못 사용되었습니다.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_patronym_in_first_name": {
+        "message": "$person$의 $pronoun$ 이름에 부칭/모칭이 포함되어 있습니다($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_patronym_in_first_name_default": {
+        "message": "$person$의 $pronoun$ 이름에 부칭/모칭이 포함되어 있습니다.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name": {
+        "message": "$person$의 $pronoun$ 중간 이름에 부칭/모칭이 아닌 내용이 포함되어 있습니다($lang$).",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name_default": {
+        "message": "$person$의 $pronoun$ 중간 이름에 부칭/모칭이 아닌 내용이 포함되어 있습니다.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "living": {
+        "message": "생존"
+    },
+    "claimed": {
+        "message": "등록됨"
+    },
+    "fixCase": {
+        "message": "대소문자 수정"
+    },
+    "fixed": {
+        "message": "수정됨"
+    },
+    "fixName": {
+        "message": "이름 수정"
+    },
+    "fixSpace": {
+        "message": "공백 수정"
+    },
+    "fixSuffix": {
+        "message": "접미사 수정"
+    },
+    "fixTitle": {
+        "message": "호칭 수정"
+    },
+    "noPermission": {
+        "message": "수정 권한 없음"
+    },
+    "makePublic": {
+        "message": "공개로 설정"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$명의 가족 구성원이 약 $year$년 이전에 태어났으며 비공개로 설정되어 있습니다.",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$은(는) 약 $year$년 이전에 태어났으며 비공개로 설정되어 있습니다.",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "Research_this_Person": {
+        "message": "이 인물 조사"
+    },
+    "All_Collections": {
+        "message": "모든 컬렉션"
+    },
+    "Collections": {
+        "message": "컬렉션"
+    },
+    "Publications": {
+        "message": "출판물"
+    },
+    "Holocaust": {
+        "message": "홀로코스트"
+    },
+    "Name_Search": {
+        "message": "이름 검색"
+    },
+    "Gravestones": {
+        "message": "묘비"
+    },
+    "Genealogies": {
+        "message": "계보"
+    },
+    "Genealogy": {
+        "message": "계보"
+    },
+    "Geni_Search": {
+        "message": "Geni 검색"
+    },
+    "Google_Search": {
+        "message": "Google 검색"
+    },
+    "Records": {
+        "message": "기록"
+    },
+    "Messageboard": {
+        "message": "게시판"
+    },
+    "Newspapers": {
+        "message": "신문"
+    },
+    "Books": {
+        "message": "도서"
+    },
+    "Obituaries": {
+        "message": "부고"
+    },
+    "Other_Resources": {
+        "message": "기타 자료"
+    },
+    "Unable_to_create_research_links_on_this_profile": {
+        "message": "이 프로필에 조사 링크를 만들 수 없습니다."
+    },
+    "Loading___": {
+        "message": "불러오는 중..."
+    },
+    "HistoryLink_unreachable_message": {
+        "message": "HistoryLink 로그인 서비스에 연결할 수 없습니다. 인터넷 연결을 확인한 후 다시 시도하세요."
+    },
+    "HistoryLink": {
+        "message": "HistoryLink 도구"
+    },
+    "Ancestor_Graph": {
+        "message": "조상 그래프"
+    },
+    "Descendant_Graph": {
+        "message": "후손 그래프"
+    },
+    "History_Search": {
+        "message": "역사 검색"
+    },
+    "Forest_Density_Calculator": {
+        "message": "밀도 계산기"
+    },
+    "Path_To_User": {
+        "message": "사용자까지의 경로"
+    },
+    "Configuration": {
+        "message": "설정"
+    },
+    "Copy_Preferences": {
+        "message": "복사 환경설정"
+    },
+    "Consistency_Checks": {
+        "message": "일관성 검사"
+    },
+    "Geni_Customization": {
+        "message": "Geni 사용자 지정"
+    },
+    "Note_Dates_that_contain_Between_Before_and_After___": {
+        "message": "참고: \"사이\", \"이전\", \"이후\"가 포함된 날짜는 일관성 검사에서 비교하지 않습니다. \"약\"으로 표시된 날짜는 정확한 날짜로 간주합니다."
+    },
+    "Run_consistency_checks_when_viewing_Geni_profiles": {
+        "message": "Geni 프로필을 볼 때 일관성 검사를 실행합니다."
+    },
+    "Age_difference_between_partners_is_significant": {
+        "message": "배우자/파트너 간 나이 차이가 큽니다"
+    },
+    "Maiden_name_same_as_husbands_last_name": {
+        "message": "출생 성이 남편의 성과 같습니다"
+    },
+    "Husband_and_wife_death_dates_the_same": {
+        "message": "남편과 아내의 사망일이 같습니다"
+    },
+    "Husband_death_date_same_as_marriage_date": {
+        "message": "남편의 사망일이 결혼일과 같습니다"
+    },
+    "Wife_death_date_same_as_marriage_date": {
+        "message": "아내의 사망일이 결혼일과 같습니다"
+    },
+    "Born_after_marriage": {
+        "message": "결혼 후 출생"
+    },
+    "Died_before_marriage": {
+        "message": "결혼 전 사망"
+    },
+    "Implausible_marriage_age_too_young": {
+        "message": "결혼 연령이 비현실적입니다: 너무 어림"
+    },
+    "Siblings_ages_too_close_together": {
+        "message": "형제자매의 나이 차이가 너무 작습니다"
+    },
+    "Born_before_parent_birth": {
+        "message": "부모가 태어나기 전에 출생"
+    },
+    "Born_after_parent_death": {
+        "message": "부모가 사망한 후 출생"
+    },
+    "Death_before_baptism_date": {
+        "message": "세례일 이전에 사망"
+    },
+    "Death_after_burial_date": {
+        "message": "매장일 이후에 사망"
+    },
+    "Parent_too_young_for_childs_birth": {
+        "message": "자녀 출생 당시 부모가 너무 어립니다"
+    },
+    "Mother_too_old_for_childs_birth": {
+        "message": "자녀 출생 당시 어머니의 나이가 너무 많습니다"
+    },
+    "Born_before_parent_marriage": {
+        "message": "부모의 결혼 이전에 출생"
+    },
+    "Excessive_Age": {
+        "message": "지나치게 높은 나이"
+    },
+    "Born_after_death": {
+        "message": "사망 후 출생"
+    },
+    "Name_contains_double_space": {
+        "message": "이름에 연속된 공백이 있습니다"
+    },
+    "Name_contains_alias": {
+        "message": "이름에 별칭이 포함되어 있습니다"
+    },
+    "Name_contains_improper_use_of_uppercase_lowercase": {
+        "message": "이름에 대문자/소문자가 잘못 사용되었습니다"
+    },
+    "First_Name_ends_in_suffix_eg___": {
+        "message": "이름이 접미사로 끝납니다(예: 'i','ii','iii','iv','jr','sr')"
+    },
+    "Salutation_or_relationship_in_title_eg___": {
+        "message": "호칭 필드에 경칭 또는 관계가 포함되어 있습니다(예: 'Mr', 'Mrs')"
+    },
+    "Salutation_or_relationship_in_suffix_eg___": {
+        "message": "접미사 필드에 경칭 또는 관계가 포함되어 있습니다(예: 'Mr', 'Mrs')"
+    },
+    "Relationship_cycle_in_immediate_family": {
+        "message": "직계 가족 내 관계 순환이 있습니다"
+    },
+    "Check_date_formatting_for_inconsistent_values": {
+        "message": "날짜 형식에 일관되지 않은 값이 있는지 확인"
+    },
+    "Check_for_pending_data_conflict_resolution": {
+        "message": "해결 대기 중인 데이터 충돌 확인"
+    },
+    "Self_check_profile_for_inconsistent_dates_and_values": {
+        "message": "프로필의 날짜와 값이 일관되는지 자동으로 확인합니다."
+    },
+    "Check_name_fields_for_improper_values": {
+        "message": "이름 필드에 부적절한 값이 있는지 확인"
+    },
+    "Check_name_fields_for_living_profiles": {
+        "message": "빠른 수정에서 생존자 프로필 제외"
+    },
+    "Check_profile_for_pending_data_conflicts": {
+        "message": "프로필에 대기 중인 데이터 충돌이 있는지 확인"
+    },
+    "Check_date_values_for_irregular_formatting": {
+        "message": "날짜 값의 비정상적인 형식 확인"
+    },
+    "Check_when_location_is_missing_a_country": {
+        "message": "위치에 국가가 누락된 경우 확인"
+    },
+    "Maximum_year_to_be_private": {
+        "message": "비공개로 유지할 최대 연도:"
+    },
+    "Maximum_age": {
+        "message": "최대 나이:"
+    },
+    "Check_the_dates_of_children_against_their_parents": {
+        "message": "자녀의 날짜를 부모의 날짜와 비교합니다."
+    },
+    "Check_child_is_born_after_parent_marriage": {
+        "message": "자녀가 부모의 결혼 후 태어났는지 확인"
+    },
+    "Age_the_parent_is_too_young_to_have_a_child": {
+        "message": "부모가 자녀를 두기에는 너무 어리다고 판단하는 나이"
+    },
+    "Age_the_mother_is_too_old_to_have_a_child": {
+        "message": "어머니가 자녀를 두기에는 너무 많다고 판단하는 나이"
+    },
+    "Check_the_values_of_partner_spouses_against_each_other": {
+        "message": "파트너/배우자의 값을 서로 비교합니다."
+    },
+    "Identify_possible_maiden_name_copy_issues": {
+        "message": "출생 성 복사에서 발생할 수 있는 문제 식별"
+    },
+    "Age_the_spouse_is_too_young_to_be_married": {
+        "message": "배우자가 결혼하기에는 너무 어리다고 판단하는 나이"
+    },
+    "Maximum_age_difference_between_spouses": {
+        "message": "배우자 간 최대 나이 차이"
+    },
+    "Check_siblings_birth_are_over_": {
+        "message": "형제자매의 출생 간격이 "
+    },
+    "_months_apart_excl_twins": {
+        "message": " 개월을 초과하는지 확인(쌍둥이 제외)."
+    },
+    "Future_options_to_add_features_to_Geni": {
+        "message": "향후 Geni에 기능을 추가하기 위한 옵션입니다."
+    },
+    "This_profile_is_not_in_the_World_Family_Tree": {
+        "message": "이 프로필은 세계 가족 트리에 포함되어 있지 않습니다."
+    },
+    "Add_to_History": {
+        "message": "기록에 추가"
+    },
+    "Show_History": {
+        "message": "기록 표시"
+    },
+    "Hide_History": {
+        "message": "기록 숨기기"
+    },
+    "Clear_History": {
+        "message": "기록 지우기"
+    },
+    "Notice___Please_Read": {
+        "message": "알림 - 읽어 주세요"
+    },
+    "SmartCopy_will_no_longer_do_geo_location_lookups___": {
+        "message": "Google 서비스 비용으로 인해 SmartCopy는 더 이상 지리 위치 조회를 자동으로 수행하지 않습니다. 아쉬운 소식이지만, Geni는 최근 제출 <i>후</i> 지리 위치 조회를 수행하는 기능을 제공하기 시작했습니다. 장소 필드를 통해 위치를 제출하면 Geni가 조회를 수행하고 웹사이트의 위치 필드를 채웁니다. 또는 설정에서 자신의 Google API 키를 지정할 수 있습니다. 지구본 아이콘 $globe_icon$을 클릭하여 SmartCopy에서 위치 데이터를 수동으로 입력할 수도 있으며, Geni의 지리 위치 조회를 비활성화하려면 SmartCopy 설정에서 변경할 수 있습니다.",
+        "placeholders": {
+            "globe_icon": {
+                "content": "$1"
+            }
+        }
+    },
+    "Close": {
+        "message": "닫기"
+    },
+    "Display_Add_Biography_button_in_About": {
+        "message": "정보에 \"전기 추가\" 버튼 표시"
+    },
+    "Add_Biography": {
+        "message": "전기 추가"
+    },
+    "Export_Profiles_button_on_Project_Actions": {
+        "message": "프로젝트 작업에 \"프로필 내보내기\" 버튼 표시"
+    },
+    "Export_Profiles": {
+        "message": "프로필 내보내기"
+    },
+    "SmartCopy_does_not_currently_support_parsing": {
+        "message": "SmartCopy는 현재 이 페이지 / 사이트 / 컬렉션의 분석을 지원하지 않습니다."
+    },
+    "SmartCopy_is_having_difficulty_reading_the_page": {
+        "message": "SmartCopy가 페이지를 읽는 데 문제가 있습니다. 페이지를 새로 고쳐 보세요."
+    },
+    "This_website_is_not_yet_supported_by_SmartCopy": {
+        "message": "이 웹사이트는 아직 SmartCopy에서 지원되지 않습니다."
+    },
+    "Selection": {
+        "message": "선택"
+    },
+    "Simplify_form_by_hiding_unused_fields": {
+        "message": "사용하지 않는 필드를 숨겨 양식 간소화"
+    },
+    "Enable_photo_checkbox_auto_selection": {
+        "message": "사진 체크박스 자동 선택 활성화"
+    },
+    "Reminder_user_responsible": {
+        "message": "알림: 이미지를 복사할 때 필요한<br>사진작가의 허가를 받는 책임은<br>사용자에게 있습니다."
+    },
+    "Exclude_private_profile_auto_select": {
+        "message": "<private> 프로필 자동 선택 제외"
+    },
+    "Est_burial_date_from_death_if_location": {
+        "message": "위치가 있으면 사망일을 기준으로 매장일 추정"
+    },
+    "This_change_will_take_effect_at_next_use": {
+        "message": "이 변경 사항은 다음 사용 시 적용됩니다."
+    },
+    "Location": {
+        "message": "위치"
+    },
+    "Enable_Geolocation": {
+        "message": "지리 위치 활성화"
+    },
+    "API_Key": {
+        "message": "API 키"
+    },
+    "Location_fields_auto_select_one_select_all": {
+        "message": "위치 필드에서 하나를 선택하면 모두 선택"
+    },
+    "Naming": {
+        "message": "이름"
+    },
+    "Auto_populate_empty_birth_name_fields": {
+        "message": "빈 출생 이름 필드 자동 채우기"
+    },
+    "Auto_fill_married_last_name": {
+        "message": "결혼 후 성 자동 채우기"
+    },
+    "Parse_for_middle_names_automatically": {
+        "message": "중간 이름 자동 인식"
+    },
+    "Auto_adjust_the_names_for_mixed_case": {
+        "message": "이름의 대문자/소문자 자동 조정"
+    },
+    "Force_compound_lastname_to_lowercase": {
+        "message": "복합 성을 소문자로 강제 변환"
+    },
+    "Default_children_to_likely_Geni_parent": {
+        "message": "자녀를 가장 가능성이 높은 Geni 부모에 기본 연결"
+    },
+    "Default_deceased_profiles_to_public": {
+        "message": "사망자 프로필을 기본적으로 공개로 설정"
+    },
+    "Add_reference_to_Geni_s_About_section": {
+        "message": "Geni의 정보 섹션에 출처 추가"
+    },
+    "Display_the_Geni_side_data_by_default": {
+        "message": "기본적으로 Geni 쪽 데이터 표시"
+    },
+    "Please_select_one_of_the_Matches": {
+        "message": "이 결과 페이지에서 일치 항목 중 하나를 선택하세요."
+    },
+    "_year_age_difference_between_": {
+        "message": " 세의 나이 차이: "
+    },
+    "Birth_Surname_of_": {
+        "message": "출생 성: "
+    },
+    "_is_the_same_as_the_last_name_of_": {
+        "message": " 의 성과 같습니다: "
+    },
+    "Death_date_of_": {
+        "message": "사망일: "
+    },
+    "_is_the_same_as_the_death_date_of_": {
+        "message": " 의 사망일과 같습니다: "
+    },
+    "_is_the_same_as_": {
+        "message": " 와(과) 같습니다: "
+    },
+    "_marriage_date": {
+        "message": " 결혼일"
+    },
+    "_born_after_": {
+        "message": " 이후 출생 "
+    },
+    "_died_before_": {
+        "message": " 이전 사망 "
+    },
+    "_years_old_for_": {
+        "message": " 세, "
+    },
+    "_marriage": {
+        "message": " 결혼"
+    },
+    "Birth_date_of_": {
+        "message": "출생일: "
+    },
+    "_and_": {
+        "message": " 및 "
+    },
+    "_are_within_": {
+        "message": " 의 차이가 "
+    },
+    "_months": {
+        "message": " 개월 이내"
+    },
+    "_born_before_the_birth_of_": {
+        "message": " 의 출생 이전에 출생 "
+    },
+    "death": {
+        "message": "사망"
+    },
+    "_born_after_the_death_of_": {
+        "message": " 의 사망 이후에 출생 "
+    },
+    "_is_under_": {
+        "message": " 미만 "
+    },
+    "_years_old_for_the_birth_of_": {
+        "message": " 세, 다음 사람의 출생 당시: "
+    },
+    "_is_over_": {
+        "message": " 초과 "
+    },
+    "_born_before_the_marriage_of_": {
+        "message": " 의 결혼 이전에 출생 "
+    },
+    "_parents_": {
+        "message": " 부모 "
+    },
+    "_has_pending_": {
+        "message": " 대기 중인 "
+    },
+    "data_conflicts": {
+        "message": "데이터 충돌"
+    },
+    "The_age_of_": {
+        "message": "나이: "
+    },
+    "_exceeds_": {
+        "message": " 초과 "
+    },
+    "_years": {
+        "message": " 세"
+    },
+    "_is_after_": {
+        "message": " 보다 이후 "
+    },
+    "_death_date": {
+        "message": " 사망일"
+    },
+    "Baptism_date_of_": {
+        "message": "세례일: "
+    },
+    "_is_before_": {
+        "message": " 보다 이전 "
+    },
+    "_birth_date": {
+        "message": " 출생일"
+    },
+    "_burial_date": {
+        "message": " 매장일"
+    },
+    "_contains_a_double_space_in_": {
+        "message": " 다음 필드에 연속된 공백이 있습니다: "
+    },
+    "first_name": {
+        "message": "이름"
+    },
+    "_contains_a_double_or_trailing_space_in_": {
+        "message": " 다음 필드에 연속된 공백 또는 끝 공백이 있습니다: "
+    },
+    "_names": {
+        "message": " 이름"
+    },
+    "_contains_an_alias_in_": {
+        "message": " 다음 필드에 별칭이 있습니다: "
+    },
+    "_appears_to_contain_a_suffix_in_": {
+        "message": " 다음 필드에 접미사가 있는 것으로 보입니다: "
+    },
+    "Move_Suffix": {
+        "message": "접미사 이동"
+    },
+    "_contains_improper_use_of_salutation_in_": {
+        "message": " 다음 필드에 경칭이 잘못 사용되었습니다: "
+    },
+    "_title": {
+        "message": " 호칭"
+    },
+    "Remove_salutation": {
+        "message": "경칭 제거"
+    },
+    "_contains_improper_use_of_relationship_in_": {
+        "message": " 다음 필드에 관계가 잘못 사용되었습니다: "
+    },
+    "_suffix": {
+        "message": " 접미사"
+    },
+    "Remove_relationship": {
+        "message": "관계 제거"
+    },
+    "_contains_improper_use_of_a_numbering_scheme_in_": {
+        "message": " 다음 필드에 번호 체계가 잘못 사용되었습니다: "
+    },
+    "Remove_numeric": {
+        "message": "숫자 제거"
+    },
+    "_is_in_a_relationship_cycle_within_the_immediate_family": {
+        "message": " 직계 가족 내 관계 순환에 포함되어 있습니다"
+    },
+    "_contains_an_invalid_": {
+        "message": " 유효하지 않은 "
+    },
+    "_date_month_greater_than_12": {
+        "message": " 날짜가 있습니다. 월이 12보다 큽니다."
+    },
+    "_date_day_greater_than_31": {
+        "message": " 날짜가 있습니다. 일이 31보다 큽니다."
+    },
+    "_date": {
+        "message": " 날짜"
+    },
+    "_contains_an_incomplete_": {
+        "message": " 불완전한 "
+    },
+    "_date_missing_month": {
+        "message": " 날짜가 있습니다. 월이 없습니다."
+    },
+    "_date_missing_year": {
+        "message": " 날짜가 있습니다. 연도가 없습니다."
+    },
+    "_contains_a_": {
+        "message": " 포함: "
+    },
+    "_location_without_a_country": {
+        "message": " 국가가 없는 위치"
+    },
+    "his": {
+        "message": "그의"
+    },
+    "her": {
+        "message": "그녀의"
+    },
+    "their": {
+        "message": "그들의"
+    },
+    "mother": {
+        "message": "어머니"
+    },
+    "father": {
+        "message": "아버지"
+    },
+    "parent": {
+        "message": "부모"
+    },
+    "brother": {
+        "message": "형제"
+    },
+    "sibling": {
+        "message": "형제자매"
+    },
+    "wife": {
+        "message": "아내"
+    },
+    "husband": {
+        "message": "남편"
+    },
+    "partner": {
+        "message": "파트너"
+    }
+}

@@ -1,0 +1,707 @@
+{
+    "appName": {
+        "message": "SmartCopy"
+    },
+    "appShortName": {
+        "message": "SmartCopy"
+    },
+    "appDesc": {
+        "message": "用于将家谱数据复制到 Geni 的工具。"
+    },
+    "switchOn": {
+        "message": "开启"
+    },
+    "switchOff": {
+        "message": "关闭"
+    },
+    "consistencyCheck": {
+        "message": "一致性检查"
+    },
+    "contains_incorrect_uppercase_lowercase_in_name": {
+        "message": "$person$：$pronoun$姓名中的大小写使用不正确（$lang$）。",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_incorrect_uppercase_lowercase_in_name_default": {
+        "message": "$person$：$pronoun$姓名中的大小写使用不正确。",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_patronym_in_first_name": {
+        "message": "$person$：$pronoun$名字中包含父名/母名（$lang$）。",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_patronym_in_first_name_default": {
+        "message": "$person$：$pronoun$名字中包含父名/母名。",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name": {
+        "message": "$person$：$pronoun$中间名中包含非父名/母名内容（$lang$）。",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            },
+            "lang": {
+                "content": "$3"
+            }
+        }
+    },
+    "contains_non_patronym_in_middle_name_default": {
+        "message": "$person$：$pronoun$中间名中包含非父名/母名内容。",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "pronoun": {
+                "content": "$2"
+            }
+        }
+    },
+    "living": {
+        "message": "在世"
+    },
+    "claimed": {
+        "message": "已认领"
+    },
+    "fixCase": {
+        "message": "修正大小写"
+    },
+    "fixed": {
+        "message": "已修正"
+    },
+    "fixName": {
+        "message": "修正姓名"
+    },
+    "fixSpace": {
+        "message": "修正空格"
+    },
+    "fixSuffix": {
+        "message": "修正后缀"
+    },
+    "fixTitle": {
+        "message": "修正头衔"
+    },
+    "noPermission": {
+        "message": "无权修正"
+    },
+    "makePublic": {
+        "message": "设为公开"
+    },
+    "numFamilyMembersBornBeforeYearAreSetAsPrivate": {
+        "message": "$count$ 位约在 $year$ 年之前出生的家庭成员已设为私密。",
+        "placeholders": {
+            "count": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "personWasBornBeforeYearAndIsSetAsPrivate": {
+        "message": "$person$ 约出生于 $year$ 年之前，已设为私密。",
+        "placeholders": {
+            "person": {
+                "content": "$1"
+            },
+            "year": {
+                "content": "$2"
+            }
+        }
+    },
+    "Research_this_Person": {
+        "message": "研究此人"
+    },
+    "All_Collections": {
+        "message": "所有集合"
+    },
+    "Collections": {
+        "message": "集合"
+    },
+    "Publications": {
+        "message": "出版物"
+    },
+    "Holocaust": {
+        "message": "犹太人大屠杀"
+    },
+    "Name_Search": {
+        "message": "姓名搜索"
+    },
+    "Gravestones": {
+        "message": "墓碑"
+    },
+    "Genealogies": {
+        "message": "家谱"
+    },
+    "Genealogy": {
+        "message": "家谱"
+    },
+    "Geni_Search": {
+        "message": "Geni 搜索"
+    },
+    "Google_Search": {
+        "message": "Google 搜索"
+    },
+    "Records": {
+        "message": "档案"
+    },
+    "Messageboard": {
+        "message": "留言板"
+    },
+    "Newspapers": {
+        "message": "报纸"
+    },
+    "Books": {
+        "message": "书籍"
+    },
+    "Obituaries": {
+        "message": "讣告"
+    },
+    "Other_Resources": {
+        "message": "其他资源"
+    },
+    "Unable_to_create_research_links_on_this_profile": {
+        "message": "无法在此个人资料上创建研究链接。"
+    },
+    "Loading___": {
+        "message": "正在加载..."
+    },
+    "HistoryLink_unreachable_message": {
+        "message": "无法连接到 HistoryLink 的登录服务。请检查互联网连接后重试。"
+    },
+    "HistoryLink": {
+        "message": "HistoryLink 工具"
+    },
+    "Ancestor_Graph": {
+        "message": "祖先图"
+    },
+    "Descendant_Graph": {
+        "message": "后代图"
+    },
+    "History_Search": {
+        "message": "历史搜索"
+    },
+    "Forest_Density_Calculator": {
+        "message": "密度计算器"
+    },
+    "Path_To_User": {
+        "message": "用户路径"
+    },
+    "Configuration": {
+        "message": "设置"
+    },
+    "Copy_Preferences": {
+        "message": "复制偏好设置"
+    },
+    "Consistency_Checks": {
+        "message": "一致性检查"
+    },
+    "Geni_Customization": {
+        "message": "Geni 自定义"
+    },
+    "Note_Dates_that_contain_Between_Before_and_After___": {
+        "message": "注意：包含“介于”、“之前”和“之后”的日期不会参与一致性检查比较。带有“约”标记的日期将视为精确日期。"
+    },
+    "Run_consistency_checks_when_viewing_Geni_profiles": {
+        "message": "查看 Geni 个人资料时运行一致性检查。"
+    },
+    "Age_difference_between_partners_is_significant": {
+        "message": "伴侣之间的年龄差异较大"
+    },
+    "Maiden_name_same_as_husbands_last_name": {
+        "message": "出生姓氏与丈夫的姓氏相同"
+    },
+    "Husband_and_wife_death_dates_the_same": {
+        "message": "丈夫与妻子的死亡日期相同"
+    },
+    "Husband_death_date_same_as_marriage_date": {
+        "message": "丈夫的死亡日期与结婚日期相同"
+    },
+    "Wife_death_date_same_as_marriage_date": {
+        "message": "妻子的死亡日期与结婚日期相同"
+    },
+    "Born_after_marriage": {
+        "message": "出生于结婚之后"
+    },
+    "Died_before_marriage": {
+        "message": "死亡于结婚之前"
+    },
+    "Implausible_marriage_age_too_young": {
+        "message": "结婚年龄不合理：过于年轻"
+    },
+    "Siblings_ages_too_close_together": {
+        "message": "兄弟姐妹的年龄过于接近"
+    },
+    "Born_before_parent_birth": {
+        "message": "出生早于父母出生"
+    },
+    "Born_after_parent_death": {
+        "message": "出生于父母去世之后"
+    },
+    "Death_before_baptism_date": {
+        "message": "死亡日期早于洗礼日期"
+    },
+    "Death_after_burial_date": {
+        "message": "死亡日期晚于安葬日期"
+    },
+    "Parent_too_young_for_childs_birth": {
+        "message": "子女出生时父母年龄过小"
+    },
+    "Mother_too_old_for_childs_birth": {
+        "message": "子女出生时母亲年龄过大"
+    },
+    "Born_before_parent_marriage": {
+        "message": "出生早于父母结婚"
+    },
+    "Excessive_Age": {
+        "message": "年龄过大"
+    },
+    "Born_after_death": {
+        "message": "出生于死亡之后"
+    },
+    "Name_contains_double_space": {
+        "message": "姓名中包含连续两个空格"
+    },
+    "Name_contains_alias": {
+        "message": "姓名中包含别名"
+    },
+    "Name_contains_improper_use_of_uppercase_lowercase": {
+        "message": "姓名中的大小写使用不正确"
+    },
+    "First_Name_ends_in_suffix_eg___": {
+        "message": "名字以姓名称谓后缀结尾（例如 'i','ii','iii','iv','jr','sr'）"
+    },
+    "Salutation_or_relationship_in_title_eg___": {
+        "message": "头衔字段中包含称谓或亲属关系（例如 'Mr', 'Mrs'）"
+    },
+    "Salutation_or_relationship_in_suffix_eg___": {
+        "message": "后缀字段中包含称谓或亲属关系（例如 'Mr', 'Mrs'）"
+    },
+    "Relationship_cycle_in_immediate_family": {
+        "message": "直系亲属中存在亲属关系循环"
+    },
+    "Check_date_formatting_for_inconsistent_values": {
+        "message": "检查日期格式是否存在不一致的值"
+    },
+    "Check_for_pending_data_conflict_resolution": {
+        "message": "检查是否有待解决的数据冲突"
+    },
+    "Self_check_profile_for_inconsistent_dates_and_values": {
+        "message": "自动检查个人资料中的日期和值是否一致。"
+    },
+    "Check_name_fields_for_improper_values": {
+        "message": "检查姓名字段中是否存在不正确的值"
+    },
+    "Check_name_fields_for_living_profiles": {
+        "message": "从快速修正中排除在世人员的个人资料"
+    },
+    "Check_profile_for_pending_data_conflicts": {
+        "message": "检查个人资料中是否有待处理的数据冲突"
+    },
+    "Check_date_values_for_irregular_formatting": {
+        "message": "检查日期值是否存在异常格式"
+    },
+    "Check_when_location_is_missing_a_country": {
+        "message": "检查地点是否缺少国家"
+    },
+    "Maximum_year_to_be_private": {
+        "message": "可设为私密的最晚年份："
+    },
+    "Maximum_age": {
+        "message": "最大年龄："
+    },
+    "Check_the_dates_of_children_against_their_parents": {
+        "message": "将子女的日期与其父母的日期进行核对。"
+    },
+    "Check_child_is_born_after_parent_marriage": {
+        "message": "检查子女是否出生于父母结婚之后"
+    },
+    "Age_the_parent_is_too_young_to_have_a_child": {
+        "message": "父母被视为年龄过小而不适合生育子女的年龄"
+    },
+    "Age_the_mother_is_too_old_to_have_a_child": {
+        "message": "母亲被视为年龄过大而不适合生育子女的年龄"
+    },
+    "Check_the_values_of_partner_spouses_against_each_other": {
+        "message": "相互核对伴侣/配偶的值。"
+    },
+    "Identify_possible_maiden_name_copy_issues": {
+        "message": "识别复制出生姓氏时可能出现的问题"
+    },
+    "Age_the_spouse_is_too_young_to_be_married": {
+        "message": "配偶被视为年龄过小而不适合结婚的年龄"
+    },
+    "Maximum_age_difference_between_spouses": {
+        "message": "配偶之间的最大年龄差"
+    },
+    "Check_siblings_birth_are_over_": {
+        "message": "检查兄弟姐妹的出生日期是否相隔超过 "
+    },
+    "_months_apart_excl_twins": {
+        "message": " 个月（双胞胎除外）。"
+    },
+    "Future_options_to_add_features_to_Geni": {
+        "message": "未来可为 Geni 添加功能的选项。"
+    },
+    "This_profile_is_not_in_the_World_Family_Tree": {
+        "message": "此个人资料不在世界家族树中。"
+    },
+    "Add_to_History": {
+        "message": "添加到历史记录"
+    },
+    "Show_History": {
+        "message": "显示历史记录"
+    },
+    "Hide_History": {
+        "message": "隐藏历史记录"
+    },
+    "Clear_History": {
+        "message": "清除历史记录"
+    },
+    "Notice___Please_Read": {
+        "message": "注意 - 请阅读"
+    },
+    "SmartCopy_will_no_longer_do_geo_location_lookups___": {
+        "message": "由于 Google 服务的成本，SmartCopy 将不再自动执行地理位置查询。虽然这不是一个好消息，但 Geni 最近已支持在提交<i>之后</i>进行地理位置查询。当通过地点字段提交一个地点时，Geni 会执行查询并在网站上填充位置字段。或者，您也可以在设置中指定自己的 Google API 密钥。您仍然可以点击地球图标 $globe_icon$ 在 SmartCopy 中手动填写位置数据；如果您希望禁用 Geni 的地理位置查询，也可以在 SmartCopy 设置中进行设置。",
+        "placeholders": {
+            "globe_icon": {
+                "content": "$1"
+            }
+        }
+    },
+    "Close": {
+        "message": "关闭"
+    },
+    "Display_Add_Biography_button_in_About": {
+        "message": "在“关于”中显示“添加传记”按钮"
+    },
+    "Add_Biography": {
+        "message": "添加传记"
+    },
+    "Export_Profiles_button_on_Project_Actions": {
+        "message": "在“项目操作”中显示“导出个人资料”按钮"
+    },
+    "Export_Profiles": {
+        "message": "导出个人资料"
+    },
+    "SmartCopy_does_not_currently_support_parsing": {
+        "message": "SmartCopy 当前不支持解析此页面 / 网站 / 集合。"
+    },
+    "SmartCopy_is_having_difficulty_reading_the_page": {
+        "message": "SmartCopy 无法正常读取此页面。请尝试刷新页面。"
+    },
+    "This_website_is_not_yet_supported_by_SmartCopy": {
+        "message": "SmartCopy 尚不支持此网站。"
+    },
+    "Selection": {
+        "message": "选择"
+    },
+    "Simplify_form_by_hiding_unused_fields": {
+        "message": "隐藏未使用的字段以简化表单"
+    },
+    "Enable_photo_checkbox_auto_selection": {
+        "message": "启用照片复选框自动选择"
+    },
+    "Reminder_user_responsible": {
+        "message": "提醒：复制图片时，用户有责任<br>取得摄影者所要求的任何<br>必要许可。"
+    },
+    "Exclude_private_profile_auto_select": {
+        "message": "不自动选择 <private> 个人资料"
+    },
+    "Est_burial_date_from_death_if_location": {
+        "message": "如果有地点，则根据死亡日期估算安葬日期"
+    },
+    "This_change_will_take_effect_at_next_use": {
+        "message": "此更改将在下次使用时生效。"
+    },
+    "Location": {
+        "message": "地点"
+    },
+    "Enable_Geolocation": {
+        "message": "启用地理位置"
+    },
+    "API_Key": {
+        "message": "API 密钥"
+    },
+    "Location_fields_auto_select_one_select_all": {
+        "message": "位置字段中选择一个即选择全部"
+    },
+    "Naming": {
+        "message": "姓名"
+    },
+    "Auto_populate_empty_birth_name_fields": {
+        "message": "自动填充空的出生姓名字段"
+    },
+    "Auto_fill_married_last_name": {
+        "message": "自动填充婚后姓氏"
+    },
+    "Parse_for_middle_names_automatically": {
+        "message": "自动识别中间名"
+    },
+    "Auto_adjust_the_names_for_mixed_case": {
+        "message": "自动调整姓名的大小写"
+    },
+    "Force_compound_lastname_to_lowercase": {
+        "message": "强制将复合姓氏转换为小写"
+    },
+    "Default_children_to_likely_Geni_parent": {
+        "message": "默认将子女关联到最可能的 Geni 父母"
+    },
+    "Default_deceased_profiles_to_public": {
+        "message": "默认将已故人员的个人资料设为公开"
+    },
+    "Add_reference_to_Geni_s_About_section": {
+        "message": "在 Geni 的“关于”部分添加来源"
+    },
+    "Display_the_Geni_side_data_by_default": {
+        "message": "默认显示 Geni 端的数据"
+    },
+    "Please_select_one_of_the_Matches": {
+        "message": "请在此结果页面中选择一个匹配项。"
+    },
+    "_year_age_difference_between_": {
+        "message": " 岁年龄差，介于 "
+    },
+    "Birth_Surname_of_": {
+        "message": "出生姓氏： "
+    },
+    "_is_the_same_as_the_last_name_of_": {
+        "message": " 与以下人员的姓氏相同： "
+    },
+    "Death_date_of_": {
+        "message": "死亡日期： "
+    },
+    "_is_the_same_as_the_death_date_of_": {
+        "message": " 与以下人员的死亡日期相同： "
+    },
+    "_is_the_same_as_": {
+        "message": " 与以下内容相同： "
+    },
+    "_marriage_date": {
+        "message": " 结婚日期"
+    },
+    "_born_after_": {
+        "message": " 出生晚于 "
+    },
+    "_died_before_": {
+        "message": " 死亡早于 "
+    },
+    "_years_old_for_": {
+        "message": " 岁，针对 "
+    },
+    "_marriage": {
+        "message": " 结婚"
+    },
+    "Birth_date_of_": {
+        "message": "出生日期： "
+    },
+    "_and_": {
+        "message": " 和 "
+    },
+    "_are_within_": {
+        "message": " 相差不超过 "
+    },
+    "_months": {
+        "message": " 个月"
+    },
+    "_born_before_the_birth_of_": {
+        "message": " 出生早于以下人员的出生日期： "
+    },
+    "death": {
+        "message": "死亡"
+    },
+    "_born_after_the_death_of_": {
+        "message": " 出生晚于以下人员的死亡日期： "
+    },
+    "_is_under_": {
+        "message": " 小于 "
+    },
+    "_years_old_for_the_birth_of_": {
+        "message": " 岁，针对以下人员的出生： "
+    },
+    "_is_over_": {
+        "message": " 大于 "
+    },
+    "_born_before_the_marriage_of_": {
+        "message": " 出生早于以下人员的结婚日期： "
+    },
+    "_parents_": {
+        "message": " 父母 "
+    },
+    "_has_pending_": {
+        "message": " 有待处理的 "
+    },
+    "data_conflicts": {
+        "message": "数据冲突"
+    },
+    "The_age_of_": {
+        "message": "年龄： "
+    },
+    "_exceeds_": {
+        "message": " 超过 "
+    },
+    "_years": {
+        "message": " 岁"
+    },
+    "_is_after_": {
+        "message": " 晚于 "
+    },
+    "_death_date": {
+        "message": " 死亡日期"
+    },
+    "Baptism_date_of_": {
+        "message": "洗礼日期： "
+    },
+    "_is_before_": {
+        "message": " 早于 "
+    },
+    "_birth_date": {
+        "message": " 出生日期"
+    },
+    "_burial_date": {
+        "message": " 安葬日期"
+    },
+    "_contains_a_double_space_in_": {
+        "message": " 在以下字段中包含连续两个空格： "
+    },
+    "first_name": {
+        "message": "名字"
+    },
+    "_contains_a_double_or_trailing_space_in_": {
+        "message": " 在以下字段中包含连续两个空格或结尾空格： "
+    },
+    "_names": {
+        "message": " 姓名"
+    },
+    "_contains_an_alias_in_": {
+        "message": " 在以下字段中包含别名： "
+    },
+    "_appears_to_contain_a_suffix_in_": {
+        "message": " 以下字段似乎包含后缀： "
+    },
+    "Move_Suffix": {
+        "message": "移动后缀"
+    },
+    "_contains_improper_use_of_salutation_in_": {
+        "message": " 以下字段中的称谓使用不当： "
+    },
+    "_title": {
+        "message": " 头衔"
+    },
+    "Remove_salutation": {
+        "message": "移除称谓"
+    },
+    "_contains_improper_use_of_relationship_in_": {
+        "message": " 以下字段中的亲属关系使用不当： "
+    },
+    "_suffix": {
+        "message": " 后缀"
+    },
+    "Remove_relationship": {
+        "message": "移除亲属关系"
+    },
+    "_contains_improper_use_of_a_numbering_scheme_in_": {
+        "message": " 以下字段中的编号方式使用不当： "
+    },
+    "Remove_numeric": {
+        "message": "移除数字"
+    },
+    "_is_in_a_relationship_cycle_within_the_immediate_family": {
+        "message": " 在直系亲属中形成亲属关系循环"
+    },
+    "_contains_an_invalid_": {
+        "message": " 包含无效的 "
+    },
+    "_date_month_greater_than_12": {
+        "message": " 日期，月份大于 12。"
+    },
+    "_date_day_greater_than_31": {
+        "message": " 日期，日期数字大于 31。"
+    },
+    "_date": {
+        "message": " 日期"
+    },
+    "_contains_an_incomplete_": {
+        "message": " 包含不完整的 "
+    },
+    "_date_missing_month": {
+        "message": " 日期，缺少月份。"
+    },
+    "_date_missing_year": {
+        "message": " 日期，缺少年份。"
+    },
+    "_contains_a_": {
+        "message": " 包含一个 "
+    },
+    "_location_without_a_country": {
+        "message": " 缺少国家的地点"
+    },
+    "his": {
+        "message": "其"
+    },
+    "her": {
+        "message": "其"
+    },
+    "their": {
+        "message": "其"
+    },
+    "mother": {
+        "message": "母亲"
+    },
+    "father": {
+        "message": "父亲"
+    },
+    "parent": {
+        "message": "父母"
+    },
+    "brother": {
+        "message": "兄弟"
+    },
+    "sibling": {
+        "message": "兄弟姐妹"
+    },
+    "wife": {
+        "message": "妻子"
+    },
+    "husband": {
+        "message": "丈夫"
+    },
+    "partner": {
+        "message": "伴侣"
+    }
+}

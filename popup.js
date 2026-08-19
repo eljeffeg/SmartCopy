@@ -1293,11 +1293,12 @@ $(function () {
         // is rebound by jQuery to the element currently being tested.
         var selectingAll = this.checked;
         // #217 follow-up: same reasoning as applySelectAllState()
-        // (buildform.js) - .geotopcheck has no name attribute and is never
-        // submitted, it's a one-directional cascade-select convenience
-        // control, not a state that should reflect what's selected below
-        // it. Excluded so Select All doesn't check "<...> Location:
-        // Unknown" purely as a side effect when nothing under it changed.
+        // (buildform.js) - .geotopcheck has no name attribute and isn't
+        // itself submitted, so it's excluded from this blanket filter (its
+        // row shape doesn't fit isFieldEmptyForCheckAll() below anyway);
+        // syncGeotopcheckState() at the end derives its correct state from
+        // whatever its own geo children end up checked as, same as its own
+        // click handler already does for a direct click.
         var ffs = fs.find('[type="checkbox"]').not('.geotopcheck');
         if (!$(ffs[0]).prop("disabled")) {
             var photoon = $('#photoonoffswitch').prop('checked');
@@ -1344,6 +1345,7 @@ $(function () {
                 }
                 return true;
             }).attr('disabled', !selectingAll);
+            syncGeotopcheckState(fs);
         }
     });
 });

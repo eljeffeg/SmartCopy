@@ -2854,16 +2854,13 @@ function geniPhoto(gender) {
 // manually uncheck then recheck "all".
 function applySelectAllState(fs, selectingAll) {
     // #217 follow-up: .geotopcheck (the "Toggle Geolocation" group-header
-    // checkbox next to "<Birth/Baptism/Death/Burial> Location: Unknown")
-    // has no name attribute and is never itself submitted - it's a
-    // one-directional convenience control (click it to cascade-select the
-    // Place/City/County/State/Country rows below it), not a state that's
-    // meant to reflect whether those rows happen to be selected right now.
-    // Swept up unconditionally by a blanket [type="checkbox"] selector, it
-    // ended up checked by Select All even when every field underneath it
-    // stayed correctly unchecked/protected (e.g. Geni already has the
-    // burial place) - confusing, since a checked "Location: Unknown" reads
-    // as "this will be submitted" when nothing about it actually will be.
+    // checkbox next to "<Birth/Baptism/Death/Burial> Location: ...") has
+    // no name attribute and is never itself submitted, and its row's shape
+    // doesn't fit isFieldEmptyForCheckAll()'s expectations below - excluded
+    // from this blanket filter for both reasons. Its correct checked state
+    // (does THIS group have anything selected - independent of whether the
+    // group is showing "Unknown" or a real resolved location) is derived
+    // separately at the end of this function, via syncGeotopcheckState().
     var ffs = fs.find('[type="checkbox"]').not('.geotopcheck');
     var photoon = $('#photoonoffswitch').prop('checked');
     ffs.filter(function (item) {
@@ -2918,6 +2915,35 @@ function applySelectAllState(fs, selectingAll) {
         }
         return true;
     }).attr('disabled', !selectingAll);
+    syncGeotopcheckState(fs);
+}
+
+// #217 follow-up: .geotopcheck's own click handler (.checknext's handler,
+// above) already checks it whenever one of its geo children (Place/City/
+// County/State/Country) gets checked directly - it's meant to reflect
+// "does this group have anything selected," not just "was I clicked."
+// Select All needs the same reflection, not a blanket exclude (which left
+// it permanently unchecked even after Select All correctly checked a
+// child that now has real, non-"Unknown" data) and not a blanket include
+// (which checked it even when every child stayed correctly protected/
+// unchanged). Walks forward from each .geotopcheck's own header row - its
+// group's child rows are the ones immediately following with no id of
+// their own; a row WITH an id marks the start of the next group - mirrors
+// the backward walk the .checknext handler already uses to find ITS
+// group's header the other direction.
+function syncGeotopcheckState(fs) {
+    fs.find('.geotopcheck').each(function () {
+        var headerRow = $(this).closest('tr')[0];
+        var anyChildChecked = false;
+        var sib = headerRow.nextElementSibling;
+        while (exists(sib) && (!sib.id || sib.id === "")) {
+            if ($(sib).find('[type="checkbox"]').is(':checked')) {
+                anyChildChecked = true;
+            }
+            sib = sib.nextElementSibling;
+        }
+        $(this).prop('checked', anyChildChecked);
+    });
 }
 
 // Re-evaluates a family-member field's checkbox/enabled state now that we

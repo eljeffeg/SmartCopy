@@ -28,6 +28,7 @@
 registerCollection({
     "reload": false,
     "recordtype": "MyHeritage Genealogy",
+    "usesDeepResearch": true, // #213: fetchMHFamilyViaTab() below
     "prepareUrl": function(url) {
         if (startsWithMH(url, "") && !startsWithHTTP(url, "https://www.myheritage.com/")) {
             url = url.replace(/https?:\/\/www\.myheritage\..*?\//i, "https://www.myheritage.com/");

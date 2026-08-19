@@ -33,6 +33,7 @@
 registerCollection({
     "reload": false,
     "experimental": true,
+    "usesDeepResearch": true, // #213: fetchFilaeFamilyViaTab() below
     "recordtype": "Filae Genealogy",
     "prepareUrl": function(url) {
         return url;

@@ -926,6 +926,7 @@ function loadSelectPage(request) {
             document.getElementById("loading").style.display = "block";
             deepResearchSkipRun = false;
             $('#skipdeepresearch').text(_('Skip_Deep_Research_for_this_run'));
+            updateSkipDeepResearchVisibility();
             profilechanged = true;
             loadPage(request);
         } else {
@@ -1141,6 +1142,20 @@ async function capturePage() {
     });
 }
 
+// #213 follow-up: "Skip Deep Research for this run" was showing for every
+// site's read, even ones whose collection never uses the tab-fetch
+// mechanism at all (e.g. Ancestry) - there's nothing to skip there. Only
+// show it when BOTH the current site's collection actually uses Deep
+// Research (usesDeepResearch, set on the four collections that do:
+// filae.js/geneanet.js/myheritagenew.js/onlineofb.js) AND the persistent
+// setting itself is on - called at both #loading-show sites (a fresh run
+// starting) and from the setting's own click handler (toggling it off
+// mid-popup should hide the link immediately, not just on the next run).
+function updateSkipDeepResearchVisibility() {
+    var eligible = exists(collection) && collection.usesDeepResearch && deepResearchOn;
+    $('#skipdeepresearch').parent().css('display', eligible ? 'block' : 'none');
+}
+
 async function getPageCode() {
     if (loggedin && exists(accountinfo)) {
         document.querySelector('#message').style.display = "none";
@@ -1149,6 +1164,7 @@ async function getPageCode() {
         document.getElementById("loading").style.display = "block";
         deepResearchSkipRun = false;
         $('#skipdeepresearch').text(_('Skip_Deep_Research_for_this_run'));
+        updateSkipDeepResearchVisibility();
 
         if (collection.reload) {
             chrome.runtime.sendMessage({
@@ -3191,6 +3207,7 @@ $(function () {
     $('#deepresearchonoffswitch').on('click', function () {
         chrome.storage.local.set({'deepresearchenabled': this.checked});
         deepResearchOn = this.checked;
+        updateSkipDeepResearchVisibility();
     });
     $('#skipdeepresearch').on('click', function () {
         deepResearchSkipRun = true;

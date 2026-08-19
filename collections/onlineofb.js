@@ -32,6 +32,7 @@
 registerCollection({
     "reload": false,
     "experimental": true,
+    "usesDeepResearch": true, // #213: fetchOFBFamilyViaTab() below
     "recordtype": "Online-OFB Genealogy",
     "prepareUrl": function(url) {
         // German mode gives ambiguous numeric dates (03.07.1850 - is that

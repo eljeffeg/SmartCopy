@@ -1,6 +1,7 @@
 registerCollection({
     "reload": false,
     "recordtype": "Geneanet Genealogy",
+    "usesDeepResearch": true, // #213: fetchGeneanetFamilyViaTab() below
     "prepareUrl": function(url) {
         if (url.contains("type=")) {
             url = url.replace(/&type=.*?&/, "&");

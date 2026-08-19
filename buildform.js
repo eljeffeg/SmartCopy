@@ -941,16 +941,23 @@ function buildForm() {
             // it would replace a correct birth surname with a guessed
             // married one.
             //
-            // Scoped tightly per the issue's own discussion: exactly one
-            // spouse only (members.length - a second spouse, e.g.
-            // remarriage, makes which surname to default to ambiguous, so
-            // this leaves it manual rather than guessing), and only for a
-            // female spouse with a male focus person (explicitly not
-            // assumed for any other gender combination - see #204's
-            // "Same-Sex Marriage Logic" note). Hyphenated/multi-word
-            // surnames need no special handling here - this only ever
-            // copies the focus person's own already-parsed last_name
-            // verbatim, never re-parses or re-derives anything.
+            // Originally scoped to exactly one spouse only (members.length
+            // === 1), on the theory that a second spouse (remarriage) makes
+            // which surname to default to ambiguous - but the value copied
+            // in is always the FOCUS person's own already-parsed last_name,
+            // never anything derived per-spouse, so there's no actual
+            // ambiguity to resolve: every blank-Last-Name female spouse of
+            // the same male focus person should independently get the same,
+            // correct answer regardless of how many spouses total. A live
+            // report (a man with two wives, neither auto-filled) confirmed
+            // the length===1 guard was blocking valid cases, not protecting
+            // against a real one - removed. Still only for a female spouse
+            // with a male focus person (explicitly not assumed for any
+            // other gender combination - see #204's "Same-Sex Marriage
+            // Logic" note). Hyphenated/multi-word surnames need no special
+            // handling here - this only ever copies the focus person's own
+            // already-parsed last_name verbatim, never re-parses or
+            // re-derives anything.
             //
             // Deliberately NOT attempting to detect maiden-name-retention
             // cultural conventions (e.g. Spanish/Hispanic naming) - there's
@@ -967,7 +974,7 @@ function buildForm() {
             // default) in addition to birthonoffswitch - see the matching
             // comment on the focus-person direction above.
             var lastNameAutoFilled = false;
-            if ($('#birthonoffswitch').prop('checked') && $('#marriednameonoffswitch').prop('checked') && relationship === "partner" && isFemale(gender) && isMale(focusgender) && members.length === 1 && nameval.lastName === "") {
+            if ($('#birthonoffswitch').prop('checked') && $('#marriednameonoffswitch').prop('checked') && relationship === "partner" && isFemale(gender) && isMale(focusgender) && nameval.lastName === "") {
                 var focusnamelang = genifocusdata.get("name_language");
                 var spouseSurnameForMember = genifocusdata.get("names", focusnamelang + ".last_name");
                 if (exists(spouseSurnameForMember) && spouseSurnameForMember !== "") {

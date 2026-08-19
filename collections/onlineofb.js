@@ -709,6 +709,27 @@ function getOFBPhotoUrl(parsed, url) {
 // this doesn't assume a fixed order.
 var OFB_SURNAME_PATTERN = /\b[A-ZÀ-ÖØ-Þ]{2,}\b/;
 
+// A person's own identity can be privacy-REDACTED rather than merely
+// missing - confirmed live on a real profile
+// (famreport.php?ofb=deutsch_rasselwitz&ID=I27550): the name section sits
+// in the exact same <font size="+1"> spot a real name would occupy, but
+// literally reads "[Datenschutz]" (identical text in both lang=de and
+// lang=en - it's the German word for "privacy/data protection," never
+// translated). Before this was recognized, getOFBName()'s candidate loop
+// below correctly skipped that literal text (no comma, no ALL-CAPS surname
+// run for OFB_SURNAME_PATTERN to match) but then kept scanning and matched
+// the NEXT b/h1/h2/strong/font candidate that happened to look
+// name-shaped - which on a family report page is reliably the FATHER's own
+// name, a few candidates further down in the Parents section. Confirmed
+// live end-to-end: fetching this exact privacy-protected person as a
+// family member (parseOnlineOFB() calls getOFBName() again on their own
+// fetched page, same as any other family member) duplicated their own
+// father's full name onto them as if it were their own. Recognizing the
+// marker explicitly and returning "" immediately - not merely adding it to
+// the "doesn't match" filter - is required, since skipping alone still
+// falls through to the wrong next candidate.
+var OFB_PRIVACY_MARKER = "[Datenschutz]";
+
 // Name display isn't confirmed to use a literal "Name:" label across all
 // samples - tries the label lookup first, falls back to the page's first
 // bold/header/font text that looks like a name (comma-separated, or has a
@@ -735,10 +756,16 @@ var OFB_SURNAME_PATTERN = /\b[A-ZÀ-ÖØ-Þ]{2,}\b/;
 function getOFBName(parsed, url) {
     var cells = getOFBCells(parsed);
     var raw = getOFBFieldText(cells, ["Name:"]);
+    if (raw === OFB_PRIVACY_MARKER) {
+        return "";
+    }
     if (raw === "") {
         var candidates = parsed.find("b, h1, h2, strong, font").toArray();
         for (var i = 0; i < candidates.length; i++) {
             var text = $(candidates[i]).text().trim();
+            if (text === OFB_PRIVACY_MARKER) {
+                return "";
+            }
             if (text.length < 80 && (text.contains(",") || OFB_SURNAME_PATTERN.test(text))) {
                 raw = text;
                 break;
@@ -775,6 +802,20 @@ function processOFBFamily(link, title, famid, marriageDate) {
         alldata["family"][title] = [];
     }
     var name = $(link).text().trim();
+    // A privacy-redacted family member's link anchor text is itself the
+    // literal "[Datenschutz]" placeholder (confirmed live - see
+    // OFB_PRIVACY_MARKER above) - blank it out here too, at the very first
+    // point it's captured, not just in getOFBName()'s own deeper per-member
+    // fetch. Otherwise updateInfoData() (shared.js/buildform.js)'s generic
+    // "linked profile turned out blank/private, fall back to the search
+    // summary's name" rule (its own comment: "Sometimes more information is
+    // shown on the SM, but when you click the link it goes <Private>")
+    // would see getOFBName()'s now-correct "" and backfill it right back
+    // with this same "[Datenschutz]" text - a different but still fake name,
+    // not a real one, and just as wrong to submit as the father's name was.
+    if (name === OFB_PRIVACY_MARKER) {
+        name = "";
+    }
     var itemid = getOFBItemId(url);
     var fullurl = new URL(url, tablink).href;
     var gendersv = "unknown";

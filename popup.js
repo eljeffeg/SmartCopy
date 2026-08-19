@@ -11,7 +11,7 @@ var focusURLid = "", focusname = "", focusrange = "", recordtype = "", smscorefa
 var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = [], addsiblinglist = [];
 var genibuildaction = {}, updatecount = 1, updatetotal = 0;
 var errormsg = "#f9acac", warningmsg = "#f8ff86", infomsg = "#afd2ff";
-var lastResearchFocus = null, tablinkTabId = undefined; // #218: see research.js's .ctrllink handler and loadPage() below
+var lastResearchFocus = null, tablinkTabId = undefined, tablinkOpenerTabId = undefined; // #218: see research.js's .ctrllink handler and loadPage() below
 
 document.addEventListener('DOMContentLoaded', function () {
   Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
@@ -370,6 +370,7 @@ function get_tab() {
         if (tab !== undefined) {
             tablink = tab.url;
             tablinkTabId = tab.id; // #218: see loadPage()'s lastResearchFocus fallback
+            tablinkOpenerTabId = tab.openerTabId; // #218: covers a result opened in a NEW tab from the research tab, not just navigated in place
             loginProcess();
         } else {
             window.setTimeout(get_tab, 1000);
@@ -706,20 +707,28 @@ function loadPage(request) {
             // submission - a brand-new "Research this Person" click with
             // nothing submitted yet has no history entry at all. Fall back
             // to the Geni profile that specific research link was FOR - but
-            // only when the tab being read right now (tablinkTabId) is the
-            // exact tab that link opened (lastResearchFocus.tabId, set by
-            // research.js's .ctrllink handler once a specific link is
-            // actually clicked). Matching on tabId, not just "most recently
-            // used," is required: an earlier version of this fallback had
-            // no per-tab anchor at all and applied to ANY later unmatched
-            // page - confirmed live to silently misattribute a completely
-            // unrelated page to whatever profile a prior, unrelated
-            // research click had used. Never overrides an actual
-            // buildhistory match (checked first, above) or a manual
-            // "Set Geni Destination Profile" entry (loadSelectPage, below,
-            // still runs whenever this has nothing to offer).
+            // only when the tab being read right now is either the exact
+            // tab that link opened (tablinkTabId === lastResearchFocus.tabId,
+            // set by research.js's .ctrllink handler) OR a tab opened
+            // DIRECTLY FROM that tab (tablinkOpenerTabId === ...tabId) -
+            // confirmed live that source sites commonly open an individual
+            // search result in a new child tab rather than navigating the
+            // search-results tab in place (e.g. MyHeritage), which the
+            // exact-tab-only version of this check missed entirely, right
+            // back to "unable to determine the Geni profile" for the exact
+            // flow this fallback exists for. Matching on tab identity at
+            // all (not just "most recently used," which an earlier version
+            // of this fallback did) is still required - that version had
+            // no per-tab anchor and applied to ANY later unmatched page,
+            // confirmed live to silently misattribute a completely
+            // unrelated page to a prior, unrelated research click. Never
+            // overrides an actual buildhistory match (checked first,
+            // above) or a manual "Set Geni Destination Profile" entry
+            // (loadSelectPage, below, still runs whenever this has nothing
+            // to offer).
             if (!profilechanged && exists(lastResearchFocus) && exists(lastResearchFocus.id) &&
-                exists(lastResearchFocus.tabId) && lastResearchFocus.tabId === tablinkTabId) {
+                exists(lastResearchFocus.tabId) &&
+                (lastResearchFocus.tabId === tablinkTabId || lastResearchFocus.tabId === tablinkOpenerTabId)) {
                 focusid = lastResearchFocus.id;
                 profilechanged = true;
                 loadPage(request);

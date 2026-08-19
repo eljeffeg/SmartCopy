@@ -733,5 +733,8 @@ var EN_FALLBACK_MESSAGES = {
     },
     "Average_spousal_age_gap_years": {
         "message": "Average spousal age gap (years):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Show birth/death years in dropdowns"
     }
 };

@@ -3297,6 +3297,9 @@ $(function () {
     $('#spousalgapyears').on('change', function () {
         chrome.storage.local.set({'spousalgap': this.value});
     });
+    $('#showdropdownyearsonoffswitch').on('click', function () {
+        chrome.storage.local.set({'showdropdownyears': this.checked});
+    });
     $('#skipdeepresearch').on('click', function () {
         deepResearchSkipRun = true;
         // Stop future tabs (the runNext*TabFetch gate) AND end whatever's
@@ -3844,6 +3847,13 @@ chrome.storage.local.get('estimatebirthyears', function (result) {
     if (exists(estimatebirthyearschecked)) {
         $('#estimatebirthyearsonoffswitch').prop('checked', estimatebirthyearschecked);
         estimateBirthYearsOn = estimatebirthyearschecked;
+    }
+});
+
+chrome.storage.local.get('showdropdownyears', function (result) {
+    var showdropdownyearschecked = result.showdropdownyears;
+    if (exists(showdropdownyearschecked)) {
+        $('#showdropdownyearsonoffswitch').prop('checked', showdropdownyearschecked);
     }
 });
 

@@ -1179,30 +1179,30 @@ function buildForm() {
                 // which escapes the scraped value before it reaches the
                 // value="..." attribute - previously none of these did.
                 // lastNameAutoFilled (#204) still controls Last Name's
-                // checked/enabled state exactly as before: the value came
-                // from a guess (the focus person's surname), not scraped
-                // source data - starts enabled (typeable/reviewable) like
-                // any other blank-safe field, but deliberately never
-                // pre-checked at render time, unlike a real scraped value.
-                // Select All is the one exception (follow-up to #204,
-                // requested live): 'data-guessed="true"' is injected via
-                // the enabledAttr slot (buildTextFieldRow() splices it
-                // straight into the <input>'s attribute list, same trick
-                // "disabled" already uses there) so isFieldValueBlank()
-                // treats this guessed value as blank for Select All
-                // purposes specifically - it then falls through to the
-                // same blank-scraped-vs-blank-Geni-target rule every other
-                // field follows: Select All checks it only when Geni's own
-                // value is ALSO blank (nothing real to protect), and still
-                // leaves it alone whenever Geni already has real data
-                // there. Outside of Select All (the initial per-member
-                // auto-check, and typing in the field by hand), nothing
-                // changes - the guess still never pre-checks itself.
+                // enabled state exactly as before: the value came from a
+                // guess (the focus person's or father's surname), not
+                // scraped source data - starts enabled (typeable/
+                // reviewable) like any other blank-safe field.
+                // 'data-guessed="true"' is injected via the enabledAttr
+                // slot (buildTextFieldRow() splices it straight into the
+                // <input>'s attribute list, same trick "disabled" already
+                // uses there) so isFieldValueBlank() treats this guessed
+                // value as blank for Select All purposes - Select All
+                // checks it only when Geni's own value is ALSO blank.
+                // The initial checked state (follow-up to #204, requested
+                // live after the multi-spouse fix above) now follows the
+                // same rule automatically, without needing an explicit
+                // Select All click: lastNameAutoCheckSafe() checks it when
+                // there's no existing Geni match at all (a brand new
+                // profile - nothing to protect) or the matched candidate's
+                // own Last Name is blank, and leaves it unchecked exactly
+                // like before whenever Geni already has real data there.
+                var lastNameInitialChecked = lastNameAutoFilled && lastNameAutoCheckSafe(relationship, gender, nameval, actionBirthYear) ? "checked" : "";
                 membersstring +=
                     buildTextFieldRow("Title:", "title", nameval.prefix, isChecked(nameval.prefix, scored, false, ""), isEnabled(nameval.prefix, scored, false, ""), i + "_geni_title") +
                     buildTextFieldRow("First Name:", "first_name", nameval.firstName, isChecked(nameval.firstName, scored, false, ""), isEnabled(nameval.firstName, scored, false, ""), i + "_geni_first_name") +
                     buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, isChecked(nameval.middleName, scored, false, ""), isEnabled(nameval.middleName, scored, false, ""), i + "_geni_middle_name") +
-                    buildTextFieldRow("Last Name:", "last_name", nameval.lastName, (lastNameAutoFilled ? "" : isChecked(nameval.lastName, scored, false, "")), (lastNameAutoFilled ? 'data-guessed="true"' : isEnabled(nameval.lastName, scored, false, "")), i + "_geni_last_name") +
+                    buildTextFieldRow("Last Name:", "last_name", nameval.lastName, (lastNameAutoFilled ? lastNameInitialChecked : isChecked(nameval.lastName, scored, false, "")), (lastNameAutoFilled ? 'data-guessed="true"' : isEnabled(nameval.lastName, scored, false, "")), i + "_geni_last_name") +
                     buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, isChecked(nameval.birthName, scored, false, ""), isEnabled(nameval.birthName, scored, false, ""), i + "_geni_maiden_name") +
                     buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, isChecked(nameval.suffix, scored, false, ""), isEnabled(nameval.suffix, scored, false, ""), i + "_geni_suffix") +
                     buildTextFieldRow("Display Name: ", "display_name", displayname, isChecked(displayname, scored, false, ""), isEnabled(displayname, scored, false, ""), i + "_geni_display_name") +
@@ -2572,6 +2572,69 @@ function findExistingFamilyMatch(relationship, gender, firstName, lastName, birt
     return null;
 }
 
+// #204 further follow-up: whether a guessed married surname is safe to
+// auto-check at INITIAL render (no explicit Select All needed), requested
+// live after the multi-spouse fix above confirmed the guess itself now
+// fills in correctly but still required a manual check every time. "Safe"
+// mirrors the same rule Select All already follows - nothing real to
+// protect, either because there's no existing Geni match at all (a brand
+// new profile, action defaults to "Add Profile") or because the matched
+// candidate's own Last Name is blank. Reuses the exact same matching
+// buildAction() itself uses one render step later (findExistingFamilyMatch()
+// for a partner, the direct father/mother relation lookup for a parent -
+// mirrors geniHas()'s category check rather than findExistingFamilyMatch(),
+// which always returns null for relationship "father"/"mother" since
+// parents are matched by category, not by name) so this can never disagree
+// with which candidate the dropdown itself will actually auto-select.
+function lastNameAutoCheckSafe(relationship, gender, nameval, birthYear) {
+    var candidate = null;
+    if (relationship === "parent") {
+        var wantRelation = (gender === "female") ? "mother" : "father";
+        if (exists(genifamilydata)) {
+            for (var node in genifamilydata) {
+                if (genifamilydata.hasOwnProperty(node) && genifamilydata[node].get("relation") === wantRelation) {
+                    candidate = genifamilydata[node];
+                    break;
+                }
+            }
+        }
+    } else {
+        candidate = findExistingFamilyMatch(relationship, gender, nameval.firstName, (nameval.lastName || nameval.birthName), birthYear);
+    }
+    if (!exists(candidate)) {
+        return true;
+    }
+    var candidateLang = candidate.get("name_language");
+    return !isValue(candidate.get("names", candidateLang + ".last_name"));
+}
+
+// #226: appends a candidate's [birth-death] years to their "Update: <name>"
+// dropdown label, so same-named candidates (a common genealogy pattern -
+// grandfather/grandson sharing a first name, siblings named after
+// relatives) are distinguishable at a glance instead of reading identically.
+// Gated behind its own setting (default off, #showdropdownyearsonoffswitch)
+// - read directly here rather than threaded through as a parameter,
+// matching how most other per-run toggles in this file are read (e.g.
+// #birthonoffswitch above), since buildAction() only ever runs inside the
+// popup's own DOM context. Uses date.year - a plain year number, already
+// the established accessor for exactly this (see popup.js's byear/dyear
+// 95-year check, buildform.js:2561's own birthYear conflict check above) -
+// rather than parsing formatted_date's display text, so no circa/"About"
+// text handling is needed: "?" simply stands in for a genuinely missing
+// side, one of the format variations the issue itself calls acceptable.
+function candidateOptionLabel(familymem) {
+    var name = familymem.get("name");
+    if (!$('#showdropdownyearsonoffswitch').prop('checked')) {
+        return name;
+    }
+    var birthYear = familymem.get("birth", "date.year");
+    var deathYear = familymem.get("death", "date.year");
+    if (!isValue(birthYear) && !isValue(deathYear)) {
+        return name;
+    }
+    return name + ' [' + (isValue(birthYear) ? birthYear : "?") + '-' + (isValue(deathYear) ? deathYear : "?") + ']';
+}
+
 function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
     var pselect = "";
     var selected = true;
@@ -2613,11 +2676,11 @@ function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
         function addCandidateOption(familymem) {
             var candidateId = familymem.get("id");
             if (candidateId === autoSelectId) {
-                pselect += '<option value="' + candidateId + '" selected>Update: ' + familymem.get("name") + '</option>';
+                pselect += '<option value="' + candidateId + '" selected>Update: ' + candidateOptionLabel(familymem) + '</option>';
                 genibuildaction[candidateId] = id;
                 selected = false;
             } else {
-                pselect += '<option value="' + candidateId + '">Update: ' + familymem.get("name") + '</option>';
+                pselect += '<option value="' + candidateId + '">Update: ' + candidateOptionLabel(familymem) + '</option>';
             }
         }
 
@@ -2625,11 +2688,11 @@ function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
             if (!genifamilydata.hasOwnProperty(node)) continue;
             var familymem = genifamilydata[node];
             if (relationship === "father" && familymem.get("relation") === "father") {
-                pselect += '<option value="' + familymem.get("id") + '" selected>Update: ' + familymem.get("name") + '</option>';
+                pselect += '<option value="' + familymem.get("id") + '" selected>Update: ' + candidateOptionLabel(familymem) + '</option>';
                 genibuildaction[familymem.get("id")] = id;
                 selected = false;
             } else if (relationship === "mother" && familymem.get("relation") === "mother") {
-                pselect += '<option value="' + familymem.get("id") + '" selected>Update: ' + familymem.get("name") + '</option>';
+                pselect += '<option value="' + familymem.get("id") + '" selected>Update: ' + candidateOptionLabel(familymem) + '</option>';
                 genibuildaction[familymem.get("id")] = id;
                 selected = false;
             } else if (relationship === "brother" && familymem.get("relation") === "brother") {

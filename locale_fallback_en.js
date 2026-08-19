@@ -723,6 +723,6 @@ var EN_FALLBACK_MESSAGES = {
         "message": "Skip Deep Research for this run"
     },
     "Deep_Research_skipped_for_this_run": {
-        "message": "Skipped for this run"
+        "message": "Skipping remaining lookups..."
     }
 };

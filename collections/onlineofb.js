@@ -922,12 +922,21 @@ function runOFBTabFetch(famid, url, arg, onDone) {
                 return;
             }
             settled = true;
+            var abortIndex = deepResearchInFlightAborts.indexOf(abortThisFetch);
+            if (abortIndex !== -1) {
+                deepResearchInFlightAborts.splice(abortIndex, 1);
+            }
             chrome.tabs.remove(tab.id, function () {
                 void chrome.runtime.lastError;
             });
             finishOFBFamilyMember(famid, person, arg);
             onDone();
         }
+
+        function abortThisFetch() {
+            cleanupAndFinish("");
+        }
+        deepResearchInFlightAborts.push(abortThisFetch);
 
         function attempt() {
             if (settled) {

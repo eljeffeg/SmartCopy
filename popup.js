@@ -3146,6 +3146,14 @@ $(function () {
     });
     $('#skipdeepresearch').on('click', function () {
         deepResearchSkipRun = true;
+        // Stop future tabs (the runNext*TabFetch gate) AND end whatever's
+        // already open right now - without this, skip only prevented new
+        // tabs from starting, so up to one still-loading tab per collection
+        // (three, for Filae/MyHeritage's concurrency-3 queues) could still
+        // run out its full multi-second timeout before the run visibly
+        // finished. Snapshot via slice() before iterating - each abort call
+        // synchronously splices itself out of the live array.
+        deepResearchInFlightAborts.slice().forEach(function (abort) { abort(); });
         $(this).text(_('Deep_Research_skipped_for_this_run'));
     });
     $('#photoonoffswitch').on('click', function () {

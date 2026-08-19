@@ -708,6 +708,10 @@ function runFilaeTabFetch(famid, url, arg, staggerIndex, onDone) {
                 return;
             }
             settled = true;
+            var abortIndex = deepResearchInFlightAborts.indexOf(abortThisFetch);
+            if (abortIndex !== -1) {
+                deepResearchInFlightAborts.splice(abortIndex, 1);
+            }
             chrome.tabs.remove(tab.id, function () {
                 // Swallow "no tab with id" - the tab may have already
                 // closed (e.g. the user closed it manually) by the time
@@ -717,6 +721,11 @@ function runFilaeTabFetch(famid, url, arg, staggerIndex, onDone) {
             finishFilaeFamilyMember(famid, person, arg);
             onDone();
         }
+
+        function abortThisFetch() {
+            cleanupAndFinish("");
+        }
+        deepResearchInFlightAborts.push(abortThisFetch);
 
         function attempt() {
             if (settled) {

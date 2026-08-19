@@ -17,6 +17,16 @@ var uniondata = [];
 var deepResearchOn = true;
 var deepResearchSkipRun = false;
 
+// Registry of abort callbacks for every Deep Research tab fetch currently
+// in flight (one entry per open tab, across all four collections). Skipping
+// mid-run only needs to stop FUTURE tabs from starting (the runNext*TabFetch
+// gate above handles that) - clicking skip while a tab is already open and
+// polling would otherwise still wait out that tab's own multi-second
+// timeout before the run actually finishes. Each run*TabFetch() pushes its
+// own abort function here when its tab opens and removes it once settled;
+// the skip button (popup.js) calls every entry immediately on click.
+var deepResearchInFlightAborts = [];
+
 // Run script as soon as the document's DOM is ready.
 if (typeof String.prototype.startsWith != 'function') {
     String.prototype.startsWith = function (str) {

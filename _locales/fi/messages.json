@@ -15,7 +15,7 @@
         "message": "POIS"
     },
     "consistencyCheck": {
-        "message": "Johdonmukaisuus"
+        "message": "Johdonmukaisuustarkistus"
     },
     "contains_incorrect_uppercase_lowercase_in_name": {
         "message": "$person$ nimi ei ole erisnimien kirjoitussäännön mukainen - iso alkukirjain, loput pienellä ($lang$).",
@@ -229,7 +229,7 @@
         "message": "Kopiointiasetukset"
     },
     "Consistency_Checks": {
-        "message": "Johdonmukaisuus"
+        "message": "Johdonmukaisuustarkistukset"
     },
     "Geni_Customization": {
         "message": "Geni-laajennukset"
@@ -316,7 +316,7 @@
         "message": "Suhdesykli lähiperheessä"
     },
     "Check_date_formatting_for_inconsistent_values": {
-        "message": "Tarkista päivämämäärät epäjohdonmukaisuuksien varalta"
+        "message": "Tarkista päivämäärät epäjohdonmukaisuuksien varalta"
     },
     "Check_for_pending_data_conflict_resolution": {
         "message": "Tarkista avoimet tietoristiriitaisuudet"
@@ -328,7 +328,7 @@
         "message": "Tarkista nimikenttien oikeellisuus"
     },
     "Check_name_fields_for_living_profiles": {
-        "message": "Tarkista elossa olevien nimikentät"
+        "message": "Jätä elossa olevat profiilit pikakorjauksen ulkopuolelle"
     },
     "Check_profile_for_pending_data_conflicts": {
         "message": "Tarkista profiilin tietojen avoimet ristiriitaisuudet"
@@ -355,16 +355,16 @@
         "message": "Ikä jolloin vanhempi on liian nuori saadakseen lapsen"
     },
     "Age_the_mother_is_too_old_to_have_a_child": {
-        "message": "Äiti on liian vanha saadakseen lapsen"
+        "message": "Ikä, jolloin äiti on liian vanha saamaan lapsen"
     },
     "Check_the_values_of_partner_spouses_against_each_other": {
         "message": "Tarkista kumppanien/puolisoiden arvot toisiansa vasten."
     },
     "Identify_possible_maiden_name_copy_issues": {
-        "message": "Tunnista mahdollisia tyttönimen kopiontiongelmia"
+        "message": "Tunnista mahdolliset syntymänimen kopiointiongelmat"
     },
     "Age_the_spouse_is_too_young_to_be_married": {
-        "message": "Puoliso on iältään liian nuori"
+        "message": "Ikä, jolloin puoliso on liian nuori avioitumaan"
     },
     "Maximum_age_difference_between_spouses": {
         "message": "Maksimi ikäero puolisoiden välillä"
@@ -397,7 +397,7 @@
         "message": "Ilmoitus - ole hyvä ja lue"
     },
     "SmartCopy_will_no_longer_do_geo_location_lookups___": {
-        "message": "SmartCopy ei enää tee automaattisesti sijaintihakuja Googlen palvelun kustannusten vuoksi. Vaikka tämä on huono uutinen, Geni on äskettäin tarjonnut rajapinnassaan mahdollisuuden tehdä paikannushaku <i>jälkikäteen</i>. Kun paikka lähetetään paikannimi-kentän kautta, Geni tekee kyselyn ja täyttää sijaintikentät verkkosivustolla. Vaihtoehtoisesti voit määrittää oman Google API-avamen asetuksissa. Sinulla on edelleen mahdollisuus täyttää sijaintitiedot manuaalisesti SmartCopyssa klikkaamalla maailma-kuvaketta $globe_icon$ ja jos haluat poistaa Geni-sijainnin etsinnän, voit tehdä sen SmartCopy-asetuksissa.",
+        "message": "SmartCopy ei enää tee automaattisesti sijaintihakuja Googlen palvelun kustannusten vuoksi. Vaikka tämä on huono uutinen, Geni on äskettäin tarjonnut rajapinnassaan mahdollisuuden tehdä paikannushaku <i>jälkikäteen</i>. Kun paikka lähetetään paikannimi-kentän kautta, Geni tekee kyselyn ja täyttää sijaintikentät verkkosivustolla. Vaihtoehtoisesti voit määrittää oman Google API-avaimen asetuksissa. Sinulla on edelleen mahdollisuus täyttää sijaintitiedot manuaalisesti SmartCopyssa klikkaamalla maailma-kuvaketta $globe_icon$ ja jos haluat poistaa Geni-sijainnin etsinnän, voit tehdä sen SmartCopy-asetuksissa.",
         "placeholders": {
             "globe_icon": {
                 "content": "$1"
@@ -411,7 +411,7 @@
         "message": "Näytä \"Lisää elämäkerta\"-nappula Tietoa-osiossa"
     },
     "Add_Biography": {
-      "message": "Lisää elämäkerta"
+        "message": "Lisää elämäkerta"
     },
     "Export_Profiles_button_on_Project_Actions": {
         "message": "Vie profiilit -painike projektitoiminnoissa"

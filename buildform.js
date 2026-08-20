@@ -445,14 +445,32 @@ function buildForm() {
         // loop further down, so both pick up the estimate automatically -
         // no separate recompute needed here, unlike the family-member
         // injection point (see there for why that one's different).
+        //
+        // #208 follow-up: also re-evaluates when Geni's existing value is
+        // ITSELF circa (Geni's own "circa" flag on the date, same one
+        // cleanDate()/parseDate() set when writing a "Circa <year>"
+        // estimate in the first place) - requested live: an existing
+        // circa date isn't sourced fact, just an earlier guess (possibly
+        // this feature's own, possibly someone else's), and this run may
+        // have more/different family data available than whatever
+        // produced that original guess. A REAL (non-circa) Geni date is
+        // still never touched. The freshly computed estimate only gets
+        // APPLIED when it actually differs from Geni's existing circa
+        // year - otherwise this would pointlessly re-suggest the exact
+        // same number every single run.
         if ($('#estimatebirthyearsonoffswitch').prop('checked') &&
             !exists(getBirthYear(alldata["profile"]["birth"]))) {
             var geniFocusBirth = genifocusdata.get("birth", "date.formatted_date");
-            if (!exists(geniFocusBirth) || !isValue(geniFocusBirth)) {
+            var geniFocusBirthBlank = !exists(geniFocusBirth) || !isValue(geniFocusBirth);
+            var geniFocusBirthIsCirca = genifocusdata.get("birth", "date.circa") === true;
+            if (geniFocusBirthBlank || geniFocusBirthIsCirca) {
                 var focusEstimate = estimateBirthYear("focus", undefined, focusgender,
                     parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
                 if (exists(focusEstimate)) {
-                    applyEstimatedBirth(alldata["profile"], focusEstimate.year, focusEstimate.cascaded);
+                    var geniFocusBirthYear = parseInt(genifocusdata.get("birth", "date.year"), 10);
+                    if (shouldApplyRefinedEstimate(geniFocusBirthBlank, geniFocusBirthYear, focusEstimate.year)) {
+                        applyEstimatedBirth(alldata["profile"], focusEstimate.year, focusEstimate.cascaded);
+                    }
                 }
             }
         }
@@ -2520,7 +2538,7 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
 // would not be recognized and would break.
 // cascaded (#208 follow-up, optional) - stamped straight from
 // estimateBirthYear()'s own return value, read back by
-// getSpouseAnchorYear() to enforce the one-hop-cascading bound (see its
+// getCascadedSpouseYear() to enforce the one-hop-cascading bound (see its
 // own comment). Only ever set true, never explicitly false - absence
 // means "not a cascade," identical to how `estimated` itself is only ever
 // added, never written as false.
@@ -2534,6 +2552,19 @@ function applyEstimatedBirth(target, year, cascaded) {
     } else {
         target["birth"].unshift(entry);
     }
+}
+
+// #208 follow-up: decides whether a freshly recomputed focus-profile
+// estimate should actually be written, in the one case where Geni already
+// has SOME value there (a circa one - a real date never reaches this
+// check at all, gated further up). Blank Geni side: always apply (the
+// original, unconditional behavior). Geni has a circa value already:
+// apply ONLY when the fresh estimate lands on a genuinely different year -
+// otherwise this would pointlessly re-suggest the exact same number every
+// single run, which reads as "still hasn't figured this out" rather than
+// "confirmed the same answer again."
+function shouldApplyRefinedEstimate(geniBirthBlank, geniBirthYear, estimateYear) {
+    return geniBirthBlank || isNaN(geniBirthYear) || geniBirthYear !== estimateYear;
 }
 
 // #206: a multi-word surname (e.g. Hispanic paternal+maternal compound

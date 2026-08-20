@@ -2362,11 +2362,22 @@ function getMemberSpouse(category, member) {
 //     (and re-estimated to a DIFFERENT, wrong year) depending on which
 //     marriage's child happened to be the focus person. Anchoring on the
 //     earliest child across EVERY marriage keeps him consistent.
-// This still can't answer the harder, NOT-yet-solved question of
-// estimating a "partner" member who isn't focus's own parent at all (e.g.
-// a second wife showing up on the FATHER's own page) - that would need
-// per-child parent-identity data this codebase doesn't track anywhere,
-// not just a filter tweak here.
+// #208 follow-up: "partner" - a spouse who isn't the currently-scraped
+// focus child's own mother (e.g. a second wife showing up on the FATHER's
+// own page) CAN now anchor on her OWN children specifically, via
+// parent_id - a link this codebase's collections/*.js parsers already
+// build (confirmed present in ancestrynew.js, onlineofb.js, findagrave.js,
+// and most others): fetching a child's OWN individual page resolves which
+// of the focus's OTHER unions their non-focus parent belongs to
+// ($.inArray() against unionurls, stored as parent_id - the same famid
+// each spouse's own profile_id was registered under). Filtering the
+// focus's children to parent_id === member.profile_id isolates JUST this
+// specific spouse's own children from a multi-marriage focus person's
+// full child list - solving the exact gap an earlier version of this
+// comment called unsolvable (it wasn't - the data was already there,
+// just not being read). Degrades safely to an empty pool (falls through
+// to the spousal cascade, same as before) for any collection that
+// doesn't happen to populate parent_id.
 function getChildGroupAnchorYear(category, member) {
     var obj = alldata["family"];
     var pool = [];
@@ -2384,6 +2395,14 @@ function getChildGroupAnchorYear(category, member) {
         for (var relationship2 in obj) if (obj.hasOwnProperty(relationship2)) {
             if (isChild(relationship2)) {
                 pool = pool.concat(obj[relationship2]);
+            }
+        }
+    } else if (category === "partner" && exists(member) && exists(member.profile_id)) {
+        for (var relationship3 in obj) if (obj.hasOwnProperty(relationship3)) {
+            if (isChild(relationship3)) {
+                pool = pool.concat(obj[relationship3].filter(function (c) {
+                    return exists(c.parent_id) && c.parent_id === member.profile_id;
+                }));
             }
         }
     } else {

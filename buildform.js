@@ -452,7 +452,7 @@ function buildForm() {
                 var focusEstimate = estimateBirthYear("focus", undefined, focusgender,
                     parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
                 if (exists(focusEstimate)) {
-                    applyEstimatedBirth(alldata["profile"], focusEstimate.year);
+                    applyEstimatedBirth(alldata["profile"], focusEstimate.year, focusEstimate.cascaded);
                 }
             }
         }
@@ -1039,7 +1039,7 @@ function buildForm() {
                 var memberEstimate = estimateBirthYear(relationship, members[member], focusgender,
                     parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
                 if (exists(memberEstimate)) {
-                    applyEstimatedBirth(members[member], memberEstimate.year);
+                    applyEstimatedBirth(members[member], memberEstimate.year, memberEstimate.cascaded);
                     // The 95-year-old default (unlike the focus profile's
                     // inline check above) runs at PARSE time inside
                     // updateInfoData(), called from each collections/*.js
@@ -2329,6 +2329,36 @@ function getChildGroupAnchorYear(category, member) {
     return anchor;
 }
 
+// #208 follow-up: the Rule 1 (spousal) anchor lookup - prefers a REAL
+// (never estimated) date, same as before. If none exists, allows exactly
+// ONE level of cascading: a spouse's own estimate is usable as an anchor
+// ONLY if that estimate itself was anchored on real data (cascaded !==
+// true, i.e. not already a cascade) - so a chain can never compound past a
+// single hop away from a real, sourced date (RealPerson -> estimates
+// spouse -> that spouse's estimate may anchor ONE further spousal
+// estimate -> stop). Requested live after a real test case: a focus
+// person's own estimate (itself anchored on real children) correctly
+// wasn't flowing to his wives at all, leaving them blank - re-anchoring
+// off a value that's ALREADY one inference-hop from real data is a
+// reasonable second hop; re-anchoring off THAT result again would be a
+// third hop with no real data anywhere in the chain, which stays blocked.
+// Only ever reads birthArray[0] for the cascade check (not a full rescan)
+// because applyEstimatedBirth() always unshifts - an estimate, if present
+// at all, is always the first element.
+function getSpouseAnchorYear(birthArray) {
+    var realYear = getBirthYear(birthArray, true);
+    if (exists(realYear)) {
+        return { year: realYear, cascaded: false };
+    }
+    if (exists(birthArray) && exists(birthArray[0]) && birthArray[0].estimated === true && birthArray[0].cascaded !== true) {
+        var estimatedYear = getBirthYear(birthArray, false);
+        if (exists(estimatedYear)) {
+            return { year: estimatedYear, cascaded: true };
+        }
+    }
+    return undefined;
+}
+
 // #208: ties Rule 1 (spousal age gap) and Rule 2 (parent age from oldest
 // child) together - husband older than wife by spousalGap years,
 // father/mother older than their oldest child by generationalGap /
@@ -2345,6 +2375,16 @@ function getChildGroupAnchorYear(category, member) {
 // wife or father/mother mapping exists, matching this codebase's existing
 // culture of leaving ambiguous cases blank (see getFocusSpouseSurname()'s
 // own male-only restriction above) rather than guessing.
+//
+// Return value's `cascaded` flag (#208 follow-up) marks whether THIS
+// estimate was itself anchored on another estimate (true) or on real data
+// (false, including every Rule 2 result - getChildGroupAnchorYear() only
+// ever anchors on real children, unchanged) - applyEstimatedBirth() stores
+// it, and getSpouseAnchorYear() above reads it back to enforce the
+// one-hop-only bound. Rule 2 (child-anchor) deliberately still never
+// accepts an estimated child as its own anchor - only the spousal
+// direction was asked for; widening Rule 2 the same way is a separate,
+// not-yet-requested question.
 function estimateBirthYear(category, member, focusGender, generationalGap, spousalGap) {
     if (!exists(generationalGap) || isNaN(generationalGap)) {
         generationalGap = 30;
@@ -2356,23 +2396,23 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
     var spouse = getMemberSpouse(category, member);
     if (exists(spouse) && exists(spouse.gender) && exists(targetGender) &&
         spouse.gender !== targetGender && spouse.gender !== "unknown" && targetGender !== "unknown") {
-        var spouseYear = getBirthYear(spouse["birth"], true);
-        if (exists(spouseYear)) {
+        var spouseAnchor = getSpouseAnchorYear(spouse["birth"]);
+        if (exists(spouseAnchor)) {
             if (targetGender === "male") {
-                return { year: spouseYear - spousalGap };
+                return { year: spouseAnchor.year - spousalGap, cascaded: spouseAnchor.cascaded };
             }
             if (targetGender === "female") {
-                return { year: spouseYear + spousalGap };
+                return { year: spouseAnchor.year + spousalGap, cascaded: spouseAnchor.cascaded };
             }
         }
     }
     var anchor = getChildGroupAnchorYear(category, member);
     if (exists(anchor) && exists(targetGender)) {
         if (targetGender === "male") {
-            return { year: anchor - generationalGap };
+            return { year: anchor - generationalGap, cascaded: false };
         }
         if (targetGender === "female") {
-            return { year: anchor - (generationalGap - spousalGap) };
+            return { year: anchor - (generationalGap - spousalGap), cascaded: false };
         }
     }
     return undefined;
@@ -2389,8 +2429,17 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
 // string and turn it into Geni's circa:true API field (which Geni then
 // displays back as "About <year>") - NOT "About <year>" directly, which
 // would not be recognized and would break.
-function applyEstimatedBirth(target, year) {
+// cascaded (#208 follow-up, optional) - stamped straight from
+// estimateBirthYear()'s own return value, read back by
+// getSpouseAnchorYear() to enforce the one-hop-cascading bound (see its
+// own comment). Only ever set true, never explicitly false - absence
+// means "not a cascade," identical to how `estimated` itself is only ever
+// added, never written as false.
+function applyEstimatedBirth(target, year, cascaded) {
     var entry = { date: "Circa " + year, estimated: true };
+    if (cascaded === true) {
+        entry.cascaded = true;
+    }
     if (!exists(target["birth"])) {
         target["birth"] = [entry];
     } else {

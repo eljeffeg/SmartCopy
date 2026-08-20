@@ -463,14 +463,26 @@ function buildForm() {
             var geniFocusBirth = genifocusdata.get("birth", "date.formatted_date");
             var geniFocusBirthBlank = !exists(geniFocusBirth) || !isValue(geniFocusBirth);
             var geniFocusBirthIsCirca = genifocusdata.get("birth", "date.circa") === true;
+            // #208: deliberately left in (not temporary debug output) -
+            // the one place that shows exactly why the focus-profile
+            // estimate did or didn't fire/apply, without guessing at
+            // genifocusdata's actual contents after a live report of it
+            // not re-firing against a manually-blanked Geni date.
+            console.log("SmartCopy #208: focus birth check - formatted_date=" + JSON.stringify(geniFocusBirth) +
+                " blank=" + geniFocusBirthBlank + " circa=" + geniFocusBirthIsCirca);
             if (geniFocusBirthBlank || geniFocusBirthIsCirca) {
                 var focusEstimate = estimateBirthYear("focus", undefined, focusgender,
                     parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
                 if (exists(focusEstimate)) {
                     var geniFocusBirthYear = parseInt(genifocusdata.get("birth", "date.year"), 10);
-                    if (shouldApplyRefinedEstimate(geniFocusBirthBlank, geniFocusBirthYear, focusEstimate.year)) {
+                    var applyIt = shouldApplyRefinedEstimate(geniFocusBirthBlank, geniFocusBirthYear, focusEstimate.year);
+                    console.log("SmartCopy #208: focus estimate=" + focusEstimate.year + " (cascaded=" + focusEstimate.cascaded +
+                        ") vs geniFocusBirthYear=" + geniFocusBirthYear + " -> applying=" + applyIt);
+                    if (applyIt) {
                         applyEstimatedBirth(alldata["profile"], focusEstimate.year, focusEstimate.cascaded);
                     }
+                } else {
+                    console.log("SmartCopy #208: estimateBirthYear('focus', ...) returned undefined - no anchor data available at all");
                 }
             }
         }

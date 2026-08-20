@@ -1036,8 +1036,27 @@ function buildForm() {
             // members, so this stays consistent with that.
             if ($('#estimatebirthyearsonoffswitch').prop('checked') &&
                 !exists(getBirthYear(members[member]["birth"]))) {
+                // #208 follow-up: passed through as estimateBirthYear()'s
+                // focusRealYear param (see its own comment) - a "partner"
+                // member's Rule 1 lookup resolves the focus person as its
+                // spouse, but once the focus person already has a real
+                // birth date sitting on Geni (e.g. from an earlier run),
+                // alldata["profile"]["birth"] never gets repopulated with
+                // it this run (the focus-profile injection above correctly
+                // skips writing a redundant new estimate), leaving nothing
+                // for the in-memory lookup to find. Reading it here from
+                // genifocusdata directly gives the estimator access to
+                // that already-real value without having to fake-populate
+                // alldata["profile"]["birth"] itself, which other code
+                // (the 95-year check, date-row rendering) also reads and
+                // has different, unrelated expectations about.
+                var geniFocusBirthYear = genifocusdata.get("birth", "date.year");
+                var focusRealYear = isValue(geniFocusBirthYear) ? parseInt(geniFocusBirthYear, 10) : undefined;
+                if (isNaN(focusRealYear)) {
+                    focusRealYear = undefined;
+                }
                 var memberEstimate = estimateBirthYear(relationship, members[member], focusgender,
-                    parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
+                    parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10), focusRealYear);
                 if (exists(memberEstimate)) {
                     applyEstimatedBirth(members[member], memberEstimate.year, memberEstimate.cascaded);
                     // The 95-year-old default (unlike the focus profile's
@@ -2385,7 +2404,25 @@ function getSpouseAnchorYear(birthArray) {
 // accepts an estimated child as its own anchor - only the spousal
 // direction was asked for; widening Rule 2 the same way is a separate,
 // not-yet-requested question.
-function estimateBirthYear(category, member, focusGender, generationalGap, spousalGap) {
+//
+// focusRealYear (#208 follow-up, optional, only meaningful for category
+// "partner") plugs a real gap found live: for a "partner" member,
+// getMemberSpouse() resolves the spouse as alldata["profile"] (the focus
+// person) directly - but the focus-profile's OWN injection (this file,
+// above) only writes a fresh estimate when Geni's existing value for the
+// focus person is ALSO blank. Once the focus person already has a real
+// birth date on Geni (e.g. a "Circa" estimate submitted in an earlier
+// run, now just an ordinary date on the profile), that injection
+// correctly skips - nothing left to estimate for them - but that also
+// means alldata["profile"]["birth"] never gets (re)populated this run, so
+// this function's own spouse["birth"] lookup finds nothing at all, even
+// though Geni demonstrably has a real value. focusRealYear is that value,
+// read from genifocusdata at the family-member call site (kept as an
+// explicit parameter, not a direct genifocusdata read in here, so this
+// function stays pure/DOM-free) - used only as a REAL (cascaded:false)
+// anchor, exactly as trustworthy as any other already-on-Geni date,
+// regardless of whatever originally put it there.
+function estimateBirthYear(category, member, focusGender, generationalGap, spousalGap, focusRealYear) {
     if (!exists(generationalGap) || isNaN(generationalGap)) {
         generationalGap = 30;
     }
@@ -2397,6 +2434,9 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
     if (exists(spouse) && exists(spouse.gender) && exists(targetGender) &&
         spouse.gender !== targetGender && spouse.gender !== "unknown" && targetGender !== "unknown") {
         var spouseAnchor = getSpouseAnchorYear(spouse["birth"]);
+        if (!exists(spouseAnchor) && category === "partner" && exists(focusRealYear)) {
+            spouseAnchor = { year: focusRealYear, cascaded: false };
+        }
         if (exists(spouseAnchor)) {
             if (targetGender === "male") {
                 return { year: spouseAnchor.year - spousalGap, cascaded: spouseAnchor.cascaded };

@@ -2310,23 +2310,44 @@ function getMemberSpouse(category, member) {
 
 // #208: finds the anchor year for `member`'s own blank birth via Rule 2
 // (parent age from oldest child) - the earliest REAL birth year among
-// `member`'s children. Only "parent" (children = focus + real siblings,
-// excluding halfsibling - see below) and "focus" (children = real
-// isChild() entries) have a valid "their own children" pool under this
-// feature's scope; sibling/child/partner-category members have no such
-// data (no grandchildren are ever scraped) and always return undefined.
-// Half-siblings are excluded from the "parent" pool deliberately: a
-// halfsibling-flagged entry might be shared through the OTHER parent's
-// separate relationship, not this one, so including it risks anchoring
-// off a child who isn't actually this parent's.
+// `member`'s children. Only "parent" (children = focus + siblings, half or
+// full depending on the target's gender - see below) and "focus" (children
+// = real isChild() entries) have a valid "their own children" pool under
+// this feature's scope; sibling/child/partner-category members have no
+// such data (no grandchildren are ever scraped) and always return
+// undefined.
+//
+// Half-sibling handling (#208 follow-up, confirmed live against a real
+// multi-marriage test case: Robert Brown, two wives) depends on the
+// TARGET's own gender, not a blanket in/out rule:
+//   - Mother (female target): full-siblings-only pool, unchanged. A full
+//     sibling of focus (halfsibling !== true) shares BOTH parents with
+//     focus, so by construction already IS one of THIS specific mother's
+//     own children - no separate per-child parent-identity tracking is
+//     needed for this case.
+//   - Father (male target): half-siblings ARE included. A man's age is a
+//     single fact regardless of which wife's children happen to be
+//     scraped from the currently-viewed focus profile - confirmed live
+//     that excluding half-siblings let the SAME father get re-anchored
+//     (and re-estimated to a DIFFERENT, wrong year) depending on which
+//     marriage's child happened to be the focus person. Anchoring on the
+//     earliest child across EVERY marriage keeps him consistent.
+// This still can't answer the harder, NOT-yet-solved question of
+// estimating a "partner" member who isn't focus's own parent at all (e.g.
+// a second wife showing up on the FATHER's own page) - that would need
+// per-child parent-identity data this codebase doesn't track anywhere,
+// not just a filter tweak here.
 function getChildGroupAnchorYear(category, member) {
     var obj = alldata["family"];
     var pool = [];
     if (category === "parent") {
         pool.push(alldata["profile"]);
+        var includeHalfSiblings = exists(member) && member.gender === "male";
         for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
             if (isSibling(relationship)) {
-                pool = pool.concat(obj[relationship].filter(function (s) { return s.halfsibling !== true; }));
+                pool = pool.concat(obj[relationship].filter(function (s) {
+                    return includeHalfSiblings || s.halfsibling !== true;
+                }));
             }
         }
     } else if (category === "focus") {

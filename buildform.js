@@ -1251,15 +1251,22 @@ function buildForm() {
                 // own Last Name is blank, and leaves it unchecked exactly
                 // like before whenever Geni already has real data there.
                 var lastNameInitialChecked = lastNameAutoFilled && lastNameAutoCheckSafe(relationship, gender, nameval, actionBirthYear) ? "checked" : "";
+                // #222 follow-up: the six secondary name fields (First/Last
+                // Name stay permanently visible, unchanged, matching the
+                // same exception the focus profile already has) now get
+                // the same content-aware hiddenRowAttrs() treatment as
+                // every other secondary field - previously these had NO
+                // rowAttrs at all, so they never respected the eyeball for
+                // family members even after the focus-profile fix.
                 membersstring +=
-                    buildTextFieldRow("Title:", "title", nameval.prefix, isChecked(nameval.prefix, scored, false, ""), isEnabled(nameval.prefix, scored, false, ""), i + "_geni_title") +
+                    buildTextFieldRow("Title:", "title", nameval.prefix, isChecked(nameval.prefix, scored, false, ""), isEnabled(nameval.prefix, scored, false, ""), i + "_geni_title", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.prefix))) +
                     buildTextFieldRow("First Name:", "first_name", nameval.firstName, isChecked(nameval.firstName, scored, false, ""), isEnabled(nameval.firstName, scored, false, ""), i + "_geni_first_name") +
-                    buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, isChecked(nameval.middleName, scored, false, ""), isEnabled(nameval.middleName, scored, false, ""), i + "_geni_middle_name") +
+                    buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, isChecked(nameval.middleName, scored, false, ""), isEnabled(nameval.middleName, scored, false, ""), i + "_geni_middle_name", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.middleName))) +
                     buildTextFieldRow("Last Name:", "last_name", nameval.lastName, (lastNameAutoFilled ? lastNameInitialChecked : isChecked(nameval.lastName, scored, false, "")), (lastNameAutoFilled ? 'data-guessed="true"' : isEnabled(nameval.lastName, scored, false, "")), i + "_geni_last_name") +
-                    buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, isChecked(nameval.birthName, scored, false, ""), isEnabled(nameval.birthName, scored, false, ""), i + "_geni_maiden_name") +
-                    buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, isChecked(nameval.suffix, scored, false, ""), isEnabled(nameval.suffix, scored, false, ""), i + "_geni_suffix") +
-                    buildTextFieldRow("Display Name: ", "display_name", displayname, isChecked(displayname, scored, false, ""), isEnabled(displayname, scored, false, ""), i + "_geni_display_name") +
-                    buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, isChecked(nameval.nickName, scored, false, ""), isEnabled(nameval.nickName, scored, false, ""), i + "_geni_nicknames", i + "_geni_nickimage");
+                    buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, isChecked(nameval.birthName, scored, false, ""), isEnabled(nameval.birthName, scored, false, ""), i + "_geni_maiden_name", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.birthName))) +
+                    buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, isChecked(nameval.suffix, scored, false, ""), isEnabled(nameval.suffix, scored, false, ""), i + "_geni_suffix", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.suffix))) +
+                    buildTextFieldRow("Display Name: ", "display_name", displayname, isChecked(displayname, scored, false, ""), isEnabled(displayname, scored, false, ""), i + "_geni_display_name", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(displayname))) +
+                    buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, isChecked(nameval.nickName, scored, false, ""), isEnabled(nameval.nickName, scored, false, ""), i + "_geni_nicknames", i + "_geni_nickimage", undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.nickName)));
                 if (exists(members[member]["occupation"])) {
                     var occupation = members[member]["occupation"].trim();
                     membersstring = membersstring + buildTextFieldRow("Occupation: ", "occupation", occupation, isChecked(occupation, scored, false, ""), isEnabled(occupation, scored, false, ""), i + "_geni_occupation");

@@ -40,7 +40,7 @@ var deepResearchInFlightAborts = [];
 // birthonoffswitch). This global exists for consistency with the Deep
 // Research pattern above and for any future use outside buildForm()'s
 // own scope.
-var estimateBirthYearsOn = false;
+var estimateBirthYearsOn = true;
 
 // Run script as soon as the document's DOM is ready.
 if (typeof String.prototype.startsWith != 'function') {

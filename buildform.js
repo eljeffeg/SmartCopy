@@ -1069,15 +1069,29 @@ function buildForm() {
             // influences "does this scraped person match an existing Geni
             // profile"), before the pre-1600 datelimit check and the
             // Vital/date-row rendering below, so both pick it up.
-            // Deliberately doesn't check Geni's own value for this member -
-            // the family-member buildDateFieldRow call site below already
-            // hardcodes currentValue="" rather than reading Geni's real
-            // per-member date (a pre-existing quirk, out of scope to fix
-            // here) - "scraped side blank" is already the full trigger
-            // condition used everywhere else in this path for family
-            // members, so this stays consistent with that.
+            // #208 follow-up (live report, data-loss risk): a wife who
+            // already had a REAL date on Geni (not even a circa) still got
+            // an estimate written AND auto-checked - the family-member date
+            // row's checked-state comparison hardcodes currentValue="" (a
+            // pre-existing quirk unrelated to this feature, out of scope to
+            // fix generally), so writing an estimate here made a person who
+            // already had real Geni data look exactly like the "scraped
+            // blank + Geni blank -> safe to auto-check" case, when Geni's
+            // side very much wasn't blank. Rather than touching that
+            // broader render-time check, this gate stops the fabricated
+            // value from ever being written in the first place whenever
+            // Geni already has ANY real value for the SAME matched person
+            // (getMatchedGeniFamilyCandidate() - the identical candidate
+            // buildAction()'s dropdown will resolve one render step later),
+            // circa or not - matches the "never overwrite real Geni data"
+            // rule this whole feature already follows everywhere else
+            // (focusRealYear, Priority 2's real spousal date).
+            var matchedCandidateForEstimate = getMatchedGeniFamilyCandidate(relationship, gender, nameval, undefined);
+            var matchedCandidateBirthYear = exists(matchedCandidateForEstimate) ?
+                matchedCandidateForEstimate.get("birth", "date.year") : undefined;
             if ($('#estimatebirthyearsonoffswitch').prop('checked') &&
-                !exists(getBirthYear(members[member]["birth"]))) {
+                !exists(getBirthYear(members[member]["birth"])) &&
+                (!exists(matchedCandidateBirthYear) || !isValue(matchedCandidateBirthYear))) {
                 // #208 follow-up: passed through as estimateBirthYear()'s
                 // focusRealYear param (see its own comment) - a "partner"
                 // member's Rule 1 lookup resolves the focus person as its
@@ -2863,6 +2877,32 @@ function findExistingFamilyMatch(relationship, gender, firstName, lastName, birt
     return null;
 }
 
+// #204 further follow-up / #208 follow-up: resolves the SAME matched Geni
+// candidate buildAction() will auto-select one render step later - the
+// direct father/mother relation lookup for a parent (mirrors geniHas()'s
+// category check, since findExistingFamilyMatch() always returns null for
+// relationship "father"/"mother" - parents are matched by category, not by
+// name), or findExistingFamilyMatch() itself for everyone else. Shared by
+// lastNameAutoCheckSafe() (below) and the #208 estimate injection (so a
+// married-name guess and a birth-year estimate can never disagree with each
+// other, or with the dropdown, about which existing Geni person this is)
+// so both stay consistent with whichever candidate the dropdown itself will
+// actually auto-select.
+function getMatchedGeniFamilyCandidate(relationship, gender, nameval, birthYear) {
+    if (relationship === "parent") {
+        var wantRelation = (gender === "female") ? "mother" : "father";
+        if (exists(genifamilydata)) {
+            for (var node in genifamilydata) {
+                if (genifamilydata.hasOwnProperty(node) && genifamilydata[node].get("relation") === wantRelation) {
+                    return genifamilydata[node];
+                }
+            }
+        }
+        return null;
+    }
+    return findExistingFamilyMatch(relationship, gender, nameval.firstName, (nameval.lastName || nameval.birthName), birthYear);
+}
+
 // #204 further follow-up: whether a guessed married surname is safe to
 // auto-check at INITIAL render (no explicit Select All needed), requested
 // live after the multi-spouse fix above confirmed the guess itself now
@@ -2870,28 +2910,9 @@ function findExistingFamilyMatch(relationship, gender, firstName, lastName, birt
 // mirrors the same rule Select All already follows - nothing real to
 // protect, either because there's no existing Geni match at all (a brand
 // new profile, action defaults to "Add Profile") or because the matched
-// candidate's own Last Name is blank. Reuses the exact same matching
-// buildAction() itself uses one render step later (findExistingFamilyMatch()
-// for a partner, the direct father/mother relation lookup for a parent -
-// mirrors geniHas()'s category check rather than findExistingFamilyMatch(),
-// which always returns null for relationship "father"/"mother" since
-// parents are matched by category, not by name) so this can never disagree
-// with which candidate the dropdown itself will actually auto-select.
+// candidate's own Last Name is blank.
 function lastNameAutoCheckSafe(relationship, gender, nameval, birthYear) {
-    var candidate = null;
-    if (relationship === "parent") {
-        var wantRelation = (gender === "female") ? "mother" : "father";
-        if (exists(genifamilydata)) {
-            for (var node in genifamilydata) {
-                if (genifamilydata.hasOwnProperty(node) && genifamilydata[node].get("relation") === wantRelation) {
-                    candidate = genifamilydata[node];
-                    break;
-                }
-            }
-        }
-    } else {
-        candidate = findExistingFamilyMatch(relationship, gender, nameval.firstName, (nameval.lastName || nameval.birthName), birthYear);
-    }
+    var candidate = getMatchedGeniFamilyCandidate(relationship, gender, nameval, birthYear);
     if (!exists(candidate)) {
         return true;
     }

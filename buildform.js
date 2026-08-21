@@ -879,6 +879,10 @@ function buildForm() {
         } else {
             relationship = "unknown";
         }
+        console.log("SmartCopy: category-level scoring - relationship=" + relationship +
+            " scorefactors=" + JSON.stringify(scorefactors) +
+            " sibcheck=" + sibcheck + " childck=" + childck + " parentck=" + parentck + " partnerck=" + partnerck +
+            " -> category scored=" + scored);
 
         var div = $("#" + relationship);
         if (members.length > 0 && exists(div[0])) {
@@ -1057,9 +1061,16 @@ function buildForm() {
                 if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
                     earlyBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
                 }
-                if (findExistingFamilyMatch(relationship, gender, nameval.firstName, (nameval.lastName || nameval.birthName), earlyBirthYear)) {
+                var alreadyMatched = findExistingFamilyMatch(relationship, gender, nameval.firstName, (nameval.lastName || nameval.birthName), earlyBirthYear);
+                console.log("SmartCopy: per-member re-run check - relationship=" + relationship +
+                    " name=" + fullname + " alreadyMatched=" + !!alreadyMatched +
+                    " scored before=" + scored + " after=" + (alreadyMatched ? false : scored));
+                if (alreadyMatched) {
                     scored = false;
                 }
+            } else {
+                console.log("SmartCopy: per-member re-run check SKIPPED (scored already false entering it) - relationship=" + relationship +
+                    " name=" + fullname + " scored=" + scored);
             }
 
             // #208: fills a genuinely-blank family-member birth date with

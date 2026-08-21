@@ -2778,37 +2778,40 @@ function parseDate(fulldate, update, customdateformat) {
         vardate["end_year"] = "";
     }
 
-    if (fulldate.startsWith("Circa")) {
+    // Case-insensitive: cleanDate() capitalizes scraped "Circa", but #208's
+    // estimator writes lowercase "circa" to match Geni's own display
+    // convention - both must still round-trip into circa:true here.
+    if (/^circa/i.test(fulldate)) {
         vardate["circa"] = true;
-        fulldate = fulldate.replace("Circa ", "");
+        fulldate = fulldate.replace(/circa /i, "");
     }
     if (fulldate.startsWith("After")) {
         vardate["range"] = "after";
         fulldate = fulldate.replace("After ", "");
-        if (fulldate.startsWith("Circa")) {
+        if (/^circa/i.test(fulldate)) {
             vardate["circa"] = true;
-            fulldate = fulldate.replace("Circa ", "");
+            fulldate = fulldate.replace(/circa /i, "");
         }
     } else if (fulldate.startsWith("Before")) {
         vardate["range"] = "before";
         fulldate = fulldate.replace("Before ", "");
-        if (fulldate.startsWith("Circa")) {
+        if (/^circa/i.test(fulldate)) {
             vardate["circa"] = true;
-            fulldate = fulldate.replace("Circa ", "");
+            fulldate = fulldate.replace(/circa /i, "");
         }
     } else if (fulldate.startsWith("Between")) {
         vardate["range"] = "between";
         fulldate = fulldate.replace("Between ", "");
-        if (fulldate.startsWith("Circa")) {
+        if (/^circa/i.test(fulldate)) {
             vardate["circa"] = true;
-            fulldate = fulldate.replace("Circa ", "");
+            fulldate = fulldate.replace(/circa /i, "");
         }
         var btsplit = fulldate.split(" and ");
         if (btsplit.length > 1) {
             fulldate = btsplit[0];
-            if (btsplit[1].startsWith("Circa ")) {
+            if (/^circa /i.test(btsplit[1])) {
                 vardate["end_circa"] = true;
-                btsplit[1] = btsplit[1].replace("Circa ", "").trim();
+                btsplit[1] = btsplit[1].replace(/circa /i, "").trim();
             }
             var dt = moment(btsplit[1].trim(), getDateFormat(btsplit[1].trim()));
             if (isNaN(btsplit[1])) {

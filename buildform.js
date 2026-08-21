@@ -2634,10 +2634,11 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
 // land at index 0 to be picked up there; the trigger condition only
 // guarantees no element has a real .date, not that the array is empty, so
 // an existing location-only element must be preserved, not clobbered.
-// "Circa <year>" (capital C) is this codebase's actual internal convention
-// for an approximate date - cleanDate()/parseDate() recognize this exact
-// string and turn it into Geni's circa:true API field (which Geni then
-// displays back as "About <year>") - NOT "About <year>" directly, which
+// "circa <year>" (lowercase c) matches Geni's own display convention for an
+// approximate date (confirmed live: Geni renders its circa dates lowercase,
+// e.g. "circa 1822", not "Circa 1822") - popup.js's parseDate() was updated
+// to recognize "circa" case-insensitively so this still round-trips into
+// Geni's circa:true API field regardless of case. NOT "About <year>", which
 // would not be recognized and would break.
 // cascaded (#208 follow-up, optional) - stamped straight from
 // estimateBirthYear()'s own return value, read back by
@@ -2646,7 +2647,7 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
 // means "not a cascade," identical to how `estimated` itself is only ever
 // added, never written as false.
 function applyEstimatedBirth(target, year, cascaded) {
-    var entry = { date: "Circa " + year, estimated: true };
+    var entry = { date: "circa " + year, estimated: true };
     if (cascaded === true) {
         entry.cascaded = true;
     }

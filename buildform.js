@@ -458,10 +458,23 @@ function buildForm() {
         // this feature's own, possibly someone else's), and this run may
         // have more/different family data available than whatever
         // produced that original guess. A REAL (non-circa) Geni date is
-        // still never touched. The freshly computed estimate only gets
-        // APPLIED when it actually differs from Geni's existing circa
-        // year - otherwise this would pointlessly re-suggest the exact
-        // same number every single run.
+        // still never touched.
+        //
+        // #208 follow-up #2: now ALWAYS applies the fresh estimate here,
+        // even when it lands on the exact same year Geni already has -
+        // reverted the earlier "only apply if different" guard
+        // (shouldApplyRefinedEstimate()) after it collided with #222's
+        // new content-aware eyeball: skipping the write left
+        // alldata["profile"]["birth"] genuinely empty, which #222 then
+        // correctly (by its own rule) hid as "nothing scraped" - so the
+        // one row confirming "yes, this is already right" just vanished
+        // instead, reading as "the estimator isn't working" rather than
+        // "confirmed." Reapplying an identical value is safe: parseForm()
+        // already excludes any field whose value matches Geni's existing
+        // one from submission, regardless of checked state - so this can
+        // never cause a duplicate/no-op update, only a visible, checked
+        // row confirming the number, which is worth more here than
+        // avoiding a harmless repeat.
         if ($('#estimatebirthyearsonoffswitch').prop('checked') &&
             !exists(getBirthYear(alldata["profile"]["birth"]))) {
             var geniFocusBirth = genifocusdata.get("birth", "date.formatted_date");
@@ -469,7 +482,7 @@ function buildForm() {
             var geniFocusBirthIsCirca = genifocusdata.get("birth", "date.circa") === true;
             // #208: deliberately left in (not temporary debug output) -
             // the one place that shows exactly why the focus-profile
-            // estimate did or didn't fire/apply, without guessing at
+            // estimate did or didn't fire, without guessing at
             // genifocusdata's actual contents after a live report of it
             // not re-firing against a manually-blanked Geni date.
             console.log("SmartCopy #208: focus birth check - formatted_date=" + JSON.stringify(geniFocusBirth) +
@@ -478,13 +491,8 @@ function buildForm() {
                 var focusEstimate = estimateBirthYear("focus", undefined, focusgender,
                     parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
                 if (exists(focusEstimate)) {
-                    var geniFocusBirthYear = parseInt(genifocusdata.get("birth", "date.year"), 10);
-                    var applyIt = shouldApplyRefinedEstimate(geniFocusBirthBlank, geniFocusBirthYear, focusEstimate.year);
-                    console.log("SmartCopy #208: focus estimate=" + focusEstimate.year + " (cascaded=" + focusEstimate.cascaded +
-                        ") vs geniFocusBirthYear=" + geniFocusBirthYear + " -> applying=" + applyIt);
-                    if (applyIt) {
-                        applyEstimatedBirth(alldata["profile"], focusEstimate.year, focusEstimate.cascaded);
-                    }
+                    console.log("SmartCopy #208: focus estimate=" + focusEstimate.year + " (cascaded=" + focusEstimate.cascaded + ") -> applying");
+                    applyEstimatedBirth(alldata["profile"], focusEstimate.year, focusEstimate.cascaded);
                 } else {
                     console.log("SmartCopy #208: estimateBirthYear('focus', ...) returned undefined - no anchor data available at all");
                 }
@@ -1194,7 +1202,7 @@ function buildForm() {
                 // surname moved into nameval.birthName instead - use
                 // whichever is populated so buildAction gets the actual
                 // surname regardless of gender.
-                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 24px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
+                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 18px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
 
                 if (isChild(relationship) || relationship === "unknown") {
                     var parentrel = "Parent";
@@ -2647,19 +2655,6 @@ function applyEstimatedBirth(target, year, cascaded) {
     } else {
         target["birth"].unshift(entry);
     }
-}
-
-// #208 follow-up: decides whether a freshly recomputed focus-profile
-// estimate should actually be written, in the one case where Geni already
-// has SOME value there (a circa one - a real date never reaches this
-// check at all, gated further up). Blank Geni side: always apply (the
-// original, unconditional behavior). Geni has a circa value already:
-// apply ONLY when the fresh estimate lands on a genuinely different year -
-// otherwise this would pointlessly re-suggest the exact same number every
-// single run, which reads as "still hasn't figured this out" rather than
-// "confirmed the same answer again."
-function shouldApplyRefinedEstimate(geniBirthBlank, geniBirthYear, estimateYear) {
-    return geniBirthBlank || isNaN(geniBirthYear) || geniBirthYear !== estimateYear;
 }
 
 // #206: a multi-word surname (e.g. Hispanic paternal+maternal compound

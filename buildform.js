@@ -2391,6 +2391,19 @@ function getMemberSpouse(category, member) {
     return null;
 }
 
+// #208 follow-up: prefers a REAL child anchor, but - confirmed live, asked
+// for explicitly ("unlimited chaining", not the one-hop cap the spousal
+// cascade uses) - falls back to the earliest ESTIMATED child's year when no
+// real one exists in the pool at all, so a chain of otherwise-empty
+// ancestors (father -> grandfather -> great-grandfather ...) can each
+// anchor off the generation below's own estimate, uncapped. Returns
+// {year, cascaded} (cascaded=true only when the anchor itself came from an
+// estimate, never from real data) rather than a bare year, so a Rule-2
+// result correctly carries the same cascaded flag every other estimate
+// path already relies on (e.g. so a later spousal cascade off THIS result
+// still only permits its own one-hop, unaffected by how many hops Rule 2
+// itself already took to get here).
+//
 // #208: finds the anchor year for `member`'s own blank birth via Rule 2
 // (parent age from oldest child) - the earliest REAL birth year among
 // `member`'s children. Only "parent" (children = focus + siblings, half or
@@ -2461,14 +2474,26 @@ function getChildGroupAnchorYear(category, member) {
     } else {
         return undefined;
     }
-    var anchor = undefined;
+    var realAnchor = undefined;
+    var estimatedAnchor = undefined;
     for (var p = 0; p < pool.length; p++) {
-        var year = getBirthYear(pool[p]["birth"], true);
-        if (exists(year) && (!exists(anchor) || year < anchor)) {
-            anchor = year;
+        var realYear = getBirthYear(pool[p]["birth"], true);
+        if (exists(realYear) && (!exists(realAnchor) || realYear < realAnchor)) {
+            realAnchor = realYear;
+        } else if (!exists(realYear)) {
+            var anyYear = getBirthYear(pool[p]["birth"], false);
+            if (exists(anyYear) && (!exists(estimatedAnchor) || anyYear < estimatedAnchor)) {
+                estimatedAnchor = anyYear;
+            }
         }
     }
-    return anchor;
+    if (exists(realAnchor)) {
+        return { year: realAnchor, cascaded: false };
+    }
+    if (exists(estimatedAnchor)) {
+        return { year: estimatedAnchor, cascaded: true };
+    }
+    return undefined;
 }
 
 // #208 follow-up: the LAST-RESORT half of the spousal (Rule 1) anchor
@@ -2506,36 +2531,25 @@ function getCascadedSpouseYear(birthArray) {
 // blank (see getFocusSpouseSurname()'s own male-only restriction above)
 // rather than guessing.
 //
-// Priority order (#208 follow-up - CHANGED AGAIN, confirmed live a second
-// time): this person's OWN real children (Rule 2) first, THEN a spouse's
-// REAL date, and only as a genuine LAST RESORT a cascaded (estimated)
-// spousal anchor. The previous order (real spousal, then Rule 2) fixed
-// the cascaded case correctly but missed the same problem one level up:
-// once Robert had a REAL "About 1850" sitting on Geni (not a guess -
-// confirmed via focusRealYear, see below), Sarah's spousal lookup found
-// that real date FIRST and returned 1855 (1850+5) without ever trying her
-// own real children (1895's son -> 1870) - live-confirmed wrong result a
-// second time, same underlying mistake: a DERIVED estimate (spousal gap
-// off someone else, even off a real date) is still less specific than
-// this person's OWN direct evidence. Real child data, whenever directly
-// available, now always wins - over a real spousal anchor AND a cascaded
-// one alike. A real spousal date only matters when this person has no
-// child data of their own at all (e.g. childless, or a "partner" category
-// member whose own children aren't linked via parent_id); cascading off a
-// spouse's own estimate remains the true last resort, reached only when
-// NEITHER a real spousal date NOR any real child data exists at all -
-// exactly the case (e.g. a second wife with no known children of her own)
-// this whole cascading mechanism was originally built for.
+// Priority order (#208 follow-up - CHANGED AGAIN, confirmed live a third
+// time to add the "unlimited chaining" tier): (1) this person's own REAL
+// children (Rule 2), (2) a spouse's REAL date, (3) this person's own
+// ESTIMATED children (Rule 2, uncapped cascade), (4) a spouse's own
+// estimate, exactly one hop of cascading (last resort). Real evidence about
+// THIS person always wins over anything derived from someone else, and real
+// evidence in general always wins over any estimate - a DERIVED estimate
+// (spousal gap off someone else, even off a real date) is still less
+// specific than this person's OWN direct evidence, and real data anywhere
+// beats an estimate anywhere. Within the two estimate-tier fallbacks, own
+// evidence still outranks someone else's for the same reason Priority 1
+// does over Priority 2.
 //
 // Return value's `cascaded` flag marks whether THIS estimate was itself
-// anchored on another estimate (true) or on real data (false, including
-// every Rule 2 result - getChildGroupAnchorYear() only ever anchors on
-// real children, unchanged). applyEstimatedBirth() stores it, and
-// getCascadedSpouseYear() above reads it back to enforce the one-hop-only
-// bound. Rule 2 (child-anchor) deliberately still never accepts an
-// estimated child as its own anchor - only the spousal direction was
-// asked for; widening Rule 2 the same way is a separate, not-yet-
-// requested question.
+// anchored on another estimate (true) or on real data (false).
+// applyEstimatedBirth() stores it, and getCascadedSpouseYear() above reads
+// it back to enforce the spousal cascade's one-hop-only bound - Rule 2's
+// own child-anchor cascade (Priority 3 above) is deliberately NOT bounded
+// the same way, per the "unlimited chaining" decision.
 //
 // focusRealYear (#208 follow-up, optional, only meaningful for category
 // "partner") plugs a real gap found live: for a "partner" member,
@@ -2551,7 +2565,7 @@ function getCascadedSpouseYear(birthArray) {
 // though Geni demonstrably has a real value. focusRealYear is that value,
 // read from genifocusdata at the family-member call site (kept as an
 // explicit parameter, not a direct genifocusdata read in here, so this
-// function stays pure/DOM-free) - treated as REAL (Priority 1, same as
+// function stays pure/DOM-free) - treated as REAL (Priority 2, same as
 // any other real spousal date), exactly as trustworthy as any other
 // already-on-Geni date, regardless of whatever originally put it there.
 // #208 follow-up: rounds an estimated year to the nearest multiple of 5 -
@@ -2580,16 +2594,17 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
     var oppositeGenderSpouse = exists(spouse) && exists(spouse.gender) && exists(targetGender) &&
         spouse.gender !== targetGender && spouse.gender !== "unknown" && targetGender !== "unknown";
 
-    // Priority 1: this person's own real children (Rule 2) - the most
+    var childAnchor = getChildGroupAnchorYear(category, member);
+
+    // Priority 1: this person's own REAL children (Rule 2) - the most
     // direct evidence about THIS specific person, preferred over any
     // spousal-gap estimate (real or cascaded) derived from someone else.
-    var anchor = getChildGroupAnchorYear(category, member);
-    if (exists(anchor) && exists(targetGender)) {
+    if (exists(childAnchor) && childAnchor.cascaded === false && exists(targetGender)) {
         if (targetGender === "male") {
-            return { year: roundToNearestFive(anchor - generationalGap), cascaded: false };
+            return { year: roundToNearestFive(childAnchor.year - generationalGap), cascaded: false };
         }
         if (targetGender === "female") {
-            return { year: roundToNearestFive(anchor - (generationalGap - spousalGap)), cascaded: false };
+            return { year: roundToNearestFive(childAnchor.year - (generationalGap - spousalGap)), cascaded: false };
         }
     }
 
@@ -2610,9 +2625,25 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
         }
     }
 
-    // Priority 3 (last resort): a spouse's own estimate, exactly one hop
-    // of cascading - only reached when neither a real spousal date nor
-    // any real child data was available at all.
+    // Priority 3 (#208 follow-up, "unlimited chaining" confirmed live):
+    // this person's own ESTIMATED children - only reached once neither a
+    // real child anchor nor a real spousal date exists. Ranked ahead of the
+    // spousal cascade below for the same "own evidence beats someone else's"
+    // reasoning Priority 1 already uses, just one tier down since it's now
+    // derived rather than real. Deliberately uncapped (no one-hop bound like
+    // the spousal cascade) - an unbroken chain of otherwise-empty ancestors
+    // can each anchor off the generation below's own estimate.
+    if (exists(childAnchor) && childAnchor.cascaded === true && exists(targetGender)) {
+        if (targetGender === "male") {
+            return { year: roundToNearestFive(childAnchor.year - generationalGap), cascaded: true };
+        }
+        if (targetGender === "female") {
+            return { year: roundToNearestFive(childAnchor.year - (generationalGap - spousalGap)), cascaded: true };
+        }
+    }
+
+    // Priority 4 (last resort): a spouse's own estimate, exactly one hop
+    // of cascading - only reached when nothing else above was available.
     if (oppositeGenderSpouse) {
         var cascadedSpouseYear = getCascadedSpouseYear(spouse["birth"]);
         if (exists(cascadedSpouseYear)) {

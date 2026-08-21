@@ -1888,7 +1888,16 @@ function updateQMessage() {
         });
         $('.makepublic').off();
         $('.makepublic').on('click', function () {
-            $("#makepublic").replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
+            // Live report: the API calls below always worked, but the link
+            // never visually changed - $("#makepublic") looked for an
+            // element with that literal ID, which this link never had (it's
+            // only ever built with class='makepublic', see buildConsistency()
+            // above). replaceWith() on an empty selection is a silent no-op,
+            // so clicking gave zero feedback even though the bulk update
+            // succeeded - the same mistake this exact pattern gets right
+            // everywhere else in this file (.fixsuffix/.fixspace/etc. all
+            // reference $(this), the actual clicked element).
+            $(this).replaceWith("<span style='cursor: default;'>[" + _("fixed") + " <img src='" +
                 chrome.runtime.getURL("images/content_check.png") + "' style='width: 14px; margin-top: -5px; margin-right: -3px;'></span>]");
             var args = {
                 "public": true,

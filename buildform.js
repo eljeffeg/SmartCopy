@@ -1178,11 +1178,11 @@ function buildForm() {
             if (relationship === "unknown") {
                 membersstring += '<tr name="unk" style="display: table-row;"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Relation:</span><span id="unknownrel' + i + '">' + buildUnknown(gender) + '</span></td></tr>';
             }
-            var showimg = "images/show.png";
+            var showimg = EYEBALL_SHOW_ICON;
             var showtitle = "Show All Fields";
             if (expand) {
                 if (!$('#hideemptyonoffswitch').prop('checked')) {
-                    showimg = "images/hide.png";
+                    showimg = EYEBALL_HIDE_ICON;
                     showtitle = "Hide Unused Fields";
                 }
                 var actionBirthYear = undefined;
@@ -1941,12 +1941,12 @@ function updateClassResponse() {
     $(function () {
         $('.showhide').on('click', function () {
             var value = $($(this)[0]);
-            if (value.attr("src") === "images/hide.png") {
+            if (value.attr("src") === EYEBALL_HIDE_ICON) {
                 // #222: only re-collapse rows that are ACTUALLY blank
                 // (data-hasvalue) - same reasoning as hideempty() in
                 // popup.js, scoped to just this person's own table.
                 $(this).closest("table").find('.hiddenrow[data-hasvalue="false"]').css("display", "none");
-                value.attr("src", "images/show.png");
+                value.attr("src", EYEBALL_SHOW_ICON);
                 value.attr("title", "Show All Fields");
             } else {
                 if (geoqueryCheck()) {
@@ -1954,7 +1954,7 @@ function updateClassResponse() {
                 } else {
                     $(this).closest("table").find(".hiddenrow").not(".geoloc").css("display", "table-row");
                 }
-                value.attr("src", "images/hide.png");
+                value.attr("src", EYEBALL_HIDE_ICON);
                 value.attr("title", "Hide Unused Fields");
             }
         });

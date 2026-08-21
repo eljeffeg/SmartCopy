@@ -17,6 +17,37 @@ var uniondata = [];
 var deepResearchOn = true;
 var deepResearchSkipRun = false;
 
+// #222 follow-up: the eyeball toggle's two states (images/show.png,
+// images/hide.png) turned out to be the literal SAME open-eye glyph,
+// just recolored - there was never an actual visual "closed eye" to
+// look at, only a tooltip and a color hint, which read as ambiguous.
+// Replaced with inline SVG data URIs (standard Feather Icons eye/
+// eye-off paths, MIT) so the two states are visually distinct at a
+// glance, not just differently colored. Kept as <img src="..."> data
+// URIs rather than real inline <svg> DOM elements specifically so
+// every existing .attr("src", ...) swap site (buildform.js's
+// .showhide click handler, popup.js's hideempty()/#focusshowhide
+// init) keeps working with a one-constant change instead of needing
+// to restructure into DOM manipulation.
+//
+// Naming matches the action each icon INVITES, same convention the
+// existing tooltips already used ("Show All Fields" / "Hide Unused
+// Fields") - EYEBALL_SHOW_ICON (a plain open eye) is shown while rows
+// are currently collapsed, inviting the "show everything" click;
+// EYEBALL_HIDE_ICON (a slashed eye) is shown while rows are currently
+// all visible, inviting the "hide unused" click back down.
+//
+// popup.html's own static <img id="focusshowhide"> tag can't reference
+// a JS constant (it's plain HTML, not templated) - its initial src is
+// the same EYEBALL_SHOW_ICON string hardcoded directly, matching the
+// default closed state. Keep both in sync if this SVG ever changes.
+var EYEBALL_SHOW_ICON = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#888888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+);
+var EYEBALL_HIDE_ICON = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2e7dd7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.62 21.62 0 0 1 5.06-6.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.64 21.64 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>'
+);
+
 // Registry of abort callbacks for every Deep Research tab fetch currently
 // in flight (one entry per open tab, across all four collections). Skipping
 // mid-run only needs to stop FUTURE tabs from starting (the runNext*TabFetch

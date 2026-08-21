@@ -3344,7 +3344,15 @@ $(function () {
     });
     function hideempty(value) {
         if (value) {
-            $('#formdata').find(".hiddenrow").css("display", "none");
+            // #222: only re-collapse rows that are ACTUALLY blank
+            // (data-hasvalue, stamped at render time by
+            // hiddenRowAttrs() in buildform.js) - a row with real
+            // scraped content stays visible even while "closed",
+            // matching the same rule the initial render already
+            // applies. Blindly hiding every .hiddenrow here (the
+            // original behavior) would re-collapse a populated row the
+            // moment the user closed the eyeball again after opening it.
+            $('#formdata').find('.hiddenrow[data-hasvalue="false"]').css("display", "none");
             $('.showhide').attr("src", "images/show.png");
             $('.showhide').attr("title", "Show All Fields");
         } else {

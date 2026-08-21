@@ -348,22 +348,26 @@ function buildForm() {
         var hasNameData = isValue(nameval.prefix) || isValue(nameval.firstName) || isValue(nameval.middleName) ||
             isValue(nameval.lastName) || isValue(nameval.birthName) || isValue(nameval.suffix) ||
             isValue(displayname) || isValue(nameval.nickName);
-        var secondaryNameRowAttrs = ' style="display: ' + isHidden(hidden) + ';" class="hiddenrow"';
         var middleNameChecked = (namescore && mnameonoff) ? "checked" : "";
         var middleNameEnabled = (namescore && mnameonoff) ? "" : "disabled";
         // #210: each row now goes through buildTextFieldRow(), which
         // escapes the scraped value before it reaches the value="..."
         // attribute - previously none of these did (the same fix
         // already applied to the family-member equivalent rows).
+        // #222: each secondary field now gets its OWN content-aware
+        // hiddenRowAttrs() (a populated Title stays visible even while
+        // "closed"; a blank Suffix collapses) instead of one shared
+        // secondaryNameRowAttrs string applied uniformly regardless of
+        // which of these six fields actually has data.
         membersstring +=
-            buildTextFieldRow("Title:", "title", nameval.prefix, "", "disabled", "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage, secondaryNameRowAttrs, namelocked) +
+            buildTextFieldRow("Title:", "title", nameval.prefix, "", "disabled", "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.prefix)), namelocked) +
             buildTextFieldRow("First Name:", "first_name", nameval.firstName, "", "disabled", "focus_geni_first_name", null, genifocusdata.get("names", namelang + ".first_name"), nameimage, undefined, namelocked) +
-            buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, middleNameChecked, middleNameEnabled, "focus_geni_middle_name", null, genifocusdata.get("names", namelang + ".middle_name"), nameimage, secondaryNameRowAttrs, namelocked) +
+            buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, middleNameChecked, middleNameEnabled, "focus_geni_middle_name", null, genifocusdata.get("names", namelang + ".middle_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.middleName)), namelocked) +
             buildTextFieldRow("Last Name:", "last_name", nameval.lastName, "", "disabled", "focus_geni_last_name", null, genifocusdata.get("names", namelang + ".last_name"), nameimage, undefined, namelocked) +
-            buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", "disabled", "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage, secondaryNameRowAttrs, namelocked) +
-            buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", "disabled", "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage, secondaryNameRowAttrs, namelocked) +
-            buildTextFieldRow("Display Name: ", "display_name", displayname, "", "disabled", "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage, secondaryNameRowAttrs, namelocked) +
-            buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", "disabled", "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png", secondaryNameRowAttrs);
+            buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", "disabled", "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.birthName)), namelocked) +
+            buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", "disabled", "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.suffix)), namelocked) +
+            buildTextFieldRow("Display Name: ", "display_name", displayname, "", "disabled", "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(displayname)), namelocked) +
+            buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", "disabled", "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png", ' ' + hiddenRowAttrs(hidden, isValue(nameval.nickName)));
         if (hasNameData) {
             x += 1;
         }
@@ -420,7 +424,7 @@ function buildForm() {
         } else {
             membersstring = $(div[0]).html();
             membersstring = membersstring +
-                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("occupation") ? ' disabled' : '') + '>Occupation: </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
+                '<tr ' + hiddenRowAttrs(hidden, false) + ' id="occupation"><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("occupation") ? ' disabled' : '') + '>Occupation: </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         }
         var genderlocked = focusFieldLocked("gender"); // #78
@@ -434,7 +438,7 @@ function buildForm() {
         } else {
             var gender = focusgender;
             membersstring = $(div[0]).html();
-            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + (genderlocked ? 'disabled ' : '') + isChecked(gender, false, false, undefined, genderlocked) + '>Gender: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, false, false, undefined, genderlocked) + '>' +
+            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, gender !== "unknown") + '><td class="profilediv"><input type="checkbox" class="checknext" ' + (genderlocked ? 'disabled ' : '') + isChecked(gender, false, false, undefined, genderlocked) + '>Gender: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, false, false, undefined, genderlocked) + '>' +
                 '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + capFL(genifocusdata.get("gender")) + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         }
@@ -519,7 +523,7 @@ function buildForm() {
             if (!geniliving && living) {
                 living = geniliving;
             }
-            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + (livinglocked ? 'disabled ' : '') + isChecked(living, false, false, undefined, livinglocked) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, false, false, undefined, livinglocked) + '>' +
+            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, exists(alldata["profile"].alive)) + '><td class="profilediv"><input type="checkbox" class="checknext" ' + (livinglocked ? 'disabled ' : '') + isChecked(living, false, false, undefined, livinglocked) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, false, false, undefined, livinglocked) + '>' +
                 '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
         }
         var focusBirthYear = undefined;
@@ -550,7 +554,7 @@ function buildForm() {
             $(div[0]).html(membersstring);
         } else {
             membersstring = $(div[0]).html();
-            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="3" style="padding: 0px;"><div class="profilediv" style="width: 100%;"><input type="checkbox" class="checknext">About:<img class="genisliderow" src="images/append.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
+            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + ' id="about"><td colspan="3" style="padding: 0px;"><div class="profilediv" style="width: 100%;"><input type="checkbox" class="checknext">About:<img class="genisliderow" src="images/append.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
             $(div[0]).html(membersstring);
         }
         if (sepx === 0) {
@@ -734,10 +738,10 @@ function buildForm() {
                 }
                 if (!dateadded) {
                     membersstring = membersstring +
-                        '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext"' + (datelocked ? ' disabled' : '') + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "date.formatted_date")).replace(/&quot;/g, '"')) + '" disabled></td></tr>';
+                        '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (datelocked ? ' disabled' : '') + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "date.formatted_date")).replace(/&quot;/g, '"')) + '" disabled></td></tr>';
                 }
                 if (title === "death") {
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
+                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
                 }
                 if (!locationadded) {
                     locationval = locationval +
@@ -760,9 +764,9 @@ function buildForm() {
                 }
 
                 membersstring = membersstring +
-                    '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext"' + (datelocked ? ' disabled' : '') + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "date.formatted_date")).replace(/&quot;/g, '"')) + '" disabled></td></tr>';
+                    '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (datelocked ? ' disabled' : '') + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "date.formatted_date")).replace(/&quot;/g, '"')) + '" disabled></td></tr>';
                 if (title === "death") {
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
+                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
                 }
                 membersstring = membersstring +
                     '<tr id="focus_'+title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck"><img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;"  alt="Toggle Geolocation" title="Toggle Geolocation"  src="images/' + geoicon + '" height="14px">';
@@ -1260,7 +1264,7 @@ function buildForm() {
                     var occupation = members[member]["occupation"].trim();
                     membersstring = membersstring + buildTextFieldRow("Occupation: ", "occupation", occupation, isChecked(occupation, scored, false, ""), isEnabled(occupation, scored, false, ""), i + "_geni_occupation");
                 } else {
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + ' id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 }
                 membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect genderselect" update="'+ i + '" relationship="' + relationship + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
                     '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_gender" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -1304,7 +1308,7 @@ function buildForm() {
                         geniInputId: i + "_geni_about"
                     });
                 } else {
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" id="about"><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext">About:<img class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"><input id="' + i + '_geni_about" type="text" class="formtext genislideinput" value="" disabled style="display:none;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
+                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + ' id="about"><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext">About:<img class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"><input id="' + i + '_geni_about" type="text" class="formtext genislideinput" value="" disabled style="display:none;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
                 }
                 for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
                     var title = listvalues[list];
@@ -1445,11 +1449,11 @@ function buildForm() {
                                 ambigdatecheck.push(i);
                             }
                             membersstring = membersstring +
-                                '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" ' + dateambig + 'name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                                '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" ' + dateambig + 'name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
 
                         }
                         if (title === "death") {
-                            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_cause_of_death" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_cause_of_death" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                         }
                         if (!locationadded) {
                             locationval = locationval +
@@ -1471,9 +1475,9 @@ function buildForm() {
                     } else {
                         membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td colspan="3"><div class="separator"></div></td></tr>';
 
-                        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                        membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                         if (title === "death") {
-                            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_cause_of_death" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_cause_of_death" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                         }
                         membersstring = membersstring +
                             '<tr id="'+ i + "_" +title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
@@ -1931,7 +1935,10 @@ function updateClassResponse() {
         $('.showhide').on('click', function () {
             var value = $($(this)[0]);
             if (value.attr("src") === "images/hide.png") {
-                $(this).closest("table").find(".hiddenrow").css("display", "none");
+                // #222: only re-collapse rows that are ACTUALLY blank
+                // (data-hasvalue) - same reasoning as hideempty() in
+                // popup.js, scoped to just this person's own table.
+                $(this).closest("table").find('.hiddenrow[data-hasvalue="false"]').css("display", "none");
                 value.attr("src", "images/show.png");
                 value.attr("title", "Show All Fields");
             } else {
@@ -2170,6 +2177,37 @@ function isHidden(value, geo) {
     } else {
         return "table-row";
     }
+}
+
+// #222: replaces "hidden = the Hide Empty Fields setting, applied as a
+// blanket category toggle" with a per-row content check - a row now
+// starts collapsed only when the setting is on AND this specific field's
+// OWN scraped value is blank, not just because it's categorized as
+// secondary. Geni's own side is deliberately NOT part of this decision
+// (agreed direction on #222) - "Hide Empty Fields" is about decluttering
+// what this run actually scraped, not about whether Geni separately
+// already has something there.
+//
+// data-hasvalue is the other half of the fix: the eyeball's OPEN action
+// still reveals every .hiddenrow unconditionally (unchanged, deliberately
+// - see hideempty()/.showhide's click handler), but CLOSING must not
+// re-hide a row that has real content just because it shares the
+// .hiddenrow class - the close handler filters on this attribute instead
+// of blindly hiding everything, closing the exact gap #222 was filed
+// about ("'Closed' hides the whole category even if a specific row in it
+// genuinely has real scraped data").
+//
+// Takes hasValue directly (a boolean the CALLER computes), not a raw value
+// to blank-check internally - different fields have different "blank"
+// representations in this codebase (plain "" for most text fields,
+// Gender's literal "unknown" option, Living's data-scraped flag rather
+// than its current value at all, since Deceased/Living are both "real").
+// Forcing every call site to resolve its own field-appropriate blank
+// check first, same as isFieldValueBlank() (popup.js) already does for
+// Select All, avoids silently mis-treating "unknown" gender or a
+// defaulted Vital value as if they were populated content.
+function hiddenRowAttrs(hidden, hasValue) {
+    return 'data-hasvalue="' + hasValue + '" style="display: ' + isHidden(hidden && !hasValue) + ';" class="hiddenrow"';
 }
 
 function genderColor(gender) {

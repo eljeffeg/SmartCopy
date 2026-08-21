@@ -21,6 +21,33 @@ var geounique = [];
 var geocleanup = [];
 var datelimit = 1600;
 
+// #223/#224 follow-up: previously deduped purely by the raw location
+// STRING, harmless for Google (date-blind - two events sharing the same
+// place string always got the identical result regardless of processing
+// order) but a real correctness bug once FamilySearch Places entered the
+// picture: it resolves the SAME place string to DIFFERENT, historically
+// correct entities depending on the associated date (e.g. a birth vs a
+// death decades apart at the same place name). Live-confirmed: a death
+// location was silently getting the geocoded result computed for a
+// different, earlier event that happened to share the identical raw place
+// string - whichever one was processed first "won" the unique slot, and
+// every later duplicate just copied its result wholesale (see the
+// geocleanup/geounique matching loop in updateFamily() below). Folding the
+// event's own year into the dedup key fixes this for both sources - the
+// common Google-only case is unaffected, this only costs a handful of
+// extra (still fully correct) redundant lookups in the rare
+// same-string-different-year edge case.
+function getGeoDedupKey(entry) {
+    var year = "";
+    if (exists(entry.date) && entry.date !== "") {
+        var dt = moment(entry.date, getDateFormat(entry.date));
+        if (dt.isValid() && !isNaN(dt.get('year'))) {
+            year = dt.get('year');
+        }
+    }
+    return entry.location + "|" + year;
+}
+
 function updateGeo() {
     if (familystatus.length > 0) {
         setTimeout(updateGeo, 50);
@@ -34,8 +61,8 @@ function updateGeo() {
             var memberobj = alldata["profile"][title];
             if (exists(memberobj)) {
                 for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
-                    if (memberobj[item].location !== undefined && !values.includes(memberobj[item].location)) {
-                        values.push(memberobj[item].location);
+                    if (memberobj[item].location !== undefined && !values.includes(getGeoDedupKey(memberobj[item]))) {
+                        values.push(getGeoDedupKey(memberobj[item]));
                         geounique.push(memberobj[item]);
                     } else if (memberobj[item].location !== undefined) {
                         geocleanup.push(memberobj[item]);
@@ -71,8 +98,8 @@ function updateGeo() {
                     var memberobj = members[member][title];
                     if (exists(memberobj)) {
                         for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
-                            if (memberobj[item].location !== undefined && !values.includes(memberobj[item].location)) {
-                                values.push(memberobj[item].location);
+                            if (memberobj[item].location !== undefined && !values.includes(getGeoDedupKey(memberobj[item]))) {
+                                values.push(getGeoDedupKey(memberobj[item]));
                                 geounique.push(memberobj[item]);
                             } else if (memberobj[item].location !== undefined) {
                                 geocleanup.push(memberobj[item]);
@@ -99,7 +126,7 @@ function updateFamily() {
         //console.log(geounique);
         for (var i=0; i < geocleanup.length; i++) {
             for (var x=0; x < geounique.length; x++) {
-                if (geocleanup[i].location === geounique[x].location) {
+                if (getGeoDedupKey(geocleanup[i]) === getGeoDedupKey(geounique[x])) {
                     geolocation[geocleanup[i].id] = geolocation[geounique[x].id];
                     //console.log("Adding " + geounique[x].id + " to " + geocleanup[i].id);
                     //console.log(geocleanup[i].location);
@@ -579,14 +606,14 @@ function buildForm() {
         var geoplace = "table-row";
         var geoauto = "none";
         var geoicon = "geooff.png";
-        if (geoqueryCheck()) {
+        if (geoAnySourceEnabled()) {
             geoplace = "none";
             geoauto = "table-row";
             geoicon = "geoon.png";
         }
         var geoplacehidden = " geohidden";
         var geolochidden = "";
-        if (!geoqueryCheck()) {
+        if (!geoAnySourceEnabled()) {
             geoplacehidden = "";
             geolochidden = " geohidden";
         }
@@ -683,12 +710,12 @@ function buildForm() {
                         var state = geovar1.state;
                         var country = geovar1.country;
                         var geoone = ($('#forcegeoswitch').prop('checked') && (isValue(city) || isValue(county) || isValue(state) || isValue(country)));
-                        var placeScored = scored && !geoqueryCheck();
-                        var geoScored = scored && geoqueryCheck();
+                        var placeScored = scored && !geoAnySourceEnabled();
+                        var geoScored = scored && geoAnySourceEnabled();
                         locationval = locationval +
                             '<tr id="focus_'+title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                             '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + geoicon + '" height="14px">';
-                            if (geoqueryCheck()) {
+                            if (geoAnySourceEnabled()) {
                                 locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                             }
                             locationval = locationval + '<img class="geopin" title="' + pintitle + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
@@ -754,7 +781,7 @@ function buildForm() {
                 if (!locationadded) {
                     locationval = locationval +
                         '<tr id="focus_'+title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck"><img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px">';
-                        if (geoqueryCheck()) {
+                        if (geoAnySourceEnabled()) {
                             locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                         }
                         locationval = locationval + '<img class="geopin" title="" src="images/clearpin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td><td></td></tr>' +
@@ -778,7 +805,7 @@ function buildForm() {
                 }
                 membersstring = membersstring +
                     '<tr id="focus_'+title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck"><img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;"  alt="Toggle Geolocation" title="Toggle Geolocation"  src="images/' + geoicon + '" height="14px">';
-                    if (geoqueryCheck()) {
+                    if (geoAnySourceEnabled()) {
                         membersstring = membersstring + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                     }
                     membersstring = membersstring + '<img class="geopin" title="" src="images/clearpin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td><td></td></tr>' +
@@ -1411,12 +1438,12 @@ function buildForm() {
                                 var state = geovar2.state;
                                 var country = geovar2.country;
                                 var geoone = ($('#forcegeoswitch').prop('checked') && (isValue(city) || isValue(county) || isValue(state) || isValue(country)));
-                                var placeScored = scored && !geoqueryCheck();
-                                var geoScored = scored && geoqueryCheck();
+                                var placeScored = scored && !geoAnySourceEnabled();
+                                var geoScored = scored && geoAnySourceEnabled();
                                 locationval = locationval +
                                     '<tr id="'+ i + "_" +title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                                     '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + geoicon + '" height="14px">';
-                                    if (geoqueryCheck()) {
+                                    if (geoAnySourceEnabled()) {
                                         locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
                                     }
                                     locationval = locationval + '<img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + pintitle + '" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
@@ -1488,7 +1515,7 @@ function buildForm() {
                             locationval = locationval +
                                 '<tr id="'+ i + "_" +title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                                 '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px">';
-                                if (geoqueryCheck()) {
+                                if (geoAnySourceEnabled()) {
                                     locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
                                 }
                                 locationval = locationval + '<img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
@@ -1511,7 +1538,7 @@ function buildForm() {
                         membersstring = membersstring +
                             '<tr id="'+ i + "_" +title+'" class="hiddenrow" style="display: ' + isHidden(hidden) + ';"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                             '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" src="images/' + geoicon + '" alt="Toggle Geolocation" title="Toggle Geolocation" height="14px">';
-                            if (geoqueryCheck()) {
+                            if (geoAnySourceEnabled()) {
                                 membersstring = membersstring + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
                             }
                             membersstring = membersstring +'<img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
@@ -1971,7 +1998,7 @@ function updateClassResponse() {
                 value.attr("src", EYEBALL_SHOW_ICON);
                 value.attr("title", "Show All Fields");
             } else {
-                if (geoqueryCheck()) {
+                if (geoAnySourceEnabled()) {
                     $(this).closest("table").find(".hiddenrow").not(".geoplace").css("display", "table-row");
                 } else {
                     $(this).closest("table").find(".hiddenrow").not(".geoloc").css("display", "table-row");
@@ -2195,7 +2222,7 @@ function isEnabled(value, score, force, currentValue, locked) {
 }
 
 function isHidden(value, geo) {
-    var hidden = geoqueryCheck();
+    var hidden = geoAnySourceEnabled();
     if (geo === "place" && hidden) {
         return "none";
     } else if (geo === "loc" && !hidden) {

@@ -212,6 +212,30 @@ function queryGeo(locationset, test) {
     queryGeoGoogle(locationset, test);
 }
 
+// Live-confirmed failure mode (issue #224 - "Posen" searched for a 1765
+// event): when no settlement-level FamilySearch record exists for the
+// target year, the best-scored match can be a much broader jurisdiction
+// (a whole Province, in that real case) that merely shares the searched
+// name - accepting it would mislabel "somewhere in this entire province"
+// as if it were the specific town. FamilySearch's own display.type string
+// is checked directly rather than the numeric type codes elsewhere in
+// this file (id 9278776 vs 7717173 vs 7717174 - the three real Storkow
+// entries - all used DIFFERENT numeric codes for the same "Brandenburg"
+// province depending on the historical period, so the numbers aren't a
+// stable type taxonomy; "Province"/"State"/"Country" as plain English
+// strings are what's actually consistent across entries).
+// Not an exhaustive taxonomy - FamilySearch's own type list isn't
+// published anywhere found during #224's research, so this is built from
+// broad-jurisdiction types actually seen live (Province confirmed on the
+// Posen/1765 case above; District confirmed the same way - ranked ahead
+// of the genuine City-level match for the identical query). Add to this
+// list as further false-positive types turn up in practice.
+var FS_BROAD_PLACE_TYPES = ["Province", "State", "Country", "Region", "District"];
+function isBroadPlaceType(place) {
+    return exists(place) && exists(place.display) && exists(place.display.type) &&
+        FS_BROAD_PLACE_TYPES.indexOf(place.display.type) !== -1;
+}
+
 // #223/#224 follow-up: resolves the most specific segment of a scraped
 // location string against FamilySearch's Places Search, then picks
 // whichever returned candidate's date range covers the record's own event
@@ -239,7 +263,16 @@ function queryFamilySearchPlaces(locationset, callback) {
     if (exists(eventYear)) {
         queryText += ' +date:+' + eventYear;
     }
-    var url = "https://apibeta.familysearch.org/platform/places/search?count=1&q=" + encodeURIComponent(queryText);
+    // count=5, not 1: live-confirmed failure case (issue #224 - "Posen" in
+    // 1765) - when no settlement-level record exists for the target year
+    // (FamilySearch's Prussian-era Posen entries only start in 1815), the
+    // single best-scored match can be a much BROADER jurisdiction (a whole
+    // Province, in that case) that merely shares the searched name - a
+    // misleading result to present as if it were the specific place.
+    // FS_BROAD_PLACE_TYPES below rejects those; keeping a few candidates
+    // in reserve lets the next-best (still date-eligible) match be tried
+    // instead of immediately falling through to Google/raw-string.
+    var url = "https://apibeta.familysearch.org/platform/places/search?count=5&q=" + encodeURIComponent(queryText);
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -253,10 +286,18 @@ function queryFamilySearchPlaces(locationset, callback) {
                 return;
             }
             // Entries are pre-sorted by relevance score (highest first) -
-            // the top entry is the best match FamilySearch itself picked,
-            // already narrowed by the +date: filter above when a year was
-            // available.
-            var places = entries[0].content.gedcomx.places;
+            // walk down from the best match FamilySearch itself picked
+            // (already narrowed by the +date: filter above when a year was
+            // available) until one is actually settlement-level, not a
+            // broader jurisdiction wrongly standing in for it.
+            var places;
+            for (var e = 0; e < entries.length; e++) {
+                var candidatePlaces = entries[e].content.gedcomx.places;
+                if (exists(candidatePlaces) && candidatePlaces.length > 0 && !isBroadPlaceType(candidatePlaces[0])) {
+                    places = candidatePlaces;
+                    break;
+                }
+            }
             if (!exists(places) || places.length === 0) {
                 callback(false);
                 return;

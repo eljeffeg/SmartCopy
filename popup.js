@@ -3521,6 +3521,24 @@ function geoqueryCheck() {
     return googlegeoquery && $('#geoonoffswitch').prop('checked');
 }
 
+// #223/#224 follow-up: geoqueryCheck() is specifically "is Google
+// configured and enabled" - correct for parse-location.js's own use (should
+// it actually call Google's geocode API), but buildform.js's ~14 call
+// sites use the SAME function for a different question entirely: should
+// the geocoded city/county/state/country fields be visible, checked, and
+// editable AT ALL. That's a UI-rendering decision, not a "which specific
+// backend" decision - it should be true whenever ANY geocoding source
+// (Google OR FamilySearch Places) could plausibly have populated
+// geolocation[], not just Google specifically. Without this, enabling
+// FamilySearch Places alone (no Google key) correctly fills
+// geolocation[]'s city/county/state/country, but every row that would
+// display them stays hidden, checked-state stays wrong, and the "no
+// difference" symptom this was live-reported as looks exactly like the
+// feature doing nothing at all, even though it worked underneath.
+function geoAnySourceEnabled() {
+    return geoqueryCheck() || familysearchPlacesOn;
+}
+
 $(function () {
     $('#logoutbutton').on('click', function () {
         chrome.runtime.sendMessage({

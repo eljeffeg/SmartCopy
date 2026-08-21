@@ -879,10 +879,6 @@ function buildForm() {
         } else {
             relationship = "unknown";
         }
-        console.log("SmartCopy: category-level scoring - relationship=" + relationship +
-            " scorefactors=" + JSON.stringify(scorefactors) +
-            " sibcheck=" + sibcheck + " childck=" + childck + " parentck=" + parentck + " partnerck=" + partnerck +
-            " -> category scored=" + scored);
 
         var div = $("#" + relationship);
         if (members.length > 0 && exists(div[0])) {
@@ -1061,16 +1057,9 @@ function buildForm() {
                 if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
                     earlyBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
                 }
-                var alreadyMatched = findExistingFamilyMatch(relationship, gender, nameval.firstName, (nameval.lastName || nameval.birthName), earlyBirthYear);
-                console.log("SmartCopy: per-member re-run check - relationship=" + relationship +
-                    " name=" + fullname + " alreadyMatched=" + !!alreadyMatched +
-                    " scored before=" + scored + " after=" + (alreadyMatched ? false : scored));
-                if (alreadyMatched) {
+                if (findExistingFamilyMatch(relationship, gender, nameval.firstName, (nameval.lastName || nameval.birthName), earlyBirthYear)) {
                     scored = false;
                 }
-            } else {
-                console.log("SmartCopy: per-member re-run check SKIPPED (scored already false entering it) - relationship=" + relationship +
-                    " name=" + fullname + " scored=" + scored);
             }
 
             // #208: fills a genuinely-blank family-member birth date with
@@ -1292,9 +1281,6 @@ function buildForm() {
                 } else {
                     membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + ' id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 }
-                console.log("SmartCopy: Vital row - relationship=" + relationship + " name=" + fullname +
-                    " members[member].alive=" + JSON.stringify(members[member].alive) +
-                    " living=" + living + " livingScraped=" + livingScraped + " scored=" + scored);
                 membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect genderselect" update="'+ i + '" relationship="' + relationship + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
                     '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_gender" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                     '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, scored) + '>Vital: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect livingselect" data-scraped="' + livingScraped + '" update="'+ i + '"  style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, scored) + '>' +
@@ -3166,6 +3152,20 @@ function updateInfoData(person, arg) {
                 var agelimit = moment.utc().format("YYYY") - 95;
                 if (exists(birthval.year) && birthval.year >= agelimit) {
                     person["alive"] = true;
+                } else if (exists(birthval.year)) {
+                    // Symmetric with the focus profile's own 95-year default
+                    // (buildform.js:501-523, "If the older than 95, default
+                    // to deceased") - this branch previously only ever set
+                    // alive=true for a recent birth and left alive
+                    // undetermined for an old one with no death/burial
+                    // record scraped, live-confirmed to leave Vital's
+                    // data-scraped flag false (see isFieldValueBlank()) and
+                    // so Select All correctly, but confusingly, treats it as
+                    // "nothing determined here" and protects it rather than
+                    // checking it - a person born well over 95 years ago is
+                    // confidently deceased, same reasoning as the focus
+                    // profile already applies.
+                    person["alive"] = false;
                 }
             }
         }
@@ -3195,6 +3195,9 @@ function updateInfoData(person, arg) {
                 var agelimit = moment.utc().format("YYYY") - 95;
                 if (exists(birthval.year) && birthval.year >= agelimit) {
                     person["alive"] = true;
+                } else if (exists(birthval.year)) {
+                    // Same reasoning as the other 95-year branch above.
+                    person["alive"] = false;
                 }
             }
         }

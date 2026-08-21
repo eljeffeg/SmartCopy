@@ -2491,23 +2491,26 @@ function getCascadedSpouseYear(birthArray) {
 // blank (see getFocusSpouseSurname()'s own male-only restriction above)
 // rather than guessing.
 //
-// Priority order (#208 follow-up - CHANGED, confirmed live against a real
-// bug): a spouse's REAL date first, THEN this person's own real children
-// (Rule 2), and only as a genuine LAST RESORT a cascaded (estimated)
-// spousal anchor. Originally cascading was tried right after the real-
-// spousal check, ahead of Rule 2 - that looked fine in isolation but broke
-// visibly once combined with the father/mother anchor fix above: with both
-// parents blank, the father (processed first) gets a real, child-anchored
-// Rule 2 estimate; the mother, processed next, would then find HIS
-// estimate cascade-eligible and take the (less accurate) spousal path
-// BEFORE ever trying her own real children - live-confirmed wrong result
-// (a mother anchored on her own 1895 child should read 1870, not the
-// cascaded-off-father 1855). Real child data, when directly available,
-// is always preferred over a derived guess; cascading off a spouse's
-// estimate is now only reached when NEITHER a real spousal date NOR any
-// real child data exists at all - which is exactly the case (e.g. a
-// second wife with no known children of her own) this whole cascading
-// mechanism was originally built for.
+// Priority order (#208 follow-up - CHANGED AGAIN, confirmed live a second
+// time): this person's OWN real children (Rule 2) first, THEN a spouse's
+// REAL date, and only as a genuine LAST RESORT a cascaded (estimated)
+// spousal anchor. The previous order (real spousal, then Rule 2) fixed
+// the cascaded case correctly but missed the same problem one level up:
+// once Robert had a REAL "About 1850" sitting on Geni (not a guess -
+// confirmed via focusRealYear, see below), Sarah's spousal lookup found
+// that real date FIRST and returned 1855 (1850+5) without ever trying her
+// own real children (1895's son -> 1870) - live-confirmed wrong result a
+// second time, same underlying mistake: a DERIVED estimate (spousal gap
+// off someone else, even off a real date) is still less specific than
+// this person's OWN direct evidence. Real child data, whenever directly
+// available, now always wins - over a real spousal anchor AND a cascaded
+// one alike. A real spousal date only matters when this person has no
+// child data of their own at all (e.g. childless, or a "partner" category
+// member whose own children aren't linked via parent_id); cascading off a
+// spouse's own estimate remains the true last resort, reached only when
+// NEITHER a real spousal date NOR any real child data exists at all -
+// exactly the case (e.g. a second wife with no known children of her own)
+// this whole cascading mechanism was originally built for.
 //
 // Return value's `cascaded` flag marks whether THIS estimate was itself
 // anchored on another estimate (true) or on real data (false, including
@@ -2562,7 +2565,21 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
     var oppositeGenderSpouse = exists(spouse) && exists(spouse.gender) && exists(targetGender) &&
         spouse.gender !== targetGender && spouse.gender !== "unknown" && targetGender !== "unknown";
 
-    // Priority 1: a real spousal date (never a guess of any kind).
+    // Priority 1: this person's own real children (Rule 2) - the most
+    // direct evidence about THIS specific person, preferred over any
+    // spousal-gap estimate (real or cascaded) derived from someone else.
+    var anchor = getChildGroupAnchorYear(category, member);
+    if (exists(anchor) && exists(targetGender)) {
+        if (targetGender === "male") {
+            return { year: roundToNearestFive(anchor - generationalGap), cascaded: false };
+        }
+        if (targetGender === "female") {
+            return { year: roundToNearestFive(anchor - (generationalGap - spousalGap)), cascaded: false };
+        }
+    }
+
+    // Priority 2: a real spousal date (never a guess of any kind) - only
+    // reached when this person has no real child data of their own.
     if (oppositeGenderSpouse) {
         var realSpouseYear = getBirthYear(spouse["birth"], true);
         if (!exists(realSpouseYear) && category === "partner" && exists(focusRealYear)) {
@@ -2575,18 +2592,6 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
             if (targetGender === "female") {
                 return { year: roundToNearestFive(realSpouseYear + spousalGap), cascaded: false };
             }
-        }
-    }
-
-    // Priority 2: this person's own real children (Rule 2) - preferred
-    // over a cascaded guess whenever real child data is directly available.
-    var anchor = getChildGroupAnchorYear(category, member);
-    if (exists(anchor) && exists(targetGender)) {
-        if (targetGender === "male") {
-            return { year: roundToNearestFive(anchor - generationalGap), cascaded: false };
-        }
-        if (targetGender === "female") {
-            return { year: roundToNearestFive(anchor - (generationalGap - spousalGap)), cascaded: false };
         }
     }
 

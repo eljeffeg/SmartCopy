@@ -461,14 +461,17 @@ var EN_FALLBACK_MESSAGES = {
     "Location": {
         "message": "Location"
     },
-    "Enable_Geolocation": {
-        "message": "Enable Geolocation"
+    "Enable_Google_Geocoding": {
+        "message": "Enable Google Geocoding"
     },
     "API_Key": {
         "message": "API Key"
     },
     "Location_fields_auto_select_one_select_all": {
         "message": "Location fields select one select all"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Parse locations with FamilySearch Places (experimental)"
     },
     "Naming": {
         "message": "Naming"

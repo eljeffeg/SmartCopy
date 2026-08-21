@@ -3072,6 +3072,13 @@ $(function () {
         }
     });
 
+    chrome.storage.local.get('familysearchplaces', function (result) {
+        var familysearchplaceschecked = result.familysearchplaces;
+        if (exists(familysearchplaceschecked)) {
+            $('#familysearchplacesonoffswitch').prop('checked', familysearchplaceschecked);
+            familysearchPlacesOn = familysearchplaceschecked;
+        }
+    });
     chrome.storage.local.get('google_key', function (result) {
         var google_api_key = result.google_key;
         if (exists(google_api_key) && google_api_key !== "") {
@@ -3092,6 +3099,10 @@ $(function () {
         chrome.storage.local.set({'autogeo': this.checked});
         geoonoff(this.checked);
         hideempty($('#hideemptyonoffswitch').prop('checked'));
+    });
+    $('#familysearchplacesonoffswitch').on('click', function () {
+        chrome.storage.local.set({'familysearchplaces': this.checked});
+        familysearchPlacesOn = this.checked;
     });
     $('#consistencyonoffswitch').on('click', function () {
         chrome.storage.local.set({'geniconsistency': this.checked});

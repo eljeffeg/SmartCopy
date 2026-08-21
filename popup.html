@@ -146,7 +146,7 @@
                                             </label>
                                         </div>
                                     </td>
-                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;"><span data-i18n="Enable_Geolocation">Enable Geolocation </span><span id="geo_location_type"></span></td>
+                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;"><span data-i18n="Enable_Google_Geocoding">Enable Google Geocoding </span><span id="geo_location_type"></span></td>
                                 </tr>
                                 <tr id="google_apirow">
                                     <td><img id="geocheckimage" src="images/content_check.png" style="float: right; display: none; width: 14px;"></td>
@@ -166,6 +166,18 @@
                                         one, select all<div id="forcegeochange" style="display: none; color: red;" data-i18n="This_change_will_take_effect_at_next_use">This change will
                                             take effect at next use.</div>
                                     </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 3px 6px 0 25px; width: 58px;">
+                                        <div class="onoffswitch">
+                                            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="familysearchplacesonoffswitch">
+                                            <label class="onoffswitch-label" for="familysearchplacesonoffswitch">
+                                                <span class="onoffswitch-inner"></span>
+                                                <span class="onoffswitch-switch"></span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" title="Experimental: uses an unauthenticated FamilySearch beta endpoint with no support guarantee - may change or stop working without notice." data-i18n="Parse_locations_with_FamilySearch_Places">Parse locations with FamilySearch Places (experimental)</td>
                                 </tr>
                                 <tr>
                                     <td colspan="2">

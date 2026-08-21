@@ -73,6 +73,26 @@ var deepResearchInFlightAborts = [];
 // own scope.
 var estimateBirthYearsOn = true;
 
+// #223/#224 follow-up: mirrors chrome.storage.local's
+// 'familysearchplaces' key (see popup.js). Default OFF, unlike the
+// Google geocoding toggle above it - this queries an UNAUTHENTICATED
+// FamilySearch beta endpoint (apibeta.familysearch.org) that has no
+// registered API key backing it and isn't a documented/sanctioned
+// access path (see issue #224 - FamilySearch's own Solution Provider
+// application, the only route to a real production key, explicitly
+// rejects a project shaped like this one). FamilySearch's own docs
+// describe this tier as an "older production data snapshot" whose
+// "availability varies" - it could change or disappear without
+// notice, so every call site built on this must degrade silently to
+// the existing Google/raw-string fallback, never block location
+// parsing on it. Read directly via
+// $('#familysearchplacesonoffswitch').prop('checked') at its one call
+// site in parse-location.js's queryGeo(), matching how the Google geo
+// toggle itself is read (geoqueryCheck()) rather than off this global -
+// this global exists for consistency with the other feature-flag
+// globals in this file.
+var familysearchPlacesOn = false;
+
 // Run script as soon as the document's DOM is ready.
 if (typeof String.prototype.startsWith != 'function') {
     String.prototype.startsWith = function (str) {

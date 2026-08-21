@@ -183,7 +183,143 @@ function isCem(checkplace) {
         checkplace.endsWith("temple") || checkplace.contains("mausoleum") || checkplace.contains("memorial");
 }
 
+// #223/#224 follow-up: when the FamilySearch Places toggle is on, tries it
+// FIRST - live-tested against real historical Online-OFB records, it
+// correctly resolves period-appropriate administrative hierarchies (e.g. a
+// German record from 1885 correctly resolving to its 1871-1952 Prussian-era
+// jurisdiction chain) that Google's present-day-only geocoding can't. Falls
+// through to the existing Google/raw-string path unchanged whenever
+// FamilySearch is off, finds nothing, or the call fails for any reason -
+// this is an unauthenticated beta endpoint with no uptime guarantee (see
+// the familysearchPlacesOn comment in shared.js), so it must never be the
+// only path to a result. queryGeoGoogle() below is the original queryGeo()
+// body, renamed but otherwise untouched.
 function queryGeo(locationset, test) {
+    if (familysearchPlacesOn && exists(locationset.location) && locationset.location.trim() !== "") {
+        geostatus.push(geostatus.length);
+        queryFamilySearchPlaces(locationset, function (matched) {
+            geostatus.pop();
+            if (matched) {
+                if (exists(test) && test !== "") {
+                    print(geolocation[locationset.id], JSON.parse(test));
+                }
+                return;
+            }
+            queryGeoGoogle(locationset, test);
+        });
+        return;
+    }
+    queryGeoGoogle(locationset, test);
+}
+
+// #223/#224 follow-up: resolves the most specific segment of a scraped
+// location string against FamilySearch's Places Search, then picks
+// whichever returned candidate's date range covers the record's own event
+// year - the exact approach validated live against issue #224's test case.
+// Always calls back (true = geolocation[locationset.id] was populated,
+// false = caller should fall through to Google/raw-string) - never throws,
+// matching this codebase's established "degrade to blank, don't break the
+// run" convention for anything that talks to an external, unreliable
+// source.
+function queryFamilySearchPlaces(locationset, callback) {
+    var location = locationset.location.trim();
+    var placeSegment = location.split(",")[0].trim().replace(/"/g, "");
+    if (placeSegment === "" || placeSegment === "?") {
+        callback(false);
+        return;
+    }
+    var eventYear;
+    if (exists(locationset.date) && locationset.date !== "") {
+        var dt = moment(locationset.date, getDateFormat(locationset.date));
+        if (dt.isValid() && !isNaN(dt.get('year'))) {
+            eventYear = dt.get('year');
+        }
+    }
+    var queryText = 'name:"' + placeSegment + '"';
+    if (exists(eventYear)) {
+        queryText += ' +date:+' + eventYear;
+    }
+    var url = "https://apibeta.familysearch.org/platform/places/search?count=1&q=" + encodeURIComponent(queryText);
+    chrome.runtime.sendMessage({
+        method: "GET",
+        action: "xhttp",
+        url: url
+    }, function (response) {
+        try {
+            var result = JSON.parse(response.source);
+            var entries = result.entries;
+            if (!exists(entries) || entries.length === 0) {
+                callback(false);
+                return;
+            }
+            // Entries are pre-sorted by relevance score (highest first) -
+            // the top entry is the best match FamilySearch itself picked,
+            // already narrowed by the +date: filter above when a year was
+            // available.
+            var places = entries[0].content.gedcomx.places;
+            if (!exists(places) || places.length === 0) {
+                callback(false);
+                return;
+            }
+            geolocation[locationset.id] = familySearchPlaceToGeoLocation(places, location);
+            callback(true);
+        } catch (e) {
+            callback(false);
+        }
+    });
+}
+
+// Maps FamilySearch's place + ancestor-jurisdiction chain onto this
+// codebase's existing {city, county, state, country} shape (same shape
+// parseGoogle() produces), so every downstream consumer (buildform.js's
+// rendering, compareGeo(), etc.) treats a FamilySearch result exactly like
+// a Google one - no separate code path needed anywhere else.
+//
+// places[0] is the matched place itself; places[1..] are its ancestor
+// jurisdictions, most specific first. Geni's schema only has 4 slots, but a
+// deep historical hierarchy can have more (e.g. town -> Kreis -> province ->
+// historical country -> modern country, 5 levels for a 19th-century Prussian
+// record) - live-confirmed on issue #224's own test case. Rather than
+// guessing which middle level to keep, this always keeps the two ancestors
+// closest to the place itself (county, state) and the outermost one
+// (country, whatever real-world country the location falls in today) -
+// only a level strictly BETWEEN state and country (e.g. a defunct historical
+// polity like Prussia, when a modern country like Germany also appears
+// after it) ever gets dropped. For shallower hierarchies every level maps
+// cleanly with nothing dropped at all.
+function familySearchPlaceToGeoLocation(places, query) {
+    var location = {
+        query: query || "", zip: "", place: "",
+        city: "", county: "", state: "", country: "",
+        state_short: "", country_short: "",
+        count: 1, ambiguous: false
+    };
+
+    function nameOf(p) {
+        if (exists(p) && exists(p.names) && exists(p.names[0]) && exists(p.names[0].value)) {
+            return p.names[0].value;
+        }
+        if (exists(p) && exists(p.display) && exists(p.display.name)) {
+            return p.display.name;
+        }
+        return "";
+    }
+
+    location.city = nameOf(places[0]);
+    var ancestors = places.slice(1);
+    if (ancestors.length >= 1) {
+        location.country = nameOf(ancestors[ancestors.length - 1]);
+    }
+    if (ancestors.length === 2) {
+        location.state = nameOf(ancestors[0]);
+    } else if (ancestors.length >= 3) {
+        location.county = nameOf(ancestors[0]);
+        location.state = nameOf(ancestors[1]);
+    }
+    return location;
+}
+
+function queryGeoGoogle(locationset, test) {
     var geoenabled = geoqueryCheck();
     if (!geoenabled) {
         geolocation[locationset.id] = parseGoogle("");
@@ -344,7 +480,7 @@ function queryGeo(locationset, test) {
                     if (georesult.count === 0 && (!exists(locationset.retry) || locationset.retry < 0)) {
                         locationset.retry += 1;
                         console.log("Retry " + locationset.retry + " - Failed to Locate: " + full_location);
-                        setTimeout(queryGeo, 1000, locationset);
+                        setTimeout(queryGeoGoogle, 1000, locationset);
                     } else {
                         geolocation[id] = georesult;
                         if (unittest !== "") {

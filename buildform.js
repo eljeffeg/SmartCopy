@@ -2498,6 +2498,20 @@ function getCascadedSpouseYear(birthArray) {
 // function stays pure/DOM-free) - treated as REAL (Priority 1, same as
 // any other real spousal date), exactly as trustworthy as any other
 // already-on-Geni date, regardless of whatever originally put it there.
+// #208 follow-up: rounds an estimated year to the nearest multiple of 5 -
+// requested live specifically so a "Circa <year>" the user sees is
+// visibly recognizable as a coarse, rule-based guess rather than looking
+// like a precisely-sourced date. "c.1850" or "c.1855" reads as an
+// estimate at a glance; "c.1852" reads as if someone found an actual
+// record giving that exact year, which this feature never has. Applied
+// once, at the very end of the arithmetic, so every rule/priority path
+// (real spousal, own real children, cascaded spousal) gets the same
+// treatment uniformly - never applied to a REAL date anywhere else in
+// this codebase, only to a value this feature itself is about to write.
+function roundToNearestFive(year) {
+    return Math.round(year / 5) * 5;
+}
+
 function estimateBirthYear(category, member, focusGender, generationalGap, spousalGap, focusRealYear) {
     if (!exists(generationalGap) || isNaN(generationalGap)) {
         generationalGap = 30;
@@ -2518,10 +2532,10 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
         }
         if (exists(realSpouseYear)) {
             if (targetGender === "male") {
-                return { year: realSpouseYear - spousalGap, cascaded: false };
+                return { year: roundToNearestFive(realSpouseYear - spousalGap), cascaded: false };
             }
             if (targetGender === "female") {
-                return { year: realSpouseYear + spousalGap, cascaded: false };
+                return { year: roundToNearestFive(realSpouseYear + spousalGap), cascaded: false };
             }
         }
     }
@@ -2531,10 +2545,10 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
     var anchor = getChildGroupAnchorYear(category, member);
     if (exists(anchor) && exists(targetGender)) {
         if (targetGender === "male") {
-            return { year: anchor - generationalGap, cascaded: false };
+            return { year: roundToNearestFive(anchor - generationalGap), cascaded: false };
         }
         if (targetGender === "female") {
-            return { year: anchor - (generationalGap - spousalGap), cascaded: false };
+            return { year: roundToNearestFive(anchor - (generationalGap - spousalGap)), cascaded: false };
         }
     }
 
@@ -2545,10 +2559,10 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
         var cascadedSpouseYear = getCascadedSpouseYear(spouse["birth"]);
         if (exists(cascadedSpouseYear)) {
             if (targetGender === "male") {
-                return { year: cascadedSpouseYear - spousalGap, cascaded: true };
+                return { year: roundToNearestFive(cascadedSpouseYear - spousalGap), cascaded: true };
             }
             if (targetGender === "female") {
-                return { year: cascadedSpouseYear + spousalGap, cascaded: true };
+                return { year: roundToNearestFive(cascadedSpouseYear + spousalGap), cascaded: true };
             }
         }
     }

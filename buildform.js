@@ -2891,7 +2891,18 @@ function candidateOptionLabel(familymem) {
     if (!isValue(birthYear) && !isValue(deathYear)) {
         return name;
     }
-    return name + ' [' + (isValue(birthYear) ? birthYear : "?") + '-' + (isValue(deathYear) ? deathYear : "?") + ']';
+    // #226 follow-up: prefix a circa year with "c" (Geni's own "circa"
+    // date flag, the same one #208's estimator sets and reads elsewhere
+    // in this file) - requested live: "[1870-?]" reads as a sourced,
+    // exact year; "[c1870-?]" correctly signals it's approximate, same
+    // distinction the "About <year>"/"Circa <year>" convention already
+    // makes everywhere else in this codebase, just compact enough to fit
+    // a dropdown option label.
+    var birthCirca = familymem.get("birth", "date.circa") === true;
+    var deathCirca = familymem.get("death", "date.circa") === true;
+    var birthText = isValue(birthYear) ? (birthCirca ? "c" + birthYear : birthYear) : "?";
+    var deathText = isValue(deathYear) ? (deathCirca ? "c" + deathYear : deathYear) : "?";
+    return name + ' [' + birthText + '-' + deathText + ']';
 }
 
 function buildAction(relationship, gender, id, firstName, lastName, birthYear) {

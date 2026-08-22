@@ -271,40 +271,45 @@ function queryFamilySearchPlaces(locationset, callback) {
     }
     // Try the REAL event year first, always - a blanket floor broke places
     // FamilySearch genuinely has good early coverage for (live-confirmed:
-    // "Boston" in 1650 already worked correctly before any floor was
-    // applied). Live-confirmed separately (issue #224 - several Posen-
-    // region records, e.g. "Posen" for 1765, "Murzynowo (Kirchlich)" for
-    // 1813, "Filehne" for 1807): FamilySearch's beta dataset has real, thin
-    // coverage for German-named Prussian-era jurisdictions before German
-    // unification - many of these smaller Posen-region places have NO
-    // FamilySearch record at all earlier than 1871 specifically (1850,
-    // tried first, still returned nothing for Murzynowo/Filehne - both
-    // only have coverage starting exactly at unification). So only when
-    // the real year is pre-1871 AND that attempt finds nothing usable,
-    // retry once querying as if the event were in 1871, landing in
-    // FamilySearch's better-covered range as a deliberate approximation.
-    // Never applied when the real-year attempt already succeeded, and
-    // never applied at all for events already 1871+.
-    var FS_FALLBACK_YEAR = 1871;
-    attemptFamilySearchQuery(placeSegment, eventYear, location, function (matched) {
-        if (matched) {
-            geolocation[locationset.id] = matched;
-            callback(true);
+    // "Boston" in 1650 already worked correctly with no floor at all).
+    // Live-confirmed separately (issue #224) that a single fixed fallback
+    // year isn't reliable across this dataset: "Posen" for an 1765 event
+    // needed 1871 to find anything, while "Murzynowo (Kirchlich)"/1813 and
+    // "Filehne"/1807 returned HTTP 204 (confirmed via direct curl - a
+    // real, empty result, not an error) at BOTH 1850 and needed 1871
+    // specifically too. Rather than chase a single "right" floor year
+    // that keeps not being right, this tries a bounded, explicit cascade
+    // (requested live, "that's a lot of fallbacks, but it's better"):
+    // real year, then 1850, then 1900, then no date filter at all (pure
+    // name relevance) - stopping at the first one that finds a usable
+    // settlement-level match. At most 4 requests, never more, never
+    // retried again once one succeeds.
+    var fsAttemptYears = [];
+    if (exists(eventYear)) {
+        fsAttemptYears.push(eventYear);
+    }
+    if (eventYear !== 1850) {
+        fsAttemptYears.push(1850);
+    }
+    if (eventYear !== 1900) {
+        fsAttemptYears.push(1900);
+    }
+    fsAttemptYears.push(undefined); // last resort: no date filter at all
+
+    (function tryNextFsYear(index) {
+        if (index >= fsAttemptYears.length) {
+            callback(false);
             return;
         }
-        if (exists(eventYear) && eventYear < FS_FALLBACK_YEAR) {
-            attemptFamilySearchQuery(placeSegment, FS_FALLBACK_YEAR, location, function (fallbackMatched) {
-                if (fallbackMatched) {
-                    geolocation[locationset.id] = fallbackMatched;
-                    callback(true);
-                } else {
-                    callback(false);
-                }
-            });
-        } else {
-            callback(false);
-        }
-    });
+        attemptFamilySearchQuery(placeSegment, fsAttemptYears[index], location, function (matched) {
+            if (matched) {
+                geolocation[locationset.id] = matched;
+                callback(true);
+            } else {
+                tryNextFsYear(index + 1);
+            }
+        });
+    })(0);
 }
 
 // One search attempt for a given (place, year) pair. Calls back with a

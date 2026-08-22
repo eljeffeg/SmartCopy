@@ -524,6 +524,24 @@ function buildForm() {
                 }
             }
         }
+        // #227: fills a baptism date ONLY when the scrape already shows a
+        // baptism happened (a location on some baptism entry) but no date -
+        // never invents the baptism event itself. Runs after the birth
+        // block above so getBirthYear() here sees birth's own freshly-
+        // resolved value (real or #208-estimated) too. Geni's own baptism
+        // date, if any, still wins - same "never overwrite real data" rule
+        // as birth, just without the circa-refresh follow-up (not asked
+        // for here, and baptism has no equivalent of "this feature wrote
+        // it last time" to re-evaluate against).
+        if ($('#estimatebirthyearsonoffswitch').prop('checked') && exists(alldata["profile"]["baptism"])) {
+            var geniFocusBaptism = genifocusdata.get("baptism", "date.formatted_date");
+            if (!exists(geniFocusBaptism) || !isValue(geniFocusBaptism)) {
+                var focusBirthYearForBaptism = getBirthYear(alldata["profile"]["birth"]);
+                if (exists(focusBirthYearForBaptism)) {
+                    applyEstimatedBaptismDate(alldata["profile"]["baptism"], focusBirthYearForBaptism);
+                }
+            }
+        }
         var living = false;
         if (exists(alldata["profile"].alive)) {
             living = alldata["profile"].alive;
@@ -643,16 +661,18 @@ function buildForm() {
                             //div.find("input:checkbox").prop('checked', true);
                             ck++;
                         }
-                        // #208: an injected estimate was never actually
-                        // scraped, so scorefactors will never contain
-                        // "birth date" for it - without this, isChecked()/
-                        // isEnabled() would render it disabled+unchecked
-                        // (both require score truthy before their blank-
-                        // both-sides branch can fire), contradicting the
-                        // "starts checked+enabled" requirement every other
-                        // genuinely-blank-both-sides field already gets.
-                        // Scoped to just this one field, not the whole row.
-                        if (title === "birth" && exists(obj[item].estimated) && obj[item].estimated === true) {
+                        // #208/#227: an injected estimate (birth via #208,
+                        // baptism via #227 - see applyEstimatedBaptismDate())
+                        // was never actually scraped, so scorefactors will
+                        // never contain "<title> date" for it - without this,
+                        // isChecked()/isEnabled() would render it
+                        // disabled+unchecked (both require score truthy
+                        // before their blank-both-sides branch can fire),
+                        // contradicting the "starts checked+enabled"
+                        // requirement every other genuinely-blank-both-sides
+                        // field already gets. Scoped to just this one field,
+                        // not the whole row.
+                        if (exists(obj[item].estimated) && obj[item].estimated === true) {
                             scored = true;
                         }
 
@@ -1186,6 +1206,24 @@ function buildForm() {
                 }
             }
 
+            // #227: same rule as the focus profile above - fills a baptism
+            // date ONLY when this member's scrape already shows a baptism
+            // happened (a location on some baptism entry) but no date,
+            // using birth's own already-resolved value (real or estimated,
+            // just injected above). Reuses matchedCandidateForEstimate
+            // (already computed just above for the birth check) rather than
+            // re-resolving the same Geni match a second time.
+            if ($('#estimatebirthyearsonoffswitch').prop('checked') && exists(members[member]["baptism"])) {
+                var geniMemberBaptism = exists(matchedCandidateForEstimate) ?
+                    matchedCandidateForEstimate.get("baptism", "date.formatted_date") : undefined;
+                if (!exists(geniMemberBaptism) || !isValue(geniMemberBaptism)) {
+                    var memberBirthYearForBaptism = getBirthYear(members[member]["birth"]);
+                    if (exists(memberBirthYearForBaptism)) {
+                        applyEstimatedBaptismDate(members[member]["baptism"], memberBirthYearForBaptism);
+                    }
+                }
+            }
+
             var bgcolor = genderColor(gender);
 
             var actionicon = "add";
@@ -1407,20 +1445,21 @@ function buildForm() {
                                     dateambig = 'style="color: #ff0000;" ';
                                     ambigdatecheck.push(i);
                                 }
-                                // #208: scored here is the whole-member-level
-                                // value shared by every field row (name,
-                                // gender, living, birth, etc.) - forcing it
-                                // globally for an estimated birth would
-                                // incorrectly auto-check unrelated fields
-                                // too, so this override is scoped to just
-                                // the birth row's own isChecked()/isEnabled()
+                                // #208/#227: scored here is the whole-member-
+                                // level value shared by every field row
+                                // (name, gender, living, birth, etc.) -
+                                // forcing it globally for an estimated field
+                                // would incorrectly auto-check unrelated
+                                // fields too, so this override is scoped to
+                                // just this row's own isChecked()/isEnabled()
                                 // call via a local fieldScored, not scored
                                 // itself. Same reasoning as the focus-profile
                                 // equivalent above - an injected estimate
-                                // was never scraped, so nothing else would
+                                // (birth via #208, baptism via #227) was
+                                // never scraped, so nothing else would
                                 // otherwise mark it as checkable.
                                 var fieldScored = scored;
-                                if (title === "birth" && exists(memberobj[item].estimated) && memberobj[item].estimated === true) {
+                                if (exists(memberobj[item].estimated) && memberobj[item].estimated === true) {
                                     fieldScored = true;
                                 }
                                 // #210: escapes dateval before it reaches value="...".
@@ -2814,6 +2853,30 @@ function applyEstimatedBirth(target, year, cascaded) {
     } else {
         target["birth"].unshift(entry);
     }
+}
+
+// #227: baptism is deliberately never invented outright - "not everyone
+// has one," so a blank baptism array is left alone entirely, unlike birth.
+// Only fires when the scrape already has EVIDENCE a baptism happened (a
+// location on at least one baptism entry) but no date - attaches the
+// estimate DIRECTLY onto that same location-bearing entry (unlike
+// applyEstimatedBirth()'s unshift-a-new-entry pattern) since there's
+// already exactly the right entry to complete, never a reason to add a
+// second one. birthYear is whatever birth already resolved to by the time
+// this runs (real, Geni, or #208's own estimate) - baptisms happen close
+// enough to birth, historically, that using it as-is is a reasonable
+// "circa" baptism year. Returns true if it actually filled something in,
+// so callers can tell whether a birth-year-driven change here should also
+// refresh the FamilySearch lookup year for this entry.
+function applyEstimatedBaptismDate(baptismArray, birthYear) {
+    for (var i = 0; i < baptismArray.length; i++) {
+        if (exists(baptismArray[i].location) && (!exists(baptismArray[i].date) || baptismArray[i].date === "")) {
+            baptismArray[i].date = "circa " + birthYear;
+            baptismArray[i].estimated = true;
+            return true;
+        }
+    }
+    return false;
 }
 
 // #206: a multi-word surname (e.g. Hispanic paternal+maternal compound

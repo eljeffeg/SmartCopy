@@ -35,7 +35,7 @@ function updateGeo() {
             if (exists(memberobj)) {
                 for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
                     if (memberobj[item].location !== undefined) {
-                        attachDateForFsLookup(memberobj, memberobj[item]);
+                        attachDateForFsLookup(memberobj, memberobj[item], title === "burial" ? alldata["profile"]["death"] : undefined);
                     }
                     if (memberobj[item].location !== undefined && !values.includes(getGeoDedupKey(memberobj[item]))) {
                         values.push(getGeoDedupKey(memberobj[item]));
@@ -75,7 +75,7 @@ function updateGeo() {
                     if (exists(memberobj)) {
                         for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
                             if (memberobj[item].location !== undefined) {
-                                attachDateForFsLookup(memberobj, memberobj[item]);
+                                attachDateForFsLookup(memberobj, memberobj[item], title === "burial" ? members[member]["death"] : undefined);
                             }
                             if (memberobj[item].location !== undefined && !values.includes(getGeoDedupKey(memberobj[item]))) {
                                 values.push(getGeoDedupKey(memberobj[item]));

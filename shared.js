@@ -184,6 +184,36 @@ function isValidDate(d) {
     return d instanceof Date && !isNaN(d);
 }
 
+// #212: moved here from popup.js (#223/#224 follow-up) - also needed by
+// extractDateYear() below, not just datesAreEquivalent() (popup.js).
+// Optional trailing "the " handles a real case confirmed live - "After
+// the 1st September 1919" - a qualifier followed by an article before the
+// date itself, not just "After 1919".
+var DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
+
+// #223/#224 follow-up: live-confirmed getGeoDedupKey()/FamilySearch's date
+// query both silently lost the year entirely for any qualified date
+// ("After 20 Jan 1891") - moment() requires the ENTIRE string to match one
+// of dateformatter's formats, and none of them account for a leading
+// qualifier word at all, so a real, parseable date failed outright just
+// because of the "After " prefix. Strips the qualifier (reusing the exact
+// pattern datesAreEquivalent() already relies on for the same reason) and
+// the ordinal suffix ("1st" -> "1") before handing off to moment - the
+// single shared place both getGeoDedupKey() and FamilySearch's
+// queryFamilySearchPlaces() (parse-location.js) now get a year from,
+// instead of two separate inline copies of the same moment() call.
+function extractDateYear(dateval) {
+    if (!exists(dateval) || dateval === "") {
+        return undefined;
+    }
+    var stripped = dateval.replace(DATE_QUALIFIER_PATTERN, "").replace(/(\d+)(st|nd|rd|th)\b/i, "$1").trim();
+    var dt = moment(stripped, getDateFormat(stripped));
+    if (dt.isValid() && !isNaN(dt.get('year'))) {
+        return dt.get('year');
+    }
+    return undefined;
+}
+
 // #223/#224 follow-up: previously deduped purely by the raw location
 // STRING, harmless for Google (date-blind - two events sharing the same
 // place string always got the identical result regardless of processing
@@ -211,15 +241,9 @@ function isValidDate(d) {
 // regardless of script load order (function declarations resolve their
 // references at call time, not at parse time).
 function getGeoDedupKey(entry) {
-    var year = "";
     var dateval = exists(entry.dateForFsLookup) ? entry.dateForFsLookup : entry.date;
-    if (exists(dateval) && dateval !== "") {
-        var dt = moment(dateval, getDateFormat(dateval));
-        if (dt.isValid() && !isNaN(dt.get('year'))) {
-            year = dt.get('year');
-        }
-    }
-    return entry.location + "|" + year;
+    var year = extractDateYear(dateval);
+    return entry.location + "|" + (exists(year) ? year : "");
 }
 
 // Live-confirmed bug (issue #224): collections/onlineofb.js pushes an
@@ -234,7 +258,15 @@ function getGeoDedupKey(entry) {
 // - deliberately not named/aliased as .date itself, so nothing else that
 // already reads .date (rendering, the 95-year check, etc.) is affected by
 // this at all.
-function attachDateForFsLookup(memberobj, locationEntry) {
+// fallbackobj (optional): requested live - burial events frequently have
+// no date of their own at all anywhere in their own array, only a
+// location. Assuming burial happened the same year as death is a
+// reasonable genealogical default (rather than leaving the FamilySearch
+// lookup entirely date-blind, or wrongly reusing some unrelated event's
+// year via dedup collision) - callers pass the person's own "death" array
+// as fallbackobj specifically for a "burial" location; omitted entirely
+// for every other event type.
+function attachDateForFsLookup(memberobj, locationEntry, fallbackobj) {
     if (exists(locationEntry.date) && locationEntry.date !== "") {
         return; // already has its own real date, nothing to borrow
     }
@@ -242,6 +274,14 @@ function attachDateForFsLookup(memberobj, locationEntry) {
         if (exists(memberobj[i].date) && memberobj[i].date !== "") {
             locationEntry.dateForFsLookup = memberobj[i].date;
             return;
+        }
+    }
+    if (exists(fallbackobj)) {
+        for (var j in fallbackobj) if (fallbackobj.hasOwnProperty(j)) {
+            if (exists(fallbackobj[j].date) && fallbackobj[j].date !== "") {
+                locationEntry.dateForFsLookup = fallbackobj[j].date;
+                return;
+            }
         }
     }
 }

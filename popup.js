@@ -308,7 +308,15 @@ function buildHistorySelect() {
     return historytext;
 }
 
-var dateformatter = ["MMM YYYY", "MMMM YYYY", "MMM D YYYY", "MMMM D YYYY", "YYYY", "MM/ /YYYY", "D MMM YYYY"];
+// #223/#224 follow-up: "MMM D, YYYY"/"MMMM D, YYYY" (comma between day and
+// year - live-confirmed this is literally how Geni itself stores/displays
+// dates, e.g. "April 6, 1765") were missing entirely - moment() correctly
+// parses the no-comma forms already in this list but silently fails
+// (isValid()=false) on the comma form, which meant any date already in
+// Geni's own display convention - or a range-qualified one like "After
+// January 20, 1891" - lost its year entirely everywhere this array is
+// used (getGeoDedupKey(), FamilySearch's date query, the 95-year checks).
+var dateformatter = ["MMM YYYY", "MMMM YYYY", "MMM D YYYY", "MMMM D YYYY", "MMM D, YYYY", "MMMM D, YYYY", "YYYY", "MM/ /YYYY", "D MMM YYYY"];
 //noinspection JSUnusedGlobalSymbols
 var expandparent = true; //used in expandAll function window[...] var call
 //noinspection JSUnusedGlobalSymbols
@@ -2538,7 +2546,9 @@ function mergeAboutText(existingAbout, newContent) {
 // Optional trailing "the " handles a real case confirmed live -
 // "After the 1st September 1919" - a qualifier followed by an article
 // before the date itself, not just "After 1919".
-var DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
+// DATE_QUALIFIER_PATTERN moved to shared.js (#223/#224 follow-up) - also
+// needed there now, to strip a qualifier before extracting a year for
+// FamilySearch's date-scoped lookup / the geo dedup key.
 var DATE_PARSE_FORMATS = ["D MMMM YYYY", "MMMM D, YYYY", "MMMM D YYYY", "YYYY-MM-DD", "YYYY"];
 function datesAreEquivalent(a, b) {
     if (a === b) {

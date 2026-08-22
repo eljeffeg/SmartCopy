@@ -262,13 +262,12 @@ function queryFamilySearchPlaces(locationset, callback) {
     // when present, falling back to locationset.date directly for
     // whichever parsers already merge them onto one object.
     var rawDate = exists(locationset.dateForFsLookup) ? locationset.dateForFsLookup : locationset.date;
-    var eventYear;
-    if (exists(rawDate) && rawDate !== "") {
-        var dt = moment(rawDate, getDateFormat(rawDate));
-        if (dt.isValid() && !isNaN(dt.get('year'))) {
-            eventYear = dt.get('year');
-        }
-    }
+    // extractDateYear() (shared.js) - also strips a leading qualifier
+    // ("After "/"Before "/"Circa ") and ordinal suffix before parsing;
+    // live-confirmed a range-qualified burial date ("After 20 Jan 1891")
+    // silently failed to parse at all without this, since moment()
+    // requires the whole string to match one of dateformatter's formats.
+    var eventYear = extractDateYear(rawDate);
     // Try the REAL event year first, always - a blanket floor broke places
     // FamilySearch genuinely has good early coverage for (live-confirmed:
     // "Boston" in 1650 already worked correctly with no floor at all).

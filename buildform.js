@@ -3730,8 +3730,23 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue)
     // (before this person's match, and thus their lock status, was known),
     // it stays checked but disabled, which parseForm() already excludes
     // from submission regardless (!fsinput[item].disabled).
-    input.prop("disabled", isEnabled(scrapedValue, true, false, currentValue, locked) === "disabled");
-    input.closest('tr').find('.checknext').prop('disabled', !!locked);
+    // #226: hardcoding score=true above means isEnabled() alone can't tell
+    // "this field was never checked yet" apart from "the user already
+    // manually unchecked it" - both look identical from scrapedValue/
+    // currentValue alone. Without gating on the checkbox's own current
+    // state, a manual uncheck (which disables the input via the .checknext
+    // click handler) got silently undone the next time this function ran
+    // (e.g. the Action dropdown resolving/changing a match), re-enabling a
+    // field whose box still visibly showed unchecked - exactly the "no
+    // visible sign anything would happen" failure this function's own
+    // "never touch checked" rule was meant to prevent, just reached from
+    // the disabled side instead of the checked side. Only ever ENABLE the
+    // input when its checkbox is already checked; an unchecked box always
+    // forces disabled, regardless of what isEnabled() computes.
+    var checknext = input.closest('tr').find('.checknext');
+    var enabled = checknext.prop('checked') && isEnabled(scrapedValue, true, false, currentValue, locked) !== "disabled";
+    input.prop("disabled", !enabled);
+    checknext.prop('disabled', !!locked);
 }
 
 // #217: Living's <select> only ever holds a real true/false value - never a
@@ -3746,8 +3761,12 @@ function refreshLivingCheckState(id, currentValue, locked) {
         return;
     }
     var scrapedValue = (input.attr("data-scraped") === "true") ? input.val() : "";
-    input.prop("disabled", isEnabled(scrapedValue, true, false, currentValue, locked) === "disabled");
-    input.closest('tr').find('.checknext').prop('disabled', !!locked);
+    // #226: same fix as refreshFieldCheckState() - never re-enable a field
+    // whose checkbox the user has already unchecked.
+    var checknext = input.closest('tr').find('.checknext');
+    var enabled = checknext.prop('checked') && isEnabled(scrapedValue, true, false, currentValue, locked) !== "disabled";
+    input.prop("disabled", !enabled);
+    checknext.prop('disabled', !!locked);
 }
 
 function setGeniFamilyData(id, profile) {

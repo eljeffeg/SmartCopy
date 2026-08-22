@@ -184,6 +184,68 @@ function isValidDate(d) {
     return d instanceof Date && !isNaN(d);
 }
 
+// #223/#224 follow-up: previously deduped purely by the raw location
+// STRING, harmless for Google (date-blind - two events sharing the same
+// place string always got the identical result regardless of processing
+// order) but a real correctness bug once FamilySearch Places entered the
+// picture: it resolves the SAME place string to DIFFERENT, historically
+// correct entities depending on the associated date (e.g. a birth vs a
+// death decades apart at the same place name). Live-confirmed: a death
+// location was silently getting the geocoded result computed for a
+// different, earlier event that happened to share the identical raw place
+// string - whichever one was processed first "won" the unique slot, and
+// every later duplicate just copied its result wholesale (see the
+// geocleanup/geounique matching loop in updateFamily(), buildform.js).
+// Folding the event's own year into the dedup key fixes this for both
+// sources - the common Google-only case is unaffected, this only costs a
+// handful of extra (still fully correct) redundant lookups in the rare
+// same-string-different-year edge case.
+//
+// Reads .dateForFsLookup in preference to .date (see
+// attachDateForFsLookup() below) - live-confirmed at least one parser
+// (collections/onlineofb.js) never puts an event's date and location on
+// the same array element at all, so .date alone is undefined here far
+// more often than expected. Lives here (not buildform.js) as a general-
+// purpose, reusable utility - depends only on exists()/moment/
+// getDateFormat(), all globally available by the time this actually runs,
+// regardless of script load order (function declarations resolve their
+// references at call time, not at parse time).
+function getGeoDedupKey(entry) {
+    var year = "";
+    var dateval = exists(entry.dateForFsLookup) ? entry.dateForFsLookup : entry.date;
+    if (exists(dateval) && dateval !== "") {
+        var dt = moment(dateval, getDateFormat(dateval));
+        if (dt.isValid() && !isNaN(dt.get('year'))) {
+            year = dt.get('year');
+        }
+    }
+    return entry.location + "|" + year;
+}
+
+// Live-confirmed bug (issue #224): collections/onlineofb.js pushes an
+// event's date and location as TWO SEPARATE array elements
+// (data.push({date:...}) then data.push({id:geoid, location:...})), never
+// merged onto one object - so a location-bearing element's OWN .date is
+// undefined even when the event genuinely has a real date sitting right
+// next to it in the same array. FamilySearch's date-aware lookup (and the
+// dedup key above) need SOME associated year; this scans the same
+// event-type array (there's normally at most one real date per event) for
+// the first element that actually has one, and attaches it as a NEW field
+// - deliberately not named/aliased as .date itself, so nothing else that
+// already reads .date (rendering, the 95-year check, etc.) is affected by
+// this at all.
+function attachDateForFsLookup(memberobj, locationEntry) {
+    if (exists(locationEntry.date) && locationEntry.date !== "") {
+        return; // already has its own real date, nothing to borrow
+    }
+    for (var i in memberobj) if (memberobj.hasOwnProperty(i)) {
+        if (exists(memberobj[i].date) && memberobj[i].date !== "") {
+            locationEntry.dateForFsLookup = memberobj[i].date;
+            return;
+        }
+    }
+}
+
 function startsWithHTTP(url, match) {
     //remove protocol and comapre
     url = url.replace("https://", "").replace("http://", "");

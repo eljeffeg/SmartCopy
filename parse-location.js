@@ -252,15 +252,23 @@ function queryFamilySearchPlaces(locationset, callback) {
         callback(false);
         return;
     }
+    // Live-confirmed bug (issue #224): at least one parser
+    // (collections/onlineofb.js) pushes an event's date and location as
+    // two SEPARATE array elements, never merged onto one object - so
+    // locationset.date alone was undefined for every single location live-
+    // tested, not just some. buildform.js's attachDateForFsLookup() (see
+    // its own comment) borrows the real date from elsewhere in the same
+    // event-type array before this ever runs; dateForFsLookup is preferred
+    // when present, falling back to locationset.date directly for
+    // whichever parsers already merge them onto one object.
+    var rawDate = exists(locationset.dateForFsLookup) ? locationset.dateForFsLookup : locationset.date;
     var eventYear;
-    if (exists(locationset.date) && locationset.date !== "") {
-        var dt = moment(locationset.date, getDateFormat(locationset.date));
+    if (exists(rawDate) && rawDate !== "") {
+        var dt = moment(rawDate, getDateFormat(rawDate));
         if (dt.isValid() && !isNaN(dt.get('year'))) {
             eventYear = dt.get('year');
         }
     }
-    console.log("SmartCopy FamilySearch Places: location=" + JSON.stringify(locationset.location) +
-        " raw date=" + JSON.stringify(locationset.date) + " -> eventYear=" + eventYear);
     // Try the REAL event year first, always - a blanket floor broke places
     // FamilySearch genuinely has good early coverage for (live-confirmed:
     // "Boston" in 1650 already worked correctly before any floor was

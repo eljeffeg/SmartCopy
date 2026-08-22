@@ -21,33 +21,6 @@ var geounique = [];
 var geocleanup = [];
 var datelimit = 1600;
 
-// #223/#224 follow-up: previously deduped purely by the raw location
-// STRING, harmless for Google (date-blind - two events sharing the same
-// place string always got the identical result regardless of processing
-// order) but a real correctness bug once FamilySearch Places entered the
-// picture: it resolves the SAME place string to DIFFERENT, historically
-// correct entities depending on the associated date (e.g. a birth vs a
-// death decades apart at the same place name). Live-confirmed: a death
-// location was silently getting the geocoded result computed for a
-// different, earlier event that happened to share the identical raw place
-// string - whichever one was processed first "won" the unique slot, and
-// every later duplicate just copied its result wholesale (see the
-// geocleanup/geounique matching loop in updateFamily() below). Folding the
-// event's own year into the dedup key fixes this for both sources - the
-// common Google-only case is unaffected, this only costs a handful of
-// extra (still fully correct) redundant lookups in the rare
-// same-string-different-year edge case.
-function getGeoDedupKey(entry) {
-    var year = "";
-    if (exists(entry.date) && entry.date !== "") {
-        var dt = moment(entry.date, getDateFormat(entry.date));
-        if (dt.isValid() && !isNaN(dt.get('year'))) {
-            year = dt.get('year');
-        }
-    }
-    return entry.location + "|" + year;
-}
-
 function updateGeo() {
     if (familystatus.length > 0) {
         setTimeout(updateGeo, 50);
@@ -61,6 +34,9 @@ function updateGeo() {
             var memberobj = alldata["profile"][title];
             if (exists(memberobj)) {
                 for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
+                    if (memberobj[item].location !== undefined) {
+                        attachDateForFsLookup(memberobj, memberobj[item]);
+                    }
                     if (memberobj[item].location !== undefined && !values.includes(getGeoDedupKey(memberobj[item]))) {
                         values.push(getGeoDedupKey(memberobj[item]));
                         geounique.push(memberobj[item]);
@@ -98,6 +74,9 @@ function updateGeo() {
                     var memberobj = members[member][title];
                     if (exists(memberobj)) {
                         for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
+                            if (memberobj[item].location !== undefined) {
+                                attachDateForFsLookup(memberobj, memberobj[item]);
+                            }
                             if (memberobj[item].location !== undefined && !values.includes(getGeoDedupKey(memberobj[item]))) {
                                 values.push(getGeoDedupKey(memberobj[item]));
                                 geounique.push(memberobj[item]);

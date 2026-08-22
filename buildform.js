@@ -538,9 +538,28 @@ function buildForm() {
             if (!exists(geniFocusBaptism) || !isValue(geniFocusBaptism)) {
                 var focusBirthYearForBaptism = getBirthYear(alldata["profile"]["birth"]);
                 if (exists(focusBirthYearForBaptism)) {
-                    applyEstimatedBaptismDate(alldata["profile"]["baptism"], focusBirthYearForBaptism);
+                    attachEstimatedDateToLocationEntry(alldata["profile"]["baptism"], focusBirthYearForBaptism);
                 }
             }
+        }
+        // #228: focus's own marriage estimate - unlike a family member
+        // (below), category="focus" never reaches the widow-remarriage
+        // rule (see estimateMarriageYear()'s own comment for why), so this
+        // only ever resolves via the couple's own oldest child or the
+        // wife's birth+gap fallback.
+        if ($('#estimatebirthyearsonoffswitch').prop('checked') &&
+            !exists(getBirthYear(alldata["profile"]["marriage"]))) {
+            var geniFocusMarriage = genifocusdata.get("marriage", "date.formatted_date");
+            if (!exists(geniFocusMarriage) || !isValue(geniFocusMarriage)) {
+                var focusMarriageEstimate = estimateMarriageYear("focus", undefined, focusgender,
+                    parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
+                if (exists(focusMarriageEstimate)) {
+                    applyEstimatedDate(alldata["profile"], "marriage", focusMarriageEstimate.year);
+                }
+            }
+        }
+        if ($('#estimatebirthyearsonoffswitch').prop('checked')) {
+            fillMissingDeathOrBurialDate(alldata["profile"], function (t, p) { return genifocusdata.get(t, p); });
         }
         var living = false;
         if (exists(alldata["profile"].alive)) {
@@ -661,8 +680,8 @@ function buildForm() {
                             //div.find("input:checkbox").prop('checked', true);
                             ck++;
                         }
-                        // #208/#227: an injected estimate (birth via #208,
-                        // baptism via #227 - see applyEstimatedBaptismDate())
+                        // #208/#227/#228: an injected estimate (birth via
+                        // #208, baptism/marriage/death/burial via #227/#228)
                         // was never actually scraped, so scorefactors will
                         // never contain "<title> date" for it - without this,
                         // isChecked()/isEnabled() would render it
@@ -1219,9 +1238,36 @@ function buildForm() {
                 if (!exists(geniMemberBaptism) || !isValue(geniMemberBaptism)) {
                     var memberBirthYearForBaptism = getBirthYear(members[member]["birth"]);
                     if (exists(memberBirthYearForBaptism)) {
-                        applyEstimatedBaptismDate(members[member]["baptism"], memberBirthYearForBaptism);
+                        attachEstimatedDateToLocationEntry(members[member]["baptism"], memberBirthYearForBaptism);
                     }
                 }
+            }
+
+            // #228: this member's own marriage estimate - relationship
+            // (parent/partner/sibling/child) is passed straight through as
+            // estimateMarriageYear()'s category, so a partner specifically
+            // (a spouse of focus) is eligible for the widow-remarriage
+            // rule; sibling/child naturally resolve to undefined (no
+            // children/spouse data exists for those categories at all).
+            if ($('#estimatebirthyearsonoffswitch').prop('checked') &&
+                !exists(getBirthYear(members[member]["marriage"]))) {
+                var geniMemberMarriage = exists(matchedCandidateForEstimate) ?
+                    matchedCandidateForEstimate.get("marriage", "date.formatted_date") : undefined;
+                if (!exists(geniMemberMarriage) || !isValue(geniMemberMarriage)) {
+                    var memberMarriageEstimate = estimateMarriageYear(relationship, members[member], focusgender,
+                        parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
+                    if (exists(memberMarriageEstimate)) {
+                        applyEstimatedDate(members[member], "marriage", memberMarriageEstimate.year);
+                    }
+                }
+            }
+
+            // #228: death<->burial mutual fill for this member - whichever
+            // side has a real date supplies the other, same rule as the
+            // focus profile above.
+            if ($('#estimatebirthyearsonoffswitch').prop('checked')) {
+                fillMissingDeathOrBurialDate(members[member], exists(matchedCandidateForEstimate) ?
+                    function (t, p) { return matchedCandidateForEstimate.get(t, p); } : undefined);
             }
 
             var bgcolor = genderColor(gender);
@@ -1445,9 +1491,9 @@ function buildForm() {
                                     dateambig = 'style="color: #ff0000;" ';
                                     ambigdatecheck.push(i);
                                 }
-                                // #208/#227: scored here is the whole-member-
-                                // level value shared by every field row
-                                // (name, gender, living, birth, etc.) -
+                                // #208/#227/#228: scored here is the whole-
+                                // member-level value shared by every field
+                                // row (name, gender, living, birth, etc.) -
                                 // forcing it globally for an estimated field
                                 // would incorrectly auto-check unrelated
                                 // fields too, so this override is scoped to
@@ -1455,9 +1501,10 @@ function buildForm() {
                                 // call via a local fieldScored, not scored
                                 // itself. Same reasoning as the focus-profile
                                 // equivalent above - an injected estimate
-                                // (birth via #208, baptism via #227) was
-                                // never scraped, so nothing else would
-                                // otherwise mark it as checkable.
+                                // (birth via #208, baptism/marriage/
+                                // death/burial via #227/#228) was never
+                                // scraped, so nothing else would otherwise
+                                // mark it as checkable.
                                 var fieldScored = scored;
                                 if (exists(memberobj[item].estimated) && memberobj[item].estimated === true) {
                                     fieldScored = true;
@@ -2805,23 +2852,103 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
     return undefined;
 }
 
-// #226: marriage-year counterpart to estimateBirthYear() - used only to
-// scope a FamilySearch geo lookup's date filter (resolveFsLookupYears(),
-// below), never written to the form, so no "circa"/rounding treatment and
-// no separate opt-in setting the way the birth estimator has. Only rule:
-// the oldest REAL (never cascaded/estimated) child's birth year, minus a
-// small gap - a couple typically married shortly before their first child,
-// not decades before. Only valid for "parent"/"focus" categories (the ones
-// getChildGroupAnchorYear() itself supports - a sibling/child/partner has
-// no "their own children" pool to anchor off).
-function estimateMarriageYear(category, member, childGap) {
+// #228: every OTHER scraped partner of this same focus person (a second,
+// third, etc. spouse), excluding member itself - used by the widow/widower
+// remarriage rule below. isPartner() covers every relationship-category
+// key alldata["family"] could store a spouse under.
+function getOtherPartners(member) {
+    var others = [];
+    var obj = alldata["family"];
+    for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
+        if (isPartner(relationship)) {
+            var arr = obj[relationship];
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i] !== member) {
+                    others.push(arr[i]);
+                }
+            }
+        }
+    }
+    return others;
+}
+
+// #228: resolves whichever half of a couple is female - "wife's birth +
+// gap" (Priority 3 below) specifically wants her age, not "whoever this
+// function happens to be estimating for." category="focus" (member
+// undefined) reads the focus person's own data/gender directly, matching
+// how estimateBirthYear()'s ownObj already does the same thing.
+function resolveCoupleWife(category, member, focusGender) {
+    var self = member || alldata["profile"];
+    var selfGender = member ? member.gender : focusGender;
+    if (selfGender === "female") {
+        return self;
+    }
+    var spouse = getMemberSpouse(category, member);
+    if (exists(spouse) && spouse.gender === "female") {
+        return spouse;
+    }
+    return undefined;
+}
+
+// #226/#228: marriage-year estimator - written to the form (via
+// applyEstimatedDate() at the call sites below) AND used to scope a
+// FamilySearch geo lookup's date filter (resolveFsLookupYears()). Priority:
+// (1) this couple's own oldest REAL child's birth year minus a small gap -
+// the most direct evidence about THIS specific marriage, valid for
+// "parent"/"focus"/"partner" (whichever categories getChildGroupAnchorYear()
+// itself supports - a sibling/child has no "their own children" pool);
+// (2) "partner" category only - a widow/widower remarrying: the latest
+// real death year among this focus person's OTHER spouses, plus a small
+// gap ("the second wife generally married about a year after the first
+// wife died") - only meaningful when estimating one SPECIFIC spouse's own
+// marriage, since focus's own aggregate marriage field has no clear "which
+// union" to anchor when there's more than one; (3) last resort - the
+// wife's own real birth year plus a typical age-at-marriage gap, reusing
+// the SAME generational/spousal settings as the birth estimator
+// (generationalGap - spousalGap = 25 by default) rather than inventing a
+// separate constant. Rounded to the nearest 5, same visual "this is a
+// guess" signal as every other estimate this feature writes.
+function estimateMarriageYear(category, member, focusGender, generationalGap, spousalGap, childGap, widowGap) {
+    if (!exists(generationalGap) || isNaN(generationalGap)) {
+        generationalGap = 30;
+    }
+    if (!exists(spousalGap) || isNaN(spousalGap)) {
+        spousalGap = 5;
+    }
     if (!exists(childGap) || isNaN(childGap)) {
         childGap = 1;
     }
+    if (!exists(widowGap) || isNaN(widowGap)) {
+        widowGap = 1;
+    }
+
     var childAnchor = getChildGroupAnchorYear(category, member);
     if (exists(childAnchor) && childAnchor.cascaded === false) {
-        return { year: childAnchor.year - childGap };
+        return { year: roundToNearestFive(childAnchor.year - childGap) };
     }
+
+    if (category === "partner" && exists(member)) {
+        var others = getOtherPartners(member);
+        var latestOtherDeath = undefined;
+        for (var o = 0; o < others.length; o++) {
+            var otherDeathYear = getBirthYear(others[o]["death"], true);
+            if (exists(otherDeathYear) && (!exists(latestOtherDeath) || otherDeathYear > latestOtherDeath)) {
+                latestOtherDeath = otherDeathYear;
+            }
+        }
+        if (exists(latestOtherDeath)) {
+            return { year: roundToNearestFive(latestOtherDeath + widowGap) };
+        }
+    }
+
+    var wife = resolveCoupleWife(category, member, focusGender);
+    if (exists(wife)) {
+        var wifeBirthYear = getBirthYear(wife["birth"], true);
+        if (exists(wifeBirthYear)) {
+            return { year: roundToNearestFive(wifeBirthYear + (generationalGap - spousalGap)) };
+        }
+    }
+
     return undefined;
 }
 
@@ -2855,28 +2982,76 @@ function applyEstimatedBirth(target, year, cascaded) {
     }
 }
 
-// #227: baptism is deliberately never invented outright - "not everyone
-// has one," so a blank baptism array is left alone entirely, unlike birth.
-// Only fires when the scrape already has EVIDENCE a baptism happened (a
-// location on at least one baptism entry) but no date - attaches the
-// estimate DIRECTLY onto that same location-bearing entry (unlike
-// applyEstimatedBirth()'s unshift-a-new-entry pattern) since there's
-// already exactly the right entry to complete, never a reason to add a
-// second one. birthYear is whatever birth already resolved to by the time
-// this runs (real, Geni, or #208's own estimate) - baptisms happen close
-// enough to birth, historically, that using it as-is is a reasonable
-// "circa" baptism year. Returns true if it actually filled something in,
-// so callers can tell whether a birth-year-driven change here should also
-// refresh the FamilySearch lookup year for this entry.
-function applyEstimatedBaptismDate(baptismArray, birthYear) {
-    for (var i = 0; i < baptismArray.length; i++) {
-        if (exists(baptismArray[i].location) && (!exists(baptismArray[i].date) || baptismArray[i].date === "")) {
-            baptismArray[i].date = "circa " + birthYear;
-            baptismArray[i].estimated = true;
+// #227/#228: attaches an estimated date DIRECTLY onto an existing
+// location-bearing entry that has none yet (unlike applyEstimatedBirth()'s
+// unshift-a-new-entry pattern) - reused by both baptism (#227, below,
+// which NEVER falls back to creating a new entry - "not everyone has one,"
+// so a baptism is only ever estimated when the scrape already has EVIDENCE
+// one happened) and death/burial (#228, fillMissingDeathOrBurialDate()
+// below, which DOES fall back to creating a new entry when this returns
+// false - death/burial are treated as effectively certain once either is
+// known, unlike the optional baptism). Returns true if it actually filled
+// something in.
+function attachEstimatedDateToLocationEntry(dateArray, year) {
+    if (!exists(dateArray)) {
+        return false;
+    }
+    for (var i = 0; i < dateArray.length; i++) {
+        if (exists(dateArray[i].location) && (!exists(dateArray[i].date) || dateArray[i].date === "")) {
+            dateArray[i].date = "circa " + year;
+            dateArray[i].estimated = true;
             return true;
         }
     }
     return false;
+}
+
+// #228: generic version of applyEstimatedBirth() - creates a brand new
+// [{date, estimated}] entry (or unshifts onto an existing array) for any
+// event title, not just birth. Used by fillMissingDeathOrBurialDate() below
+// when attachEstimatedDateToLocationEntry() had nothing to attach to.
+function applyEstimatedDate(target, title, year) {
+    var entry = { date: "circa " + year, estimated: true };
+    if (!exists(target[title])) {
+        target[title] = [entry];
+    } else {
+        target[title].unshift(entry);
+    }
+}
+
+// #228: death and burial are treated as a symmetric pair - "if burial OR
+// death dates are there, estimate the OTHER to be the same year." Whichever
+// side has a REAL date (never an already-estimated one, via
+// getBirthYear(..., true)) supplies the year for whichever side doesn't -
+// attaching to an existing location-bearing entry when there is one,
+// otherwise creating a bare date-only entry from nothing entirely (unlike
+// baptism, which never does that - see attachEstimatedDateToLocationEntry()'s
+// own comment for why the two differ). No rounding here, unlike every other
+// estimate this feature writes - this is a direct same-year assumption, not
+// a demographic gap guess, so rounding would only throw away real
+// precision for no benefit ("circa" already signals it's inferred).
+// geniGetter mirrors resolveFsLookupYears()'s own param - undefined for a
+// family member with no resolved match yet, in which case only the scraped
+// side is checked before writing.
+function fillMissingDeathOrBurialDate(target, geniGetter) {
+    var deathYear = getBirthYear(target["death"], true);
+    var burialYear = getBirthYear(target["burial"], true);
+    function geniHasReal(title) {
+        if (!exists(geniGetter)) {
+            return false;
+        }
+        var d = geniGetter(title, "date.formatted_date");
+        return exists(d) && isValue(d);
+    }
+    if (exists(deathYear) && !exists(burialYear) && !geniHasReal("burial")) {
+        if (!attachEstimatedDateToLocationEntry(target["burial"], deathYear)) {
+            applyEstimatedDate(target, "burial", deathYear);
+        }
+    } else if (exists(burialYear) && !exists(deathYear) && !geniHasReal("death")) {
+        if (!attachEstimatedDateToLocationEntry(target["death"], burialYear)) {
+            applyEstimatedDate(target, "death", burialYear);
+        }
+    }
 }
 
 // #206: a multi-word surname (e.g. Hispanic paternal+maternal compound
@@ -3133,27 +3308,33 @@ function resolveFsLookupYears(personObj, geniGetter, estimateCategory, estimateM
             years.birth = estimate.year;
         }
     }
-    years.death = ownScrapedYear("death") || ownGeniYear("death");
+    // #228: death and burial borrow each other's own scraped/Geni year,
+    // symmetrically - ungated, same reasoning as baptism<->birth above
+    // (reusing a real date from a closely-paired field isn't fabricating
+    // anything). Computed as ownDeathYear/ownBurialYear FIRST, then used
+    // below, to avoid years.death and years.burial circularly feeding off
+    // each other.
+    var ownDeathYear = ownScrapedYear("death") || ownGeniYear("death");
+    var ownBurialYear = ownScrapedYear("burial") || ownGeniYear("burial");
+    years.death = ownDeathYear || ownBurialYear;
     // #226: baptism falls back to birth (any source, including the estimate
     // just resolved above) when baptism itself has neither a scraped nor a
     // Geni date of its own - the reverse direction of the tier above.
     years.baptism = ownBaptismYear || years.birth;
-    // #226: marriage prefers the oldest real child's birth year - 1 (a
-    // couple typically married shortly before their first child, a much
-    // tighter bound than a generic age-at-marriage guess) before falling
-    // back to this person's own birth year (any source) + 25 - matches
-    // estimateBirthYear()'s own marriage-> birth marriageGap default in the
-    // opposite direction, so the two stay consistent with each other.
+    // #226/#228: estimateMarriageYear() now owns its own full priority
+    // chain (child anchor -> widow-remarriage -> wife's birth+gap), so
+    // nothing further to fall back to here if it comes up empty. Gated
+    // behind the same setting as birth's estimate tier above - the setting
+    // is now explicitly "Estimate birth/marriage years."
     years.marriage = ownScrapedYear("marriage") || ownGeniYear("marriage");
-    if (!exists(years.marriage)) {
-        var marriageEstimate = estimateMarriageYear(estimateCategory, estimateMember);
+    if (!exists(years.marriage) && $('#estimatebirthyearsonoffswitch').prop('checked')) {
+        var marriageEstimate = estimateMarriageYear(estimateCategory, estimateMember, focusgender,
+            parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
         if (exists(marriageEstimate)) {
             years.marriage = marriageEstimate.year;
-        } else if (exists(years.birth)) {
-            years.marriage = years.birth + 25;
         }
     }
-    years.burial = ownScrapedYear("burial") || ownGeniYear("burial") || years.death;
+    years.burial = ownBurialYear || years.death;
     return years;
 }
 

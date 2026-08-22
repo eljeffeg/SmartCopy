@@ -729,7 +729,7 @@ var EN_FALLBACK_MESSAGES = {
         "message": "Skipping remaining lookups..."
     },
     "Estimate_birth_years": {
-        "message": "Estimate birth years"
+        "message": "Estimate birth/marriage years"
     },
     "Average_generational_gap_years": {
         "message": "Average generational gap (years):"

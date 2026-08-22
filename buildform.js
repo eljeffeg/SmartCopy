@@ -29,6 +29,13 @@ function updateGeo() {
         console.log("Family Processed...");
         $("#readstatus").html("Determining Locations");
         var listvalues = ["birth", "baptism", "marriage", "divorce", "death", "burial"];
+        // #226: resolved once for the focus profile - genifocusdata is
+        // already loaded by this point (set well before updateGeo() ever
+        // runs, from the currently-open Geni page itself), unlike a family
+        // member's match, which isn't known until later. focusFsYears.birth
+        // also gets reused below as the "focusRealYear" input to a
+        // partner-category family member's own Rule 1 spousal estimate.
+        var focusFsYears = resolveFsLookupYears(alldata["profile"], function (t, p) { return genifocusdata.get(t, p); }, "focus", undefined);
         for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
             var title = listvalues[list];
             var memberobj = alldata["profile"][title];
@@ -36,6 +43,7 @@ function updateGeo() {
                 for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
                     if (memberobj[item].location !== undefined) {
                         attachDateForFsLookup(memberobj, memberobj[item], title === "burial" ? alldata["profile"]["death"] : undefined);
+                        applyFsLookupYearFallback(memberobj[item], focusFsYears[title]);
                     }
                     if (memberobj[item].location !== undefined && !values.includes(getGeoDedupKey(memberobj[item]))) {
                         values.push(getGeoDedupKey(memberobj[item]));
@@ -68,6 +76,17 @@ function updateGeo() {
             var members = obj[relationship];
 
             for (var member in members) if (members.hasOwnProperty(member)) {
+                // #226: resolved once per family member. getMatchedGeniFamilyCandidate()
+                // is the same pure lookup buildAction() will use one render step
+                // later to auto-select the "Update: <name>" dropdown match - safe
+                // to call this early since it only reads already-loaded
+                // genifamilydata, not anything computed during render. No match
+                // found -> memberGeniGetter stays undefined -> resolveFsLookupYears()
+                // just skips that one tier, degrading to scrape/estimate only.
+                var memberNameval = NameParse.parse(members[member].name, mnameonoff);
+                var memberCandidate = getMatchedGeniFamilyCandidate(relationship, members[member].gender, memberNameval, undefined);
+                var memberGeniGetter = exists(memberCandidate) ? function (t, p) { return memberCandidate.get(t, p); } : undefined;
+                var memberFsYears = resolveFsLookupYears(members[member], memberGeniGetter, relationship, members[member], focusFsYears.birth);
                 for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
                     var title = listvalues[list];
 
@@ -76,6 +95,7 @@ function updateGeo() {
                         for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
                             if (memberobj[item].location !== undefined) {
                                 attachDateForFsLookup(memberobj, memberobj[item], title === "burial" ? members[member]["death"] : undefined);
+                                applyFsLookupYearFallback(memberobj[item], memberFsYears[title]);
                             }
                             if (memberobj[item].location !== undefined && !values.includes(getGeoDedupKey(memberobj[item]))) {
                                 values.push(getGeoDedupKey(memberobj[item]));
@@ -2939,6 +2959,57 @@ function getMatchedGeniFamilyCandidate(relationship, gender, nameval, birthYear)
         return null;
     }
     return findExistingFamilyMatch(relationship, gender, nameval.firstName, (nameval.lastName || nameval.birthName), birthYear);
+}
+
+// #226: computes the approximate birth/marriage/death/burial years used
+// only to scope a FamilySearch geo lookup's date filter (fed to
+// applyFsLookupYearFallback() in shared.js as the last-resort tier, after
+// attachDateForFsLookup()'s own-scrape/sibling-scrape/burial-borrows-death
+// chain has already had its shot) - never written back to the form itself.
+// Priority per event, matching the scraped-blank fallback everywhere else
+// in this feature: (1) this event's own scraped date; (2) Geni's existing
+// date for the SAME event, via geniGetter (undefined for a family member
+// with no resolved match - degrades to skipping this tier, not a crash);
+// (3) a genealogical ballpark heuristic - birth gets the #208 estimated
+// year (only if that setting is on), marriage gets birth+30, burial gets
+// the death year (itself already resolved through its own scrape->Geni
+// chain, no separate estimate - #208 only ever estimates birth years).
+// Baptism/divorce deliberately excluded - not part of what was asked for,
+// and #208's estimator has no rule that would ballpark either of them.
+function resolveFsLookupYears(personObj, geniGetter, estimateCategory, estimateMember, focusRealYear) {
+    function ownScrapedYear(title) {
+        var arr = personObj[title];
+        if (!exists(arr)) {
+            return undefined;
+        }
+        for (var i in arr) if (arr.hasOwnProperty(i)) {
+            if (exists(arr[i].date) && arr[i].date !== "") {
+                return extractDateYear(arr[i].date);
+            }
+        }
+        return undefined;
+    }
+    function ownGeniYear(title) {
+        if (!exists(geniGetter)) {
+            return undefined;
+        }
+        var d = geniGetter(title, "date.formatted_date");
+        return (exists(d) && isValue(d)) ? extractDateYear(d) : undefined;
+    }
+    var years = {};
+    years.birth = ownScrapedYear("birth") || ownGeniYear("birth");
+    if (!exists(years.birth) && $('#estimatebirthyearsonoffswitch').prop('checked')) {
+        var estimate = estimateBirthYear(estimateCategory, estimateMember, focusgender,
+            parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10), focusRealYear);
+        if (exists(estimate)) {
+            years.birth = estimate.year;
+        }
+    }
+    years.death = ownScrapedYear("death") || ownGeniYear("death");
+    years.marriage = ownScrapedYear("marriage") || ownGeniYear("marriage") ||
+        (exists(years.birth) ? years.birth + 30 : undefined);
+    years.burial = ownScrapedYear("burial") || ownGeniYear("burial") || years.death;
+    return years;
 }
 
 // #204 further follow-up: whether a guessed married surname is safe to

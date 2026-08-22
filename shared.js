@@ -286,6 +286,25 @@ function attachDateForFsLookup(memberobj, locationEntry, fallbackobj) {
     }
 }
 
+// #226: last-resort tier of the same chain, applied after
+// attachDateForFsLookup() above has already had its shot (own date ->
+// sibling scrape -> burial-borrows-scraped-death) and come up empty -
+// fills in a year resolved from Geni's existing data or a genealogical
+// ballpark heuristic (see resolveFsLookupYears() in buildform.js: birth ->
+// #208's estimated year, marriage -> birth+30, burial -> death year).
+// Never overwrites anything attachDateForFsLookup() already set - only
+// used to scope the FamilySearch date filter, never written back to the
+// form, so an approximate year here is fine; landing in the right decade
+// is enough to prefer the correct historical jurisdiction over a modern
+// one.
+function applyFsLookupYearFallback(locationEntry, year) {
+    if (exists(year) &&
+        (!exists(locationEntry.dateForFsLookup) || locationEntry.dateForFsLookup === "") &&
+        (!exists(locationEntry.date) || locationEntry.date === "")) {
+        locationEntry.dateForFsLookup = String(year);
+    }
+}
+
 function startsWithHTTP(url, match) {
     //remove protocol and comapre
     url = url.replace("https://", "").replace("http://", "");

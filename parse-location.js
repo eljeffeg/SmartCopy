@@ -336,12 +336,24 @@ function familySearchPlaceToGeoLocation(places, query) {
         count: 1, ambiguous: false
     };
 
+    // Live-reported bug: the "City" field showed the WHOLE comma-joined
+    // hierarchy ("Storkow, Oder-Spree, Brandenburg, Germany") instead of
+    // just "Storkow". Root cause: places[0] (the matched place itself) is
+    // the ONE entry in the array whose names[0].value holds the full
+    // combined string (matching its own display.fullName) rather than its
+    // own short name - display.name is the short form ("Storkow") for
+    // that entry specifically. Ancestor entries (county/state/country)
+    // don't have this problem at all - they have no display object, and
+    // their names[0].value is already just their own short name - so
+    // preferring display.name first (falling back to names[0].value only
+    // when there's no display object) fixes places[0] without changing
+    // ancestor behavior at all.
     function nameOf(p) {
-        if (exists(p) && exists(p.names) && exists(p.names[0]) && exists(p.names[0].value)) {
-            return p.names[0].value;
-        }
         if (exists(p) && exists(p.display) && exists(p.display.name)) {
             return p.display.name;
+        }
+        if (exists(p) && exists(p.names) && exists(p.names[0]) && exists(p.names[0].value)) {
+            return p.names[0].value;
         }
         return "";
     }

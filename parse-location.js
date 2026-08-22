@@ -760,6 +760,40 @@ function countGeoFields(list) {
     return fldcount;
 }
 
+// #225: before compareGeo() blindly prefers whichever candidate has more
+// populated fields (its long-standing default, both branches below),
+// check whether the OTHER (fewer-fields) candidate is actually a precise,
+// unambiguous county-only match for the query term - if so, that's the
+// more likely correct answer, not the one with more fields. Live-reported:
+// for a query like "XXXX, State" - genuinely ambiguous, since Google can
+// return BOTH a same-named city and the county itself as separate
+// candidates - the existing logic always preferred the city match purely
+// because it had one extra field filled in, even for records
+// genealogically indexed at the county level (the U.S. historical norm
+// the issue describes), where the county-only match is what's actually
+// correct. Per the issue's own stated examples, this holds even when the
+// city candidate's OWN name also happens to equal the query term (a real
+// place can have both a city and a same-named county) - county-level
+// indexing is common enough for this tool's use case that the issue's
+// author judged the county interpretation the better default in both
+// shapes, not just the "coincidental unrelated county" one.
+// UNVERIFIED against Google's live API (no key available in this
+// environment) - covered by synthetic tests against realistic candidate
+// shapes only. Additive and inert when it returns false: every existing
+// branch's original behavior is completely unchanged in that case.
+function countyOnlyOverride(queryTerm, candidate) {
+    if (!exists(candidate) || candidate.city !== "" || candidate.county === "") {
+        return false;
+    }
+    // Strip a trailing "County" from BOTH sides before comparing - the
+    // scraped source text might already spell it out explicitly ("Story
+    // County, Iowa") or might not ("Story, Iowa"), and the comparison
+    // needs to work either way.
+    var normQuery = String(queryTerm || "").replace(/\s*County\s*$/i, "").trim().toLowerCase();
+    var normCounty = candidate.county.replace(/\s*County\s*$/i, "").trim().toLowerCase();
+    return normQuery !== "" && normCounty !== "" && normQuery === normCounty;
+}
+
 function compareGeo(shortGeo, longGeo) {
     var location = {};
     // check for inconsistent results
@@ -830,7 +864,7 @@ function compareGeo(shortGeo, longGeo) {
         }
     } else {
 // both returns are unique (count=1), so see how they match up
-        if ((numShortFields > numLongFields) && (fields_match)) {
+        if ((numShortFields > numLongFields) && (fields_match) && !countyOnlyOverride(location_split[0], longGeo)) {
 // case of only one value in the short query, use query diff? (e.g.: Virgina, USA)
             location = shortGeo;
             if (verbose){console.log("used short when short had more fields & match");}
@@ -842,9 +876,21 @@ function compareGeo(shortGeo, longGeo) {
                 location.place = locationCase(location_split[0]);
                 if (verbose){console.log("... & used loc.split[0] as place");}
             }
-        } else if ((numShortFields < numLongFields) && (fields_match)) {
+        } else if ((numShortFields > numLongFields) && (fields_match)) {
+// #225: countyOnlyOverride() fired above - longGeo (fewer fields) is the
+// precise county-only match, use it instead of short despite short
+// having more fields.
+            location = longGeo;
+            if (verbose){console.log("#225: overrode to long (county-only match) despite short having more fields");}
+        } else if ((numShortFields < numLongFields) && (fields_match) && !countyOnlyOverride(location_split[0], shortGeo)) {
             location = longGeo;
             if (verbose){console.log("used long when long had more fields & match");}
+        } else if ((numShortFields < numLongFields) && (fields_match)) {
+// #225: countyOnlyOverride() fired above - shortGeo (fewer fields) is the
+// precise county-only match, use it instead of long despite long having
+// more fields.
+            location = shortGeo;
+            if (verbose){console.log("#225: overrode to short (county-only match) despite long having more fields");}
         } else {
 // both have the same number of fields & same contents for them,
 // use Short results + long.place
@@ -859,6 +905,18 @@ function compareGeo(shortGeo, longGeo) {
                     location.place = locationCase(location_split[0]);
                     if (verbose){console.log("... & used loc.split[0] as place");}
                 }
+            } else if (countyOnlyOverride(location_split[0], shortGeo)) {
+// #225: this is actually the MORE realistic path for the county-vs-city
+// bug this whole override exists for - a genuine county mismatch (e.g.
+// shortGeo.county="XXXX County" vs longGeo.county="YYYY County") makes
+// matchGeoFields() correctly return false once country is populated on
+// both sides (the common case for real Google responses), landing here
+// rather than in either fields_match-gated branch above.
+                location = shortGeo;
+                if (verbose){console.log("#225: overrode to short (county-only match) in the mismatched-fields catch-all");}
+            } else if (countyOnlyOverride(location_split[0], longGeo)) {
+                location = longGeo;
+                if (verbose){console.log("#225: overrode to long (county-only match) in the mismatched-fields catch-all");}
             } else {
 // both has same number of fields, but they differ in contents
 // use long results ... but this could really go either way!  (perhaps retain both for user to choose)

@@ -259,8 +259,22 @@ function queryFamilySearchPlaces(locationset, callback) {
             eventYear = dt.get('year');
         }
     }
+    // Live-confirmed (issue #224 - "Posen" for an actual 1765 event):
+    // FamilySearch's beta dataset has real, thin coverage for German-named
+    // administrative jurisdictions before Prussian rule became well
+    // documented - a query correctly date-filtered to a genuinely early
+    // year (pre-1850) often has nothing under the source record's own
+    // naming language/convention at all, only a differently-named entity
+    // under whichever earlier sovereign FamilySearch does have data for.
+    // Requested live: query as if the event were in 1850 whenever it's
+    // actually earlier, so the search lands in FamilySearch's better-
+    // covered range instead. This is a deliberate approximation, not a
+    // historical-accuracy claim - the QUERY year is floored, the real
+    // event year (eventYear itself, and locationset.date generally) is
+    // untouched everywhere else.
+    var queryYear = (exists(eventYear) && eventYear < 1850) ? 1850 : eventYear;
     var queryText = 'name:"' + placeSegment + '"';
-    if (exists(eventYear)) {
+    if (exists(queryYear)) {
         // Per FamilySearch's own documented syntax for this parameter
         // ("+date:1823" or "+date:1800/1900" - the "+" marks the date
         // FIELD as required, it's not part of the year value itself).
@@ -269,7 +283,7 @@ function queryFamilySearchPlaces(locationset, callback) {
         // tolerated it in every case tested, but that's undocumented
         // leniency on an already-unstable beta endpoint, not something to
         // rely on.
-        queryText += ' +date:' + eventYear;
+        queryText += ' +date:' + queryYear;
     }
     // count=5, not 1: live-confirmed failure case (issue #224 - "Posen" in
     // 1765) - when no settlement-level record exists for the target year

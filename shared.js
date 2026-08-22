@@ -286,7 +286,7 @@ function attachDateForFsLookup(memberobj, locationEntry, fallbackobj) {
     }
 }
 
-// #226: last-resort tier of the same chain, applied after
+// #224: last-resort tier of the same chain, applied after
 // attachDateForFsLookup() above has already had its shot (own date ->
 // sibling scrape -> burial-borrows-scraped-death) and come up empty -
 // fills in a year resolved from Geni's existing data or a genealogical
@@ -305,7 +305,7 @@ function applyFsLookupYearFallback(locationEntry, year) {
     }
 }
 
-// #229: strips German jurisdiction-level abbreviations/words ("Kr."/
+// #224: strips German jurisdiction-level abbreviations/words ("Kr."/
 // "Kreis", "Landkreis", "Amt", "Bezirk", "Regierungsbezirk", "Provinz",
 // "Königreich", "Grafschaft") and parenthetical qualifiers (e.g. "(Mark)"
 // in "Storkow (Mark)") before comparing a raw scraped segment against a
@@ -325,7 +325,7 @@ function normalizePlaceSegmentForMatch(text) {
         .toLowerCase();
 }
 
-// #229: true when segment is either empty after normalizing (nothing but
+// #224: true when segment is either empty after normalizing (nothing but
 // a qualifier word/parenthetical - no real content to preserve) or is a
 // close match (equal, or a substring either direction) of one of the
 // already-resolved fields. Deliberately NOT an exact-only match - the
@@ -345,7 +345,7 @@ function segmentMatchesAnyField(segment, fields) {
     return false;
 }
 
-// #229: live-reported - once city/county/state/country resolve to real
+// #224: live-reported - once city/county/state/country resolve to real
 // values, the RAW scraped string (Geni's "location_string"/Place Name
 // field) still gets suggested as-is, duplicating the exact same
 // information Geni's display then shows twice over ("Storkow (Mark), Kr.

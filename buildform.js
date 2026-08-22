@@ -29,7 +29,7 @@ function updateGeo() {
         console.log("Family Processed...");
         $("#readstatus").html("Determining Locations");
         var listvalues = ["birth", "baptism", "marriage", "divorce", "death", "burial"];
-        // #226: resolved once for the focus profile - genifocusdata is
+        // #224: resolved once for the focus profile - genifocusdata is
         // already loaded by this point (set well before updateGeo() ever
         // runs, from the currently-open Geni page itself), unlike a family
         // member's match, which isn't known until later. focusFsYears.birth
@@ -76,7 +76,7 @@ function updateGeo() {
             var members = obj[relationship];
 
             for (var member in members) if (members.hasOwnProperty(member)) {
-                // #226: resolved once per family member. getMatchedGeniFamilyCandidate()
+                // #224: resolved once per family member. getMatchedGeniFamilyCandidate()
                 // is the same pure lookup buildAction() will use one render step
                 // later to auto-select the "Update: <name>" dropdown match - safe
                 // to call this early since it only reads already-loaded
@@ -524,7 +524,7 @@ function buildForm() {
                 }
             }
         }
-        // #227: fills a baptism date ONLY when the scrape already shows a
+        // #208: fills a baptism date ONLY when the scrape already shows a
         // baptism happened (a location on some baptism entry) but no date -
         // never invents the baptism event itself. Runs after the birth
         // block above so getBirthYear() here sees birth's own freshly-
@@ -542,7 +542,7 @@ function buildForm() {
                 }
             }
         }
-        // #228: focus's own marriage estimate - unlike a family member
+        // #208: focus's own marriage estimate - unlike a family member
         // (below), category="focus" never reaches the widow-remarriage
         // rule (see estimateMarriageYear()'s own comment for why), so this
         // only ever resolves via the couple's own oldest child or the
@@ -680,8 +680,8 @@ function buildForm() {
                             //div.find("input:checkbox").prop('checked', true);
                             ck++;
                         }
-                        // #208/#227/#228: an injected estimate (birth via
-                        // #208, baptism/marriage/death/burial via #227/#228)
+                        // #208: an injected estimate (birth/baptism/marriage/
+                        // death/burial via #208)
                         // was never actually scraped, so scorefactors will
                         // never contain "<title> date" for it - without this,
                         // isChecked()/isEnabled() would render it
@@ -773,7 +773,7 @@ function buildForm() {
                         var itemGeolochidden = hasGeoFields ? "" : " geohidden";
                         var placeScored = scored && !geoAnySourceEnabled();
                         var geoScored = scored && geoAnySourceEnabled();
-                        // #229: once real geo fields exist, suggesting the
+                        // #224: once real geo fields exist, suggesting the
                         // FULL raw scraped string for Place Name just
                         // duplicates what city/county/state/country already
                         // say - live-reported as Geni's page showing the
@@ -1240,7 +1240,7 @@ function buildForm() {
                 }
             }
 
-            // #227: same rule as the focus profile above - fills a baptism
+            // #208: same rule as the focus profile above - fills a baptism
             // date ONLY when this member's scrape already shows a baptism
             // happened (a location on some baptism entry) but no date,
             // using birth's own already-resolved value (real or estimated,
@@ -1258,7 +1258,7 @@ function buildForm() {
                 }
             }
 
-            // #228: this member's own marriage estimate - relationship
+            // #208: this member's own marriage estimate - relationship
             // (parent/partner/sibling/child) is passed straight through as
             // estimateMarriageYear()'s category, so a partner specifically
             // (a spouse of focus) is eligible for the widow-remarriage
@@ -1277,7 +1277,7 @@ function buildForm() {
                 }
             }
 
-            // #228: death<->burial mutual fill for this member - whichever
+            // #208: death<->burial mutual fill for this member - whichever
             // side has a real date supplies the other, same rule as the
             // focus profile above.
             if ($('#estimatebirthyearsonoffswitch').prop('checked')) {
@@ -1506,9 +1506,9 @@ function buildForm() {
                                     dateambig = 'style="color: #ff0000;" ';
                                     ambigdatecheck.push(i);
                                 }
-                                // #208/#227/#228: scored here is the whole-
-                                // member-level value shared by every field
-                                // row (name, gender, living, birth, etc.) -
+                                // #208: scored here is the whole-member-
+                                // level value shared by every field row
+                                // (name, gender, living, birth, etc.) -
                                 // forcing it globally for an estimated field
                                 // would incorrectly auto-check unrelated
                                 // fields too, so this override is scoped to
@@ -1516,10 +1516,9 @@ function buildForm() {
                                 // call via a local fieldScored, not scored
                                 // itself. Same reasoning as the focus-profile
                                 // equivalent above - an injected estimate
-                                // (birth via #208, baptism/marriage/
-                                // death/burial via #227/#228) was never
-                                // scraped, so nothing else would otherwise
-                                // mark it as checkable.
+                                // (birth/baptism/marriage/death/burial, all
+                                // #208) was never scraped, so nothing else
+                                // would otherwise mark it as checkable.
                                 var fieldScored = scored;
                                 if (exists(memberobj[item].estimated) && memberobj[item].estimated === true) {
                                     fieldScored = true;
@@ -1572,7 +1571,7 @@ function buildForm() {
                                 var itemGeolochidden = hasGeoFields ? "" : " geohidden";
                                 var placeScored = scored && !geoAnySourceEnabled();
                                 var geoScored = scored && geoAnySourceEnabled();
-                                // #229: same rule as the focus profile block
+                                // #224: same rule as the focus profile block
                                 // above - see its own comment.
                                 var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar2) : place;
                                 locationval = locationval +
@@ -2773,14 +2772,14 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
     var oppositeGenderSpouse = exists(spouse) && exists(spouse.gender) && exists(targetGender) &&
         spouse.gender !== targetGender && spouse.gender !== "unknown" && targetGender !== "unknown";
 
-    // #226: category="focus" is always called with member=undefined (the
+    // #208: category="focus" is always called with member=undefined (the
     // focus person's own data lives in alldata["profile"] instead, unlike
     // every other category where the scraped person IS the member object) -
     // matches how getMemberSpouse()/getChildGroupAnchorYear() already
     // special-case "focus" internally.
     var ownObj = member || alldata["profile"];
 
-    // Priority 0 (#226): this person's own REAL baptism record - genuinely
+    // Priority 0 (#208): this person's own REAL baptism record - genuinely
     // recorded source data, not an inference from anyone else, so it
     // outranks even this person's own real children below. A baptism
     // happens close enough to birth (days to a couple of years,
@@ -2856,7 +2855,7 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
         }
     }
 
-    // Priority 5 (#226, last resort): this person's own REAL marriage date -
+    // Priority 5 (#208, last resort): this person's own REAL marriage date -
     // the weakest signal here (marrying age varies far more than the
     // spousal/generational gaps above), so only reached once every other
     // rule has come up empty. marriageGap mirrors estimateMarriageYear()'s
@@ -2870,7 +2869,7 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
     return undefined;
 }
 
-// #228: every OTHER scraped partner of this same focus person (a second,
+// #208: every OTHER scraped partner of this same focus person (a second,
 // third, etc. spouse), excluding member itself - used by the widow/widower
 // remarriage rule below. isPartner() covers every relationship-category
 // key alldata["family"] could store a spouse under.
@@ -2890,7 +2889,7 @@ function getOtherPartners(member) {
     return others;
 }
 
-// #228: resolves whichever half of a couple is female - "wife's birth +
+// #208: resolves whichever half of a couple is female - "wife's birth +
 // gap" (Priority 3 below) specifically wants her age, not "whoever this
 // function happens to be estimating for." category="focus" (member
 // undefined) reads the focus person's own data/gender directly, matching
@@ -2908,7 +2907,7 @@ function resolveCoupleWife(category, member, focusGender) {
     return undefined;
 }
 
-// #226/#228: marriage-year estimator - written to the form (via
+// #208/#224: marriage-year estimator - written to the form (via
 // applyEstimatedDate() at the call sites below) AND used to scope a
 // FamilySearch geo lookup's date filter (resolveFsLookupYears()). Priority:
 // (1) this couple's own oldest REAL child's birth year minus a small gap -
@@ -3000,12 +2999,12 @@ function applyEstimatedBirth(target, year, cascaded) {
     }
 }
 
-// #227/#228: attaches an estimated date DIRECTLY onto an existing
+// #208: attaches an estimated date DIRECTLY onto an existing
 // location-bearing entry that has none yet (unlike applyEstimatedBirth()'s
-// unshift-a-new-entry pattern) - reused by both baptism (#227, below,
+// unshift-a-new-entry pattern) - reused by both baptism (#208, below,
 // which NEVER falls back to creating a new entry - "not everyone has one,"
 // so a baptism is only ever estimated when the scrape already has EVIDENCE
-// one happened) and death/burial (#228, fillMissingDeathOrBurialDate()
+// one happened) and death/burial (#208, fillMissingDeathOrBurialDate()
 // below, which DOES fall back to creating a new entry when this returns
 // false - death/burial are treated as effectively certain once either is
 // known, unlike the optional baptism). Returns true if it actually filled
@@ -3024,7 +3023,7 @@ function attachEstimatedDateToLocationEntry(dateArray, year) {
     return false;
 }
 
-// #228: generic version of applyEstimatedBirth() - creates a brand new
+// #208: generic version of applyEstimatedBirth() - creates a brand new
 // [{date, estimated}] entry (or unshifts onto an existing array) for any
 // event title, not just birth. Used by fillMissingDeathOrBurialDate() below
 // when attachEstimatedDateToLocationEntry() had nothing to attach to.
@@ -3037,7 +3036,7 @@ function applyEstimatedDate(target, title, year) {
     }
 }
 
-// #228: death and burial are treated as a symmetric pair - "if burial OR
+// #208: death and burial are treated as a symmetric pair - "if burial OR
 // death dates are there, estimate the OTHER to be the same year." Whichever
 // side has a REAL date (never an already-estimated one, via
 // getBirthYear(..., true)) supplies the year for whichever side doesn't -
@@ -3272,7 +3271,7 @@ function getMatchedGeniFamilyCandidate(relationship, gender, nameval, birthYear)
     return findExistingFamilyMatch(relationship, gender, nameval.firstName, (nameval.lastName || nameval.birthName), birthYear);
 }
 
-// #226: computes the approximate birth/baptism/marriage/death/burial years
+// #224: computes the approximate birth/baptism/marriage/death/burial years
 // used only to scope a FamilySearch geo lookup's date filter (fed to
 // applyFsLookupYearFallback() in shared.js as the last-resort tier, after
 // attachDateForFsLookup()'s own-scrape/sibling-scrape/burial-borrows-death
@@ -3281,7 +3280,7 @@ function getMatchedGeniFamilyCandidate(relationship, gender, nameval, birthYear)
 // in this feature: (1) this event's own scraped date; (2) Geni's existing
 // date for the SAME event, via geniGetter (undefined for a family member
 // with no resolved match - degrades to skipping this tier, not a crash);
-// (3) a genealogical ballpark heuristic - see the chart in #226's own
+// (3) a genealogical ballpark heuristic - see the chart in #224's own
 // write-up: birth <-> baptism borrow each other (baptism is real source
 // data either way, so this direction is ungated even when the #208
 // estimate setting is off); birth also gets the #208 estimated year
@@ -3310,42 +3309,37 @@ function resolveFsLookupYears(personObj, geniGetter, estimateCategory, estimateM
         return (exists(d) && isValue(d)) ? extractDateYear(d) : undefined;
     }
     var years = {};
-    // #226: baptism-borrows-birth (and the reverse, below) is deliberately
-    // ungated - unlike the #208 estimate tier just after it, this never
-    // fabricates anything, it only reuses a REAL scraped/Geni baptism date
-    // as a stand-in, so it applies regardless of whether the "estimate
-    // birth years" setting is on. estimateBirthYear() itself also checks
-    // baptism internally (its own Priority 0), but only when THIS tier
-    // already came up empty, so there's no redundant work either way.
+    // #224: every tier in this whole function is deliberately UNGATED by
+    // the "Estimate birth/marriage years" setting - unlike
+    // applyEstimatedBirth()/applyEstimatedDate()/attachEstimatedDateTo-
+    // LocationEntry()/fillMissingDeathOrBurialDate() (buildform.js's
+    // render-time injection points, all correctly gated behind that
+    // setting), nothing computed here is ever shown to the user or written
+    // to the form - it only scopes a FamilySearch search query. A user who
+    // has chosen not to see estimated dates on their tree still benefits
+    // from FamilySearch picking the right historical jurisdiction instead
+    // of a same-named modern one, since the ballpark year behind that
+    // choice is never surfaced anywhere. Confirmed live-requested: the two
+    // concerns (show estimates on the form vs. use a decent year to scope
+    // a search) are independent and must not share a gate.
     var ownBaptismYear = ownScrapedYear("baptism") || ownGeniYear("baptism");
     years.birth = ownScrapedYear("birth") || ownGeniYear("birth") || ownBaptismYear;
-    if (!exists(years.birth) && $('#estimatebirthyearsonoffswitch').prop('checked')) {
+    if (!exists(years.birth)) {
         var estimate = estimateBirthYear(estimateCategory, estimateMember, focusgender,
             parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10), focusRealYear);
         if (exists(estimate)) {
             years.birth = estimate.year;
         }
     }
-    // #228: death and burial borrow each other's own scraped/Geni year,
-    // symmetrically - ungated, same reasoning as baptism<->birth above
-    // (reusing a real date from a closely-paired field isn't fabricating
-    // anything). Computed as ownDeathYear/ownBurialYear FIRST, then used
-    // below, to avoid years.death and years.burial circularly feeding off
-    // each other.
     var ownDeathYear = ownScrapedYear("death") || ownGeniYear("death");
     var ownBurialYear = ownScrapedYear("burial") || ownGeniYear("burial");
     years.death = ownDeathYear || ownBurialYear;
-    // #226: baptism falls back to birth (any source, including the estimate
-    // just resolved above) when baptism itself has neither a scraped nor a
-    // Geni date of its own - the reverse direction of the tier above.
+    // baptism falls back to birth (any source, including the estimate just
+    // resolved above) when baptism itself has neither a scraped nor a Geni
+    // date of its own - the reverse direction of the tier above.
     years.baptism = ownBaptismYear || years.birth;
-    // #226/#228: estimateMarriageYear() now owns its own full priority
-    // chain (child anchor -> widow-remarriage -> wife's birth+gap), so
-    // nothing further to fall back to here if it comes up empty. Gated
-    // behind the same setting as birth's estimate tier above - the setting
-    // is now explicitly "Estimate birth/marriage years."
     years.marriage = ownScrapedYear("marriage") || ownGeniYear("marriage");
-    if (!exists(years.marriage) && $('#estimatebirthyearsonoffswitch').prop('checked')) {
+    if (!exists(years.marriage)) {
         var marriageEstimate = estimateMarriageYear(estimateCategory, estimateMember, focusgender,
             parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
         if (exists(marriageEstimate)) {
@@ -4145,7 +4139,7 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue)
     // (before this person's match, and thus their lock status, was known),
     // it stays checked but disabled, which parseForm() already excludes
     // from submission regardless (!fsinput[item].disabled).
-    // #226: hardcoding score=true above means isEnabled() alone can't tell
+    // (live-reported while testing #224) hardcoding score=true above means isEnabled() alone can't tell
     // "this field was never checked yet" apart from "the user already
     // manually unchecked it" - both look identical from scrapedValue/
     // currentValue alone. Without gating on the checkbox's own current
@@ -4176,7 +4170,7 @@ function refreshLivingCheckState(id, currentValue, locked) {
         return;
     }
     var scrapedValue = (input.attr("data-scraped") === "true") ? input.val() : "";
-    // #226: same fix as refreshFieldCheckState() - never re-enable a field
+    // Same fix as refreshFieldCheckState() above - never re-enable a field
     // whose checkbox the user has already unchecked.
     var checknext = input.closest('tr').find('.checknext');
     var enabled = checknext.prop('checked') && isEnabled(scrapedValue, true, false, currentValue, locked) !== "disabled";

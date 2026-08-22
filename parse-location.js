@@ -259,22 +259,48 @@ function queryFamilySearchPlaces(locationset, callback) {
             eventYear = dt.get('year');
         }
     }
-    // Live-confirmed (issue #224 - "Posen" for an actual 1765 event):
-    // FamilySearch's beta dataset has real, thin coverage for German-named
-    // administrative jurisdictions before Prussian rule became well
-    // documented - a query correctly date-filtered to a genuinely early
-    // year (pre-1850) often has nothing under the source record's own
-    // naming language/convention at all, only a differently-named entity
-    // under whichever earlier sovereign FamilySearch does have data for.
-    // Requested live: query as if the event were in 1850 whenever it's
-    // actually earlier, so the search lands in FamilySearch's better-
-    // covered range instead. This is a deliberate approximation, not a
-    // historical-accuracy claim - the QUERY year is floored, the real
-    // event year (eventYear itself, and locationset.date generally) is
-    // untouched everywhere else.
-    var queryYear = (exists(eventYear) && eventYear < 1850) ? 1850 : eventYear;
+    // Try the REAL event year first, always - a blanket floor broke places
+    // FamilySearch genuinely has good early coverage for (live-confirmed:
+    // "Boston" in 1650 already worked correctly before any floor was
+    // applied). Live-confirmed separately (issue #224 - "Posen" for an
+    // actual 1765 event): FamilySearch's beta dataset has real, thin
+    // coverage for German-named administrative jurisdictions before
+    // Prussian rule became well documented - so only when the real year is
+    // pre-1850 AND that attempt finds nothing usable, retry once querying
+    // as if the event were in 1850, landing in FamilySearch's better-
+    // covered range as a deliberate approximation. Never applied when the
+    // real-year attempt already succeeded, and never applied at all for
+    // events already 1850+.
+    attemptFamilySearchQuery(placeSegment, eventYear, location, function (matched) {
+        if (matched) {
+            geolocation[locationset.id] = matched;
+            callback(true);
+            return;
+        }
+        if (exists(eventYear) && eventYear < 1850) {
+            attemptFamilySearchQuery(placeSegment, 1850, location, function (fallbackMatched) {
+                if (fallbackMatched) {
+                    geolocation[locationset.id] = fallbackMatched;
+                    callback(true);
+                } else {
+                    callback(false);
+                }
+            });
+        } else {
+            callback(false);
+        }
+    });
+}
+
+// One search attempt for a given (place, year) pair. Calls back with a
+// GeoLocation-shaped result (see familySearchPlaceToGeoLocation()) on a
+// good settlement-level match, or undefined if nothing usable came back -
+// never throws, matching this codebase's established "degrade to blank,
+// don't break the run" convention for anything that talks to an external,
+// unreliable source.
+function attemptFamilySearchQuery(placeSegment, year, fullLocationString, callback) {
     var queryText = 'name:"' + placeSegment + '"';
-    if (exists(queryYear)) {
+    if (exists(year)) {
         // Per FamilySearch's own documented syntax for this parameter
         // ("+date:1823" or "+date:1800/1900" - the "+" marks the date
         // FIELD as required, it's not part of the year value itself).
@@ -283,7 +309,7 @@ function queryFamilySearchPlaces(locationset, callback) {
         // tolerated it in every case tested, but that's undocumented
         // leniency on an already-unstable beta endpoint, not something to
         // rely on.
-        queryText += ' +date:' + queryYear;
+        queryText += ' +date:' + year;
     }
     // count=5, not 1: live-confirmed failure case (issue #224 - "Posen" in
     // 1765) - when no settlement-level record exists for the target year
@@ -304,7 +330,7 @@ function queryFamilySearchPlaces(locationset, callback) {
             var result = JSON.parse(response.source);
             var entries = result.entries;
             if (!exists(entries) || entries.length === 0) {
-                callback(false);
+                callback(undefined);
                 return;
             }
             // Entries are pre-sorted by relevance score (highest first) -
@@ -321,13 +347,12 @@ function queryFamilySearchPlaces(locationset, callback) {
                 }
             }
             if (!exists(places) || places.length === 0) {
-                callback(false);
+                callback(undefined);
                 return;
             }
-            geolocation[locationset.id] = familySearchPlaceToGeoLocation(places, location);
-            callback(true);
+            callback(familySearchPlaceToGeoLocation(places, fullLocationString));
         } catch (e) {
-            callback(false);
+            callback(undefined);
         }
     });
 }

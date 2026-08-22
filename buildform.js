@@ -747,6 +747,13 @@ function buildForm() {
                         var county = geovar1.county;
                         var state = geovar1.state;
                         var country = geovar1.country;
+                        // #229: real coordinates from whichever geo source
+                        // resolved this location (see parseGoogle()/
+                        // familySearchPlaceToGeoLocation()'s own comments) -
+                        // "" when neither source produced one (isValue()
+                        // treats that as blank, same as every other field).
+                        var latitude = exists(geovar1.latitude) ? geovar1.latitude : "";
+                        var longitude = exists(geovar1.longitude) ? geovar1.longitude : "";
                         // #223/#224 follow-up: previously geoplace/geoauto/
                         // geoicon/geoplacehidden/geolochidden were computed
                         // ONCE per form, purely from whether geocoding was
@@ -842,6 +849,22 @@ function buildForm() {
                                 label: "Country: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:country", value: country, icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.country"), locked: locationlocked
+                            }) +
+                            buildLocationFieldRow({
+                                trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
+                                checkedAttr: isChecked(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked),
+                                enabledAttr: isEnabled(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked),
+                                label: "Latitude: ", tdStyle: "float:right;padding: 0;",
+                                fieldName: title + ":location:latitude", value: String(latitude), icon: locationicon,
+                                geniValue: genifocusdata.get(title, "location.latitude"), locked: locationlocked
+                            }) +
+                            buildLocationFieldRow({
+                                trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
+                                checkedAttr: isChecked(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked),
+                                enabledAttr: isEnabled(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked),
+                                label: "Longitude: ", tdStyle: "float:right;padding: 0;",
+                                fieldName: title + ":location:longitude", value: String(longitude), icon: locationicon,
+                                geniValue: genifocusdata.get(title, "location.longitude"), locked: locationlocked
                             });
                         locationadded = true;
                         //div[0].style.display = "block";
@@ -1559,6 +1582,9 @@ function buildForm() {
                                 var county = geovar2.county;
                                 var state = geovar2.state;
                                 var country = geovar2.country;
+                                // #229: same as the focus profile block above.
+                                var latitude = exists(geovar2.latitude) ? geovar2.latitude : "";
+                                var longitude = exists(geovar2.longitude) ? geovar2.longitude : "";
                                 // #223/#224 follow-up: same per-item default
                                 // as the focus profile block above - see its
                                 // comment for the full reasoning.
@@ -1628,6 +1654,22 @@ function buildForm() {
                                         label: "Country: ", tdStyle: "float:right;",
                                         fieldName: title + ":location:country", value: country,
                                         geniInputId: i + "_geni_" + title + "_country"
+                                    }) +
+                                    buildLocationFieldRow({
+                                        trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
+                                        checkedAttr: isChecked(latitude, geoScored, geoone, ""),
+                                        enabledAttr: isEnabled(latitude, geoScored, geoone, ""),
+                                        label: "Latitude: ", tdStyle: "float:right;",
+                                        fieldName: title + ":location:latitude", value: String(latitude),
+                                        geniInputId: i + "_geni_" + title + "_latitude"
+                                    }) +
+                                    buildLocationFieldRow({
+                                        trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
+                                        checkedAttr: isChecked(longitude, geoScored, geoone, ""),
+                                        enabledAttr: isEnabled(longitude, geoScored, geoone, ""),
+                                        label: "Longitude: ", tdStyle: "float:right;",
+                                        fieldName: title + ":location:longitude", value: String(longitude),
+                                        geniInputId: i + "_geni_" + title + "_longitude"
                                     });
                                 locationadded = true;
                             }
@@ -4278,6 +4320,15 @@ function setGeniFamilyData(id, profile) {
         $("#" + id + "_geni_" + title + "_country").val(geniCountry);
         $("#" + id + "_geni_" + title + "_country").prev().attr('src', locationicon);
         refreshFieldCheckState(id, title + ":location:country", geniCountry, locationLocked);
+        // #229: same pattern as every other location sub-field above.
+        var geniLatitude = getGeniData(profile, title, "location.latitude");
+        $("#" + id + "_geni_" + title + "_latitude").val(geniLatitude);
+        $("#" + id + "_geni_" + title + "_latitude").prev().attr('src', locationicon);
+        refreshFieldCheckState(id, title + ":location:latitude", geniLatitude, locationLocked);
+        var geniLongitude = getGeniData(profile, title, "location.longitude");
+        $("#" + id + "_geni_" + title + "_longitude").val(geniLongitude);
+        $("#" + id + "_geni_" + title + "_longitude").prev().attr('src', locationicon);
+        refreshFieldCheckState(id, title + ":location:longitude", geniLongitude, locationLocked);
     }
 
     // If this person's "select all" checkbox is already checked, the user

@@ -2694,17 +2694,33 @@ function parseForm(fs) {
                             // street_address1/latitude/longitude - no
                             // separate address lines 2/3, no postal_code)
                             // makes the flat place name the sole source of
-                            // truth for this location.
+                            // truth for this location. #229: latitude/
+                            // longitude added to this clearing list too - a
+                            // flat unresolved place name can't have a
+                            // meaningful coordinate paired with it, so
+                            // abandoning the structured breakdown for the
+                            // raw text should abandon any stale coordinate
+                            // that went with it as well.
                             varlocation['city'] = '';
                             varlocation['county'] = '';
                             varlocation['state'] = '';
                             varlocation['country'] = '';
                             varlocation['street_address1'] = '';
+                            varlocation['latitude'] = '';
+                            varlocation['longitude'] = '';
                         }
-                        if (!$('#geoonoffswitch').prop('checked') && !exists(varlocation['latitude']) && !exists(varlocation['longitude'])) {
-                            varlocation['latitude'] = 0;
-                            varlocation['longitude'] = 0;
-                        }
+                        // #229: previously unconditionally zeroed latitude/
+                        // longitude on EVERY location sub-field submission
+                        // whenever Google geocoding specifically was off -
+                        // silently clobbering real coordinates the instant
+                        // FamilySearch Places (a second, independent geo
+                        // source) resolved one, since this only ever
+                        // checked the Google-specific toggle. Latitude/
+                        // Longitude are now real, independently checkable
+                        // fields (buildform.js) with their own protected-
+                        // by-default behavior via isChecked()/isEnabled(),
+                        // exactly like every other location sub-field - no
+                        // special-casing needed here at all anymore.
                         if (splitentry[0] === "divorce") {
                             if (!exists(diventry[splitentry[0]])) {
                                 diventry[splitentry[0]] = {};

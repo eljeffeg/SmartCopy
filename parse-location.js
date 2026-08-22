@@ -52,6 +52,11 @@ function parseGoogle(result, query) {
     location.country = "";
     location.state_short = "";
     location.country_short = "";
+    // #229: same reasoning as familySearchPlaceToGeoLocation()'s own
+    // comment - Google's Geocoding API always includes this on every
+    // result (geometry.location.lat/.lng), never previously extracted.
+    location.latitude = exists(result.geometry) && exists(result.geometry.location) && exists(result.geometry.location.lat) ? result.geometry.location.lat : "";
+    location.longitude = exists(result.geometry) && exists(result.geometry.location) && exists(result.geometry.location.lng) ? result.geometry.location.lng : "";
     if (exists(result.address_components)) {
         for (var i = 0; i < result.address_components.length; i++) {
             var long_name = result.address_components[i].long_name.replace(/^\d*, /, "");
@@ -469,6 +474,17 @@ function familySearchPlaceToGeoLocation(places, query, placeName) {
         query: query || "", zip: "", place: placeName || "",
         city: "", county: "", state: "", country: "",
         state_short: "", country_short: "",
+        // #229: real coordinates for the matched place itself - confirmed
+        // live (direct curl against this same endpoint) that places[0]
+        // carries plain numeric latitude/longitude, e.g. 52.2541/13.9318
+        // for Storkow. Ancestor jurisdictions (county/state/country) don't
+        // have this - a county doesn't have one natural point - so this is
+        // only ever set from places[0], never an ancestor. Geni's own
+        // location schema already has latitude/longitude fields
+        // (popup.js's parseForm() comment) that nothing has ever actually
+        // populated before now.
+        latitude: exists(places[0].latitude) ? places[0].latitude : "",
+        longitude: exists(places[0].longitude) ? places[0].longitude : "",
         count: 1, ambiguous: false
     };
 

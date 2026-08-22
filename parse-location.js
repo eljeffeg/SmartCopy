@@ -236,6 +236,64 @@ function isBroadPlaceType(place) {
         FS_BROAD_PLACE_TYPES.indexOf(place.display.type) !== -1;
 }
 
+// #229: live-reported ("Jewish Cemetery Schönhauser Allee, Berlin,
+// Germany, Plot 15191a" coming back a mess - the cemetery name landing in
+// City, the plot number nowhere useful) - a scraped location string can
+// carry a specific-point-in-place segment (a venue/institution name, a
+// street address, a plot/lot/grave reference) that isn't a jurisdiction at
+// all. FamilySearch's Places search only understands jurisdictions/
+// settlements - it has no concept of a cemetery's own name or a plot
+// number - so searching on a segment like that either finds nothing or
+// (worse) matches an unrelated named place, and either way stuffs the
+// wrong text into City. Google's OWN geocoder handles this natively via
+// its address_components' point_of_interest/establishment types (see
+// parseGoogle() above) - FamilySearch has no equivalent, so this strips
+// segments like these out ourselves before ever querying, and hands them
+// back as the Place Name field instead of discarding them.
+// Not an exhaustive list - keyword-based, built from the kinds of things
+// that actually show up in scraped location strings (cemeteries, churches,
+// addresses, burial-plot references), not a formal taxonomy.
+// #229 follow-up (live-reported): "Jüdischer Friedhof Storkow" (German for
+// "Jewish Cemetery Storkow") sailed straight through the English-only
+// version of this list and got sent to FamilySearch as the search term -
+// which matched an entirely unrelated "Jewish Cemetery" entity near
+// Bendorf/Koblenz (the Rhineland, nowhere near Storkow/Brandenburg),
+// since FamilySearch's Places search is a plain text match with no
+// awareness that two places merely sharing a generic descriptive name
+// aren't the same place. This codebase deals with German-language sources
+// constantly (this whole feature was built against German/Prussian
+// records) - German venue/institution words for the same categories are
+// exactly as likely to show up as the English ones, so they get the same
+// treatment.
+var PLACE_NAME_KEYWORD_PATTERN = /\b(cemetery|church|chapel|synagogue|temple|hospital|clinic|camp|prison|fort|plantation|plot|lot|grave|section|block|row|space|apt|apartment|suite|room|building|street|st\.?|avenue|ave\.?|road|rd\.?|lane|ln\.?|drive|dr\.?|boulevard|blvd\.?|highway|hwy\.?|route|rt\.?|farm|ranch|friedhof|kirchhof|kirche|kapelle|synagoge|kloster|krankenhaus|gefängnis|gefangnis)\b/i;
+// A segment that's essentially just a number (a house/plot/lot number,
+// with an optional trailing letter like "15191a") or starts with one
+// followed by more text (a street address, "123 Main").
+var PLACE_NAME_NUMERIC_PATTERN = /^\s*#?\s*\d+[a-z]?\s*$|^\s*\d+\s+\S/i;
+function isPlaceNameSegment(segment) {
+    var trimmed = segment.trim();
+    return trimmed !== "" && (PLACE_NAME_KEYWORD_PATTERN.test(trimmed) || PLACE_NAME_NUMERIC_PATTERN.test(trimmed));
+}
+
+// #229: strips leading/trailing isPlaceNameSegment() matches off a
+// comma-separated location string, returning what's left (the
+// jurisdiction chain to actually search/geocode) plus the stripped text
+// joined back in its original order (destined for the Place Name field).
+// Always leaves at least one segment behind (the `length > 1` guards) -
+// never strips the entire string down to nothing to search on.
+function extractPlaceNameSegments(segments) {
+    var remaining = segments.slice();
+    var leading = [];
+    while (remaining.length > 1 && isPlaceNameSegment(remaining[0])) {
+        leading.push(remaining.shift());
+    }
+    var trailing = [];
+    while (remaining.length > 1 && isPlaceNameSegment(remaining[remaining.length - 1])) {
+        trailing.unshift(remaining.pop());
+    }
+    return { remaining: remaining, placeName: leading.concat(trailing).join(", ") };
+}
+
 // #223/#224 follow-up: resolves the most specific segment of a scraped
 // location string against FamilySearch's Places Search, then picks
 // whichever returned candidate's date range covers the record's own event
@@ -247,7 +305,12 @@ function isBroadPlaceType(place) {
 // source.
 function queryFamilySearchPlaces(locationset, callback) {
     var location = locationset.location.trim();
-    var placeSegment = location.split(",")[0].trim().replace(/"/g, "");
+    // #229: strip a venue/address/plot segment (leading, trailing, or
+    // both) before searching - see extractPlaceNameSegments()'s own
+    // comment. What's left is the actual jurisdiction chain to query.
+    var segments = location.split(",").map(function (s) { return s.trim(); }).filter(function (s) { return s !== ""; });
+    var extracted = extractPlaceNameSegments(segments);
+    var placeSegment = extracted.remaining[0].replace(/"/g, "");
     if (placeSegment === "" || placeSegment === "?") {
         callback(false);
         return;
@@ -300,7 +363,7 @@ function queryFamilySearchPlaces(locationset, callback) {
             callback(false);
             return;
         }
-        attemptFamilySearchQuery(placeSegment, fsAttemptYears[index], location, function (matched) {
+        attemptFamilySearchQuery(placeSegment, fsAttemptYears[index], location, extracted.placeName, function (matched) {
             if (matched) {
                 geolocation[locationset.id] = matched;
                 callback(true);
@@ -317,7 +380,7 @@ function queryFamilySearchPlaces(locationset, callback) {
 // never throws, matching this codebase's established "degrade to blank,
 // don't break the run" convention for anything that talks to an external,
 // unreliable source.
-function attemptFamilySearchQuery(placeSegment, year, fullLocationString, callback) {
+function attemptFamilySearchQuery(placeSegment, year, fullLocationString, placeName, callback) {
     var queryText = 'name:"' + placeSegment + '"';
     if (exists(year)) {
         // Per FamilySearch's own documented syntax for this parameter
@@ -369,7 +432,7 @@ function attemptFamilySearchQuery(placeSegment, year, fullLocationString, callba
                 callback(undefined);
                 return;
             }
-            callback(familySearchPlaceToGeoLocation(places, fullLocationString));
+            callback(familySearchPlaceToGeoLocation(places, fullLocationString, placeName));
         } catch (e) {
             callback(undefined);
         }
@@ -394,9 +457,16 @@ function attemptFamilySearchQuery(placeSegment, year, fullLocationString, callba
 // polity like Prussia, when a modern country like Germany also appears
 // after it) ever gets dropped. For shallower hierarchies every level maps
 // cleanly with nothing dropped at all.
-function familySearchPlaceToGeoLocation(places, query) {
+function familySearchPlaceToGeoLocation(places, query, placeName) {
     var location = {
-        query: query || "", zip: "", place: "",
+        // #229: placeName is whatever extractPlaceNameSegments() stripped
+        // out of the raw string before searching (a venue/address/plot
+        // segment) - previously this was always left "" for a FamilySearch
+        // result, unlike Google's own parseGoogle() which fills it from
+        // address_components. See also computeLeftoverPlaceName() (shared.js)
+        // for the SEPARATE "clean up the Place Name field itself" pass this
+        // feeds into at render time.
+        query: query || "", zip: "", place: placeName || "",
         city: "", county: "", state: "", country: "",
         state_short: "", country_short: "",
         count: 1, ambiguous: false

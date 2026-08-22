@@ -305,6 +305,73 @@ function applyFsLookupYearFallback(locationEntry, year) {
     }
 }
 
+// #229: strips German jurisdiction-level abbreviations/words ("Kr."/
+// "Kreis", "Landkreis", "Amt", "Bezirk", "Regierungsbezirk", "Provinz",
+// "Königreich", "Grafschaft") and parenthetical qualifiers (e.g. "(Mark)"
+// in "Storkow (Mark)") before comparing a raw scraped segment against a
+// resolved city/county/state/country value - the two rarely match as
+// exact strings even when they clearly refer to the same place ("Kr.
+// Beeskow-Storkow" vs a resolved county of "Beeskow-Storkow"). Not an
+// exhaustive list - built from the actual qualifier words seen live on
+// 19th-century Prussian-era records, the case this feature was built
+// against; add to it as further cases turn up.
+var PLACE_SEGMENT_QUALIFIER_PATTERN = /\((?:[^)]*)\)|\b(kr\.?|kreis|landkreis|amt|bez\.?|bezirk|regierungsbezirk|provinz|province|königreich|koenigreich|grafschaft)\b/gi;
+function normalizePlaceSegmentForMatch(text) {
+    return String(text || "")
+        .replace(PLACE_SEGMENT_QUALIFIER_PATTERN, " ")
+        .replace(/[^\w\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+}
+
+// #229: true when segment is either empty after normalizing (nothing but
+// a qualifier word/parenthetical - no real content to preserve) or is a
+// close match (equal, or a substring either direction) of one of the
+// already-resolved fields. Deliberately NOT an exact-only match - the
+// scrape's own text and FamilySearch's/Google's resolved short names are
+// rarely byte-identical even when they clearly refer to the same place.
+function segmentMatchesAnyField(segment, fields) {
+    var normSeg = normalizePlaceSegmentForMatch(segment);
+    if (normSeg === "") {
+        return true;
+    }
+    for (var i = 0; i < fields.length; i++) {
+        var normField = normalizePlaceSegmentForMatch(fields[i]);
+        if (normField !== "" && (normSeg === normField || normSeg.indexOf(normField) !== -1 || normField.indexOf(normSeg) !== -1)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// #229: live-reported - once city/county/state/country resolve to real
+// values, the RAW scraped string (Geni's "location_string"/Place Name
+// field) still gets suggested as-is, duplicating the exact same
+// information Geni's display then shows twice over ("Storkow (Mark), Kr.
+// Beeskow-Storkow, Potsdam, Brandenburg, Preussen, Storkow, Beeskow-
+// Storkow, Brandenburg, Germany"). This computes what's actually LEFT
+// OVER after removing every raw segment that's already represented in the
+// resolved geo fields - e.g. "Potsdam" (a jurisdiction level that gets
+// dropped during the 5-levels-into-4-fields mapping, see
+// familySearchPlaceToGeoLocation()'s own comment) or "Preussen" (a
+// historical name that won't match a modern-day resolved country like
+// "Germany") legitimately survive as real, non-redundant context; "Storkow
+// (Mark)"/"Kr. Beeskow-Storkow"/"Brandenburg" don't, since they're already
+// captured by city/county/state. Returns "" when nothing is left over (the
+// common case for a location that resolved cleanly) - never returns the
+// raw string unchanged, and never fires at all unless the caller already
+// confirmed real geo fields exist (see buildform.js's hasGeoFields).
+function computeLeftoverPlaceName(rawLocation, geo) {
+    if (!exists(rawLocation) || rawLocation.trim() === "" || !exists(geo)) {
+        return "";
+    }
+    var segments = rawLocation.split(",").map(function (s) { return s.trim(); }).filter(function (s) { return s !== ""; });
+    var fields = [geo.place, geo.city, geo.county, geo.state, geo.country];
+    var leftover = segments.filter(function (seg) { return !segmentMatchesAnyField(seg, fields); });
+    return leftover.join(", ");
+}
+
 function startsWithHTTP(url, match) {
     //remove protocol and comapre
     url = url.replace("https://", "").replace("http://", "");

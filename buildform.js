@@ -773,6 +773,21 @@ function buildForm() {
                         var itemGeolochidden = hasGeoFields ? "" : " geohidden";
                         var placeScored = scored && !geoAnySourceEnabled();
                         var geoScored = scored && geoAnySourceEnabled();
+                        // #229: once real geo fields exist, suggesting the
+                        // FULL raw scraped string for Place Name just
+                        // duplicates what city/county/state/country already
+                        // say - live-reported as Geni's page showing the
+                        // same information twice over. Only whatever isn't
+                        // already represented (a dropped middle jurisdiction
+                        // level, a historical name that doesn't match the
+                        // modern resolved country, an actual venue/address)
+                        // survives; "" when nothing does. Never overwrites
+                        // Geni's existing value automatically though - still
+                        // subject to the SAME isChecked()/isEnabled() "real
+                        // Geni data stays protected/unchecked by default"
+                        // rule as everything else, so this only takes effect
+                        // if the user explicitly checks the box.
+                        var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar1) : place;
                         locationval = locationval +
                             '<tr id="focus_'+title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                             '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + itemGeoicon + '" height="14px">';
@@ -782,10 +797,10 @@ function buildForm() {
                             locationval = locationval + '<img class="geopin" title="' + pintitle + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                             buildLocationFieldRow({
                                 trClass: "geoplace" + itemGeoplacehidden, classStyleSep: "", displayVal: itemGeoplace,
-                                checkedAttr: isChecked(place, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked),
-                                enabledAttr: isEnabled(place, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked),
+                                checkedAttr: isChecked(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked),
+                                enabledAttr: isEnabled(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked),
                                 label: capFL(title) + " Place:", tdStyle: "float:right;padding: 0;",
-                                fieldName: title + ":location:place_name", value: place, icon: locationicon,
+                                fieldName: title + ":location:place_name", value: itemPlaceNameValue, icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location_string"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
@@ -1557,6 +1572,9 @@ function buildForm() {
                                 var itemGeolochidden = hasGeoFields ? "" : " geohidden";
                                 var placeScored = scored && !geoAnySourceEnabled();
                                 var geoScored = scored && geoAnySourceEnabled();
+                                // #229: same rule as the focus profile block
+                                // above - see its own comment.
+                                var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar2) : place;
                                 locationval = locationval +
                                     '<tr id="'+ i + "_" +title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                                     '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + itemGeoicon + '" height="14px">';
@@ -1566,10 +1584,10 @@ function buildForm() {
                                     locationval = locationval + '<img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + pintitle + '" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                                     buildLocationFieldRow({
                                         trClass: "geoplace" + itemGeoplacehidden, displayVal: itemGeoplace,
-                                        checkedAttr: isChecked(place, placeScored, false, ""),
-                                        enabledAttr: isEnabled(place, placeScored, false, ""),
+                                        checkedAttr: isChecked(itemPlaceNameValue, placeScored, false, ""),
+                                        enabledAttr: isEnabled(itemPlaceNameValue, placeScored, false, ""),
                                         label: Abbr(capFL(title)) + " Place: ", tdStyle: "float:right;",
-                                        fieldName: title + ":location:place_name", value: place,
+                                        fieldName: title + ":location:place_name", value: itemPlaceNameValue,
                                         geniInputId: i + "_geni_" + title + "_location_string"
                                     }) +
                                     buildLocationFieldRow({

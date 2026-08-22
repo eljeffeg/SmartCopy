@@ -272,9 +272,18 @@ function isBroadPlaceType(place) {
 // treatment.
 var PLACE_NAME_KEYWORD_PATTERN = /\b(cemetery|church|chapel|synagogue|temple|hospital|clinic|camp|prison|fort|plantation|plot|lot|grave|section|block|row|space|apt|apartment|suite|room|building|street|st\.?|avenue|ave\.?|road|rd\.?|lane|ln\.?|drive|dr\.?|boulevard|blvd\.?|highway|hwy\.?|route|rt\.?|farm|ranch|friedhof|kirchhof|kirche|kapelle|synagoge|kloster|krankenhaus|gefängnis|gefangnis)\b/i;
 // A segment that's essentially just a number (a house/plot/lot number,
-// with an optional trailing letter like "15191a") or starts with one
-// followed by more text (a street address, "123 Main").
-var PLACE_NAME_NUMERIC_PATTERN = /^\s*#?\s*\d+[a-z]?\s*$|^\s*\d+\s+\S/i;
+// with an optional trailing letter like "15191a"), starts with one
+// followed by more text (the US street-address convention, "123 Main"),
+// or ENDS with one (the European/German convention, street name first -
+// "Jagowstraße 29-33", "Hauptstraße 5") - live-reported: "Jagowstraße
+// 29-33" sailed straight through untouched, since it's one compound word
+// with no space for the keyword pattern's word-boundary check to reach
+// ("straße" the way "Friedhof" was a separate word in the earlier live
+// case) AND doesn't start with a digit either. A trailing number/range is
+// a much stronger, low-false-positive signal on its own regardless of
+// language - genuine settlement/jurisdiction names essentially never end
+// in a bare number.
+var PLACE_NAME_NUMERIC_PATTERN = /^\s*#?\s*\d+[a-z]?\s*$|^\s*\d+\s+\S|\S\s+\d+[a-z]?(-\d+[a-z]?)?\s*$/i;
 function isPlaceNameSegment(segment) {
     var trimmed = segment.trim();
     return trimmed !== "" && (PLACE_NAME_KEYWORD_PATTERN.test(trimmed) || PLACE_NAME_NUMERIC_PATTERN.test(trimmed));

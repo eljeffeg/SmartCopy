@@ -272,23 +272,28 @@ function queryFamilySearchPlaces(locationset, callback) {
     // Try the REAL event year first, always - a blanket floor broke places
     // FamilySearch genuinely has good early coverage for (live-confirmed:
     // "Boston" in 1650 already worked correctly before any floor was
-    // applied). Live-confirmed separately (issue #224 - "Posen" for an
-    // actual 1765 event): FamilySearch's beta dataset has real, thin
-    // coverage for German-named administrative jurisdictions before
-    // Prussian rule became well documented - so only when the real year is
-    // pre-1850 AND that attempt finds nothing usable, retry once querying
-    // as if the event were in 1850, landing in FamilySearch's better-
-    // covered range as a deliberate approximation. Never applied when the
-    // real-year attempt already succeeded, and never applied at all for
-    // events already 1850+.
+    // applied). Live-confirmed separately (issue #224 - several Posen-
+    // region records, e.g. "Posen" for 1765, "Murzynowo (Kirchlich)" for
+    // 1813, "Filehne" for 1807): FamilySearch's beta dataset has real, thin
+    // coverage for German-named Prussian-era jurisdictions before German
+    // unification - many of these smaller Posen-region places have NO
+    // FamilySearch record at all earlier than 1871 specifically (1850,
+    // tried first, still returned nothing for Murzynowo/Filehne - both
+    // only have coverage starting exactly at unification). So only when
+    // the real year is pre-1871 AND that attempt finds nothing usable,
+    // retry once querying as if the event were in 1871, landing in
+    // FamilySearch's better-covered range as a deliberate approximation.
+    // Never applied when the real-year attempt already succeeded, and
+    // never applied at all for events already 1871+.
+    var FS_FALLBACK_YEAR = 1871;
     attemptFamilySearchQuery(placeSegment, eventYear, location, function (matched) {
         if (matched) {
             geolocation[locationset.id] = matched;
             callback(true);
             return;
         }
-        if (exists(eventYear) && eventYear < 1850) {
-            attemptFamilySearchQuery(placeSegment, 1850, location, function (fallbackMatched) {
+        if (exists(eventYear) && eventYear < FS_FALLBACK_YEAR) {
+            attemptFamilySearchQuery(placeSegment, FS_FALLBACK_YEAR, location, function (fallbackMatched) {
                 if (fallbackMatched) {
                     geolocation[locationset.id] = fallbackMatched;
                     callback(true);

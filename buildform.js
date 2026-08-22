@@ -795,6 +795,22 @@ function buildForm() {
                         // rule as everything else, so this only takes effect
                         // if the user explicitly checks the box.
                         var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar1) : place;
+                        // #229 follow-up (live-requested): wrap a non-empty
+                        // computed leftover in parentheses - "Potsdam,
+                        // Preussen" reads as if it were a literal, precise
+                        // continuation of the official address the same
+                        // way "Storkow, Beeskow-Storkow, Brandenburg,
+                        // Germany" is; it isn't - it's whatever historical/
+                        // supplementary text didn't fit into the resolved
+                        // fields, genuinely useful context but a different
+                        // KIND of information. Only applied to the computed
+                        // leftover (hasGeoFields true) - the plain raw
+                        // string used when nothing resolved at all is left
+                        // unwrapped, since that's not "leftover after
+                        // diffing" at all, just the untouched original text.
+                        if (hasGeoFields && itemPlaceNameValue !== "") {
+                            itemPlaceNameValue = "(" + itemPlaceNameValue + ")";
+                        }
                         locationval = locationval +
                             '<tr id="focus_'+title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                             '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + itemGeoicon + '" height="14px">';
@@ -1600,6 +1616,11 @@ function buildForm() {
                                 // #224: same rule as the focus profile block
                                 // above - see its own comment.
                                 var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar2) : place;
+                                // #229 follow-up: same parenthesized-leftover
+                                // treatment as the focus profile block above.
+                                if (hasGeoFields && itemPlaceNameValue !== "") {
+                                    itemPlaceNameValue = "(" + itemPlaceNameValue + ")";
+                                }
                                 locationval = locationval +
                                     '<tr id="'+ i + "_" +title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                                     '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + itemGeoicon + '" height="14px">';

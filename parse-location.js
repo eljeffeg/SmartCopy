@@ -261,7 +261,15 @@ function queryFamilySearchPlaces(locationset, callback) {
     }
     var queryText = 'name:"' + placeSegment + '"';
     if (exists(eventYear)) {
-        queryText += ' +date:+' + eventYear;
+        // Per FamilySearch's own documented syntax for this parameter
+        // ("+date:1823" or "+date:1800/1900" - the "+" marks the date
+        // FIELD as required, it's not part of the year value itself).
+        // Live-tested: an earlier version of this had a second, spurious
+        // "+" directly on the year ("+date:+1823") - FamilySearch's parser
+        // tolerated it in every case tested, but that's undocumented
+        // leniency on an already-unstable beta endpoint, not something to
+        // rely on.
+        queryText += ' +date:' + eventYear;
     }
     // count=5, not 1: live-confirmed failure case (issue #224 - "Posen" in
     // 1765) - when no settlement-level record exists for the target year

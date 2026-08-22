@@ -3104,8 +3104,28 @@ $(function () {
             $('#familysearchplacesonoffswitch').prop('checked', familysearchplaceschecked);
             familysearchPlacesOn = familysearchplaceschecked;
         }
+        // #229: FamilySearch Places/Google Geocoding both now default per
+        // the HTML markup itself (FamilySearch checked, Google not) for a
+        // genuinely fresh install with no saved preference at all - but
+        // only once BOTH the familysearchplaces and autogeo reads have
+        // resolved (see the combined 'autogeo'/'google_key' read below),
+        // since Google's own default needs to account for a real
+        // configured key too, not just flip blindly.
     });
-    chrome.storage.local.get('google_key', function (result) {
+    // #229: combined into one read (was two separate ones) - Google's
+    // checkbox default now needs BOTH pieces of state to decide correctly,
+    // not just the raw HTML markup default. Priority: (1) an explicit
+    // saved autogeo preference always wins, whatever it is; (2) no saved
+    // preference but a real API key IS configured - default to checked,
+    // preserving pre-#229 behavior for anyone who set up a key back when
+    // Google defaulted on and never touched the toggle itself (their key
+    // config is itself a clear signal of intent - defaulting them to
+    // unchecked would silently stop their paid API from being used at
+    // all, with no visible explanation); (3) neither exists at all (a
+    // genuinely fresh install) - defer to the HTML markup default
+    // (unchecked, since #229 switched the new-install default to
+    // FamilySearch).
+    chrome.storage.local.get(['autogeo', 'google_key'], function (result) {
         var google_api_key = result.google_key;
         if (exists(google_api_key) && google_api_key !== "") {
             google_api = google_api_key;
@@ -3119,6 +3139,14 @@ $(function () {
             $("#google_api_key").val("");
             $("#geocheckimage").css("display", "none");
             $("#geo_location_type").text("(Geni post-submission)");
+        }
+        var geochecked = result.autogeo;
+        if (exists(geochecked)) {
+            $('#geoonoffswitch').prop('checked', geochecked);
+            geoonoff(geochecked);
+        } else if (exists(google_api_key) && google_api_key !== "") {
+            $('#geoonoffswitch').prop('checked', true);
+            geoonoff(true);
         }
     });
     $('#geoonoffswitch').on('click', function () {
@@ -3638,14 +3666,6 @@ chrome.storage.local.get('lastResearchFocus', function (result) {
     lastResearchFocus = exists(result.lastResearchFocus) ? result.lastResearchFocus : null;
     lastFocusLoaded = true;
     maybeStartLogin();
-});
-
-chrome.storage.local.get('autogeo', function (result) {
-    var geochecked = result.autogeo;
-    if (exists(geochecked)) {
-        $('#geoonoffswitch').prop('checked', geochecked);
-        geoonoff(geochecked);
-    }
 });
 
 chrome.storage.local.get('namecheck', function (result) {

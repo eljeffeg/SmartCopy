@@ -259,6 +259,8 @@ function queryFamilySearchPlaces(locationset, callback) {
             eventYear = dt.get('year');
         }
     }
+    console.log("SmartCopy FamilySearch Places: location=" + JSON.stringify(locationset.location) +
+        " raw date=" + JSON.stringify(locationset.date) + " -> eventYear=" + eventYear);
     // Try the REAL event year first, always - a blanket floor broke places
     // FamilySearch genuinely has good early coverage for (live-confirmed:
     // "Boston" in 1650 already worked correctly before any floor was

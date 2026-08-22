@@ -530,6 +530,14 @@ function familySearchPlaceToGeoLocation(places, query, placeName) {
         location.county = nameOf(ancestors[0]);
         location.state = nameOf(ancestors[1]);
     }
+    // #229: recomputes .place from scratch now that city/county/state/
+    // country are all known - whatever text in the ORIGINAL raw location
+    // string isn't represented in any of them (including the placeName
+    // guess above, if it turns out to genuinely be leftover) is what's
+    // left over. Same mechanism now used for Google's equivalent field
+    // (queryGeoGoogle()) and Geni's separate Place Name/location_string
+    // field (buildform.js) - one consistent rule across all three.
+    location.place = computeLeftoverPlaceName(query, location);
     return location;
 }
 
@@ -661,17 +669,12 @@ function queryGeoGoogle(locationset, test) {
                     }
                     if (countGeoFields(georesult) === 0 && countGeoFields(geolocation[id]) === 0) {
                         georesult = geolocation[id];
-                        georesult.place = geolocation[id].query;
                     } else {
                         if (countGeoFields(georesult) === 0 && !georesult.place.contains(" States")) {
                             georesult.place = georesult.place.replace(" State", "").trim();
                         }
                         georesult = compareGeo(georesult, geolocation[id]);
-                        if (response.variable.place !== "") {
-                            georesult.place = response.variable.place.trim();
-                        } else if (georesult.place === georesult.state) {
-                            georesult.place = "";
-                        } else if (georesult.city !== "" && georesult.city === georesult.state) {
+                        if (georesult.city !== "" && georesult.city === georesult.state) {
                             //This tries to deal with "New York", "NY", or "New York, United States"
                             //to prevent it from listing the City of New York.
                             if (georesult.query === georesult.city) {
@@ -685,12 +688,25 @@ function queryGeoGoogle(locationset, test) {
                                 }
                             }
                         }
-
-                        if (georesult.place === georesult.city) {
-                            georesult.place = "";
-                        }
                     }
                     georesult.query = full_location;
+                    // #229: recomputes .place from scratch - whatever text
+                    // in the ORIGINAL raw location string isn't already
+                    // represented in the final city/county/state/country
+                    // (or whatever .place itself already correctly holds,
+                    // e.g. a real sublocality/POI Google's own
+                    // address_components typing found) is what's left over
+                    // and genuinely belongs there. Replaces several narrower
+                    // special-case cleanups that all existed to chip away
+                    // at the same underlying problem (a fragile
+                    // location_split[0]-based guess duplicating or
+                    // clobbering what the structured fields already say) -
+                    // this is the same mechanism already used for Geni's
+                    // separate Place Name (location_string) field
+                    // (buildform.js), now applied consistently to this
+                    // field too, matching familySearchPlaceToGeoLocation()'s
+                    // equivalent update.
+                    georesult.place = computeLeftoverPlaceName(full_location, georesult);
                     if (georesult.count === 0 && (!exists(locationset.retry) || locationset.retry < 0)) {
                         locationset.retry += 1;
                         console.log("Retry " + locationset.retry + " - Failed to Locate: " + full_location);
@@ -867,23 +883,26 @@ function compareGeo(shortGeo, longGeo) {
         if (numShortFields === 1) {
             location.state = locationCase(location_split[0]);
             if (verbose){console.log("... & used loc.split[0] as state");}
-        } else if ((numShortFields > 1) && (location.state !== location_split[0])) {
-            location.place = locationCase(location_split[0]);
-            if (verbose){console.log("... & used loc.split[0] as place (when not same as state)");}
         }
+// #229 follow-up: the old "guess .place from location_split[0]" fallback
+// removed here - queryGeoGoogle() now recomputes .place from scratch via
+// computeLeftoverPlaceName() once the final city/county/state/country are
+// known, the same mechanism already used for Geni's separate Place Name
+// (location_string) field - far more reliable than assuming the first
+// comma segment is always the leftover, which broke for a European
+// street-address-first location like "Jagowstraße 29-33, Grunewald,
+// Berlin, Germany" (see the live-traced #229 case).
     } else {
 // both returns are unique (count=1), so see how they match up
         if ((numShortFields > numLongFields) && (fields_match) && !countyOnlyOverride(location_split[0], longGeo)) {
 // case of only one value in the short query, use query diff? (e.g.: Virgina, USA)
             location = shortGeo;
             if (verbose){console.log("used short when short had more fields & match");}
-// ... do we suspect the 'place' is a state?
+// ... do we suspect the 'place' is a state? (#229 follow-up: .place
+// fallback removed - see the earlier occurrence's own comment.)
             if (numShortFields === 1) {
                 location.state = locationCase(location_split[0]);
                 if (verbose){console.log("... & used loc.split[0] as state");}
-            } else if (location_split[0] !== location.query && location_split[0] + " State" !== location.query) {
-                location.place = locationCase(location_split[0]);
-                if (verbose){console.log("... & used loc.split[0] as place");}
             }
         } else if ((numShortFields > numLongFields) && (fields_match)) {
 // #225: countyOnlyOverride() fired above - longGeo (fewer fields) is the
@@ -906,13 +925,11 @@ function compareGeo(shortGeo, longGeo) {
             if ((numShortFields === numLongFields) && (fields_match)) {
                 location = shortGeo;
                 if (verbose){console.log("used short when min fields are the same");}
-// ... do we suspect the 'place' is a state?
+// ... do we suspect the 'place' is a state? (#229 follow-up: .place
+// fallback removed - see the first occurrence's own comment.)
                 if (numShortFields === 1) {
                     location.state = locationCase(location_split[0]);
                     if (verbose){console.log("... & used loc.split[0] as state");}
-                }  else if (location_split[0] !== location.query && location_split[0] + " State" !== location.query) {
-                    location.place = locationCase(location_split[0]);
-                    if (verbose){console.log("... & used loc.split[0] as place");}
                 }
             } else if (countyOnlyOverride(location_split[0], shortGeo)) {
 // #225: this is actually the MORE realistic path for the county-vs-city

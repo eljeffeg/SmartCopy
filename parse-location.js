@@ -530,14 +530,25 @@ function familySearchPlaceToGeoLocation(places, query, placeName) {
         location.county = nameOf(ancestors[0]);
         location.state = nameOf(ancestors[1]);
     }
-    // #229: recomputes .place from scratch now that city/county/state/
-    // country are all known - whatever text in the ORIGINAL raw location
-    // string isn't represented in any of them (including the placeName
-    // guess above, if it turns out to genuinely be leftover) is what's
-    // left over. Same mechanism now used for Google's equivalent field
-    // (queryGeoGoogle()) and Geni's separate Place Name/location_string
-    // field (buildform.js) - one consistent rule across all three.
-    location.place = computeLeftoverPlaceName(query, location);
+    // #229 follow-up (live-reported regression): recomputing .place here
+    // via computeLeftoverPlaceName() - live-reported as "Potsdam, Preussen"
+    // (a genuine leftover, correctly computed) silently getting auto-
+    // checked and submitted as Geni's structured place_name sub-field
+    // (this function's OWN .place, used for the DIFFERENT "Place: "/
+    // place_name_geo row in buildform.js, not the protected/parenthesized
+    // location_string row that computeLeftoverPlaceName() was actually
+    // built for). place_name_geo's row uses the normal "scraped has real
+    // data -> auto-check" rule (geoScored), never the deliberately
+    // unchecked-by-default treatment - it was never designed to hold
+    // "maybe-useful supplementary residue," only a specific named place
+    // when one is genuinely known. Reverted to placeName alone (whatever
+    // extractPlaceNameSegments() stripped as an actual venue/address
+    // BEFORE ever searching - "" for a location like this one with no such
+    // segment) - buildform.js's OWN, SEPARATE computeLeftoverPlaceName()
+    // call (unaffected by this revert) remains the one and only place that
+    // computes and shows the leftover, in the row that's actually
+    // protected for it.
+    location.place = placeName || "";
     return location;
 }
 
@@ -690,23 +701,28 @@ function queryGeoGoogle(locationset, test) {
                         }
                     }
                     georesult.query = full_location;
-                    // #229: recomputes .place from scratch - whatever text
-                    // in the ORIGINAL raw location string isn't already
-                    // represented in the final city/county/state/country
-                    // (or whatever .place itself already correctly holds,
-                    // e.g. a real sublocality/POI Google's own
-                    // address_components typing found) is what's left over
-                    // and genuinely belongs there. Replaces several narrower
-                    // special-case cleanups that all existed to chip away
-                    // at the same underlying problem (a fragile
-                    // location_split[0]-based guess duplicating or
-                    // clobbering what the structured fields already say) -
-                    // this is the same mechanism already used for Geni's
-                    // separate Place Name (location_string) field
-                    // (buildform.js), now applied consistently to this
-                    // field too, matching familySearchPlaceToGeoLocation()'s
-                    // equivalent update.
-                    georesult.place = computeLeftoverPlaceName(full_location, georesult);
+                    // #229 follow-up (live-reported regression): the
+                    // computeLeftoverPlaceName() recompute that used to sit
+                    // here was WRONG for this field - live-reported as a
+                    // computed leftover ("Potsdam, Preussen" on the
+                    // FamilySearch side of this same fix) getting silently
+                    // auto-checked and submitted as Geni's structured
+                    // place_name sub-field, since THIS row uses the normal
+                    // "scraped has real data -> auto-check" rule
+                    // (geoScored in buildform.js), never the deliberately
+                    // unchecked-by-default treatment the SEPARATE leftover
+                    // suggestion (location_string, buildform.js's own,
+                    // unaffected computeLeftoverPlaceName() call) actually
+                    // gets. .place here is left as whatever parseGoogle()'s
+                    // own address_components typing already determined (a
+                    // genuine sublocality/POI, or "" if none) - narrower
+                    // than "everything not otherwise captured," but that's
+                    // the correct scope for a field that auto-checks itself.
+                    if (georesult.place === georesult.state) {
+                        georesult.place = "";
+                    } else if (georesult.place === georesult.city) {
+                        georesult.place = "";
+                    }
                     if (georesult.count === 0 && (!exists(locationset.retry) || locationset.retry < 0)) {
                         locationset.retry += 1;
                         console.log("Retry " + locationset.retry + " - Failed to Locate: " + full_location);

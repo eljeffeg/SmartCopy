@@ -15,6 +15,22 @@ registerCollection({
             startsWithMH(url, "matchingresult") || startsWithMH(url, "research?")
             );
     },
+    // #35 follow-up (live-reported): buildhistory's own "same URL means
+    // the same person" assumption breaks for a multi-person record like a
+    // marriage record - the same URL legitimately gets revisited for the
+    // groom, the bride, or a parent mentioned only as a sub-field, on
+    // different occasions. getMHURLId() (below) only ever derives the
+    // RECORD's own id, never a person-specific one, so a prior submission
+    // for this URL as one person was silently reused for a later, totally
+    // different search intent, with no picker ever offered. popup.js's
+    // OWN generic buildhistory fallback (loadPage(), around its "#218/
+    // #227" comment) has no way to know this on its own - it works
+    // identically across every collection - so it asks each collection
+    // via this hook rather than special-casing MyHeritage marriages
+    // directly in generic code.
+    "isAmbiguousFocusPage": function(htmlSource) {
+        return exists(htmlSource) && $(htmlSource).filter('title').text().contains("Marriages");
+    },
     "parseData": function(url) {
         if (startsWithMH(url, "matchingresult") || startsWithMH(url, "research\\?")) {
             document.querySelector('#loginspinner').style.display = "none";
@@ -130,7 +146,25 @@ registerCollection({
                             loadPage(request);
                         }
                     }
-                } else if (focusURLid !== "") {
+                // #35 follow-up (live-reported): buildhistory assumes one
+                // record URL always means the same person, which holds for
+                // an ordinary profile page (its own URL only ever refers to
+                // that one person) but not for a multi-person record like a
+                // marriage - the same URL legitimately gets visited for the
+                // groom, the bride, or (live-reported) a parent mentioned
+                // only as a sub-field, on different occasions. focusURLid
+                // here is the RECORD's own id (getMHURLId() - a path/
+                // itemId, never person-specific), so a prior submission for
+                // this exact URL as one person silently auto-resolved to
+                // that SAME person again, with no picker ever offered, even
+                // when the current search was for someone else entirely
+                // mentioned in the same record. Skip the auto-resolve for a
+                // page titled "...Marriages" specifically - falls through
+                // to popup.js's other resolution paths (opener chain, then
+                // the manual "Set Geni Destination Profile" picker) instead
+                // of silently trusting a mapping that isn't reliable for
+                // this record type.
+                } else if (focusURLid !== "" && !this.isAmbiguousFocusPage(request.source)) {
                     for (var i = 0; i < buildhistory.length; i++) {
                         if (buildhistory[i].itemId === focusURLid) {
                             focusid = buildhistory[i].id;

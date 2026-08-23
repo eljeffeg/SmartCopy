@@ -30,22 +30,32 @@ var deepResearchSkipRun = false;
 // init) keeps working with a one-constant change instead of needing
 // to restructure into DOM manipulation.
 //
-// Naming matches the action each icon INVITES, same convention the
-// existing tooltips already used ("Show All Fields" / "Hide Unused
-// Fields") - EYEBALL_SHOW_ICON (a plain open eye) is shown while rows
-// are currently collapsed, inviting the "show everything" click;
-// EYEBALL_HIDE_ICON (a slashed eye) is shown while rows are currently
-// all visible, inviting the "hide unused" click back down.
+// #231 (live-reported): the two SVGs above were originally paired
+// wrong - the open eye was grey and shown while rows were COLLAPSED
+// (naming/coloring the icon after the action a click would perform,
+// "show everything"), the slashed eye was blue and shown while rows
+// were ALL VISIBLE. That's backwards from the Apple HIG toggle
+// convention (icon appearance reflects CURRENT state, not a preview of
+// the next click - https://developer.apple.com/design/human-interface-
+// guidelines/toggles) and from how e.g. a password field's show/hide
+// eye universally works: open+"engaged" color while you CAN currently
+// see everything, closed/slashed+neutral color while you currently
+// can't. Recolored/reshaped (same two path shapes, just recombined)
+// and renamed to describe current state rather than the click action:
+// EYEBALL_ALL_SHOWN_ICON (blue, open) while every field is visible;
+// EYEBALL_EMPTY_HIDDEN_ICON (grey, slashed) while empty fields are
+// currently collapsed.
 //
 // popup.html's own static <img id="focusshowhide"> tag can't reference
 // a JS constant (it's plain HTML, not templated) - its initial src is
-// the same EYEBALL_SHOW_ICON string hardcoded directly, matching the
-// default closed state. Keep both in sync if this SVG ever changes.
-var EYEBALL_SHOW_ICON = 'data:image/svg+xml,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#888888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+// the same EYEBALL_EMPTY_HIDDEN_ICON string hardcoded directly,
+// matching the default collapsed state ("Hide Empty Fields" defaults
+// on). Keep both in sync if this SVG ever changes.
+var EYEBALL_ALL_SHOWN_ICON = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2e7dd7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
 );
-var EYEBALL_HIDE_ICON = 'data:image/svg+xml,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2e7dd7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.62 21.62 0 0 1 5.06-6.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.64 21.64 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>'
+var EYEBALL_EMPTY_HIDDEN_ICON = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#888888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.62 21.62 0 0 1 5.06-6.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.64 21.64 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>'
 );
 
 // Registry of abort callbacks for every Deep Research tab fetch currently

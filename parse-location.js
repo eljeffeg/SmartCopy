@@ -254,7 +254,18 @@ function queryGeo(locationset, test) {
 // birthplace (unlike "Posen" above, where the query was meant to name a
 // specific town but only matched the province standing in for it) - here
 // the country IS the whole of what was actually recorded.
-var FS_BROAD_PLACE_TYPES = ["Province", "State", "Region", "District", "Continent"];
+//
+// #224 follow-up (live-reported): "State" removed for the identical
+// reason, live-confirmed via direct queries. "Pennsylvania" (from a
+// birth recorded as just "Pennsylvania, United States") had its correct
+// "Pennsylvania" (State, score 100) match rejected, falling through to
+// far worse candidates. "Virginia" (1823 event, same shape) was worse -
+// its correct "Virginia" (State, score 100) match was rejected, and the
+// NEXT candidate that passed the filter was "Virginia" (Populated Place,
+// score 58) at 22.38,-80.17 - a real location IN CUBA, live-reported
+// exactly as "gives a city in Cuba." Also never confirmed necessary by a
+// real case, same as "Country" was.
+var FS_BROAD_PLACE_TYPES = ["Province", "Region", "District", "Continent"];
 function isBroadPlaceType(place) {
     return exists(place) && exists(place.display) && exists(place.display.type) &&
         FS_BROAD_PLACE_TYPES.indexOf(place.display.type) !== -1;
@@ -343,7 +354,25 @@ function queryFamilySearchPlaces(locationset, callback) {
     // comment. What's left is the actual jurisdiction chain to query.
     var segments = location.split(",").map(function (s) { return s.trim(); }).filter(function (s) { return s !== ""; });
     var extracted = extractPlaceNameSegments(segments);
-    var placeSegment = extracted.remaining[0].replace(/"/g, "");
+    // #224 follow-up (live-reported feedback on that issue): querying ONLY
+    // the most specific remaining segment ("resolves the most specific
+    // segment" - see this function's original comment, validated against
+    // the Storkow case where that segment alone was specific enough to
+    // disambiguate correctly) breaks down for a common/ambiguous place
+    // name, or a location that's inherently only recorded at state/
+    // country level to begin with. Live-confirmed via direct queries
+    // against the real API: "Bridgewater" alone (stripped of "Lunenburg,
+    // Nova Scotia, Canada") returns 8 same-scored, unrelated candidates
+    // worldwide with no ranking signal at all (top hit: Australia) - the
+    // full remaining string as one quoted phrase gives a clear, correctly
+    // top-scored match (100 vs 95) instead. Confirmed this does NOT
+    // regress the original Storkow case this design was built for - the
+    // full string still surfaces the identical correct top result there,
+    // just with historical/non-matching segments (e.g. "Preussen")
+    // diluting its absolute score rather than preventing the match -
+    // FamilySearch's own search appears to score token overlap within the
+    // phrase, not require an exact literal match.
+    var placeSegment = extracted.remaining.join(", ").replace(/"/g, "");
     if (placeSegment === "" || placeSegment === "?") {
         callback(false);
         return;

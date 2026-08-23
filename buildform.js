@@ -1442,12 +1442,12 @@ function buildForm() {
             if (relationship === "unknown") {
                 membersstring += '<tr name="unk" style="display: table-row;"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Relation:</span><span id="unknownrel' + i + '">' + buildUnknown(gender) + '</span></td></tr>';
             }
-            var showimg = EYEBALL_SHOW_ICON;
-            var showtitle = "Show All Fields";
+            var showimg = EYEBALL_EMPTY_HIDDEN_ICON;
+            var showtitle = "Hiding Unused Fields";
             if (expand) {
                 if (!$('#hideemptyonoffswitch').prop('checked')) {
-                    showimg = EYEBALL_HIDE_ICON;
-                    showtitle = "Hide Unused Fields";
+                    showimg = EYEBALL_ALL_SHOWN_ICON;
+                    showtitle = "Showing All Fields";
                 }
                 var actionBirthYear = undefined;
                 if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
@@ -2228,10 +2228,21 @@ function updateClassResponse() {
     $(function () {
         $('.geoUpdateBtn').on('click', function () {
             var id = $(this).closest("tr")[0].id;
-            $('#georevertbtn').attr("value", getParsedLocation(id));
-            var placetr = $(this).closest("tr")[0].nextElementSibling;
-            var placevalue = $(placetr).find("input[type=text]")[0].value;
-            $('#geoupdatetext').val(placevalue);
+            // #224 (live-reported): the edit textbox used to be seeded from
+            // Row 1's CURRENT displayed input value - which, since this
+            // session's leftover-diffing work, can be a computed,
+            // parenthesized remainder ("(Potsdam, Preussen)") rather than
+            // the actual original scraped text, or blank entirely when
+            // nothing resolved (the Row 1 fallback's text input has no
+            // value at all - see the blank-location fallback rows). The
+            // revert button was already correctly using getParsedLocation()
+            // (the true raw scraped text from alldata) - use the SAME
+            // source for the edit textbox itself, so what's shown to edit
+            // matches what "restore" restores, instead of the two
+            // disagreeing.
+            var parsedLocation = getParsedLocation(id);
+            $('#georevertbtn').attr("value", parsedLocation);
+            $('#geoupdatetext').val(parsedLocation);
             $('#geoupdatetext').attr("reference", id);
             document.getElementById('GeoUpdateModal').style.display = "block";
             $("#geoupdatetext").focus();
@@ -2241,21 +2252,21 @@ function updateClassResponse() {
     $(function () {
         $('.showhide').on('click', function () {
             var value = $($(this)[0]);
-            if (value.attr("src") === EYEBALL_HIDE_ICON) {
+            if (value.attr("src") === EYEBALL_ALL_SHOWN_ICON) {
                 // #222: only re-collapse rows that are ACTUALLY blank
                 // (data-hasvalue) - same reasoning as hideempty() in
                 // popup.js, scoped to just this person's own table.
                 $(this).closest("table").find('.hiddenrow[data-hasvalue="false"]').css("display", "none");
-                value.attr("src", EYEBALL_SHOW_ICON);
-                value.attr("title", "Show All Fields");
+                value.attr("src", EYEBALL_EMPTY_HIDDEN_ICON);
+                value.attr("title", "Hiding Unused Fields");
             } else {
                 if (geoAnySourceEnabled()) {
                     $(this).closest("table").find(".hiddenrow").not(".geoplace").css("display", "table-row");
                 } else {
                     $(this).closest("table").find(".hiddenrow").not(".geoloc").css("display", "table-row");
                 }
-                value.attr("src", EYEBALL_HIDE_ICON);
-                value.attr("title", "Hide Unused Fields");
+                value.attr("src", EYEBALL_ALL_SHOWN_ICON);
+                value.attr("title", "Showing All Fields");
             }
         });
     });

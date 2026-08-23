@@ -776,7 +776,18 @@ function loadPage(request) {
                     setMessage(warningmsg, _('SmartCopy_is_having_difficulty_reading_the_page') + error);
                 }
             }
-            if (!profilechanged && focusURLid !== "") {
+            // #35 follow-up (live-reported): this whole buildhistory match
+            // assumes one URL always means the same person - true for an
+            // ordinary profile page, not for a multi-person record (e.g. a
+            // MyHeritage marriage record legitimately gets revisited for
+            // the groom, the bride, or a third person only mentioned as a
+            // sub-field). isAmbiguousFocusPage is an optional per-collection
+            // hook (only MyHeritage's smartmatch.js defines one today) -
+            // this generic code stays collection-agnostic, just asking
+            // "should I trust this" rather than special-casing any one
+            // site's record shape directly.
+            if (!profilechanged && focusURLid !== "" &&
+                !(collection.isAmbiguousFocusPage && collection.isAmbiguousFocusPage(request.source))) {
                 for (var i = 0; i < buildhistory.length; i++) {
                     var historyItemIds = Array.isArray(buildhistory[i].itemIds)
                         ? buildhistory[i].itemIds
@@ -3454,12 +3465,12 @@ $(function () {
             // original behavior) would re-collapse a populated row the
             // moment the user closed the eyeball again after opening it.
             $('#formdata').find('.hiddenrow[data-hasvalue="false"]').css("display", "none");
-            $('.showhide').attr("src", EYEBALL_SHOW_ICON);
-            $('.showhide').attr("title", "Show All Fields");
+            $('.showhide').attr("src", EYEBALL_EMPTY_HIDDEN_ICON);
+            $('.showhide').attr("title", "Hiding Unused Fields");
         } else {
             $('#formdata').find(".hiddenrow").css("display", "table-row");
-            $('.showhide').attr("src", EYEBALL_HIDE_ICON);
-            $('.showhide').attr("title", "Hide Unused Fields");
+            $('.showhide').attr("src", EYEBALL_ALL_SHOWN_ICON);
+            $('.showhide').attr("title", "Showing All Fields");
             geoonoff($('#geoonoffswitch').prop('checked'));
         }
     }
@@ -3993,8 +4004,8 @@ chrome.storage.local.get('hideempty', function (result) {
     if (exists(hidechecked)) {
         $('#hideemptyonoffswitch').prop('checked', hidechecked);
         if (!$('#hideemptyonoffswitch').prop('checked')) {
-                $("#focusshowhide").attr("src", EYEBALL_HIDE_ICON);
-                $("#focusshowhide").attr("title", "Hide Unused Fields");
+                $("#focusshowhide").attr("src", EYEBALL_ALL_SHOWN_ICON);
+                $("#focusshowhide").attr("title", "Showing All Fields");
             }
     }
 });

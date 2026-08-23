@@ -409,16 +409,53 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         var marriageFocusRole = "";
         if (exists(genifocusdata)) {
             var focusNameLower = String(genifocusdata.get("name")).toLowerCase();
+            var roleNames = {};
             rows.filter('[data-field-id$="name-as-groom"], [data-field-id$="name-as-bride"]').each(function () {
                 var roleRow = $(this);
                 var roleTitle = roleRow.find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
                 var roleName = roleRow.find(".recordFieldValue table td.infoGroup").filter(function () {
                     return $(this).text().toLowerCase().replace(":", "").trim() === "name";
                 }).first().next("td").text().trim();
+                roleNames[roleTitle] = roleName;
                 if (roleName !== "" && roleName.toLowerCase() === focusNameLower) {
                     marriageFocusRole = roleTitle;
                 }
             });
+            // #35 follow-up (live-reported): the exact-name match above
+            // fails whenever the manually-set focus IS the bride herself,
+            // specifically because her OWN marriage record almost always
+            // names her under her MAIDEN surname (that's the whole point
+            // of the record - it's the event where it changed), while her
+            // Geni profile - visited directly and set as focus, live-
+            // confirmed via https://www.geni.com/people/Henrietta-Hamlisch/...
+            // - is recorded under her married surname. Only tried when
+            // the exact match above found nothing, and requires BOTH a
+            // first-name match (a name marriage doesn't change) AND the
+            // Geni focus's last name matching the OTHER role's own
+            // surname (confirms she's recorded under her spouse's name
+            // specifically, not just any coincidental first-name match) -
+            // deliberately narrower than a bare first-name match alone,
+            // for the same "don't misattribute a coincidental match"
+            // reasoning as the exact-match design above.
+            if (marriageFocusRole === "" && exists(roleNames["groom"]) && exists(roleNames["bride"])) {
+                var focusParsed = NameParse.parse(genifocusdata.get("name"), mnameonoff);
+                ["groom", "bride"].forEach(function (roleTitle) {
+                    if (marriageFocusRole !== "" || roleNames[roleTitle] === "") {
+                        return;
+                    }
+                    var otherRole = (roleTitle === "groom") ? "bride" : "groom";
+                    var roleParsed = NameParse.parse(roleNames[roleTitle], mnameonoff);
+                    var otherParsed = NameParse.parse(roleNames[otherRole], mnameonoff);
+                    if (exists(focusParsed.firstName) && focusParsed.firstName !== "" &&
+                        exists(roleParsed.firstName) && roleParsed.firstName !== "" &&
+                        focusParsed.firstName.toLowerCase() === roleParsed.firstName.toLowerCase() &&
+                        exists(focusParsed.lastName) && focusParsed.lastName !== "" &&
+                        exists(otherParsed.lastName) && otherParsed.lastName !== "" &&
+                        focusParsed.lastName.toLowerCase() === otherParsed.lastName.toLowerCase()) {
+                        marriageFocusRole = roleTitle;
+                    }
+                });
+            }
         }
         for (var r = 0; r < rows.length; r++) {
 

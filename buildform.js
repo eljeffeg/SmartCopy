@@ -794,6 +794,20 @@ function buildForm() {
                         // Geni data stays protected/unchecked by default"
                         // rule as everything else, so this only takes effect
                         // if the user explicitly checks the box.
+                        // #229 follow-up (live-requested): same
+                        // parenthesized treatment as Row 1's computed
+                        // leftover below, applied here too - live-reported
+                        // as inconsistent otherwise ("Jüdischer Friedhof
+                        // Storkow" showing unwrapped here, since it's a
+                        // confidently-extracted venue name rather than
+                        // computed residue, while a DIFFERENT record's
+                        // leftover text showed wrapped in Row 1 - from the
+                        // user's own perspective both are equally "the
+                        // remainder," regardless of which specific Geni
+                        // sub-field they end up landing in).
+                        if (hasGeoFields && placegeo !== "") {
+                            placegeo = "(" + placegeo + ")";
+                        }
                         var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar1) : place;
                         // #229 follow-up (live-requested): wrap a non-empty
                         // computed leftover in parentheses - "Potsdam,
@@ -1613,6 +1627,11 @@ function buildForm() {
                                 var itemGeolochidden = hasGeoFields ? "" : " geohidden";
                                 var placeScored = scored && !geoAnySourceEnabled();
                                 var geoScored = scored && geoAnySourceEnabled();
+                                // #229 follow-up: same parenthesized treatment
+                                // as the focus profile block above.
+                                if (hasGeoFields && placegeo !== "") {
+                                    placegeo = "(" + placegeo + ")";
+                                }
                                 // #224: same rule as the focus profile block
                                 // above - see its own comment.
                                 var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar2) : place;

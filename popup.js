@@ -2583,7 +2583,20 @@ function parseForm(fs) {
     var marentry = {};
     var diventry = {};
     var rawinput = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput");
-    var updatefd = (fs.selector === "#profiletable");
+    // #229 follow-up (live-reported): .selector was deprecated in jQuery
+    // 1.7 and REMOVED entirely in 3.0 (this project bundles 3.3.1,
+    // confirmed absent from the actual bundled source) - fs.selector has
+    // always been undefined, so this comparison has always evaluated to
+    // false, for every call, including the focus profile's own. Nothing
+    // else ever corrects it for the focus profile (family members get a
+    // second chance - see the "action" dropdown reassignment below, which
+    // only exists for them) - so blanking any focus-profile location
+    // field to deliberately clear stale Geni data has never actually
+    // worked; the blank value was silently never submitted at all.
+    // .attr('id') reads the real id attribute directly and is unaffected
+    // by the .selector removal - both call sites (popup.js) pass fs as a
+    // single-element id-selector jQuery object, so this is unambiguous.
+    var updatefd = (fs.attr('id') === "profiletable");
     var fsinput = rawinput.filter(function (item) {
         return (!$(rawinput[item]).closest('tr').hasClass("geohidden"));
     });

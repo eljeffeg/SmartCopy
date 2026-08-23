@@ -901,21 +901,24 @@ function compareGeo(shortGeo, longGeo) {
             if (verbose){console.log("... & used loc.split[0] as state");}
         }
 // #229 follow-up: the old "guess .place from location_split[0]" fallback
-// removed here - queryGeoGoogle() now recomputes .place from scratch via
-// computeLeftoverPlaceName() once the final city/county/state/country are
-// known, the same mechanism already used for Geni's separate Place Name
-// (location_string) field - far more reliable than assuming the first
-// comma segment is always the leftover, which broke for a European
-// street-address-first location like "Jagowstraße 29-33, Grunewald,
-// Berlin, Germany" (see the live-traced #229 case).
+// removed here, not replaced - assuming the first comma segment is always
+// the leftover broke for a European street-address-first location like
+// "Jagowstraße 29-33, Grunewald, Berlin, Germany" (see the live-traced
+// #229 case), overwriting a correct address_components-derived value
+// ("Grunewald") with raw street-address text. .place is left as whatever
+// parseGoogle()'s own address_components typing already determined for
+// this candidate (see queryGeoGoogle()'s own comment on the same point) -
+// buildform.js's SEPARATE computeLeftoverPlaceName() call still computes
+// the Place Name (location_string) suggestion, just not by feeding through
+// this function's .place.
     } else {
 // both returns are unique (count=1), so see how they match up
         if ((numShortFields > numLongFields) && (fields_match) && !countyOnlyOverride(location_split[0], longGeo)) {
 // case of only one value in the short query, use query diff? (e.g.: Virgina, USA)
             location = shortGeo;
             if (verbose){console.log("used short when short had more fields & match");}
-// ... do we suspect the 'place' is a state? (#229 follow-up: .place
-// fallback removed - see the earlier occurrence's own comment.)
+// ... do we suspect the 'place' is a state? (.place fallback removed here -
+// see the first occurrence's own comment above.)
             if (numShortFields === 1) {
                 location.state = locationCase(location_split[0]);
                 if (verbose){console.log("... & used loc.split[0] as state");}
@@ -941,8 +944,8 @@ function compareGeo(shortGeo, longGeo) {
             if ((numShortFields === numLongFields) && (fields_match)) {
                 location = shortGeo;
                 if (verbose){console.log("used short when min fields are the same");}
-// ... do we suspect the 'place' is a state? (#229 follow-up: .place
-// fallback removed - see the first occurrence's own comment.)
+// ... do we suspect the 'place' is a state? (.place fallback removed here -
+// see the first occurrence's own comment above.)
                 if (numShortFields === 1) {
                     location.state = locationCase(location_split[0]);
                     if (verbose){console.log("... & used loc.split[0] as state");}

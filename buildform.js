@@ -206,6 +206,22 @@ function updateGeoLocation() {
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.country;
         $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.country !== "" || globalloc) && geoon)).trigger("click");
+        // #229 follow-up (found during a full-codebase re-audit): this is
+        // the same row-count-drift bug already fixed once in .geotopcheck
+        // (0a48a3a) and once in .geoicon (this same audit pass) - a manual
+        // "Update Location" re-query (the #geolookupbtn/GeoUpdateModal
+        // flow above) re-resolved Latitude/Longitude via the fresh
+        // queryGeo() call along with everything else, but this function
+        // stopped walking rows after Country and never wrote the new
+        // coordinates back - leaving the ORIGINAL (possibly wrong -
+        // correcting a bad/ambiguous match is exactly why someone uses
+        // this modal) latitude/longitude silently stuck in the form.
+        eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
+        $(eventrow).find("input[type=text]")[0].value = locationdata.latitude;
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.latitude !== "" || globalloc) && geoon)).trigger("click");
+        eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
+        $(eventrow).find("input[type=text]")[0].value = locationdata.longitude;
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.longitude !== "" || globalloc) && geoon)).trigger("click");
         $("body").toggleClass("wait");
     }
 }
@@ -2127,46 +2143,26 @@ function updateClassResponse() {
     $(function () {
         $('.geoicon').on('click', function () {
             var fs = $(this);
-            if (fs.attr("src") === "images/geoon.png") {
-                fs.attr("src", "images/geooff.png");
-                var tb = $(this).closest('tr').next();
-                tb[0].style.display = "table-row";
-                $(tb[0]).removeClass("geohidden");
+            // #229 follow-up (found during a full-codebase re-audit): this
+            // handler had the exact same hardcoded-row-count bug that
+            // .geotopcheck's own cascade had before the earlier
+            // GEO_BREAKDOWN_ROW_COUNT fix (0a48a3a) - it only ever walked
+            // 5 breakdown rows (place-geo/city/county/state/country),
+            // never updated when Latitude/Longitude were added. Left as-is,
+            // toggling this icon stranded Latitude/Longitude visible (and
+            // still submittable) regardless of which view - flat or
+            // structured - was actually showing. Reuses the same constant/
+            // loop shape as that earlier fix.
+            var GEO_BREAKDOWN_ROW_COUNT = 7; // place_name_geo, city, county, state, country, latitude, longitude
+            var showingStructured = (fs.attr("src") === "images/geoon.png");
+            fs.attr("src", showingStructured ? "images/geooff.png" : "images/geoon.png");
+            var tb = $(this).closest('tr').next(); // the raw "Place" row
+            tb[0].style.display = showingStructured ? "table-row" : "none";
+            $(tb[0]).toggleClass("geohidden", !showingStructured);
+            for (var r = 0; r < GEO_BREAKDOWN_ROW_COUNT; r++) {
                 tb = tb.next();
-                tb[0].style.display = "none"; //place
-                $(tb[0]).addClass("geohidden");
-                tb = tb.next();
-                tb[0].style.display = "none"; //city
-                $(tb[0]).addClass("geohidden");
-                tb = tb.next();
-                tb[0].style.display = "none"; //county
-                $(tb[0]).addClass("geohidden");
-                tb = tb.next();
-                tb[0].style.display = "none"; //state
-                $(tb[0]).addClass("geohidden");
-                tb = tb.next();
-                tb[0].style.display = "none"; //country
-                $(tb[0]).addClass("geohidden");
-            } else {
-                fs.attr("src", "images/geoon.png");
-                var tb = $(this).closest('tr').next();
-                tb[0].style.display = "none";
-                $(tb[0]).addClass("geohidden");
-                tb = tb.next();
-                tb[0].style.display = "table-row"; //place
-                $(tb[0]).removeClass("geohidden");
-                tb = tb.next();
-                tb[0].style.display = "table-row"; //city
-                $(tb[0]).removeClass("geohidden");
-                tb = tb.next();
-                tb[0].style.display = "table-row"; //county
-                $(tb[0]).removeClass("geohidden");
-                tb = tb.next();
-                tb[0].style.display = "table-row"; //state
-                $(tb[0]).removeClass("geohidden");
-                tb = tb.next();
-                tb[0].style.display = "table-row"; //country
-                $(tb[0]).removeClass("geohidden");
+                tb[0].style.display = showingStructured ? "none" : "table-row";
+                $(tb[0]).toggleClass("geohidden", showingStructured);
             }
         });
     });

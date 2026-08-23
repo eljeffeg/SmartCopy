@@ -235,7 +235,26 @@ function queryGeo(locationset, test) {
 // Posen/1765 case above; District confirmed the same way - ranked ahead
 // of the genuine City-level match for the identical query). Add to this
 // list as further false-positive types turn up in practice.
-var FS_BROAD_PLACE_TYPES = ["Province", "State", "Country", "Region", "District"];
+//
+// #35 follow-up (live-reported, live-confirmed via a direct query against
+// FamilySearch's real API): "Country" removed, "Continent" added.
+// Querying "Austria" (a bare country-name birthplace, live-reported on
+// Leo Hamlisch's own birth) returned, in order: "Austria" (Country,
+// score 100, lat/long 47.5/14.0 - the objectively correct answer),
+// "Holy Roman Empire" (Country, score 86), "Europe" (Continent, score
+// 84, lat/long 49.0/13.0). With "Country" in this list, BOTH correct
+// candidates were rejected as "too broad," and the code fell through to
+// "Europe" - which passed the filter only because "Continent" was never
+// on it, even though a continent is broader than either rejected
+// candidate. "Country" itself was never confirmed necessary by a real
+// case (only Province/District were, per the comment above) - it was
+// added speculatively, and this is a confirmed case where it actively
+// produces a WORSE result than what it excludes. A bare country name is
+// also a completely ordinary level of specificity for a historical
+// birthplace (unlike "Posen" above, where the query was meant to name a
+// specific town but only matched the province standing in for it) - here
+// the country IS the whole of what was actually recorded.
+var FS_BROAD_PLACE_TYPES = ["Province", "State", "Region", "District", "Continent"];
 function isBroadPlaceType(place) {
     return exists(place) && exists(place.display) && exists(place.display.type) &&
         FS_BROAD_PLACE_TYPES.indexOf(place.display.type) !== -1;

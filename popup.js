@@ -1601,7 +1601,7 @@ var submitform = function () {
                 // Category-level summary of what this submission actually
                 // touched, appended to the same Reference note rather than
                 // a separate formal sources/citations system - see #59.
-                var updatedCategories = summarizeUpdatedCategories(profileout, exists(focusphotoinfo));
+                var updatedCategories = summarizeUpdatedCategories(profileout, exists(focusphotoinfo), marriagedates[profileout.profile_id]);
                 var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
                 // Matches on just the stable "[url recordtype]" token rather
                 // than the full surrounding phrase, so this keeps working
@@ -1722,7 +1722,7 @@ var submitform = function () {
                             } else {
                                 focusprofileurl = "https://www.geni.com/" + focusid;
                             }
-                            var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]));
+                            var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]), marriagedates[familyout.profile_id]);
                             var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
                             if (exists(fdata.url)) {
                                 about = about + "* '''[" + encodeURI(fdata.url) + " " + recordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
@@ -2393,7 +2393,20 @@ document.getElementById('optionbutton').addEventListener('click', slideoptions, 
 // about_me on submit (issue #59). Category-level, not field-level, so it
 // stays skimmable in a bio even on a large multi-field update, rather than
 // listing every individual field name touched.
-function summarizeUpdatedCategories(fields, includesPhoto) {
+// #35 follow-up (live-reported): "marriage" was missing from the
+// "(updated: ...)" summary even when a marriage field (date or location)
+// was genuinely checked and submitted. Root cause: parseForm() diverts
+// every "marriage:"/"divorce:" field OUT of the same fields object this
+// function scans (objentry/familyout) and into a completely separate one
+// (marentry, stored in marriagedates[profile_id] - see parseForm()'s own
+// comment on why: marriage/divorce submit via a different Geni API call,
+// the union/relationship endpoint, not the individual profile endpoint) -
+// so this function never saw those keys at all, regardless of whether
+// they were actually submitted. marriageEntry is optional (marriagedates[
+// profile_id] - undefined whenever nothing marriage/divorce-related was
+// checked) so existing callers that don't have one (there are none left,
+// but keeping this optional avoids a hard dependency) keep working.
+function summarizeUpdatedCategories(fields, includesPhoto, marriageEntry) {
     var categoryMap = {
         // "title"/"first_name"/etc. never actually appear as flat top-level
         // keys here - parseForm() always nests them under a top-level
@@ -2444,6 +2457,13 @@ function summarizeUpdatedCategories(fields, includesPhoto) {
                 if (categories.indexOf(category) === -1) {
                     categories.push(category);
                 }
+            }
+        }
+    }
+    if (exists(marriageEntry)) {
+        for (var mkey in marriageEntry) {
+            if (marriageEntry.hasOwnProperty(mkey) && categories.indexOf(mkey) === -1) {
+                categories.push(mkey);
             }
         }
     }

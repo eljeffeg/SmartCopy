@@ -109,6 +109,22 @@ registerCollection({
                             }
                             focusid = null;
                         } else {
+                            // #35 follow-up (live-reported): focusname above
+                            // was read from .recordTitle, the WHOLE page's
+                            // title - fine for a single-person record, but
+                            // a marriage record's title names BOTH people
+                            // ("Leo Hamlisch & Henrietta Flesdrager"),
+                            // wrongly showing/submitting the pair as if it
+                            // were one person's name. .individualInformationName
+                            // (the same "In my Geni tree" sidebar widget
+                            // focusid was just read from) names the ONE
+                            // person actually matched - prefer it whenever
+                            // present, same technique loadSelectPage()
+                            // (popup.js) already uses for this exact widget.
+                            var matchedName = parsed.find(".individualInformationName").text().trim();
+                            if (matchedName !== "") {
+                                focusname = matchedName;
+                            }
                             updateLinks("?profile=" + focusid);
                             profilechanged = true;
                             loadPage(request);
@@ -133,8 +149,9 @@ registerCollection({
 var fsimage = {};
 function parseSmartMatch(htmlstring, familymembers, relation) {
     // A failed recursive fetch (any of the four call sites below that pass
-    // response.source straight into this function) used to reach line 149's
-    // htmlstring.contains(...) unconditionally and throw uncaught there -
+    // response.source straight into this function) used to reach the
+    // Captcha check's htmlstring.contains(...) below unconditionally and
+    // throw uncaught there -
     // above the familystatus.pop() in each of those callbacks, hanging
     // "Reading Family Data..." forever (updateGeo() in buildform.js polls
     // familystatus.length and never proceeds while any push is unmatched by
@@ -144,19 +161,35 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
     if (!exists(htmlstring)) {
         return "";
     }
-    try{
-        if ($(htmlstring).filter('title').text().contains("Marriages")) {
-            document.getElementById("loading").style.display = "none";
-            document.getElementById("top-container").style.display = "none";
-            setMessage(warningmsg, 'This MyHeritage collection is not yet supported by SmartCopy.');
-            return "";
-        }
-    } catch(e){
-        noerror = false;
-        setMessage(errormsg, 'There was a problem reading the SmartMatch page.');
-        console.log(e); //error in the above string(in this case,yes)!
-        return;
-    }
+    // #35 follow-up (live-reported): this function used to unconditionally
+    // refuse ANY record whose page title contains "Marriages" (present
+    // since this file's original 2014 commit) - a marriage record names
+    // two people (bride/groom) with no inherent "this is the focus" the
+    // way a person profile page has, so this existed to avoid silently
+    // attributing the wrong person's data to Geni.
+    //
+    // It's obsolete now, not just cautious: parseSmartMatch() is only ever
+    // reached from popup.js's loadPage() after a definite focusid has
+    // already been resolved - parseProfileData is called exclusively from
+    // inside loadPage()'s profilechanged-true branch (see loadPage()'s own
+    // structure), which by the time we get here has already succeeded via
+    // one of: the "In my Geni tree" sidebar match
+    // (.individualInformationProfileLink, collection.loadPage() above), a
+    // prior SmartCopy submission history match, the tab's opener chain, or
+    // the user's own manual "Set Destination" entry. Every one of those is
+    // exactly as trustworthy for a marriage record as for any other record
+    // type this file already parses unconditionally - refusing here threw
+    // away that already-resolved focus for no remaining reason. Live-
+    // reported case: a MyHeritage marriage record with a Geni Smart Match
+    // sidebar naming the searched person (Leo Hamlisch) was still refused
+    // outright despite that match already being known.
+    //
+    // What's UNVERIFIED: whether this record type's specific field labels
+    // (e.g. a bare "Marriage:" row vs the spouse's own name/relationship,
+    // if MyHeritage renders one as a separate field at all) get recognized
+    // by the generic field-parsing loop below as cleanly as birth/death
+    // records do - that needs a live test against an actual marriage
+    // record page, not something safe to assume from source alone.
     relation = relation || "";
     if (htmlstring.contains("Please solve the Captcha to prove that you are not a bot")) {
         if (!captcha) {
@@ -199,7 +232,28 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
 
     var thumb = imagebox.find('img.recordImage').attr('src');
 
-    if (exists(thumb)) {
+    // #35 follow-up (live-confirmed): .recordImageBoxContainer only ever
+    // holds a small thumbnail (live-reported as "tiny" - the source has
+    // "/thumb/" in its path and "96x" in the filename). The genuine
+    // full-resolution scan lives in a separate "document viewer" widget
+    // elsewhere on the SAME page (#documentViewerMainContainer >
+    // .document_viewer_image), confirmed present in the raw page source
+    // itself (not something only generated after a user interaction, so
+    // a plain background fetch - what this whole function works from -
+    // does see it). Its src is a cryptographically signed, time-limited
+    // URL (a base64 k=/s=/e= token: key type, a 256-bit signature, a
+    // Unix expiry) that MyHeritage's own server generates - not something
+    // derivable from the thumbnail URL by pattern, so this reads it
+    // directly rather than trying to transform the thumbnail path.
+    // .first() - a multi-page record (confirmed live: this one had 2
+    // pages, paginated via #documentViewer0_0/documentViewer0_1 etc.) -
+    // only the first page's scan is used, matching how this whole
+    // function only ever tracks a single photo per profile already.
+    var fullImage = $(htmlstring).find('.document_viewer_image').first().attr('src');
+    if (exists(fullImage) && fullImage !== "") {
+        profiledata["image"] = fullImage;
+        profiledata["thumb"] = exists(thumb) ? thumb : fullImage;
+    } else if (exists(thumb)) {
         var imageref = imagebox.find('a');
         if (exists(imageref[0])) {
             if (!thumb.startsWith("https://recordsthumbnail.myheritageimages.com") && !thumb.startsWith("http://recordsthumbnail.myheritageimages.com")) {
@@ -255,6 +309,23 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         familystatus.pop();
                     }
                 });
+            } else {
+                // #35 follow-up (live-reported): a plain record image with
+                // no enclosing <a> link at all (unlike every case the
+                // branches above were built for - a paperclip-marked
+                // attachment, a non-MyHeritage-hosted thumbnail, or a
+                // FamilySearch image-proxy URL) fell through every one of
+                // them and never got set as profiledata["image"] -
+                // confirmed on the Leo Hamlisch marriage record's own
+                // .recordImageBoxContainer > img.recordImage, hosted on
+                // myheritageimages.com with no <a> wrapper. No full-size
+                // URL is reachable without one (nothing to transform the
+                // thumbnail path into, unlike billiongraves' thumbnails->
+                // images swap above), so this uses the thumbnail directly -
+                // the same "no better alternative" fallback the
+                // non-MyHeritage-hosted branch above already accepts.
+                profiledata["image"] = thumb;
+                profiledata["thumb"] = thumb;
             }
         }
     }
@@ -320,6 +391,35 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
         var burialdtflag = false;
         var buriallcflag = false;
         var deathdtflag = false;
+        // #35 follow-up: pre-scan BOTH the Groom's and Bride's own "Name:"
+        // sub-fields ONCE here, before the main per-row loop below, to
+        // determine which specific role (if either) matches the ALREADY-
+        // resolved focus profile (genifocusdata - see loadPage() above).
+        // Doing this once up front, by NAME, is what lets a "neither
+        // matches" outcome stay a safe no-op instead of a misattribution -
+        // e.g. the resolved focus is actually a THIRD person only
+        // mentioned as a Father/Mother sub-field within one of these two
+        // groups (a bride's father, live-questioned as a real scenario).
+        // Matching by gender alone per-row (an earlier draft of this fix
+        // did exactly that) would have matched that third party against
+        // whichever of Groom/Bride happens to share his gender purely by
+        // coincidence, not identity - concretely, it would have written
+        // the GROOM's own birth/parents onto the FATHER's real Geni
+        // profile just because both are male.
+        var marriageFocusRole = "";
+        if (exists(genifocusdata)) {
+            var focusNameLower = String(genifocusdata.get("name")).toLowerCase();
+            rows.filter('[data-field-id$="name-as-groom"], [data-field-id$="name-as-bride"]').each(function () {
+                var roleRow = $(this);
+                var roleTitle = roleRow.find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
+                var roleName = roleRow.find(".recordFieldValue table td.infoGroup").filter(function () {
+                    return $(this).text().toLowerCase().replace(":", "").trim() === "name";
+                }).first().next("td").text().trim();
+                if (roleName !== "" && roleName.toLowerCase() === focusNameLower) {
+                    marriageFocusRole = roleTitle;
+                }
+            });
+        }
         for (var r = 0; r < rows.length; r++) {
 
             // console.log(row);
@@ -559,6 +659,131 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         }
                     }
                 }
+            }
+            // #35 follow-up (live-reported): MyHeritage marriage records
+            // group each side's own data (Name/Birth/Father/Mother/Marital
+            // status, sometimes Age) into a NESTED table under a single
+            // "Groom:"/"Bride:" row, rather than the flat one-field-per-row
+            // shape every other record type here uses - live-reported that
+            // none of that nested detail was reachable at all before this,
+            // since neither "groom" nor "bride" matched anything the
+            // generic loop below recognized (they'd just hit the
+            // catch-all `continue` further down and vanish).
+            //
+            // Which side (if either) is the FOCUS was already resolved
+            // once, by name, in the pre-scan above (marriageFocusRole) -
+            // see its own comment for why gender alone isn't a safe way to
+            // decide this per-row.
+            if ((title === "groom" || title === "bride") && relation === "" && familymembers) {
+                var subvalues = {};
+                $(row).find(".recordFieldValue > table tr").each(function () {
+                    var sublabel = $(this).find("td.infoGroup").text().toLowerCase().replace(":", "").trim();
+                    var subcell = $(this).find("td").eq(1);
+                    if (sublabel === "birth") {
+                        var subyearnode = subcell.contents().get(0);
+                        subvalues["birthyear"] = exists(subyearnode) ? String(subyearnode.nodeValue).trim() : "";
+                        subvalues["birthplace"] = subcell.find(".map_callout_link").text().trim();
+                    } else if (sublabel !== "") {
+                        subvalues[sublabel] = subcell.text().trim();
+                    }
+                });
+                var groupGender = (title === "groom") ? "male" : "female";
+                if (marriageFocusRole === title) {
+                    // #35 follow-up: profiledata.name was initialized above
+                    // from .recordTitle - the WHOLE page's title, which for
+                    // a marriage record names both people ("Leo Hamlisch &
+                    // Henrietta Flesdrager"). Now that this side is
+                    // confirmed to be the actual focus, replace it with
+                    // just their own name from the Groom/Bride group.
+                    if (exists(subvalues["name"]) && subvalues["name"] !== "") {
+                        profiledata["name"] = subvalues["name"];
+                        // #35 follow-up (live-reported): setting
+                        // profiledata.name alone left the popup's OWN
+                        // "$('#focusname')" header still showing the
+                        // combined title text - that header is rendered
+                        // (from the module-global focusname, sourced from
+                        // .recordTitle) BEFORE parseProfileData ever runs
+                        // (see loadPage(), popup.js), so correcting the
+                        // variable this late doesn't retroactively fix
+                        // what's already on screen. Re-render it directly,
+                        // same markup loadPage() itself uses.
+                        focusname = subvalues["name"];
+                        $("#focusname").html('<span id="genilinkdesc"><a href="' + 'https://www.geni.com/' + focusid + '" target="_blank" style="color:inherit; text-decoration: none;">' + escapeHtml(getProfileName(focusname)) + "</a></span>");
+                    }
+                    if (exists(subvalues["birthyear"]) && subvalues["birthyear"] !== "" && !exists(profiledata["birth"])) {
+                        var birthdata = [{date: cleanDate(subvalues["birthyear"])}];
+                        if (exists(subvalues["birthplace"]) && subvalues["birthplace"] !== "") {
+                            birthdata.push({id: geoid, location: subvalues["birthplace"], place: ""});
+                            geoid++;
+                        }
+                        profiledata["birth"] = birthdata;
+                    }
+                    ["father", "mother"].forEach(function (parentTitle) {
+                        if (exists(subvalues[parentTitle]) && subvalues[parentTitle] !== "") {
+                            if (!exists(alldata["family"][parentTitle])) {
+                                alldata["family"][parentTitle] = [];
+                            }
+                            var parentprofile = {name: subvalues[parentTitle], gender: isMale(parentTitle) ? "male" : "female", profile_id: famid, title: parentTitle};
+                            alldata["family"][parentTitle].push(parentprofile);
+                            databyid[famid] = parentprofile;
+                            famid++;
+                        }
+                    });
+                } else if (marriageFocusRole !== "" && exists(subvalues["name"]) && subvalues["name"] !== "") {
+                    // Only reached when the OTHER role was confirmed as
+                    // focus above (marriageFocusRole !== "" and it isn't
+                    // this row) - this row is therefore the focus's real
+                    // spouse, not a guess. When marriageFocusRole is ""
+                    // (neither Groom's nor Bride's name matched the
+                    // resolved focus - e.g. focus is a third person, like a
+                    // parent, only mentioned as a nested sub-field), this
+                    // branch deliberately does nothing for either row -
+                    // safe no-op rather than misattributing either
+                    // principal's data.
+                    var spouseTitle = (groupGender === "male") ? "husband" : "wife";
+                    if (!exists(alldata["family"][spouseTitle])) {
+                        alldata["family"][spouseTitle] = [];
+                    }
+                    var spouseprofile = {name: subvalues["name"], gender: groupGender, profile_id: famid, title: spouseTitle};
+                    // #35 follow-up (live-reported): the spouse's own
+                    // birth year/place are right there in the same nested
+                    // table (subvalues, already extracted above) - no
+                    // reason to leave them out just because this side
+                    // isn't the focus. buildform.js's family-member
+                    // rendering already reads members[member]["birth"] in
+                    // this exact shape for every other collection.
+                    if (exists(subvalues["birthyear"]) && subvalues["birthyear"] !== "") {
+                        var spousebirthdata = [{date: cleanDate(subvalues["birthyear"])}];
+                        if (exists(subvalues["birthplace"]) && subvalues["birthplace"] !== "") {
+                            spousebirthdata.push({id: geoid, location: subvalues["birthplace"], place: ""});
+                            geoid++;
+                        }
+                        spouseprofile["birth"] = spousebirthdata;
+                    }
+                    // #35 follow-up (live-reported, "marriage date is
+                    // nowhere to be found"): buildform.js's own per-member
+                    // render loop only ever shows a Marriage Date/Location
+                    // row when reading members[member]["marriage"] AND
+                    // relationship==="partner" (see its own comment,
+                    // "Skip marriage date fields if not partner") - it
+                    // never reads profiledata["marriage"]/alldata.profile
+                    // .marriage at all for display purposes (that field is
+                    // real and used elsewhere, by the birth-year
+                    // estimator's marriage-date anchor, just never
+                    // rendered as its own row). marriagedata[0] was
+                    // already populated by the time this runs - the
+                    // Marriage: row (DOM order: Marriage, then Groom, then
+                    // Bride) is processed earlier in this same per-row
+                    // loop.
+                    if (exists(marriagedata[0])) {
+                        spouseprofile["marriage"] = marriagedata[0];
+                    }
+                    alldata["family"][spouseTitle].push(spouseprofile);
+                    databyid[famid] = spouseprofile;
+                    myhspouse.push(famid);
+                    famid++;
+                }
+                continue;
             }
             if (title.startsWith("info") || title.startsWith("notes") || title.startsWith("military") || title.startsWith("immigration") ||
                 title.startsWith("visa") || title === "emigration" || title === "ethnicity" || title === "race" || title === "residence" ||
@@ -1041,6 +1266,22 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                 }
             }
         } else if (relation === "") {
+            // #35 follow-up (live-reported): the marriagedata->
+            // profiledata["marriage"] reconciliation right above only ran
+            // inside the OTHER branch (isPartner(relation.title)) - built
+            // for a recursive fetch of a SPOUSE's own separate SmartMatch
+            // page, not for a marriage record's own top-level parse
+            // (relation === "" is exactly what a marriage record's
+            // top-level call is - see the new Groom/Bride handling
+            // above). marriagedata was being populated correctly the
+            // whole time (the plain "Marriage:" row already matches the
+            // pre-existing title==='marriage' handling further up), it
+            // just never reached profiledata for this branch - the
+            // marriage date/location were parsed and then silently
+            // discarded.
+            if (marriagedata.length === 1 && !exists(profiledata["marriage"])) {
+                profiledata["marriage"] = marriagedata[0];
+            }
             closeout = true;
         }
         if (closeout) {

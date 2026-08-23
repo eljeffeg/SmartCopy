@@ -2572,13 +2572,7 @@ function getBirthYear(birthArray, excludeEstimated) {
 // multiple, or non-male spouses, or if the single spouse's own name
 // doesn't parse out a surname at all.
 function getFocusSpouseSurname(mnameonoff) {
-    var obj = alldata["family"];
-    var spouses = [];
-    for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
-        if (isPartner(relationship)) {
-            spouses = spouses.concat(obj[relationship]);
-        }
-    }
+    var spouses = aggregateFamilyByRelation(isPartner);
     if (spouses.length !== 1 || spouses[0].gender !== "male" || !exists(spouses[0].name)) {
         return "";
     }
@@ -2593,14 +2587,7 @@ function getFocusSpouseSurname(mnameonoff) {
 // exactly one match. An ambiguous source (e.g. two father entries from a
 // remarriage) returns "" rather than guessing which one to use.
 function getParentSurname(gender, mnameonoff) {
-    var obj = alldata["family"];
-    var matches = [];
-    for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
-        if (isParent(relationship)) {
-            matches = matches.concat(obj[relationship]);
-        }
-    }
-    matches = matches.filter(function (m) { return m.gender === gender; });
+    var matches = aggregateFamilyByRelation(isParent).filter(function (m) { return m.gender === gender; });
     if (matches.length !== 1 || !exists(matches[0].name)) {
         return "";
     }
@@ -3150,45 +3137,22 @@ function isCompoundSurname(lastname) {
     return lastname.indexOf(" ") !== -1;
 }
 
+// #229 follow-up: had three near-identical copy-pasted blocks (the
+// "focus"/isParent(relation) branches were byte-identical bodies, both
+// checking isParent - only reached via two different outer conditions;
+// the third differed only in swapping isPartner for isParent) - audited
+// and merged into one predicate-driven pass over
+// aggregateFamilyByRelation(), on request.
 function setBirthName(relation, lastname, mnameonoff) {
-    if (relation === "focus") {
-        var obj = alldata["family"];
-        for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
-            if (isParent(relationship)) {
-                var person = obj[relationship];
-                for (var i = 0; i < person.length; i++) {
-                    var nameval = NameParse.parse(person[i].name, mnameonoff);
-                    if (person[i].gender === "male" && nameval.lastName === lastname) {
-                        return false;
-                    }
-                }
-            }
-        }
-    } else if (isParent(relation)) {
-        var obj = alldata["family"];
-        for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
-            if (isParent(relationship)) {
-                var person = obj[relationship];
-                for (var i = 0; i < person.length; i++) {
-                    var nameval = NameParse.parse(person[i].name, mnameonoff);
-                    if (person[i].gender === "male" && nameval.lastName === lastname) {
-                        return false;
-                    }
-                }
-            }
-        }
-    } else if (isPartner(relation)) {
-        var obj = alldata["family"];
-        for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
-            if (isPartner(relationship)) {
-                var person = obj[relationship];
-                for (var i = 0; i < person.length; i++) {
-                    var nameval = NameParse.parse(person[i].name, mnameonoff);
-                    if (person[i].gender === "male" && nameval.lastName === lastname) {
-                        return false;
-                    }
-                }
-            }
+    var predicate = (relation === "focus" || isParent(relation)) ? isParent : (isPartner(relation) ? isPartner : null);
+    if (!predicate) {
+        return true;
+    }
+    var candidates = aggregateFamilyByRelation(predicate);
+    for (var i = 0; i < candidates.length; i++) {
+        var nameval = NameParse.parse(candidates[i].name, mnameonoff);
+        if (candidates[i].gender === "male" && nameval.lastName === lastname) {
+            return false;
         }
     }
     return true;

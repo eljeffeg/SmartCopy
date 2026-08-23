@@ -2100,21 +2100,20 @@ function updateClassResponse() {
                 row.find('input[type="checkbox"]').prop('checked', this.checked);
                 row.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
             } else {
-                row = $(row[0].nextElementSibling);
-                row.find('input[type="checkbox"]').prop('checked', this.checked);
-                row.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
-                row = $(row[0].nextElementSibling);
-                row.find('input[type="checkbox"]').prop('checked', this.checked);
-                row.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
-                row = $(row[0].nextElementSibling);
-                row.find('input[type="checkbox"]').prop('checked', this.checked);
-                row.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
-                row = $(row[0].nextElementSibling);
-                row.find('input[type="checkbox"]').prop('checked', this.checked);
-                row.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
-                row = $(row[0].nextElementSibling);
-                row.find('input[type="checkbox"]').prop('checked', this.checked);
-                row.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
+                // #229 follow-up: was 5 manually unrolled copies of this
+                // same block (Place-geo/City/County/State/Country) - a real
+                // bug surfaced from exactly this shape: adding the
+                // Latitude/Longitude rows never updated this cascade, so
+                // clicking the top "select all" checkbox for a location
+                // silently skipped them. GEO_BREAKDOWN_ROW_COUNT is the one
+                // number to update if a future row gets added here, instead
+                // of remembering to copy-paste another block.
+                var GEO_BREAKDOWN_ROW_COUNT = 7; // place_name_geo, city, county, state, country, latitude, longitude
+                for (var r = 0; r < GEO_BREAKDOWN_ROW_COUNT; r++) {
+                    row = $(row[0].nextElementSibling);
+                    row.find('input[type="checkbox"]').prop('checked', this.checked);
+                    row.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
+                }
             }
         });
     });
@@ -2423,18 +2422,31 @@ function buildLocationFieldRow(opts) {
 // accept an edit for must never render as enabled, regardless of how
 // strongly it scored or how empty both sides are. See buildTextFieldRow()
 // for why the checkbox itself also needs to be disabled, not just this.
-function isEnabled(value, score, force, currentValue, locked) {
+//
+// #229 follow-up: isChecked()/isEnabled() (below) computed this exact same
+// boolean via two byte-identical branch trees, differing only in which
+// string each branch returned - audited and merged into this one shared
+// resolver on request, since two copies of the same truth table is exactly
+// the kind of duplication that drifts out of sync over time (unlike the
+// checked/enabled string labels themselves, which genuinely do need to
+// differ - that's the one real difference, kept in the two thin wrappers
+// below rather than in the condition logic itself).
+function resolveFieldEnabled(value, score, force, currentValue, locked) {
     if (locked) {
-        return "disabled";
+        return false;
     } else if (force && score) {
-        return "";
+        return true;
     } else if (score && isValue(value)) {
-        return "";
+        return true;
     } else if (score && !isValue(value) && exists(currentValue) && !isValue(currentValue)) {
-        return "";
+        return true;
     } else {
-        return "disabled";
+        return false;
     }
+}
+
+function isEnabled(value, score, force, currentValue, locked) {
+    return resolveFieldEnabled(value, score, force, currentValue, locked) ? "" : "disabled";
 }
 
 function isHidden(value, geo) {
@@ -2522,18 +2534,7 @@ function isSelected(id1, id2) {
 // submitted.
 // #78: locked forces unchecked, same precedence reasoning as isEnabled().
 function isChecked(value, score, force, currentValue, locked) {
-    force = force || false;
-    if (locked) {
-        return "";
-    } else if (force && score) {
-        return "checked";
-    } else if (score && isValue(value)) {
-        return "checked";
-    } else if (score && !isValue(value) && exists(currentValue) && !isValue(currentValue)) {
-        return "checked";
-    } else {
-        return "";
-    }
+    return resolveFieldEnabled(value, score, force, currentValue, locked) ? "checked" : "";
 }
 
 // #208: shared "get the year from a birth array" lookup - scans for the
@@ -2607,6 +2608,24 @@ function getParentSurname(gender, mnameonoff) {
     return parentNameval.lastName || "";
 }
 
+// #229 follow-up: "walk alldata['family']'s keys, collect every entry
+// whose relationship key matches a predicate (isParent/isPartner/isChild/
+// isSibling)" was repeated 6 times across the estimator alone
+// (getMemberSpouse() below x2, getChildGroupAnchorYear() x3,
+// getOtherPartners()) - audited and factored out into this one shared
+// helper on request, each caller applying its own filter/require-singular/
+// exclude-member logic on top of the same flat aggregate.
+function aggregateFamilyByRelation(predicateFn) {
+    var obj = alldata["family"];
+    var matches = [];
+    for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
+        if (predicateFn(relationship)) {
+            matches = matches.concat(obj[relationship]);
+        }
+    }
+    return matches;
+}
+
 // #208: finds `member`'s real spouse record, for Rule 1 (spousal age gap)
 // of the birth-year estimation feature. Spouse data only exists in the
 // scraped model for two of the four relationship categories - no parser
@@ -2622,27 +2641,15 @@ function getParentSurname(gender, mnameonoff) {
 //                married-name direction; Rule 1 needs both directions).
 //   "sibling"/"child" -> null, no spouse data exists for these categories.
 function getMemberSpouse(category, member) {
-    var obj = alldata["family"];
     if (category === "parent") {
-        var parents = [];
-        for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
-            if (isParent(relationship)) {
-                parents = parents.concat(obj[relationship]);
-            }
-        }
-        parents = parents.filter(function (p) { return p !== member; });
+        var parents = aggregateFamilyByRelation(isParent).filter(function (p) { return p !== member; });
         return parents.length === 1 ? parents[0] : null;
     }
     if (category === "partner") {
         return alldata["profile"];
     }
     if (category === "focus") {
-        var spouses = [];
-        for (var relationship2 in obj) if (obj.hasOwnProperty(relationship2)) {
-            if (isPartner(relationship2)) {
-                spouses = spouses.concat(obj[relationship2]);
-            }
-        }
+        var spouses = aggregateFamilyByRelation(isPartner);
         return spouses.length === 1 ? spouses[0] : null;
     }
     return null;
@@ -2702,32 +2709,18 @@ function getMemberSpouse(category, member) {
 // to the spousal cascade, same as before) for any collection that
 // doesn't happen to populate parent_id.
 function getChildGroupAnchorYear(category, member) {
-    var obj = alldata["family"];
-    var pool = [];
+    var pool;
     if (category === "parent") {
-        pool.push(alldata["profile"]);
         var includeHalfSiblings = exists(member) && member.gender === "male";
-        for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
-            if (isSibling(relationship)) {
-                pool = pool.concat(obj[relationship].filter(function (s) {
-                    return includeHalfSiblings || s.halfsibling !== true;
-                }));
-            }
-        }
+        pool = [alldata["profile"]].concat(aggregateFamilyByRelation(isSibling).filter(function (s) {
+            return includeHalfSiblings || s.halfsibling !== true;
+        }));
     } else if (category === "focus") {
-        for (var relationship2 in obj) if (obj.hasOwnProperty(relationship2)) {
-            if (isChild(relationship2)) {
-                pool = pool.concat(obj[relationship2]);
-            }
-        }
+        pool = aggregateFamilyByRelation(isChild);
     } else if (category === "partner" && exists(member) && exists(member.profile_id)) {
-        for (var relationship3 in obj) if (obj.hasOwnProperty(relationship3)) {
-            if (isChild(relationship3)) {
-                pool = pool.concat(obj[relationship3].filter(function (c) {
-                    return exists(c.parent_id) && c.parent_id === member.profile_id;
-                }));
-            }
-        }
+        pool = aggregateFamilyByRelation(isChild).filter(function (c) {
+            return exists(c.parent_id) && c.parent_id === member.profile_id;
+        });
     } else {
         return undefined;
     }
@@ -2956,19 +2949,7 @@ function estimateBirthYear(category, member, focusGender, generationalGap, spous
 // remarriage rule below. isPartner() covers every relationship-category
 // key alldata["family"] could store a spouse under.
 function getOtherPartners(member) {
-    var others = [];
-    var obj = alldata["family"];
-    for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
-        if (isPartner(relationship)) {
-            var arr = obj[relationship];
-            for (var i = 0; i < arr.length; i++) {
-                if (arr[i] !== member) {
-                    others.push(arr[i]);
-                }
-            }
-        }
-    }
-    return others;
+    return aggregateFamilyByRelation(isPartner).filter(function (p) { return p !== member; });
 }
 
 // #208: resolves whichever half of a couple is female - "wife's birth +
@@ -3069,15 +3050,16 @@ function estimateMarriageYear(category, member, focusGender, generationalGap, sp
 // own comment). Only ever set true, never explicitly false - absence
 // means "not a cascade," identical to how `estimated` itself is only ever
 // added, never written as false.
+// #229 follow-up: was its own full copy of applyEstimatedDate()'s entry-
+// construction/unshift logic (title hardcoded to "birth") - audited and
+// merged into a thin wrapper on request. Safe because applyEstimatedDate()
+// always leaves the just-written entry at index 0, whether it created the
+// array fresh or unshifted onto an existing one - the same guarantee this
+// function's own docstring above already promises callers.
 function applyEstimatedBirth(target, year, cascaded) {
-    var entry = { date: "circa " + year, estimated: true };
+    applyEstimatedDate(target, "birth", year);
     if (cascaded === true) {
-        entry.cascaded = true;
-    }
-    if (!exists(target["birth"])) {
-        target["birth"] = [entry];
-    } else {
-        target["birth"].unshift(entry);
+        target["birth"][0].cascaded = true;
     }
 }
 
@@ -4184,6 +4166,49 @@ function syncGeotopcheckState(fs) {
 // user a click); scraped blank + Geni has real data -> stays unchecked
 // (protect it - the user can still manually check it to intentionally
 // clear that field, but it's never pre-checked into doing so).
+// #229 follow-up: this was verbatim-duplicated inside both
+// refreshFieldCheckState() and refreshLivingCheckState() below (introduced
+// that way in the first place, fixing the same bug in each independently
+// instead of factoring it out once) - audited and merged on request.
+// Only ever toggles disabled (typeable or not) - never checked. Checking a
+// field is what tells the person's top-level "select all" checkbox
+// (.checkslide) that something is about to be submitted for them; that
+// signal needs to stay exclusively tied to an explicit user action - an
+// individual .checknext click (which already propagates up to check
+// .checkslide) or the "all" button itself (isFieldEmptyForCheckAll(),
+// which already respects this same disabled state to decide what's safe
+// to include). If picking an action from the dropdown also auto-checked
+// fields, a collapsed sibling row could end up with real fields silently
+// selected for submission while its own .checkslide still showed
+// unchecked - no visible sign anything would happen.
+// #78: this same "never touch checked" rule is why a field found to be
+// locked here only gets its disabled state forced (input AND the row's
+// own checkbox, for the same click-handler/select-all bypass reasons as
+// the focus profile's equivalent fix) rather than also being unchecked -
+// if it happened to already be checked from the scored initial render
+// (before this person's match, and thus their lock status, was known), it
+// stays checked but disabled, which parseForm() already excludes from
+// submission regardless (!fsinput[item].disabled).
+// (live-reported while testing #224) hardcoding score=true above means
+// isEnabled() alone can't tell "this field was never checked yet" apart
+// from "the user already manually unchecked it" - both look identical
+// from scrapedValue/currentValue alone. Without gating on the checkbox's
+// own current state, a manual uncheck (which disables the input via the
+// .checknext click handler) got silently undone the next time this ran
+// (e.g. the Action dropdown resolving/changing a match), re-enabling a
+// field whose box still visibly showed unchecked - exactly the "no
+// visible sign anything would happen" failure this rule was meant to
+// prevent, just reached from the disabled side instead of the checked
+// side. Only ever ENABLE the input when its checkbox is already checked;
+// an unchecked box always forces disabled, regardless of what isEnabled()
+// computes.
+function applyProtectedDisabledState(input, scrapedValue, currentValue, locked) {
+    var checknext = input.closest('tr').find('.checknext');
+    var enabled = checknext.prop('checked') && isEnabled(scrapedValue, true, false, currentValue, locked) !== "disabled";
+    input.prop("disabled", !enabled);
+    checknext.prop('disabled', !!locked);
+}
+
 function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue) {
     var input = $("#familytable_" + id + " [name='" + fieldName + "']").not(".genislideinput");
     if (input.length === 0) {
@@ -4202,42 +4227,7 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue)
         if (scrapedValue === blankValue) { scrapedValue = ""; }
         if (currentValue === blankValue) { currentValue = ""; }
     }
-    // Only ever toggles disabled (typeable or not) - never checked. Checking
-    // a field is what tells the person's top-level "select all" checkbox
-    // (.checkslide) that something is about to be submitted for them; that
-    // signal needs to stay exclusively tied to an explicit user action - an
-    // individual .checknext click (which already propagates up to check
-    // .checkslide) or the "all" button itself (isFieldEmptyForCheckAll(),
-    // which already respects this same disabled state to decide what's
-    // safe to include). If picking an action from the dropdown also
-    // auto-checked fields, a collapsed sibling row could end up with real
-    // fields silently selected for submission while its own .checkslide
-    // still showed unchecked - no visible sign anything would happen.
-    // #78: this same "never touch checked" rule is why a field found to be
-    // locked here only gets its disabled state forced (input AND the row's
-    // own checkbox, for the same click-handler/select-all bypass reasons as
-    // the focus profile's equivalent fix) rather than also being unchecked -
-    // if it happened to already be checked from the scored initial render
-    // (before this person's match, and thus their lock status, was known),
-    // it stays checked but disabled, which parseForm() already excludes
-    // from submission regardless (!fsinput[item].disabled).
-    // (live-reported while testing #224) hardcoding score=true above means isEnabled() alone can't tell
-    // "this field was never checked yet" apart from "the user already
-    // manually unchecked it" - both look identical from scrapedValue/
-    // currentValue alone. Without gating on the checkbox's own current
-    // state, a manual uncheck (which disables the input via the .checknext
-    // click handler) got silently undone the next time this function ran
-    // (e.g. the Action dropdown resolving/changing a match), re-enabling a
-    // field whose box still visibly showed unchecked - exactly the "no
-    // visible sign anything would happen" failure this function's own
-    // "never touch checked" rule was meant to prevent, just reached from
-    // the disabled side instead of the checked side. Only ever ENABLE the
-    // input when its checkbox is already checked; an unchecked box always
-    // forces disabled, regardless of what isEnabled() computes.
-    var checknext = input.closest('tr').find('.checknext');
-    var enabled = checknext.prop('checked') && isEnabled(scrapedValue, true, false, currentValue, locked) !== "disabled";
-    input.prop("disabled", !enabled);
-    checknext.prop('disabled', !!locked);
+    applyProtectedDisabledState(input, scrapedValue, currentValue, locked);
 }
 
 // #217: Living's <select> only ever holds a real true/false value - never a
@@ -4252,12 +4242,7 @@ function refreshLivingCheckState(id, currentValue, locked) {
         return;
     }
     var scrapedValue = (input.attr("data-scraped") === "true") ? input.val() : "";
-    // Same fix as refreshFieldCheckState() above - never re-enable a field
-    // whose checkbox the user has already unchecked.
-    var checknext = input.closest('tr').find('.checknext');
-    var enabled = checknext.prop('checked') && isEnabled(scrapedValue, true, false, currentValue, locked) !== "disabled";
-    input.prop("disabled", !enabled);
-    checknext.prop('disabled', !!locked);
+    applyProtectedDisabledState(input, scrapedValue, currentValue, locked);
 }
 
 function setGeniFamilyData(id, profile) {

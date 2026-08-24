@@ -1922,6 +1922,18 @@ function buildTree(data, action, sendid) {
         if (action === "update") {
             if (permissions.indexOf("update") === -1 && permissions.indexOf("update-basics") !== -1) {
                 action = "update-basics";
+            } else if (permissions.indexOf("update") === -1 && permissions.indexOf("update-basics") === -1) {
+                // #230 follow-up (live-reported): unlike the "add"/
+                // "add-photo" cases right below, this had no equivalent
+                // guard - a member with neither permission (e.g. a locked
+                // profile) still got submitted as a plain "update" and
+                // only found out from Geni's own "Access Denied" response,
+                // instead of being caught here first like every other
+                // permission check in this function.
+                updateMessage(errormsg, "Geni permission denied - No update permission on: " + sendid);
+                console.log("Geni permission denied - No update permission on profile: " + sendid);
+                submitstatus.pop();
+                return;
             }
         } else if (action.startsWith("add") && action !== "add-photo") {
             if (permissions.indexOf("add") === -1) {
@@ -2123,6 +2135,10 @@ function buildTree(data, action, sendid) {
         if (action === "update") {
             if (permissions.indexOf("update") === -1 && permissions.indexOf("update-basics") !== -1) {
                 action = "update-basics";
+            } else if (permissions.indexOf("update") === -1 && permissions.indexOf("update-basics") === -1) {
+                updateMessage(errormsg, "Permission denied - No update permission on: " + sendid);
+                console.log("Permission denied - No update permission on profile: " + sendid);
+                return;
             }
         } else if (action.startsWith("add") && action !== "add-photo") {
             if (permissions.indexOf("add") === -1) {

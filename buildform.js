@@ -4347,6 +4347,23 @@ function syncGeotopcheckState(fs) {
 // computes.
 function applyProtectedDisabledState(input, scrapedValue, currentValue, locked) {
     var checknext = input.closest('tr').find('.checknext');
+    if (locked) {
+        // A field discovered to be Geni-locked (or missing update
+        // permission) only becomes knowable once this member is matched
+        // to a real Geni profile - after initial render, which may have
+        // already checked this box (safely, with the information
+        // available at the time). Un-checking here is always the safe
+        // direction (removing eligibility to submit), unlike auto-
+        // CHECKING, which this function deliberately never does (see the
+        // comment above) - without this, a field checked at render time
+        // stayed checked-but-disabled forever after, a state
+        // isChecked()/isEnabled() themselves guarantee never happens at
+        // render time but this refresh path previously didn't uphold.
+        // Live-reported: this is what let a locked family member's
+        // estimated marriage date stay checked (and get submitted,
+        // rejected by Geni for permissions) after the lock was discovered.
+        checknext.prop('checked', false);
+    }
     var enabled = checknext.prop('checked') && isEnabled(scrapedValue, true, false, currentValue, locked) !== "disabled";
     input.prop("disabled", !enabled);
     checknext.prop('disabled', !!locked);
@@ -4388,12 +4405,34 @@ function refreshLivingCheckState(id, currentValue, locked) {
     applyProtectedDisabledState(input, scrapedValue, currentValue, locked);
 }
 
+// #230 follow-up: photo submission uses its own separate "add-photo" Geni
+// permission (see buildTree()'s own "add-photo" check, popup.js) rather
+// than update/update-basics - a profile can allow one without the other,
+// so this can't reuse getGeniFieldLocked()'s update/update-basics check.
+function getGeniPhotoLocked(profile) {
+    if (profile === "add") {
+        return false;
+    }
+    var person = genifamilydata[profile];
+    if (!exists(person)) {
+        return false;
+    }
+    var actions = person.get("actions");
+    return !exists(actions) || actions.indexOf("add-photo") === -1;
+}
+
 function setGeniFamilyData(id, profile) {
     var nameicon = getGeniLock(profile, "name");
     var nameLocked = getGeniFieldLocked(profile, "name"); // #78
     let namelang = $("#" + id + "_geni_name_language").val();
     $("#" + id + "_geni_photo_urls").attr('src', getGeniData(profile, "photo_urls"));
     $("#" + id + "_geni_mugshot").attr('src', isAppend(getGeniData(profile, "photo_urls")));
+    // #230 follow-up (live-reported): the photo row previously never
+    // refreshed its checked/disabled state against this match at all - a
+    // photo submission would only find out it lacked "add-photo"
+    // permission when buildTree() (popup.js) submitted it and Geni
+    // rejected it with "Access Denied", instead of being caught here.
+    refreshFieldCheckState(id, "photo", undefined, getGeniPhotoLocked(profile));
     var geniTitle = getGeniData(profile, "names", namelang + ".title");
     $("#" + id + "_geni_title").val(geniTitle);
     $("#" + id + "_geni_title").prev().attr('src', nameicon);
@@ -4428,8 +4467,13 @@ function setGeniFamilyData(id, profile) {
     var geniAbout = getGeniData(profile, "about_me");
     $("#" + id + "_geni_about").val(geniAbout);
     $("#" + id + "_geni_about").prev().attr('src', isAppend(profile));
-    refreshFieldCheckState(id, "about_me", geniAbout);
-    refreshFieldCheckState(id, "nicknames", geniNicknames);
+    // #230 follow-up (live-reported): these two never passed a locked
+    // argument at all, unlike every other field below - meaning they never
+    // greyed out even when this member's profile has no update permission,
+    // the same gap that let a photo submission reach Geni and get rejected
+    // with "Access Denied" instead of being caught client-side first.
+    refreshFieldCheckState(id, "about_me", geniAbout, getGeniFieldLocked(profile, "about_me"));
+    refreshFieldCheckState(id, "nicknames", geniNicknames, getGeniFieldLocked(profile, "nicknames"));
     var geniOccupation = getGeniData(profile, "occupation");
     $("#" + id + "_geni_occupation").val(geniOccupation);
     $("#" + id + "_geni_occupation").prev().attr('src', getGeniLock(profile, "occupation"));

@@ -3409,6 +3409,9 @@ $(function () {
     $('#spousalgapyears').on('change', function () {
         chrome.storage.local.set({'spousalgap': this.value});
     });
+    $('#burieddaysafterdeath').on('change', function () {
+        chrome.storage.local.set({'burieddaysafterdeath': this.value});
+    });
     $('#showdropdownyearsonoffswitch').on('click', function () {
         chrome.storage.local.set({'showdropdownyears': this.checked});
     });
@@ -3996,6 +3999,12 @@ chrome.storage.local.get('generationalgap', function (result) {
 chrome.storage.local.get('spousalgap', function (result) {
     if (exists(result.spousalgap)) {
         $('#spousalgapyears').prop('value', result.spousalgap);
+    }
+});
+
+chrome.storage.local.get('burieddaysafterdeath', function (result) {
+    if (exists(result.burieddaysafterdeath)) {
+        $('#burieddaysafterdeath').prop('value', result.burieddaysafterdeath);
     }
 });
 

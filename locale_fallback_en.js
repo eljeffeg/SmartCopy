@@ -729,13 +729,16 @@ var EN_FALLBACK_MESSAGES = {
         "message": "Skipping remaining lookups..."
     },
     "Estimate_birth_years": {
-        "message": "Estimate birth/marriage years"
+        "message": "Estimate birth/marriage/death/burial years"
     },
     "Average_generational_gap_years": {
         "message": "Average generational gap (years):"
     },
     "Average_spousal_age_gap_years": {
         "message": "Average spousal age gap (years):"
+    },
+    "Buried_days_after_death": {
+        "message": "Buried days after death:"
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Show birth/death years in dropdowns"

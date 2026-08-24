@@ -502,42 +502,25 @@ function buildForm() {
         // produced that original guess. A REAL (non-circa) Geni date is
         // still never touched.
         //
-        // #208 follow-up #2: now ALWAYS applies the fresh estimate here,
-        // even when it lands on the exact same year Geni already has -
-        // reverted the earlier "only apply if different" guard
-        // (shouldApplyRefinedEstimate()) after it collided with #222's
-        // new content-aware eyeball: skipping the write left
-        // alldata["profile"]["birth"] genuinely empty, which #222 then
-        // correctly (by its own rule) hid as "nothing scraped" - so the
-        // one row confirming "yes, this is already right" just vanished
-        // instead, reading as "the estimator isn't working" rather than
-        // "confirmed." Reapplying an identical value is safe: parseForm()
-        // already excludes any field whose value matches Geni's existing
-        // one from submission, regardless of checked state - so this can
-        // never cause a duplicate/no-op update, only a visible, checked
-        // row confirming the number, which is worth more here than
-        // avoiding a harmless repeat.
+        // #230: always computes and applies the estimate now whenever the
+        // scraped side is blank - no longer gated on whether Geni's own
+        // birth date is blank or circa first (that was the #208 follow-up
+        // #2 reasoning below, now superseded). Whether this ends up
+        // pre-checked for submission is purely a render-time decision
+        // (see the estimated-field checked-state override in the render
+        // loops) - an estimate must never silently overwrite a real Geni
+        // date, but it should still be visible and available to manually
+        // check even when Geni's side isn't blank. Reapplying is still
+        // always safe even when it lands on the same year Geni already
+        // has: parseForm() already excludes any field whose value matches
+        // Geni's existing one from submission, regardless of checked
+        // state.
         if ($('#estimatebirthyearsonoffswitch').prop('checked') &&
             !exists(getBirthYear(alldata["profile"]["birth"]))) {
-            var geniFocusBirth = genifocusdata.get("birth", "date.formatted_date");
-            var geniFocusBirthBlank = !exists(geniFocusBirth) || !isValue(geniFocusBirth);
-            var geniFocusBirthIsCirca = genifocusdata.get("birth", "date.circa") === true;
-            // #208: deliberately left in (not temporary debug output) -
-            // the one place that shows exactly why the focus-profile
-            // estimate did or didn't fire, without guessing at
-            // genifocusdata's actual contents after a live report of it
-            // not re-firing against a manually-blanked Geni date.
-            console.log("SmartCopy #208: focus birth check - formatted_date=" + JSON.stringify(geniFocusBirth) +
-                " blank=" + geniFocusBirthBlank + " circa=" + geniFocusBirthIsCirca);
-            if (geniFocusBirthBlank || geniFocusBirthIsCirca) {
-                var focusEstimate = estimateBirthYear("focus", undefined, focusgender,
-                    parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
-                if (exists(focusEstimate)) {
-                    console.log("SmartCopy #208: focus estimate=" + focusEstimate.year + " (cascaded=" + focusEstimate.cascaded + ") -> applying");
-                    applyEstimatedBirth(alldata["profile"], focusEstimate.year, focusEstimate.cascaded);
-                } else {
-                    console.log("SmartCopy #208: estimateBirthYear('focus', ...) returned undefined - no anchor data available at all");
-                }
+            var focusEstimate = estimateBirthYear("focus", undefined, focusgender,
+                parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
+            if (exists(focusEstimate)) {
+                applyEstimatedBirth(alldata["profile"], focusEstimate.year, focusEstimate.cascaded);
             }
         }
         // #208: fills a baptism date ONLY when the scrape already shows a
@@ -554,28 +537,28 @@ function buildForm() {
             if (!exists(geniFocusBaptism) || !isValue(geniFocusBaptism)) {
                 var focusBirthYearForBaptism = getBirthYear(alldata["profile"]["birth"]);
                 if (exists(focusBirthYearForBaptism)) {
-                    attachEstimatedDateToLocationEntry(alldata["profile"]["baptism"], focusBirthYearForBaptism);
+                    attachEstimatedDateToLocationEntry(alldata["profile"]["baptism"], "circa " + focusBirthYearForBaptism);
                 }
             }
         }
-        // #208: focus's own marriage estimate - unlike a family member
-        // (below), category="focus" never reaches the widow-remarriage
-        // rule (see estimateMarriageYear()'s own comment for why), so this
-        // only ever resolves via the couple's own oldest child or the
-        // wife's birth+gap fallback.
+        // #230 (was #208): focus's own marriage estimate - unlike a family
+        // member (below), category="focus" never reaches the widow-
+        // remarriage rule (see estimateMarriageYear()'s own comment for
+        // why), so this only ever resolves via the couple's own oldest
+        // child or the wife's birth+gap fallback. Always computes now
+        // regardless of Geni's own marriage date - see the birth block
+        // above's comment for the full reasoning (checked-state is a
+        // separate, render-time decision).
         if ($('#estimatebirthyearsonoffswitch').prop('checked') &&
             !exists(getBirthYear(alldata["profile"]["marriage"]))) {
-            var geniFocusMarriage = genifocusdata.get("marriage", "date.formatted_date");
-            if (!exists(geniFocusMarriage) || !isValue(geniFocusMarriage)) {
-                var focusMarriageEstimate = estimateMarriageYear("focus", undefined, focusgender,
-                    parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
-                if (exists(focusMarriageEstimate)) {
-                    applyEstimatedDate(alldata["profile"], "marriage", focusMarriageEstimate.year);
-                }
+            var focusMarriageEstimate = estimateMarriageYear("focus", undefined, focusgender,
+                parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
+            if (exists(focusMarriageEstimate)) {
+                applyEstimatedDate(alldata["profile"], "marriage", "circa " + focusMarriageEstimate.year);
             }
         }
         if ($('#estimatebirthyearsonoffswitch').prop('checked')) {
-            fillMissingDeathOrBurialDate(alldata["profile"], function (t, p) { return genifocusdata.get(t, p); });
+            fillMissingDeathOrBurialDate(alldata["profile"]);
         }
         var living = false;
         if (exists(alldata["profile"].alive)) {
@@ -721,7 +704,7 @@ function buildForm() {
                             label: capFL(title),
                             fieldName: title,
                             value: dateval,
-                            checkedAttr: isChecked(dateval, scored, false, genifocusdata.get(title, "date.formatted_date"), datelocked),
+                            checkedAttr: isCheckedDateField(dateval, scored, genifocusdata.get(title, "date.formatted_date"), datelocked, exists(obj[item].estimated) && obj[item].estimated === true),
                             enabledAttr: isEnabled(dateval, scored, false, genifocusdata.get(title, "date.formatted_date"), datelocked),
                             dateambig: dateambig,
                             geniValue: genifocusdata.get(title, "date.formatted_date"),
@@ -1347,7 +1330,7 @@ function buildForm() {
                 if (!exists(geniMemberBaptism) || !isValue(geniMemberBaptism)) {
                     var memberBirthYearForBaptism = getBirthYear(members[member]["birth"]);
                     if (exists(memberBirthYearForBaptism)) {
-                        attachEstimatedDateToLocationEntry(members[member]["baptism"], memberBirthYearForBaptism);
+                        attachEstimatedDateToLocationEntry(members[member]["baptism"], "circa " + memberBirthYearForBaptism);
                     }
                 }
             }
@@ -1366,17 +1349,16 @@ function buildForm() {
                     var memberMarriageEstimate = estimateMarriageYear(relationship, members[member], focusgender,
                         parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
                     if (exists(memberMarriageEstimate)) {
-                        applyEstimatedDate(members[member], "marriage", memberMarriageEstimate.year);
+                        applyEstimatedDate(members[member], "marriage", "circa " + memberMarriageEstimate.year);
                     }
                 }
             }
 
-            // #208: death<->burial mutual fill for this member - whichever
+            // #208/#230: death<->burial mutual fill for this member - whichever
             // side has a real date supplies the other, same rule as the
             // focus profile above.
             if ($('#estimatebirthyearsonoffswitch').prop('checked')) {
-                fillMissingDeathOrBurialDate(members[member], exists(matchedCandidateForEstimate) ?
-                    function (t, p) { return matchedCandidateForEstimate.get(t, p); } : undefined);
+                fillMissingDeathOrBurialDate(members[member]);
             }
 
             var bgcolor = genderColor(gender);
@@ -1617,13 +1599,28 @@ function buildForm() {
                                 if (exists(memberobj[item].estimated) && memberobj[item].estimated === true) {
                                     fieldScored = true;
                                 }
+                                // #230 (was hardcoded ""): matchedCandidateForEstimate is
+                                // the same matched Geni node already resolved once per
+                                // member above (used by the birth/marriage/baptism
+                                // Geni-blank computation gates) - reading this title's
+                                // real value from it here closes the gap where an
+                                // estimated field could get pre-checked (and submitted)
+                                // even though Geni already has real data for this
+                                // family member, live-reported on a locked-profile case
+                                // where a computed marriage estimate was submitted and
+                                // rejected by Geni for permissions, when Geni's own
+                                // (inaccessible-to-us-until-now) value should have kept
+                                // it unchecked. No match found still falls back to ""
+                                // (new-to-Geni member, safe to default-check).
+                                var geniFieldValue = exists(matchedCandidateForEstimate) ?
+                                    matchedCandidateForEstimate.get(title, "date.formatted_date") : "";
                                 // #210: escapes dateval before it reaches value="...".
                                 membersstring = membersstring + buildDateFieldRow({
                                     label: capFL(title),
                                     fieldName: title,
                                     value: dateval,
-                                    checkedAttr: isChecked(dateval, fieldScored, false, ""),
-                                    enabledAttr: isEnabled(dateval, fieldScored, false, ""),
+                                    checkedAttr: isCheckedDateField(dateval, fieldScored, geniFieldValue, undefined, exists(memberobj[item].estimated) && memberobj[item].estimated === true),
+                                    enabledAttr: isEnabled(dateval, fieldScored, false, geniFieldValue),
                                     dateambig: dateambig,
                                     geniInputId: i + "_geni_" + title + "_date",
                                     imgIdAttr: ' imgid="' + i + '"',
@@ -2584,6 +2581,25 @@ function isChecked(value, score, force, currentValue, locked) {
     return resolveFieldEnabled(value, score, force, currentValue, locked) ? "checked" : "";
 }
 
+// #230: an estimated date must never end up pre-checked when Geni already
+// has a real value for the same field - unlike genuinely scraped data
+// (always checked regardless of Geni's side, per this project's normal
+// rule), an estimate is a guess, not a source, and should be visible/
+// available to manually check but never silently submitted over real Geni
+// data. isChecked()/resolveFieldEnabled() have no branch for this: once
+// score is forced true for an estimate (so the row renders enabled at
+// all), their isValue(value) branch fires unconditionally, since the
+// estimate's own written-out value ("circa <...>") is itself non-blank -
+// passing a real currentValue into isChecked() alone can't suppress that.
+// This wraps isChecked() and force-unchecks only in the one case that
+// matters: an estimated field where Geni's own value isn't blank.
+function isCheckedDateField(dateval, score, currentValue, locked, estimated) {
+    if (estimated === true && exists(currentValue) && isValue(currentValue)) {
+        return "";
+    }
+    return isChecked(dateval, score, false, currentValue, locked);
+}
+
 // #208: shared "get the year from a birth array" lookup - scans for the
 // FIRST element with a non-blank .date (matching the correct pattern the
 // 95-year check below already uses, buildform.js:447-462, rather than the
@@ -2607,6 +2623,87 @@ function getBirthYear(birthArray, excludeEstimated) {
         }
     }
     return undefined;
+}
+
+// #230: same scan as getBirthYear() above, but returns the raw date
+// STRING instead of just the parsed year - fillMissingDeathOrBurialDate()
+// below needs the real day/month precision (when present) to compute a
+// day-offset estimate, which a bare year can't carry.
+function getRealDateString(dateArray, excludeEstimated) {
+    if (!exists(dateArray)) {
+        return undefined;
+    }
+    for (var b = 0; b < dateArray.length; b++) {
+        if (exists(dateArray[b]) && exists(dateArray[b].date) && dateArray[b].date.trim() !== "") {
+            if (excludeEstimated && dateArray[b].estimated === true) {
+                continue;
+            }
+            return dateArray[b].date;
+        }
+    }
+    return undefined;
+}
+
+// #230: which of day/month/year precision a date string actually carries,
+// using moment's own strict-parse result rather than a hand-rolled regex -
+// getDateFormat() (popup.js) returns either dateformatter (an array of
+// candidate formats) or one specific dash-delimited format; either way,
+// moment's creationData().format reports back exactly which one matched.
+// A format string containing "D" (day-of-month) means day precision, one
+// containing "M" (month, MMM/MMMM) without a day means month precision,
+// otherwise year-only.
+function getDatePrecision(dateval) {
+    if (!exists(dateval) || dateval.trim() === "") {
+        return undefined;
+    }
+    var fmt = getDateFormat(dateval);
+    var m = moment(dateval, fmt, true);
+    if (!m.isValid()) {
+        return undefined;
+    }
+    var matchedFormat = m.creationData().format;
+    if (Array.isArray(matchedFormat)) {
+        matchedFormat = matchedFormat[0];
+    }
+    if (!exists(matchedFormat)) {
+        return undefined;
+    }
+    if (matchedFormat.indexOf("D") !== -1) {
+        return "day";
+    } else if (matchedFormat.indexOf("M") !== -1) {
+        return "month";
+    }
+    return "year";
+}
+
+// #230: live-settled rule - "Buried <N> days after death" (default 3,
+// #burieddaysafterdeath) applies symmetrically in both directions
+// (direction=1 for burial-from-death, direction=-1 for death-from-burial).
+// Only applied at DAY precision - there's no specific day to offset from
+// a month-only or year-only source date, so those carry straight across
+// unchanged at their own precision. Deliberately computes the offset
+// BEFORE truncating to month/year output, not after - live-confirmed
+// reasoning: a death on 29 Nov + a few days can land in December, and
+// truncating the death date to its own month FIRST would put the burial
+// estimate in the wrong month entirely.
+function computeCircaFromRelatedDate(sourceDateStr, direction) {
+    var precision = getDatePrecision(sourceDateStr);
+    if (!exists(precision)) {
+        return undefined;
+    }
+    var fmt = getDateFormat(sourceDateStr);
+    var m = moment(sourceDateStr, fmt, true);
+    if (precision === "day") {
+        var offsetDays = parseInt($('#burieddaysafterdeath').val(), 10);
+        if (isNaN(offsetDays) || offsetDays < 0) {
+            offsetDays = 3;
+        }
+        m.add(direction * offsetDays, 'days');
+        return "circa " + m.format("D MMM YYYY");
+    } else if (precision === "month") {
+        return "circa " + m.format("MMM YYYY");
+    }
+    return "circa " + m.format("YYYY");
 }
 
 // #204: finds the focus person's spouse's surname, but only when that's
@@ -3112,7 +3209,7 @@ function estimateMarriageYear(category, member, focusGender, generationalGap, sp
 // array fresh or unshifted onto an existing one - the same guarantee this
 // function's own docstring above already promises callers.
 function applyEstimatedBirth(target, year, cascaded) {
-    applyEstimatedDate(target, "birth", year);
+    applyEstimatedDate(target, "birth", "circa " + year);
     if (cascaded === true) {
         target["birth"][0].cascaded = true;
     }
@@ -3128,13 +3225,19 @@ function applyEstimatedBirth(target, year, cascaded) {
 // false - death/burial are treated as effectively certain once either is
 // known, unlike the optional baptism). Returns true if it actually filled
 // something in.
-function attachEstimatedDateToLocationEntry(dateArray, year) {
+// #230: takes the full pre-formatted value ("circa <...>") directly
+// rather than a bare year and prefixing internally - death/burial's own
+// estimate (below) needs to write a full "circa <D MMM YYYY | MMM YYYY |
+// YYYY>" string depending on source precision, which a year-only
+// parameter couldn't carry. Existing callers (baptism) now pass
+// "circa " + year themselves instead.
+function attachEstimatedDateToLocationEntry(dateArray, value) {
     if (!exists(dateArray)) {
         return false;
     }
     for (var i = 0; i < dateArray.length; i++) {
         if (exists(dateArray[i].location) && (!exists(dateArray[i].date) || dateArray[i].date === "")) {
-            dateArray[i].date = "circa " + year;
+            dateArray[i].date = value;
             dateArray[i].estimated = true;
             return true;
         }
@@ -3146,8 +3249,10 @@ function attachEstimatedDateToLocationEntry(dateArray, year) {
 // [{date, estimated}] entry (or unshifts onto an existing array) for any
 // event title, not just birth. Used by fillMissingDeathOrBurialDate() below
 // when attachEstimatedDateToLocationEntry() had nothing to attach to.
-function applyEstimatedDate(target, title, year) {
-    var entry = { date: "circa " + year, estimated: true };
+// #230: takes the full pre-formatted value directly - see
+// attachEstimatedDateToLocationEntry()'s own comment on the same change.
+function applyEstimatedDate(target, title, value) {
+    var entry = { date: value, estimated: true };
     if (!exists(target[title])) {
         target[title] = [entry];
     } else {
@@ -3155,37 +3260,43 @@ function applyEstimatedDate(target, title, year) {
     }
 }
 
-// #208: death and burial are treated as a symmetric pair - "if burial OR
-// death dates are there, estimate the OTHER to be the same year." Whichever
-// side has a REAL date (never an already-estimated one, via
-// getBirthYear(..., true)) supplies the year for whichever side doesn't -
-// attaching to an existing location-bearing entry when there is one,
-// otherwise creating a bare date-only entry from nothing entirely (unlike
-// baptism, which never does that - see attachEstimatedDateToLocationEntry()'s
-// own comment for why the two differ). No rounding here, unlike every other
-// estimate this feature writes - this is a direct same-year assumption, not
-// a demographic gap guess, so rounding would only throw away real
-// precision for no benefit ("circa" already signals it's inferred).
-// geniGetter mirrors resolveFsLookupYears()'s own param - undefined for a
-// family member with no resolved match yet, in which case only the scraped
-// side is checked before writing.
-function fillMissingDeathOrBurialDate(target, geniGetter) {
-    var deathYear = getBirthYear(target["death"], true);
-    var burialYear = getBirthYear(target["burial"], true);
-    function geniHasReal(title) {
-        if (!exists(geniGetter)) {
-            return false;
+// #230 (replaces the earlier #208 same-year version): death and burial
+// are still treated as a symmetric pair, but the estimate is now a
+// day-offset, not a same-year assumption. Whichever side has a REAL date
+// (never an already-estimated one, via getRealDateString(..., true))
+// supplies the source for whichever side is scraped-blank - attaching to
+// an existing location-bearing entry when there is one, otherwise
+// creating a bare date-only entry from nothing entirely (unlike baptism,
+// which never does that - see attachEstimatedDateToLocationEntry()'s own
+// comment for why the two differ).
+//
+// Live-settled rule: burial is estimated as death + the "Buried days
+// after death" setting (default 3, #burieddaysafterdeath) when death has
+// day precision; death is estimated as burial MINUS that same setting,
+// symmetrically. A month-only or year-only source carries straight
+// across unchanged at its own precision (no day to offset from) - see
+// computeCircaFromRelatedDate()'s own comment.
+//
+// #230: no longer takes a geniGetter/checks Geni's own value at all -
+// this now ALWAYS computes and writes the estimate whenever the scraped
+// side is blank, regardless of what Geni already has. Whether it ends up
+// pre-checked for submission is now purely a render-time decision (see
+// the estimated-field checked-state override in the render loops below) -
+// an estimate must never silently overwrite real Geni data, but it should
+// still be visible and available to manually check even when Geni's side
+// isn't blank.
+function fillMissingDeathOrBurialDate(target) {
+    var deathDateStr = getRealDateString(target["death"], true);
+    var burialDateStr = getRealDateString(target["burial"], true);
+    if (exists(deathDateStr) && !exists(burialDateStr)) {
+        var burialEstimate = computeCircaFromRelatedDate(deathDateStr, 1);
+        if (exists(burialEstimate) && !attachEstimatedDateToLocationEntry(target["burial"], burialEstimate)) {
+            applyEstimatedDate(target, "burial", burialEstimate);
         }
-        var d = geniGetter(title, "date.formatted_date");
-        return exists(d) && isValue(d);
-    }
-    if (exists(deathYear) && !exists(burialYear) && !geniHasReal("burial")) {
-        if (!attachEstimatedDateToLocationEntry(target["burial"], deathYear)) {
-            applyEstimatedDate(target, "burial", deathYear);
-        }
-    } else if (exists(burialYear) && !exists(deathYear) && !geniHasReal("death")) {
-        if (!attachEstimatedDateToLocationEntry(target["death"], burialYear)) {
-            applyEstimatedDate(target, "death", burialYear);
+    } else if (exists(burialDateStr) && !exists(deathDateStr)) {
+        var deathEstimate = computeCircaFromRelatedDate(burialDateStr, -1);
+        if (exists(deathEstimate) && !attachEstimatedDateToLocationEntry(target["death"], deathEstimate)) {
+            applyEstimatedDate(target, "death", deathEstimate);
         }
     }
 }

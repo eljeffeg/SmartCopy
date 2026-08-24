@@ -1440,7 +1440,15 @@ function buildForm() {
                 // surname moved into nameval.birthName instead - use
                 // whichever is populated so buildAction gets the actual
                 // surname regardless of gender.
-                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 18px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
+                // #230 follow-up (live-reported): the lock icon here is
+                // hidden until setGeniFamilyData() knows whether the
+                // matched profile has any edit permission at all (not
+                // knowable at render time, before a match exists) - it's
+                // the same "why is everything greyed out" question the
+                // blanket no-edit-permission sweep answers for the fields
+                // themselves, surfaced right at Action: where the match is
+                // actually chosen.
+                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 18px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><img id="' + i + '_action_lock" src="images/lock.png" title="This profile is locked - you do not have edit permission, so all fields are disabled" style="width: 14px; height: 14px; margin-left: 4px; display: none; vertical-align: middle;"><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
 
                 if (isChild(relationship) || relationship === "unknown") {
                     var parentrel = "Parent";
@@ -4568,6 +4576,39 @@ function setGeniFamilyData(id, profile) {
         applySelectAllState(memberexpand, false);
         applySelectAllState(memberexpand, true);
     }
+
+    // #230 follow-up (live-reported): a profile with NO edit permission at
+    // all (a genuinely locked profile, not just an individual Geni-locked
+    // field) needs every checkbox for this member disabled and unchecked -
+    // not just the ones whose individual refreshFieldCheckState() call
+    // happens to pass a correct locked argument. Auditing every field/row
+    // type one at a time already missed about_me/nicknames/photo (fixed
+    // above) and still misses Privacy (its own separate
+    // refreshPrivacySelect() code path, no lock awareness at all) and any
+    // field only rendered once the "show all fields" eyeball toggle
+    // reveals it (e.g. baptism/marriage location on a profile with no
+    // scraped data for either) - a single blanket sweep here, run last so
+    // it has final say over everything above (including the select-all
+    // resync just above), is simpler and safer than chasing down every
+    // remaining gap individually.
+    // getGeniFieldLocked() always ORs in a per-field Geni lock too, which
+    // would incorrectly report true here for a single locked field on an
+    // otherwise-editable profile - recompute the permission check directly
+    // instead of reusing it, so this only fires on a total lack of update
+    // access, not an unrelated per-field lock.
+    var memberActionsForLockSweep = genifamilydata[profile] ? genifamilydata[profile].get("actions") : undefined;
+    var noEditPermission = profile !== "add" && exists(genifamilydata[profile]) &&
+        (!exists(memberActionsForLockSweep) ||
+            (memberActionsForLockSweep.indexOf("update") === -1 && memberActionsForLockSweep.indexOf("update-basics") === -1));
+    if (noEditPermission) {
+        memberexpand.find('.checknext').prop('checked', false).prop('disabled', true);
+        memberexpand.find('input, select, textarea').not('.genislideinput').prop('disabled', true);
+        checkslideEl.prop('checked', false).prop('disabled', true);
+    }
+    // Toggled both ways (not just shown) - switching the Action: dropdown
+    // to a different match (locked -> editable, or vice versa) must not
+    // leave a stale lock icon from whatever was previously selected.
+    $('#' + id + '_action_lock').css('display', noEditPermission ? 'inline' : 'none');
 }
 
 function isAlive(alive) {

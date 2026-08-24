@@ -3042,16 +3042,37 @@ function estimateMarriageYear(category, member, focusGender, generationalGap, sp
     }
 
     if (category === "partner" && exists(member)) {
+        // getOtherPartners() returns every other scraped partner with no
+        // sense of chronological order - a LATER spouse's death has no
+        // bearing on THIS member's own marriage date (e.g. estimating the
+        // first wife's marriage must not anchor off the second wife's much
+        // later death). Only an other-partner who died BEFORE this member's
+        // own real death can be "the prior spouse whose death let this
+        // member marry in" - so require that ordering whenever this
+        // member's own real death year is known; if it isn't, there's no
+        // evidence to rule the other-partner out, so fall back to the old
+        // unrestricted behavior.
         var others = getOtherPartners(member);
+        var memberOwnDeath = getBirthYear(member["death"], true);
         var latestOtherDeath = undefined;
         for (var o = 0; o < others.length; o++) {
             var otherDeathYear = getBirthYear(others[o]["death"], true);
-            if (exists(otherDeathYear) && (!exists(latestOtherDeath) || otherDeathYear > latestOtherDeath)) {
+            if (exists(otherDeathYear) && (!exists(memberOwnDeath) || otherDeathYear < memberOwnDeath) &&
+                    (!exists(latestOtherDeath) || otherDeathYear > latestOtherDeath)) {
                 latestOtherDeath = otherDeathYear;
             }
         }
         if (exists(latestOtherDeath)) {
-            return { year: roundToNearestFive(latestOtherDeath + widowGap) };
+            // roundToNearestFive() can round the raw estimate DOWN to at or
+            // before the anchor death year itself, implying this member
+            // married before the prior spouse even died - chronologically
+            // impossible for a widow/widower remarriage. Round up instead
+            // whenever that happens.
+            var widowYear = roundToNearestFive(latestOtherDeath + widowGap);
+            if (widowYear <= latestOtherDeath) {
+                widowYear += 5;
+            }
+            return { year: widowYear };
         }
     }
 

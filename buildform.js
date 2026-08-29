@@ -191,21 +191,33 @@ function updateGeoLocation() {
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.query;
         $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", geoon).trigger("click");
+        // Live-reported: Place/City/County/State/Country/Latitude/Longitude
+        // below used to stay UNCHECKED whenever their own resolved value
+        // came back blank (the usual "don't auto-check a blank, might
+        // silently clear real Geni data" protection) - but this function
+        // only ever runs after the user explicitly clicked "Update
+        // Location" and typed a correction, an already-explicit action,
+        // not a passive render. A field that resolves blank after that
+        // correction (e.g. Place, once City/County/State fully account for
+        // everything) needs to be submitted as blank too, or a stale prior
+        // value is left behind unchecked and never actually cleared. So
+        // every field this walks is checked whenever geo parsing applies
+        // to this row (geoon) at all, regardless of its own value.
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.place;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.place !== "" || globalloc) && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.city;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.city !== "" || globalloc) && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.county;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.county !== "" || globalloc) && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.state;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.state !== "" || globalloc) && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.country;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.country !== "" || globalloc) && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
         // #229 follow-up (found during a full-codebase re-audit): this is
         // the same row-count-drift bug already fixed once in .geotopcheck
         // (0a48a3a) and once in .geoicon (this same audit pass) - a manual
@@ -218,10 +230,10 @@ function updateGeoLocation() {
         // this modal) latitude/longitude silently stuck in the form.
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.latitude;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.latitude !== "" || globalloc) && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.longitude;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !((locationdata.longitude !== "" || globalloc) && geoon)).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
         $("body").toggleClass("wait");
     }
 }
@@ -2249,6 +2261,18 @@ function updateClassResponse() {
             $('#georevertbtn').attr("value", parsedLocation);
             $('#geoupdatetext').val(parsedLocation);
             $('#geoupdatetext').attr("reference", id);
+            // #233: only relevant to FamilySearch Places (Google's geocoder
+            // has no per-lookup date concept) - defaults to the associated
+            // date field's CURRENT live value (whatever the user may have
+            // already edited this session), not whatever was originally
+            // scraped, so a date correction made first is reflected here
+            // without having to remember and retype it.
+            if ($('#familysearchplacesonoffswitch').prop('checked')) {
+                $('#geoupdateyear').val(getCurrentEventYear(id));
+                $('#geoupdateyearrow').css('display', 'block');
+            } else {
+                $('#geoupdateyearrow').css('display', 'none');
+            }
             document.getElementById('GeoUpdateModal').style.display = "block";
             $("#geoupdatetext").focus();
         });
@@ -2294,6 +2318,24 @@ function getParsedLocation(dataid) {
     } else {
         return "";
     }
+}
+
+// #233: the year offered as a default in the manual location-edit modal's
+// FamilySearch lookup override - reads the LIVE date input's current value
+// (same id convention as getParsedLocation() above), not alldata's
+// original scraped date, so a date the user already corrected this
+// session is reflected here instead of a stale value they'd have to
+// remember and retype.
+function getCurrentEventYear(dataid) {
+    var idsplit = dataid.split("_");
+    var item = idsplit[1];
+    var scope = (idsplit[0] === "focus") ? $("#profiletable") : $("#familytable_" + idsplit[0]);
+    var dateInput = scope.find('[name="' + item + ':date"]');
+    if (dateInput.length === 0) {
+        return "";
+    }
+    var year = extractDateYear(dateInput.val());
+    return exists(year) ? year : "";
 }
 
 function placementUpdate() {

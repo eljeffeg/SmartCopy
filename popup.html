@@ -768,6 +768,14 @@
                 Update the location and resubmit it to Google for GeoLocation.
                 <div class="modal-body" style="height: 100%;">
                     <p><input id="geoupdatetext" type="text" style="width: 100%;"></p>
+                    <!-- #233: only relevant when FamilySearch Places is the
+                    active geo source - Google's geocoding has no per-lookup
+                    date concept, so showing this alongside it would just be
+                    confusing. Defaults to the associated date field's
+                    CURRENT (possibly just-edited) year, but editing it here
+                    only affects this lookup - never writes back to the
+                    actual date field. -->
+                    <p id="geoupdateyearrow" style="display: none;">FamilySearch lookup year: <input id="geoupdateyear" type="number" style="width: 70px;"></p>
                     <button type="button" id="georevertbtn" value="" class="cta cta-blue" title="Restore Original Location" style="float: left;"><img style="width: 22px; margin-top: 3px;" alt="Revert" src="images/revert.png"></button><button type="button" id="geolookupbtn" class="cta cta-blue" style="float: right;">Update</button>
                     <br><br>
                 </div>

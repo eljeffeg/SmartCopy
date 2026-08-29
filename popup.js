@@ -3557,6 +3557,14 @@ $(function () {
             googlerequery = $('#geoupdatetext').attr("reference");
             var modal = document.getElementById('GeoUpdateModal');
             var locationset = {"id": geoid, "location": $('#geoupdatetext').val()};
+            // #233: the year is scoped to just this one lookup, never
+            // written back to the actual date field - lets a user probe a
+            // different year (bad FamilySearch data, or a deliberately
+            // better-known date than what's on the record) without
+            // pretending the event itself happened then.
+            if ($('#familysearchplacesonoffswitch').prop('checked') && $('#geoupdateyear').val() !== "") {
+                locationset.dateForFsLookup = $('#geoupdateyear').val();
+            }
             modal.style.display = "none";
             queryGeo(locationset);
             updateGeoLocation();

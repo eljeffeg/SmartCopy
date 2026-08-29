@@ -567,16 +567,64 @@ function familySearchPlaceToGeoLocation(places, query, placeName) {
         return "";
     }
 
+    // #234 follow-up (live-reported): "Price Hill, Cincinnati, Hamilton,
+    // Ohio, United States" - a neighborhood inside a city - was mapping
+    // county to "Cincinnati" (itself a city) and state to "Hamilton" (the
+    // real county), because ancestors[0]/[1] were assumed to always be
+    // county/state. FamilySearch can insert an extra populated-place
+    // ancestor (a city enclosing a neighborhood, or similar) between the
+    // matched place and the real administrative hierarchy - live-confirmed
+    // via each ancestor's own numeric place-type ID (the last path segment
+    // of its "type" URL): Cincinnati is type 186 ("City"), the same broad
+    // kind of place as the matched neighborhood itself, not an
+    // administrative district like a county. Skip any LEADING ancestor
+    // whose type is itself a settlement/populated place before assigning
+    // county/state - not an exhaustive type list, built from live-
+    // confirmed cases (186 City, 308 Neighborhood or suburb, 376 Town, 201
+    // Municipality); extend as new cases turn up. Live-confirmed this does
+    // NOT affect the Storkow case (its own extra/dropped ancestor,
+    // Prussia, is type 362 "State" - an administrative type, never
+    // matched by this list) or the Santa Cruz case (#234's own county
+    // ancestor is type 209 "County", never matched either).
+    var FS_SETTLEMENT_ANCESTOR_TYPES = ["186", "308", "376", "201"];
+    function typeId(p) {
+        if (!exists(p) || !exists(p.type)) {
+            return "";
+        }
+        var parts = p.type.split("/");
+        return parts[parts.length - 1];
+    }
+
     location.city = nameOf(places[0]);
     var ancestors = places.slice(1);
     if (ancestors.length >= 1) {
         location.country = nameOf(ancestors[ancestors.length - 1]);
     }
-    if (ancestors.length === 2) {
-        location.state = nameOf(ancestors[0]);
-    } else if (ancestors.length >= 3) {
-        location.county = nameOf(ancestors[0]);
-        location.state = nameOf(ancestors[1]);
+    var adminAncestors = ancestors.slice(0, ancestors.length - 1);
+    // A skipped settlement ancestor (Cincinnati, enclosing the Price Hill
+    // neighborhood) is still real, useful city-level context - fold it
+    // into City rather than discarding it: "Price Hill, Cincinnati".
+    while (adminAncestors.length > 1 && FS_SETTLEMENT_ANCESTOR_TYPES.indexOf(typeId(adminAncestors[0])) !== -1) {
+        location.city = location.city + ", " + nameOf(adminAncestors[0]);
+        adminAncestors = adminAncestors.slice(1);
+    }
+    if (adminAncestors.length === 1) {
+        location.state = nameOf(adminAncestors[0]);
+    } else if (adminAncestors.length >= 2) {
+        location.county = nameOf(adminAncestors[0]);
+        location.state = nameOf(adminAncestors[1]);
+    }
+    // #234: Geni appends " County" to disambiguate a US county from a
+    // same-named city (e.g. "Santa Cruz, Santa Cruz County, California,
+    // United States") - FamilySearch's own data doesn't carry that
+    // suffix (live-confirmed: querying "Santa Cruz, California" returns
+    // county ancestor name "Santa Cruz", plain, country "United
+    // States"). US-only for now, matching countyOnlyOverride()'s own
+    // "County" detection regex - other countries may have their own
+    // disambiguation convention, but nothing here is evidenced yet.
+    if (location.country === "United States" && location.county !== "" &&
+            !/\s*County\s*$/i.test(location.county)) {
+        location.county = location.county + " County";
     }
     // #229 follow-up (live-reported regression): recomputing .place here
     // via computeLeftoverPlaceName() - live-reported as "Potsdam, Preussen"

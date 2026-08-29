@@ -3484,11 +3484,11 @@ $(function () {
             // original behavior) would re-collapse a populated row the
             // moment the user closed the eyeball again after opening it.
             $('#formdata').find('.hiddenrow[data-hasvalue="false"]').css("display", "none");
-            $('.showhide').attr("src", EYEBALL_EMPTY_HIDDEN_ICON);
+            $('.showhide').text(SHOW_ALL_LABEL);
             $('.showhide').attr("title", "Hiding Unused Fields");
         } else {
             $('#formdata').find(".hiddenrow").css("display", "table-row");
-            $('.showhide').attr("src", EYEBALL_ALL_SHOWN_ICON);
+            $('.showhide').text(SHOW_LESS_LABEL);
             $('.showhide').attr("title", "Showing All Fields");
             geoonoff($('#geoonoffswitch').prop('checked'));
         }
@@ -4029,7 +4029,7 @@ chrome.storage.local.get('hideempty', function (result) {
     if (exists(hidechecked)) {
         $('#hideemptyonoffswitch').prop('checked', hidechecked);
         if (!$('#hideemptyonoffswitch').prop('checked')) {
-                $("#focusshowhide").attr("src", EYEBALL_ALL_SHOWN_ICON);
+                $("#focusshowhide").text(SHOW_LESS_LABEL);
                 $("#focusshowhide").attr("title", "Showing All Fields");
             }
     }

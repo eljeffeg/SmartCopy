@@ -1424,11 +1424,11 @@ function buildForm() {
             if (relationship === "unknown") {
                 membersstring += '<tr name="unk" style="display: table-row;"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Relation:</span><span id="unknownrel' + i + '">' + buildUnknown(gender) + '</span></td></tr>';
             }
-            var showimg = EYEBALL_EMPTY_HIDDEN_ICON;
+            var showlabel = SHOW_ALL_LABEL;
             var showtitle = "Hiding Unused Fields";
             if (expand) {
                 if (!$('#hideemptyonoffswitch').prop('checked')) {
-                    showimg = EYEBALL_ALL_SHOWN_ICON;
+                    showlabel = SHOW_LESS_LABEL;
                     showtitle = "Showing All Fields";
                 }
                 var actionBirthYear = undefined;
@@ -1448,7 +1448,7 @@ function buildForm() {
                 // blanket no-edit-permission sweep answers for the fields
                 // themselves, surfaced right at Action: where the match is
                 // actually chosen.
-                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><img src="' + showimg + '" class="showhide" title="' + showtitle + '" style="width: 18px; position: absolute; left: 20px; cursor: pointer;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><img id="' + i + '_action_lock" src="images/lock.png" title="This profile is locked - you do not have edit permission, so all fields are disabled" style="width: 14px; height: 14px; margin-left: 4px; display: none; vertical-align: middle;"><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
+                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span class="showhide" title="' + showtitle + '" style="cursor: pointer; font-weight: normal; font-size: 90%; white-space: nowrap; margin-left: 6px;">' + showlabel + '</span><img id="' + i + '_action_lock" src="images/lock.png" title="This profile is locked - you do not have edit permission, so all fields are disabled" style="width: 14px; height: 14px; margin-left: 4px; display: none; vertical-align: middle;"><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
 
                 if (isChild(relationship) || relationship === "unknown") {
                     var parentrel = "Parent";
@@ -2257,12 +2257,12 @@ function updateClassResponse() {
     $(function () {
         $('.showhide').on('click', function () {
             var value = $($(this)[0]);
-            if (value.attr("src") === EYEBALL_ALL_SHOWN_ICON) {
+            if (value.text() === SHOW_LESS_LABEL) {
                 // #222: only re-collapse rows that are ACTUALLY blank
                 // (data-hasvalue) - same reasoning as hideempty() in
                 // popup.js, scoped to just this person's own table.
                 $(this).closest("table").find('.hiddenrow[data-hasvalue="false"]').css("display", "none");
-                value.attr("src", EYEBALL_EMPTY_HIDDEN_ICON);
+                value.text(SHOW_ALL_LABEL);
                 value.attr("title", "Hiding Unused Fields");
             } else {
                 if (geoAnySourceEnabled()) {
@@ -2270,7 +2270,7 @@ function updateClassResponse() {
                 } else {
                     $(this).closest("table").find(".hiddenrow").not(".geoloc").css("display", "table-row");
                 }
-                value.attr("src", EYEBALL_ALL_SHOWN_ICON);
+                value.text(SHOW_LESS_LABEL);
                 value.attr("title", "Showing All Fields");
             }
         });

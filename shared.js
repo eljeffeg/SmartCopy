@@ -17,46 +17,33 @@ var uniondata = [];
 var deepResearchOn = true;
 var deepResearchSkipRun = false;
 
-// #222 follow-up: the eyeball toggle's two states (images/show.png,
-// images/hide.png) turned out to be the literal SAME open-eye glyph,
-// just recolored - there was never an actual visual "closed eye" to
-// look at, only a tooltip and a color hint, which read as ambiguous.
-// Replaced with inline SVG data URIs (standard Feather Icons eye/
-// eye-off paths, MIT) so the two states are visually distinct at a
-// glance, not just differently colored. Kept as <img src="..."> data
-// URIs rather than real inline <svg> DOM elements specifically so
-// every existing .attr("src", ...) swap site (buildform.js's
-// .showhide click handler, popup.js's hideempty()/#focusshowhide
-// init) keeps working with a one-constant change instead of needing
-// to restructure into DOM manipulation.
+// #231 follow-up (live-reported): the eyeball icon - even after being
+// fixed to reflect current state rather than the click action - was
+// still confusing at a glance (an eye-open vs. eye-slashed glyph
+// requires interpreting a small color/shape difference). Replaced with
+// a plain text toggle: a disclosure-triangle glyph (▶ collapsed, ▼
+// expanded) paired with a label naming the click action itself ("Show
+// all" / "Show less") - the triangle still reflects current state
+// (Apple HIG convention, same reasoning #231 already established), the
+// text just makes the action unambiguous without requiring any icon
+// interpretation at all.
 //
-// #231 (live-reported): the two SVGs above were originally paired
-// wrong - the open eye was grey and shown while rows were COLLAPSED
-// (naming/coloring the icon after the action a click would perform,
-// "show everything"), the slashed eye was blue and shown while rows
-// were ALL VISIBLE. That's backwards from the Apple HIG toggle
-// convention (icon appearance reflects CURRENT state, not a preview of
-// the next click - https://developer.apple.com/design/human-interface-
-// guidelines/toggles) and from how e.g. a password field's show/hide
-// eye universally works: open+"engaged" color while you CAN currently
-// see everything, closed/slashed+neutral color while you currently
-// can't. Recolored/reshaped (same two path shapes, just recombined)
-// and renamed to describe current state rather than the click action:
-// EYEBALL_ALL_SHOWN_ICON (blue, open) while every field is visible;
-// EYEBALL_EMPTY_HIDDEN_ICON (grey, slashed) while empty fields are
-// currently collapsed.
-//
-// popup.html's own static <img id="focusshowhide"> tag can't reference
-// a JS constant (it's plain HTML, not templated) - its initial src is
-// the same EYEBALL_EMPTY_HIDDEN_ICON string hardcoded directly,
-// matching the default collapsed state ("Hide Empty Fields" defaults
-// on). Keep both in sync if this SVG ever changes.
-var EYEBALL_ALL_SHOWN_ICON = 'data:image/svg+xml,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2e7dd7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
-);
-var EYEBALL_EMPTY_HIDDEN_ICON = 'data:image/svg+xml,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#888888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.62 21.62 0 0 1 5.06-6.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.64 21.64 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>'
-);
+// popup.html's own static <span id="focusshowhide"> tag can't
+// reference a JS constant (it's plain HTML, not templated) - its
+// initial text is SHOW_ALL_LABEL hardcoded directly, matching the
+// default collapsed state ("Hide Empty Fields" defaults on). Keep both
+// in sync if this label ever changes.
+// Leading space is intentional and load-bearing, not stray whitespace -
+// the focus-profile placement (popup.html) sits this span directly after
+// plain "Update Profile" text with no space of its own, and CSS
+// padding-left alone wasn't rendering enough visual separation (live-
+// reported: "Update Profile▶ Show all" ran together).
+// Small solid triangles (▸/▾), not full-size (▶/▼) - live-reported the
+// full-size glyphs read as bold regardless of font-weight, since
+// font-weight has no effect on a filled Unicode symbol's shape; these
+// are a dedicated smaller variant, still filled rather than outline.
+var SHOW_ALL_LABEL = ' ▸ Show all fields';
+var SHOW_LESS_LABEL = ' ▾ Hide unused fields';
 
 // Registry of abort callbacks for every Deep Research tab fetch currently
 // in flight (one entry per open tab, across all four collections). Skipping

@@ -1614,11 +1614,15 @@ var submitform = function () {
                 // a separate formal sources/citations system - see #59.
                 var updatedCategories = summarizeUpdatedCategories(profileout, exists(focusphotoinfo), marriagedates[profileout.profile_id]);
                 var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
+                // #236: FamilySearch/FindAGrave show their own stable
+                // record ID in the visible link text instead of the plain
+                // site name - see footnoteLabel()'s own comment.
+                var footnoteRecordtype = footnoteLabel(refurl, recordtype);
                 // Matches on just the stable "[url recordtype]" token rather
                 // than the full surrounding phrase, so this keeps working
                 // regardless of prefix wording ("Updated from" vs
                 // "Reference:"), link protocol, or formatting (e.g. bold).
-                var token = "[" + encodeURI(refurl) + " " + recordtype + "]";
+                var token = "[" + encodeURI(refurl) + " " + footnoteRecordtype + "]";
                 var alreadyReferenced = focusabout.contains(token);
                 // A source referenced once but updated again later with a
                 // genuinely different category (e.g. a photo added after the
@@ -1637,7 +1641,7 @@ var submitform = function () {
                 });
                 if (!alreadyReferenced || newCategories.length > 0) {
                     if (exists(refurl)) {
-                        profileout["about_me"] = about + "* '''[" + encodeURI(refurl) + " " + recordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                        profileout["about_me"] = about + "* '''[" + encodeURI(refurl) + " " + footnoteRecordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                     } else {
                         profileout["about_me"] = about + "* '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                     }
@@ -1735,8 +1739,10 @@ var submitform = function () {
                             }
                             var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]), marriagedates[familyout.profile_id]);
                             var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
+                            // #236: see footnoteLabel()'s own comment.
+                            var familyFootnoteRecordtype = footnoteLabel(fdata.url, recordtype);
                             if (exists(fdata.url)) {
-                                about = about + "* '''[" + encodeURI(fdata.url) + " " + recordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                                about = about + "* '''[" + encodeURI(fdata.url) + " " + familyFootnoteRecordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                             } else {
                                 about = about + "* '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                             }
@@ -2495,6 +2501,41 @@ function summarizeUpdatedCategories(fields, includesPhoto, marriageEntry) {
         }
     }
     return categories;
+}
+
+// #236: a source site's URL format can change; its own stable per-record
+// ID rarely does. Showing the ID directly in the footnote's visible link
+// text means a broken/reformatted URL later still leaves enough to find
+// the record again manually. Derived straight from the same URL already
+// being linked (refurl/fdata.url) rather than a separate lookup, so it
+// works identically for the focus profile and any family member's own
+// source URL. Falls back to the plain recordtype whenever the URL doesn't
+// match the expected pattern (a redesigned site, or no URL at all) -
+// never blocks the footnote itself on this being unrecognized.
+// This value also becomes part of the "[url recordtype]" match token used
+// to detect an already-referenced source (see the token variable at both
+// call sites) - a profile with an existing OLD-format ("FamilySearch
+// Genealogy", no ID) footnote from before this change won't match the new
+// token and will get one additional, differently-formatted line the next
+// time it's touched. A one-time transition artifact, not a recurring
+// duplicate - every footnote written from here on is consistently
+// ID-based.
+function footnoteLabel(url, baseRecordtype) {
+    if (!exists(url)) {
+        return baseRecordtype;
+    }
+    if (baseRecordtype === "Find A Grave Memorial") {
+        var fagMatch = url.match(/\/memorial\/(\d+)/);
+        if (exists(fagMatch)) {
+            return "Find A Grave ID:" + fagMatch[1];
+        }
+    } else if (baseRecordtype === "FamilySearch Genealogy") {
+        var fsMatch = url.match(/\/tree\/person\/details\/([A-Za-z0-9-]+)/);
+        if (exists(fsMatch)) {
+            return "FamilySearch ID:" + fsMatch[1];
+        }
+    }
+    return baseRecordtype;
 }
 
 // Every category any prior "* Reference: [url recordtype] ... (updated:

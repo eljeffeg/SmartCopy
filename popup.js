@@ -2527,12 +2527,12 @@ function footnoteLabel(url, baseRecordtype) {
     if (baseRecordtype === "Find A Grave Memorial") {
         var fagMatch = url.match(/\/memorial\/(\d+)/);
         if (exists(fagMatch)) {
-            return "Find A Grave ID:" + fagMatch[1];
+            return "Find A Grave, ID:" + fagMatch[1];
         }
     } else if (baseRecordtype === "FamilySearch Genealogy") {
         var fsMatch = url.match(/\/tree\/person\/details\/([A-Za-z0-9-]+)/);
         if (exists(fsMatch)) {
-            return "FamilySearch ID:" + fsMatch[1];
+            return "FamilySearch, ID:" + fsMatch[1];
         }
     }
     return baseRecordtype;

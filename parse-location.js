@@ -586,7 +586,18 @@ function familySearchPlaceToGeoLocation(places, query, placeName) {
     // Prussia, is type 362 "State" - an administrative type, never
     // matched by this list) or the Santa Cruz case (#234's own county
     // ancestor is type 209 "County", never matched either).
-    var FS_SETTLEMENT_ANCESTOR_TYPES = ["186", "308", "376", "201"];
+    // #237 follow-up (live-explored): "520" (Major City) added - a NYC
+    // borough match (Manhattan, Brooklyn, Bronx, Queens, Staten Island -
+    // all display.type "Borough") has "New York City" itself as an
+    // ancestor, type 520. Without this, "New York City" was wrongly
+    // treated as the county (adminAncestors[0]), when it's a settlement
+    // like Cincinnati, not an administrative district - FamilySearch's
+    // NYC hierarchy never actually surfaces the real county names (New
+    // York County, Kings County, etc.) at all, so there's no correct
+    // county value to extract here regardless; folding it into City
+    // ("Manhattan, New York City") is the closest correct answer, not
+    // "Manhattan" with a wrong county.
+    var FS_SETTLEMENT_ANCESTOR_TYPES = ["186", "308", "376", "201", "520"];
     function typeId(p) {
         if (!exists(p) || !exists(p.type)) {
             return "";

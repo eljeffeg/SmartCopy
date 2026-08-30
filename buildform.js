@@ -2729,7 +2729,7 @@ function getRealDateString(dateArray, excludeEstimated) {
 // arithmetic, no reformatting, no separate day/month/year handling
 // needed. direction=1 for burial-from-death ("After <death date>"),
 // direction=-1 for death-from-burial ("Before <burial date>").
-// #241 (live-reported): stacking a new "After"/"Before" onto a source
+// Live-reported: stacking a new "After"/"Before" onto a source
 // date that's already qualified ("circa 1810" becoming "After circa
 // 1810") reads wrong and overstates precision that isn't there - "After"
 // implies the anchor itself is a known, precise fact (true when death is

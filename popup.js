@@ -3650,6 +3650,13 @@ $(function () {
             $("#geolookupbtn").click();
         }
     });
+    // #243: same Enter-to-submit behavior as the location text field above -
+    // consistency of behavior in the same panel.
+    $("#geoupdateyear").on('keyup', function(event){
+        if(event.keyCode == 13){
+            $("#geolookupbtn").click();
+        }
+    });
     $(function () {
         $('#georevertbtn').on('click', function () {
             $('#geoupdatetext').val($('#georevertbtn').attr("value"));

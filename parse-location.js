@@ -300,7 +300,14 @@ function isBroadPlaceType(place) {
 // records) - German venue/institution words for the same categories are
 // exactly as likely to show up as the English ones, so they get the same
 // treatment.
-var PLACE_NAME_KEYWORD_PATTERN = /\b(cemetery|church|chapel|synagogue|temple|hospital|clinic|camp|prison|fort|plantation|plot|lot|grave|section|block|row|space|apt|apartment|suite|room|building|street|st\.?|avenue|ave\.?|road|rd\.?|lane|ln\.?|drive|dr\.?|boulevard|blvd\.?|highway|hwy\.?|route|rt\.?|farm|ranch|friedhof|kirchhof|kirche|kapelle|synagoge|kloster|krankenhaus|gefängnis|gefangnis)\b/i;
+// #244: "cem\.?|cemetary" added alongside the existing "cemetery" -
+// checkPlace()/isCem() (Google's own equivalent, above) already
+// recognized the abbreviated "Cem"/"Cem." and misspelled "Cemetary"
+// forms; this pattern only had the correctly-spelled full word, so a
+// segment like "Oak Hill Cem" was never even recognized as a venue at
+// all here - it would flow straight into the FamilySearch jurisdiction
+// query instead of being stripped into the Place Name field.
+var PLACE_NAME_KEYWORD_PATTERN = /\b(cemetery|cem\.?|cemetary|church|chapel|synagogue|temple|hospital|clinic|camp|prison|fort|plantation|plot|lot|grave|section|block|row|space|apt|apartment|suite|room|building|street|st\.?|avenue|ave\.?|road|rd\.?|lane|ln\.?|drive|dr\.?|boulevard|blvd\.?|highway|hwy\.?|route|rt\.?|farm|ranch|friedhof|kirchhof|kirche|kapelle|synagoge|kloster|krankenhaus|gefängnis|gefangnis)\b/i;
 // A segment that's essentially just a number (a house/plot/lot number,
 // with an optional trailing letter like "15191a"), starts with one
 // followed by more text (the US street-address convention, "123 Main"),
@@ -319,21 +326,47 @@ function isPlaceNameSegment(segment) {
     return trimmed !== "" && (PLACE_NAME_KEYWORD_PATTERN.test(trimmed) || PLACE_NAME_NUMERIC_PATTERN.test(trimmed));
 }
 
+// #244: normalizes "Cem"/"Cem." (abbreviated) and "Cemetary" (misspelled)
+// to "Cemetery" in text destined for the Place Name field - the same
+// cleanup checkPlace() already does for Google's path, ported here since
+// FamilySearch's own venue extraction never got it. Two cases: "Cem"/
+// "Cem." at the END of the text (nothing following) becomes plain
+// "Cemetery" - never trails a comma when there's nothing after it. "Cem."
+// followed by MORE text in the same segment (e.g. a source punctuated
+// "XYZ Cem. Plot 15" with a period rather than a comma) becomes
+// "Cemetery, " + that text, treating the abbreviation's period as the
+// clause break it was standing in for.
+function normalizeCemeteryAbbreviation(text) {
+    if (!exists(text) || text.trim() === "") {
+        return text;
+    }
+    var normalized = text.replace(/\bcemetary\b/i, "Cemetery");
+    normalized = normalized.replace(/\bcem\.?(\s+\S)/i, "Cemetery,$1");
+    normalized = normalized.replace(/\bcem\.?\s*$/i, "Cemetery");
+    return normalized.replace(/\s+/g, ' ').trim();
+}
+
 // #224: strips leading/trailing isPlaceNameSegment() matches off a
 // comma-separated location string, returning what's left (the
 // jurisdiction chain to actually search/geocode) plus the stripped text
 // joined back in its original order (destined for the Place Name field).
 // Always leaves at least one segment behind (the `length > 1` guards) -
 // never strips the entire string down to nothing to search on.
+// #244: each stripped segment is normalized (normalizeCemeteryAbbreviation)
+// BEFORE joining, not after - normalizing the final joined string would
+// break the "nothing follows" detection whenever more than one segment
+// gets stripped (e.g. "ABC Cem, DEF" - "Cem" isn't at the end of THAT
+// string even though it correctly is at the end of its own original
+// segment "ABC Cem").
 function extractPlaceNameSegments(segments) {
     var remaining = segments.slice();
     var leading = [];
     while (remaining.length > 1 && isPlaceNameSegment(remaining[0])) {
-        leading.push(remaining.shift());
+        leading.push(normalizeCemeteryAbbreviation(remaining.shift()));
     }
     var trailing = [];
     while (remaining.length > 1 && isPlaceNameSegment(remaining[remaining.length - 1])) {
-        trailing.unshift(remaining.pop());
+        trailing.unshift(normalizeCemeteryAbbreviation(remaining.pop()));
     }
     return { remaining: remaining, placeName: leading.concat(trailing).join(", ") };
 }

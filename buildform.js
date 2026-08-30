@@ -2270,8 +2270,12 @@ function updateClassResponse() {
             if ($('#familysearchplacesonoffswitch').prop('checked')) {
                 $('#geoupdateyear').val(getCurrentEventYear(id));
                 $('#geoupdateyearrow').css('display', 'block');
+                // #239: same FamilySearch-Places-only visibility as the
+                // lookup year row above.
+                $('#geoupdatefslink').css('display', 'block');
             } else {
                 $('#geoupdateyearrow').css('display', 'none');
+                $('#geoupdatefslink').css('display', 'none');
             }
             document.getElementById('GeoUpdateModal').style.display = "block";
             $("#geoupdatetext").focus();

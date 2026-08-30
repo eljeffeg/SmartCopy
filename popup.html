@@ -776,6 +776,13 @@
                     only affects this lookup - never writes back to the
                     actual date field. -->
                     <p id="geoupdateyearrow" style="display: none;">FamilySearch lookup year: <input id="geoupdateyear" type="number" style="width: 70px;"></p>
+                    <!-- #239: same FamilySearch-Places-only visibility as
+                    the lookup year row above - Google has no equivalent
+                    place-correction process to link to. Points at
+                    FamilySearch's own place research/correction page, not
+                    this specific result - there's no stable per-place
+                    "report this" URL, per #239's own research. -->
+                    <p id="geoupdatefslink" style="display: none; font-size: 90%;"><a href="https://www.familysearch.org/en/research/places/" target="_blank">Suggest a New Place (FamilySearch)</a></p>
                     <button type="button" id="georevertbtn" value="" class="cta cta-blue" title="Restore Original Location" style="float: left;"><img style="width: 22px; margin-top: 3px;" alt="Revert" src="images/revert.png"></button><button type="button" id="geolookupbtn" class="cta cta-blue" style="float: right;">Update</button>
                     <br><br>
                 </div>

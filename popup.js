@@ -1605,6 +1605,11 @@ var submitform = function () {
                 // without this, re-running "select all" + update on the
                 // same profile appended a second (then third, ...) copy of
                 // the same scraped About content on every repeat touch.
+                // #235: snapshot the RAW newly-scraped content before the
+                // merge below overwrites `about` with the merged result -
+                // footnoteBulletPrefix() needs to see just this update's
+                // own new text, not the whole merged history.
+                var newAboutContentThisUpdate = about;
                 about = mergeAboutText(focusabout, about);
                 if (about !== "" && !about.endsWith("\n")) {
                     about += "\n";
@@ -1623,27 +1628,35 @@ var submitform = function () {
                 // regardless of prefix wording ("Updated from" vs
                 // "Reference:"), link protocol, or formatting (e.g. bold).
                 var token = "[" + encodeURI(refurl) + " " + footnoteRecordtype + "]";
-                var alreadyReferenced = focusabout.contains(token);
-                // A source referenced once but updated again later with a
-                // genuinely different category (e.g. a photo added after the
-                // name was already recorded) still deserves its own new
-                // Reference line - but resubmitting the SAME category that a
-                // prior line from this source already recorded (e.g.
-                // re-saving the death place a second time with nothing else
-                // changed) is reference spam, not new information, and
-                // should be skipped even though summarizeUpdatedCategories
-                // still reports it as "updated" for this request. Compares
-                // against every category ANY prior line from this source has
-                // ever recorded, not just the most recent one.
-                var priorCategories = getReferencedCategories(focusabout, token);
-                var newCategories = updatedCategories.filter(function (category) {
-                    return priorCategories.indexOf(category) === -1;
-                });
-                if (!alreadyReferenced || newCategories.length > 0) {
+                // #235 (live-reported): previously compared against every
+                // category ANY prior line from this source had EVER
+                // recorded, across the whole About history - meaning once a
+                // source had touched a category (e.g. "about") a single
+                // time, a genuinely new round of that same category's
+                // content from that source could never trigger a fresh
+                // footnote again, silently under-documenting real updates.
+                // Simplified to exactly what's needed: skip only when the
+                // line IMMEDIATELY BEFORE this one (in the About as it
+                // stands right now, after this update's own new content is
+                // already merged in above) is itself a footnote from this
+                // same source - true back-to-back reference spam (hitting
+                // Update again with nothing new) still gets suppressed,
+                // but anything genuinely new since that last footnote -
+                // regardless of which category it falls under - gets its
+                // own line.
+                var alreadyReferenced = isLastLineFromSameSource(about, token);
+                // #235: nest the footnote as a sub-bullet ("**") when this
+                // update's own newly-scraped content is itself a bulleted
+                // line - reads as an annotation ON that content rather than
+                // an unrelated new top-level fact. Stays flat ("*",
+                // unchanged from before) for plain prose or when nothing
+                // new was scraped this round.
+                var bulletPrefix = footnoteBulletPrefix(newAboutContentThisUpdate);
+                if (!alreadyReferenced) {
                     if (exists(refurl)) {
-                        profileout["about_me"] = about + "* '''[" + encodeURI(refurl) + " " + footnoteRecordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                        profileout["about_me"] = about + bulletPrefix + " '''[" + encodeURI(refurl) + " " + footnoteRecordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                     } else {
-                        profileout["about_me"] = about + "* '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                        profileout["about_me"] = about + bulletPrefix + " '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
                     }
                 } else if (about !== "") {
                     profileout["about_me"] = about;
@@ -2538,35 +2551,42 @@ function footnoteLabel(url, baseRecordtype) {
     return baseRecordtype;
 }
 
-// Every category any prior "* Reference: [url recordtype] ... (updated:
-// ...)" line for this same source has ever recorded, scanned from the
-// existing about_me text line-by-line (each Reference line is always
-// exactly one line - see the "\n" terminator where these lines are built).
-// Used to tell a genuinely new update (a category not seen before from this
-// source) apart from reference spam (resubmitting a category, e.g. death
-// place, that a prior line from this same source already recorded, with
-// nothing else new this time).
-function getReferencedCategories(existingAbout, token) {
-    var categories = [];
-    if (!exists(existingAbout) || existingAbout === "") {
-        return categories;
+// #235: whether the LAST non-blank line of the given About text is itself
+// a footnote from this exact source (matching just the stable
+// "[url recordtype]" token, same as everywhere else this is checked) -
+// the only case a new footnote line should be skipped as reference spam.
+// Deliberately only looks at the single most recent line, not the whole
+// history - see the #235 comment at this function's call site for why a
+// broader per-category history check (the previous approach here) ended
+// up silently under-documenting genuinely new updates.
+function isLastLineFromSameSource(text, token) {
+    if (!exists(text) || text === "") {
+        return false;
     }
-    existingAbout.split("\n").forEach(function (line) {
-        if (!line.contains(token)) {
-            return;
-        }
-        var match = line.match(/\(updated: ([^)]*)\)/);
-        if (!exists(match)) {
-            return;
-        }
-        match[1].split(",").forEach(function (category) {
-            category = category.trim();
-            if (category !== "" && categories.indexOf(category) === -1) {
-                categories.push(category);
-            }
-        });
-    });
-    return categories;
+    var lines = text.split("\n").filter(function (line) { return line.trim() !== ""; });
+    if (lines.length === 0) {
+        return false;
+    }
+    return lines[lines.length - 1].contains(token);
+}
+
+// #235: "*" (top-level bullet) normally, but "**" (nested) when the last
+// non-blank line of THIS update's own newly-scraped content (before it
+// was merged into the existing About above) is itself already a bulleted
+// line - the footnote then reads as an annotation on that specific
+// content rather than an unrelated new top-level fact. newContent is
+// deliberately just this update's own text, not the full merged About -
+// an existing bullet somewhere earlier in profile history shouldn't
+// affect a footnote documenting a completely different, later update.
+function footnoteBulletPrefix(newContent) {
+    if (!exists(newContent) || newContent === "") {
+        return "*";
+    }
+    var lines = newContent.split("\n").filter(function (line) { return line.trim() !== ""; });
+    if (lines.length === 0) {
+        return "*";
+    }
+    return lines[lines.length - 1].trim().startsWith("*") ? "**" : "*";
 }
 
 // #209: whitespace-only normalization for comparing About content - collapses

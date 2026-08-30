@@ -2698,66 +2698,25 @@ function getRealDateString(dateArray, excludeEstimated) {
     return undefined;
 }
 
-// #230: which of day/month/year precision a date string actually carries,
-// using moment's own strict-parse result rather than a hand-rolled regex -
-// getDateFormat() (popup.js) returns either dateformatter (an array of
-// candidate formats) or one specific dash-delimited format; either way,
-// moment's creationData().format reports back exactly which one matched.
-// A format string containing "D" (day-of-month) means day precision, one
-// containing "M" (month, MMM/MMMM) without a day means month precision,
-// otherwise year-only.
-function getDatePrecision(dateval) {
-    if (!exists(dateval) || dateval.trim() === "") {
+// #232 (live-reported, scaled back from #230's original day-offset
+// design): "After <death date>"/"Before <burial date>" instead of a
+// computed "circa" guess - always literally true (a burial cannot happen
+// before death), unlike a circa estimate which invents a specific day (or
+// even just a month) with no evidentiary basis. Also sidesteps a separate
+// concern raised live: Geni's own systems reportedly treat "circa" as a
+// broad (~5 year) tolerance for matching purposes, a behavior that would
+// undermine an estimate at ANY precision, not just a fabricated day -
+// "After"/"Before" doesn't use the word "circa" at all. Wraps the real
+// related date VERBATIM, at whatever precision it already has - no
+// arithmetic, no reformatting, no separate day/month/year handling
+// needed. direction=1 for burial-from-death ("After <death date>"),
+// direction=-1 for death-from-burial ("Before <burial date>").
+function computeQualifiedDateFromRelatedDate(sourceDateStr, direction) {
+    if (!exists(sourceDateStr) || sourceDateStr.trim() === "") {
         return undefined;
     }
-    var fmt = getDateFormat(dateval);
-    var m = moment(dateval, fmt, true);
-    if (!m.isValid()) {
-        return undefined;
-    }
-    var matchedFormat = m.creationData().format;
-    if (Array.isArray(matchedFormat)) {
-        matchedFormat = matchedFormat[0];
-    }
-    if (!exists(matchedFormat)) {
-        return undefined;
-    }
-    if (matchedFormat.indexOf("D") !== -1) {
-        return "day";
-    } else if (matchedFormat.indexOf("M") !== -1) {
-        return "month";
-    }
-    return "year";
-}
-
-// #230: live-settled rule - "Buried <N> days after death" (default 3,
-// #burieddaysafterdeath) applies symmetrically in both directions
-// (direction=1 for burial-from-death, direction=-1 for death-from-burial).
-// Only applied at DAY precision - there's no specific day to offset from
-// a month-only or year-only source date, so those carry straight across
-// unchanged at their own precision. Deliberately computes the offset
-// BEFORE truncating to month/year output, not after - live-confirmed
-// reasoning: a death on 29 Nov + a few days can land in December, and
-// truncating the death date to its own month FIRST would put the burial
-// estimate in the wrong month entirely.
-function computeCircaFromRelatedDate(sourceDateStr, direction) {
-    var precision = getDatePrecision(sourceDateStr);
-    if (!exists(precision)) {
-        return undefined;
-    }
-    var fmt = getDateFormat(sourceDateStr);
-    var m = moment(sourceDateStr, fmt, true);
-    if (precision === "day") {
-        var offsetDays = parseInt($('#burieddaysafterdeath').val(), 10);
-        if (isNaN(offsetDays) || offsetDays < 0) {
-            offsetDays = 3;
-        }
-        m.add(direction * offsetDays, 'days');
-        return "circa " + m.format("D MMM YYYY");
-    } else if (precision === "month") {
-        return "circa " + m.format("MMM YYYY");
-    }
-    return "circa " + m.format("YYYY");
+    var qualifier = (direction === 1) ? "After" : "Before";
+    return qualifier + " " + sourceDateStr;
 }
 
 // #204: finds the focus person's spouse's surname, but only when that's
@@ -3335,22 +3294,21 @@ function applyEstimatedDate(target, title, value) {
     }
 }
 
-// #230 (replaces the earlier #208 same-year version): death and burial
-// are still treated as a symmetric pair, but the estimate is now a
-// day-offset, not a same-year assumption. Whichever side has a REAL date
-// (never an already-estimated one, via getRealDateString(..., true))
-// supplies the source for whichever side is scraped-blank - attaching to
-// an existing location-bearing entry when there is one, otherwise
-// creating a bare date-only entry from nothing entirely (unlike baptism,
-// which never does that - see attachEstimatedDateToLocationEntry()'s own
-// comment for why the two differ).
+// #230 (replaces the earlier #208 same-year version) / #232 (scaled back
+// from #230's own original day-offset design): death and burial are
+// treated as a symmetric pair. Whichever side has a REAL date (never an
+// already-estimated one, via getRealDateString(..., true)) supplies the
+// source for whichever side is scraped-blank - attaching to an existing
+// location-bearing entry when there is one, otherwise creating a bare
+// date-only entry from nothing entirely (unlike baptism, which never
+// does that - see attachEstimatedDateToLocationEntry()'s own comment for
+// why the two differ).
 //
-// Live-settled rule: burial is estimated as death + the "Buried days
-// after death" setting (default 3, #burieddaysafterdeath) when death has
-// day precision; death is estimated as burial MINUS that same setting,
-// symmetrically. A month-only or year-only source carries straight
-// across unchanged at its own precision (no day to offset from) - see
-// computeCircaFromRelatedDate()'s own comment.
+// Live-settled rule (#232): burial is estimated as "After <the real
+// death date>"; death is estimated as "Before <the real burial date>" -
+// see computeQualifiedDateFromRelatedDate()'s own comment for why this
+// replaced the original day-offset "circa" design (no configurable
+// setting anymore - there's nothing left to configure).
 //
 // #230: no longer takes a geniGetter/checks Geni's own value at all -
 // this now ALWAYS computes and writes the estimate whenever the scraped
@@ -3364,12 +3322,12 @@ function fillMissingDeathOrBurialDate(target) {
     var deathDateStr = getRealDateString(target["death"], true);
     var burialDateStr = getRealDateString(target["burial"], true);
     if (exists(deathDateStr) && !exists(burialDateStr)) {
-        var burialEstimate = computeCircaFromRelatedDate(deathDateStr, 1);
+        var burialEstimate = computeQualifiedDateFromRelatedDate(deathDateStr, 1);
         if (exists(burialEstimate) && !attachEstimatedDateToLocationEntry(target["burial"], burialEstimate)) {
             applyEstimatedDate(target, "burial", burialEstimate);
         }
     } else if (exists(burialDateStr) && !exists(deathDateStr)) {
-        var deathEstimate = computeCircaFromRelatedDate(burialDateStr, -1);
+        var deathEstimate = computeQualifiedDateFromRelatedDate(burialDateStr, -1);
         if (exists(deathEstimate) && !attachEstimatedDateToLocationEntry(target["death"], deathEstimate)) {
             applyEstimatedDate(target, "death", deathEstimate);
         }

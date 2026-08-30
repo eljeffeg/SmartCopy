@@ -3285,6 +3285,27 @@ function attachEstimatedDateToLocationEntry(dateArray, value) {
     if (!exists(dateArray)) {
         return false;
     }
+    // #238 (live-reported): most parsers, per c0607c3's own audit, push an
+    // event's date and location as two SEPARATE array elements rather than
+    // merging them onto one object - an established, intentional shape
+    // elsewhere in this codebase (that commit deliberately fixed the
+    // CONSUMERS to scan the whole array instead of restructuring every
+    // parser), not something to "fix" upstream. This function's per-
+    // element scan below never accounted for that: it could find a
+    // location-only element, see no date on THAT element specifically, and
+    // attach an estimate there even though a real date already sat on a
+    // DIFFERENT element in the same array - live-confirmed on a
+    // FamilySearch baptism record, producing a bogus "circa <year>"
+    // alongside the real scraped date. Bail out first if ANY element
+    // already has a real (non-estimated) date, matching the same whole-
+    // array-scan discipline getRealDateString()/getBirthYear() already
+    // apply elsewhere.
+    for (var r = 0; r < dateArray.length; r++) {
+        if (exists(dateArray[r]) && exists(dateArray[r].date) && dateArray[r].date.trim() !== "" &&
+                dateArray[r].estimated !== true) {
+            return false;
+        }
+    }
     for (var i = 0; i < dateArray.length; i++) {
         if (exists(dateArray[i].location) && (!exists(dateArray[i].date) || dateArray[i].date === "")) {
             dateArray[i].date = value;

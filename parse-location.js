@@ -661,7 +661,15 @@ function familySearchPlaceToGeoLocation(places, query, placeName) {
     // States"). US-only for now, matching countyOnlyOverride()'s own
     // "County" detection regex - other countries may have their own
     // disambiguation convention, but nothing here is evidenced yet.
-    if (location.country === "United States" && location.county !== "" &&
+    // #237 follow-up (live-reported): "British Colonial America" added -
+    // a pre-1776 US record (Westmoreland, Virginia, dated 1660-1709)
+    // resolves with country "British Colonial America", not "United
+    // States" (the same historically-accurate colonial-era country label
+    // the #237 "Colony" fix surfaced) - the county still needs Geni's
+    // same " County" convention regardless of which side of 1776 the
+    // record falls on.
+    var FS_US_COUNTY_SUFFIX_COUNTRIES = ["United States", "British Colonial America"];
+    if (FS_US_COUNTY_SUFFIX_COUNTRIES.indexOf(location.country) !== -1 && location.county !== "" &&
             !/\s*County\s*$/i.test(location.county)) {
         location.county = location.county + " County";
     }

@@ -2729,9 +2729,22 @@ function getRealDateString(dateArray, excludeEstimated) {
 // arithmetic, no reformatting, no separate day/month/year handling
 // needed. direction=1 for burial-from-death ("After <death date>"),
 // direction=-1 for death-from-burial ("Before <burial date>").
+// #241 (live-reported): stacking a new "After"/"Before" onto a source
+// date that's already qualified ("circa 1810" becoming "After circa
+// 1810") reads wrong and overstates precision that isn't there - "After"
+// implies the anchor itself is a known, precise fact (true when death is
+// a real recorded date), but that's no longer true once the anchor is
+// itself just an estimate. A burial shortly after an already-uncertain
+// death is reasonably described by that SAME uncertainty, not a new
+// layer stacked on top - so an already-qualified source (circa/about/
+// after/before, via the same DATE_QUALIFIER_PATTERN used elsewhere to
+// detect this) is carried forward verbatim instead.
 function computeQualifiedDateFromRelatedDate(sourceDateStr, direction) {
     if (!exists(sourceDateStr) || sourceDateStr.trim() === "") {
         return undefined;
+    }
+    if (DATE_QUALIFIER_PATTERN.test(sourceDateStr.trim())) {
+        return sourceDateStr;
     }
     var qualifier = (direction === 1) ? "After" : "Before";
     return qualifier + " " + sourceDateStr;

@@ -2657,7 +2657,18 @@ function mergeAboutText(existingAbout, newContent) {
 // DATE_QUALIFIER_PATTERN moved to shared.js (#223/#224 follow-up) - also
 // needed there now, to strip a qualifier before extracting a year for
 // FamilySearch's date-scoped lookup / the geo dedup key.
-var DATE_PARSE_FORMATS = ["D MMMM YYYY", "MMMM D, YYYY", "MMMM D YYYY", "YYYY-MM-DD", "YYYY"];
+// Live-reported: "19 Jun 1709" (this codebase's own convention, matching
+// how most source sites - e.g. FindAGrave - write dates, abbreviated
+// month) failed to parse in strict mode against any format here, since
+// only the FULL-month equivalents were listed ("D MMMM YYYY" but not
+// "D MMM YYYY", etc.) - a real scraped/computed date was wrongly flagged
+// as different from an equivalent Geni date just because moment
+// considered it entirely unparseable, not because the dates actually
+// differed. Added the abbreviated-month counterpart of each existing
+// full-month format, matching dateformatter's own broader list (which
+// already recognized this same need for scraping generally, just never
+// ported over to this comparison-specific list).
+var DATE_PARSE_FORMATS = ["D MMMM YYYY", "D MMM YYYY", "MMMM D, YYYY", "MMM D, YYYY", "MMMM D YYYY", "MMM D YYYY", "YYYY-MM-DD", "YYYY"];
 function datesAreEquivalent(a, b) {
     if (a === b) {
         return true;

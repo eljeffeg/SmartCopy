@@ -3,6 +3,19 @@ alldata["family"] = {};
 var geostatus = [];
 var geoid = 0;
 var geolocation = [];
+// #237 (live-reported): the manual location-edit modal used to always
+// reseed its textbox from the true original scraped text, discarding any
+// edit already applied via a previous "Update" click this session -
+// reopening the pencil a second time meant retyping the same correction.
+// Keyed by the same row id (getParsedLocation()'s dataid, e.g.
+// "focus_death") already used to track which row an edit belongs to.
+// Deliberately a separate store rather than reading back some existing
+// row's current value - #224 already hit a real regression doing that
+// (a row's displayed value can be a computed leftover, not the plain
+// text a user actually typed), so this avoids reinterpreting any
+// existing field's meaning entirely. The revert button still always
+// restores the TRUE original via getParsedLocation(), untouched by this.
+var lastEditedLocationText = {};
 var parsecomplete = false;
 var unionurls = [];
 var databyid = [];
@@ -2254,12 +2267,17 @@ function updateClassResponse() {
             // value at all - see the blank-location fallback rows). The
             // revert button was already correctly using getParsedLocation()
             // (the true raw scraped text from alldata) - use the SAME
-            // source for the edit textbox itself, so what's shown to edit
-            // matches what "restore" restores, instead of the two
-            // disagreeing.
+            // source for the revert button, so "restore" always goes back
+            // to the true original.
             var parsedLocation = getParsedLocation(id);
             $('#georevertbtn').attr("value", parsedLocation);
-            $('#geoupdatetext').val(parsedLocation);
+            // #237 (live-reported): the textbox itself, unlike the revert
+            // button, should show the LAST-EDITED value if this row was
+            // already corrected once this session - see
+            // lastEditedLocationText's own comment for why that's a
+            // separate store rather than reading back some row's current
+            // display value again.
+            $('#geoupdatetext').val(exists(lastEditedLocationText[id]) ? lastEditedLocationText[id] : parsedLocation);
             $('#geoupdatetext').attr("reference", id);
             // #233: only relevant to FamilySearch Places (Google's geocoder
             // has no per-lookup date concept) - defaults to the associated

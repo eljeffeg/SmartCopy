@@ -595,24 +595,55 @@ function familySearchPlaceToGeoLocation(places, query, placeName) {
         return parts[parts.length - 1];
     }
 
-    location.city = nameOf(places[0]);
+    // #237 (live-reported): places[0] (the matched place itself) was
+    // always assumed to be a city/settlement - but a bare state or county
+    // name can itself BE the top-scored FamilySearch match, not a
+    // settlement inside one. Live-confirmed via places[0]'s own human-
+    // readable display.type (only places[0] carries this - ancestors
+    // don't, see nameOf()'s own comment): querying "Pennsylvania" top-
+    // matches display.type "State" (its only ancestor is "United
+    // States"); querying "Accomack" top-matches display.type "County"
+    // ("Accomack, Virginia, United States"). Both were landing in City
+    // with the real field (State/County) left blank. Not exhaustive -
+    // built from these two live-confirmed cases; "Province" added on the
+    // same reasoning as FS_BROAD_PLACE_TYPES above (a high-level
+    // administrative division, comparable to State for Geni's 4-field
+    // schema).
+    var FS_MATCH_ADMIN_LEVEL = { "County": "county", "State": "state", "Province": "state" };
+    var matchedAdminLevel = (exists(places[0]) && exists(places[0].display)) ?
+        FS_MATCH_ADMIN_LEVEL[places[0].display.type] : undefined;
+
     var ancestors = places.slice(1);
     if (ancestors.length >= 1) {
         location.country = nameOf(ancestors[ancestors.length - 1]);
     }
-    var adminAncestors = ancestors.slice(0, ancestors.length - 1);
-    // A skipped settlement ancestor (Cincinnati, enclosing the Price Hill
-    // neighborhood) is still real, useful city-level context - fold it
-    // into City rather than discarding it: "Price Hill, Cincinnati".
-    while (adminAncestors.length > 1 && FS_SETTLEMENT_ANCESTOR_TYPES.indexOf(typeId(adminAncestors[0])) !== -1) {
-        location.city = location.city + ", " + nameOf(adminAncestors[0]);
-        adminAncestors = adminAncestors.slice(1);
-    }
-    if (adminAncestors.length === 1) {
-        location.state = nameOf(adminAncestors[0]);
-    } else if (adminAncestors.length >= 2) {
-        location.county = nameOf(adminAncestors[0]);
-        location.state = nameOf(adminAncestors[1]);
+    if (matchedAdminLevel === "county") {
+        location.county = nameOf(places[0]);
+        var stateAncestors = ancestors.slice(0, ancestors.length - 1);
+        if (stateAncestors.length >= 1) {
+            location.state = nameOf(stateAncestors[stateAncestors.length - 1]);
+        }
+    } else if (matchedAdminLevel === "state") {
+        location.state = nameOf(places[0]);
+        // City/county intentionally stay blank - nothing more specific
+        // than this state/province was actually matched.
+    } else {
+        location.city = nameOf(places[0]);
+        var adminAncestors = ancestors.slice(0, ancestors.length - 1);
+        // A skipped settlement ancestor (Cincinnati, enclosing the Price
+        // Hill neighborhood) is still real, useful city-level context -
+        // fold it into City rather than discarding it: "Price Hill,
+        // Cincinnati".
+        while (adminAncestors.length > 1 && FS_SETTLEMENT_ANCESTOR_TYPES.indexOf(typeId(adminAncestors[0])) !== -1) {
+            location.city = location.city + ", " + nameOf(adminAncestors[0]);
+            adminAncestors = adminAncestors.slice(1);
+        }
+        if (adminAncestors.length === 1) {
+            location.state = nameOf(adminAncestors[0]);
+        } else if (adminAncestors.length >= 2) {
+            location.county = nameOf(adminAncestors[0]);
+            location.state = nameOf(adminAncestors[1]);
+        }
     }
     // #234: Geni appends " County" to disambiguate a US county from a
     // same-named city (e.g. "Santa Cruz, Santa Cruz County, California,

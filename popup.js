@@ -3613,6 +3613,11 @@ $(function () {
         $('#geolookupbtn').on('click', function () {
             $("body").toggleClass("wait");
             googlerequery = $('#geoupdatetext').attr("reference");
+            // #237: remember what was actually typed for this row, so
+            // reopening the pencil later shows the last edit instead of
+            // always resetting back to the original scraped text - see
+            // lastEditedLocationText's own comment (buildform.js).
+            lastEditedLocationText[googlerequery] = $('#geoupdatetext').val();
             var modal = document.getElementById('GeoUpdateModal');
             var locationset = {"id": geoid, "location": $('#geoupdatetext').val()};
             // #233: the year is scoped to just this one lookup, never

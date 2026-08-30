@@ -605,11 +605,19 @@ function familySearchPlaceToGeoLocation(places, query, placeName) {
     // States"); querying "Accomack" top-matches display.type "County"
     // ("Accomack, Virginia, United States"). Both were landing in City
     // with the real field (State/County) left blank. Not exhaustive -
-    // built from these two live-confirmed cases; "Province" added on the
+    // built from these live-confirmed cases; "Province" added on the
     // same reasoning as FS_BROAD_PLACE_TYPES above (a high-level
     // administrative division, comparable to State for Geni's 4-field
     // schema).
-    var FS_MATCH_ADMIN_LEVEL = { "County": "county", "State": "state", "Province": "state" };
+    // #237 follow-up (live-reported): "Colony" added - querying
+    // "Virginia, USA" for an event dated 1660-1709 (well within the
+    // colonial era, before Virginia was a modern US state) correctly
+    // resolves to display.type "Colony" ("Virginia, British Colonial
+    // America") - exactly the period-correct resolution this whole
+    // feature exists to provide, just a type label the original two
+    // cases didn't anticipate. Mapped to "state" for the same reason as
+    // Province - the closest fit in Geni's 4-field schema.
+    var FS_MATCH_ADMIN_LEVEL = { "County": "county", "State": "state", "Province": "state", "Colony": "state" };
     var matchedAdminLevel = (exists(places[0]) && exists(places[0].display)) ?
         FS_MATCH_ADMIN_LEVEL[places[0].display.type] : undefined;
 

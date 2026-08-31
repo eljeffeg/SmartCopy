@@ -869,10 +869,16 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         aboutinfo = splitinfo[0];
                         aboutinfo = aboutinfo.trim();
                     }
-                    var aboutdash = aboutinfo.split(' - \n');
-                    if (aboutdash.length > 1) {
-                        aboutinfo = aboutdash[0] + " - " + aboutdash[1].trim();
-                    }
+                    // #245: the source page's own HTML indentation (tabs,
+                    // newlines between nested elements in .recordFieldValue)
+                    // survives jQuery's .text() extraction verbatim, so a
+                    // field like a census record's location can come through
+                    // as "value - \n\t\t\tLocation" and render on its own
+                    // indented line in the About text instead of flowing
+                    // as one line. Collapse every run of whitespace
+                    // (including the eventSeparator " - \n" case the old
+                    // split-based fix only handled) into a single space.
+                    aboutinfo = aboutinfo.replace(/\s+/g, ' ').trim();
                     var addaboutinfo = "* '''" + capFL(title) + "''': " + aboutinfo + "\n";
                     if (!aboutdata.contains(addaboutinfo)) {
                         aboutdata += addaboutinfo;

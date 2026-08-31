@@ -107,6 +107,17 @@ var familysearchPlacesOn = true;
 // familysearchPlacesOn above.
 var burialCurrentLocationOn = false;
 
+// #247: some source records fold the cemetery name into the death
+// location instead of recording it separately as the burial location. Off
+// by default - this rewrites already-scraped text (moves a detected
+// cemetery segment from death to burial location), not just how a lookup
+// is queried, so it's opt-in rather than an automatic default like
+// #244's cemetery-abbreviation normalization. Read directly via
+// $('#extractburialfromdeathonoffswitch').prop('checked') at its one call
+// site in buildform.js's updateGeo(), same convention as
+// burialCurrentLocationOn above.
+var extractBurialFromDeathLocationOn = false;
+
 // Run script as soon as the document's DOM is ready.
 if (typeof String.prototype.startsWith != 'function') {
     String.prototype.startsWith = function (str) {

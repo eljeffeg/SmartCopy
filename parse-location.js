@@ -346,6 +346,43 @@ function normalizeCemeteryAbbreviation(text) {
     return normalized.replace(/\s+/g, ' ').trim();
 }
 
+// #247 (live-reported by DanCornett, no concrete example available - built
+// from his own proposed algorithm): some source records fold the burial
+// site into the death location itself (e.g. "Oak Hill Cem, Springfield,
+// IL" scraped as the death Place) instead of recording it separately.
+// Detects a cemetery name ONLY in the location's FIRST comma-segment - a
+// mention deeper in the string is ambiguous (could be unrelated context),
+// and DanCornett's own issue text accepts this as a known imperfection
+// ("won't be perfect in all cases"). Reuses normalizeCemeteryAbbreviation()
+// (#244) so an abbreviated/misspelled "Cem"/"Cemetary" is recognized the
+// same way it already is for Google's venue-extraction path. Returns
+// undefined when there's nothing to extract, or when extracting would
+// leave the death location completely empty (never blank a field as a
+// side effect - if the whole string is just the cemetery name, leave it
+// untouched rather than guess).
+function extractBurialSegmentFromDeathLocation(deathLocationText) {
+    if (!exists(deathLocationText) || deathLocationText.trim() === "") {
+        return undefined;
+    }
+    var segments = deathLocationText.split(',');
+    var firstSegment = normalizeCemeteryAbbreviation(segments[0]);
+    var match = firstSegment.match(/^(.*?\bCemetery\b)\s*(.*)$/i);
+    if (!match) {
+        return undefined;
+    }
+    var burialSegment = match[1].trim();
+    var leftoverInFirstSegment = match[2].trim();
+    var remainingSegments = segments.slice(1);
+    if (leftoverInFirstSegment !== "") {
+        remainingSegments.unshift(leftoverInFirstSegment);
+    }
+    var remainingDeathLocation = remainingSegments.join(',').replace(/^[,\s]+/, '').trim();
+    if (remainingDeathLocation === "") {
+        return undefined;
+    }
+    return { burialSegment: burialSegment, deathLocation: remainingDeathLocation };
+}
+
 // #224: strips leading/trailing isPlaceNameSegment() matches off a
 // comma-separated location string, returning what's left (the
 // jurisdiction chain to actually search/geocode) plus the stripped text

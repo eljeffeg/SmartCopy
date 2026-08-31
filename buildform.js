@@ -48,6 +48,12 @@ function updateGeo() {
         // member's match, which isn't known until later. focusFsYears.birth
         // also gets reused below as the "focusRealYear" input to a
         // partner-category family member's own Rule 1 spousal estimate.
+        // #247: runs before resolveFsLookupYears()/the geocoding loop below
+        // - it only rewrites raw scraped location text, so it needs to
+        // happen before anything reads that text for a lookup.
+        if ($('#extractburialfromdeathonoffswitch').prop('checked')) {
+            extractBurialFromDeathLocation(alldata["profile"]);
+        }
         var focusFsYears = resolveFsLookupYears(alldata["profile"], function (t, p) { return genifocusdata.get(t, p); }, "focus", undefined);
         for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
             var title = listvalues[list];
@@ -113,6 +119,11 @@ function updateGeo() {
                 var memberNameval = NameParse.parse(members[member].name, mnameonoff);
                 var memberCandidate = getMatchedGeniFamilyCandidate(relationship, members[member].gender, memberNameval, undefined);
                 var memberGeniGetter = exists(memberCandidate) ? function (t, p) { return memberCandidate.get(t, p); } : undefined;
+                // #247: see the focus-profile call site above for why this
+                // runs before resolveFsLookupYears().
+                if ($('#extractburialfromdeathonoffswitch').prop('checked')) {
+                    extractBurialFromDeathLocation(members[member]);
+                }
                 var memberFsYears = resolveFsLookupYears(members[member], memberGeniGetter, relationship, members[member], focusFsYears.birth);
                 for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
                     var title = listvalues[list];
@@ -3390,6 +3401,48 @@ function fillMissingDeathOrBurialDate(target) {
         var deathEstimate = computeQualifiedDateFromRelatedDate(burialDateStr, -1);
         if (exists(deathEstimate) && !attachEstimatedDateToLocationEntry(target["death"], deathEstimate)) {
             applyEstimatedDate(target, "death", deathEstimate);
+        }
+    }
+}
+
+// #247: relocates a cemetery segment detected in the death location (via
+// extractBurialSegmentFromDeathLocation(), parse-location.js) onto the
+// burial location instead, prepending it ahead of any existing burial
+// location text per DanCornett's own proposed algorithm. Independent of
+// any FS/Google geocoding setting and of the #208 date-estimation toggle -
+// it relocates already-scraped text, it doesn't estimate anything - gated
+// by its own opt-in extractburialfromdeathonoffswitch instead. Uses the
+// same [1]-then-[0] location-entry lookup convention as
+// getParsedLocation() (a location entry can sit at either array index
+// depending on whether a date entry precedes it).
+function extractBurialFromDeathLocation(target) {
+    if (!exists(target["death"])) {
+        return;
+    }
+    var deathIdx = checkNested(target, "death", 1, "location") ? 1 :
+        (checkNested(target, "death", 0, "location") ? 0 : -1);
+    if (deathIdx === -1) {
+        return;
+    }
+    var deathEntry = target["death"][deathIdx];
+    var extracted = extractBurialSegmentFromDeathLocation(deathEntry.location);
+    if (!exists(extracted)) {
+        return;
+    }
+    deathEntry.location = extracted.deathLocation;
+    if (!exists(target["burial"])) {
+        target["burial"] = [{id: geoid, location: extracted.burialSegment}];
+        geoid++;
+    } else {
+        var burialIdx = checkNested(target, "burial", 1, "location") ? 1 :
+            (checkNested(target, "burial", 0, "location") ? 0 : -1);
+        if (burialIdx === -1) {
+            target["burial"].push({id: geoid, location: extracted.burialSegment});
+            geoid++;
+        } else {
+            var burialEntry = target["burial"][burialIdx];
+            burialEntry.location = (exists(burialEntry.location) && burialEntry.location.trim() !== "") ?
+                extracted.burialSegment + ", " + burialEntry.location : extracted.burialSegment;
         }
     }
 }

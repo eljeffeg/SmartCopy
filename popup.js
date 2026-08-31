@@ -3254,6 +3254,16 @@ $(function () {
             burialCurrentLocationOn = burialcurrentlocationchecked;
         }
     });
+    // #247: default off (no bare "checked" in the markup) - a death
+    // location that happens to embed a cemetery name is left as scraped
+    // unless the user opts into the automatic move.
+    chrome.storage.local.get('extractburialfromdeath', function (result) {
+        var extractburialfromdeathchecked = result.extractburialfromdeath;
+        if (exists(extractburialfromdeathchecked)) {
+            $('#extractburialfromdeathonoffswitch').prop('checked', extractburialfromdeathchecked);
+            extractBurialFromDeathLocationOn = extractburialfromdeathchecked;
+        }
+    });
     // #229: combined into one read (was two separate ones) - Google's
     // checkbox default now needs BOTH pieces of state to decide correctly,
     // not just the raw HTML markup default. Priority: (1) an explicit
@@ -3303,6 +3313,10 @@ $(function () {
     $('#burialcurrentlocationonoffswitch').on('click', function () {
         chrome.storage.local.set({'burialcurrentlocation': this.checked});
         burialCurrentLocationOn = this.checked;
+    });
+    $('#extractburialfromdeathonoffswitch').on('click', function () {
+        chrome.storage.local.set({'extractburialfromdeath': this.checked});
+        extractBurialFromDeathLocationOn = this.checked;
     });
     $('#consistencyonoffswitch').on('click', function () {
         chrome.storage.local.set({'geniconsistency': this.checked});

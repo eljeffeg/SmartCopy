@@ -94,6 +94,19 @@ var estimateBirthYearsOn = true;
 // globals in this file.
 var familysearchPlacesOn = true;
 
+// #241: burial locations conventionally show the place name as it's
+// known TODAY (useful for someone actually visiting the grave), not the
+// historic name at time of death - the opposite of every other event,
+// which deliberately resolves to the period-correct historical name (see
+// familysearchPlacesOn's own comment). Off by default - an opt-in
+// override, not a change to the base behavior. Only affects the
+// FamilySearch lookup's query year for burial specifically; the source
+// burial date and #232's own estimated burial date are untouched. Read
+// directly via $('#burialcurrentlocationonoffswitch').prop('checked') at
+// its call sites in buildform.js, same convention as
+// familysearchPlacesOn above.
+var burialCurrentLocationOn = false;
+
 // Run script as soon as the document's DOM is ready.
 if (typeof String.prototype.startsWith != 'function') {
     String.prototype.startsWith = function (str) {

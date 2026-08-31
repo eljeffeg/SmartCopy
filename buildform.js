@@ -55,7 +55,21 @@ function updateGeo() {
             if (exists(memberobj)) {
                 for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
                     if (memberobj[item].location !== undefined) {
-                        attachDateForFsLookup(memberobj, memberobj[item], title === "burial" ? alldata["profile"]["death"] : undefined);
+                        // #241: burial specifically can opt into the
+                        // CURRENT location name instead of the period-
+                        // correct historic one every other event uses -
+                        // see burialCurrentLocationOn's own comment
+                        // (shared.js). Overrides dateForFsLookup outright
+                        // rather than going through attachDateForFsLookup()
+                        // at all, since this needs to win even when a real
+                        // burial date already exists - only the FamilySearch
+                        // lookup year changes, never the source/estimated
+                        // burial date values themselves.
+                        if (title === "burial" && $('#burialcurrentlocationonoffswitch').prop('checked')) {
+                            memberobj[item].dateForFsLookup = moment().format('YYYY');
+                        } else {
+                            attachDateForFsLookup(memberobj, memberobj[item], title === "burial" ? alldata["profile"]["death"] : undefined);
+                        }
                         applyFsLookupYearFallback(memberobj[item], focusFsYears[title]);
                     }
                     if (memberobj[item].location !== undefined && !values.includes(getGeoDedupKey(memberobj[item]))) {
@@ -107,7 +121,13 @@ function updateGeo() {
                     if (exists(memberobj)) {
                         for (var item in memberobj) if (memberobj.hasOwnProperty(item)) {
                             if (memberobj[item].location !== undefined) {
-                                attachDateForFsLookup(memberobj, memberobj[item], title === "burial" ? members[member]["death"] : undefined);
+                                // #241: see the focus-profile equivalent
+                                // above for the full reasoning.
+                                if (title === "burial" && $('#burialcurrentlocationonoffswitch').prop('checked')) {
+                                    memberobj[item].dateForFsLookup = moment().format('YYYY');
+                                } else {
+                                    attachDateForFsLookup(memberobj, memberobj[item], title === "burial" ? members[member]["death"] : undefined);
+                                }
                                 applyFsLookupYearFallback(memberobj[item], memberFsYears[title]);
                             }
                             if (memberobj[item].location !== undefined && !values.includes(getGeoDedupKey(memberobj[item]))) {
@@ -2286,7 +2306,16 @@ function updateClassResponse() {
             // scraped, so a date correction made first is reflected here
             // without having to remember and retype it.
             if ($('#familysearchplacesonoffswitch').prop('checked')) {
-                $('#geoupdateyear').val(getCurrentEventYear(id));
+                // #241: mirrors the SAME override applied automatically
+                // during the initial parse (updateGeo(), see
+                // burialCurrentLocationOn's own comment) - the pencil's
+                // default year needs to match what the lookup will
+                // actually use, not always the historic event year, with
+                // a visible reminder of which one is in effect.
+                var isBurialRow = id.split("_")[1] === "burial";
+                var usingCurrentYear = isBurialRow && $('#burialcurrentlocationonoffswitch').prop('checked');
+                $('#geoupdateyear').val(usingCurrentYear ? moment().format('YYYY') : getCurrentEventYear(id));
+                $('#geoupdateyearcurrent').css('display', usingCurrentYear ? 'inline' : 'none');
                 $('#geoupdateyearrow').css('display', 'block');
                 // #239: same FamilySearch-Places-only visibility as the
                 // lookup year row above.

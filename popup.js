@@ -3244,6 +3244,16 @@ $(function () {
         // since Google's own default needs to account for a real
         // configured key too, not just flip blindly.
     });
+    // #241: default off (no bare "checked" in the markup) - burial
+    // locations show the historic name by default, matching every other
+    // event type; this is an opt-in override.
+    chrome.storage.local.get('burialcurrentlocation', function (result) {
+        var burialcurrentlocationchecked = result.burialcurrentlocation;
+        if (exists(burialcurrentlocationchecked)) {
+            $('#burialcurrentlocationonoffswitch').prop('checked', burialcurrentlocationchecked);
+            burialCurrentLocationOn = burialcurrentlocationchecked;
+        }
+    });
     // #229: combined into one read (was two separate ones) - Google's
     // checkbox default now needs BOTH pieces of state to decide correctly,
     // not just the raw HTML markup default. Priority: (1) an explicit
@@ -3289,6 +3299,10 @@ $(function () {
     $('#familysearchplacesonoffswitch').on('click', function () {
         chrome.storage.local.set({'familysearchplaces': this.checked});
         familysearchPlacesOn = this.checked;
+    });
+    $('#burialcurrentlocationonoffswitch').on('click', function () {
+        chrome.storage.local.set({'burialcurrentlocation': this.checked});
+        burialCurrentLocationOn = this.checked;
     });
     $('#consistencyonoffswitch').on('click', function () {
         chrome.storage.local.set({'geniconsistency': this.checked});

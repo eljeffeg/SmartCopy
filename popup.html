@@ -180,6 +180,18 @@
                                     <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" title="Experimental: uses an unauthenticated FamilySearch beta endpoint with no support guarantee - may change or stop working without notice." data-i18n="Parse_locations_with_FamilySearch_Places">Parse locations with FamilySearch Places (experimental)</td>
                                 </tr>
                                 <tr>
+                                    <td style="padding: 3px 6px 0 25px; width: 58px;">
+                                        <div class="onoffswitch">
+                                            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="burialcurrentlocationonoffswitch">
+                                            <label class="onoffswitch-label" for="burialcurrentlocationonoffswitch">
+                                                <span class="onoffswitch-inner"></span>
+                                                <span class="onoffswitch-switch"></span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" title="Burial locations are commonly recorded under the place name in use today, not the historic name at time of death - useful if you'd actually go visit the grave. Only affects the FamilySearch lookup for burial location; the source burial date and the estimated burial date are unaffected." data-i18n="Use_current_location_name_for_burial">Use current location name for burial (vs. historic)</td>
+                                </tr>
+                                <tr>
                                     <td colspan="2">
                                         <table style="width: 100%;">
                                             <tr>
@@ -771,7 +783,7 @@
                     CURRENT (possibly just-edited) year, but editing it here
                     only affects this lookup - never writes back to the
                     actual date field. -->
-                    <p id="geoupdateyearrow" style="display: none;">FamilySearch lookup year: <input id="geoupdateyear" type="number" style="width: 70px;"></p>
+                    <p id="geoupdateyearrow" style="display: none;">FamilySearch lookup year: <input id="geoupdateyear" type="number" style="width: 70px;"> <span id="geoupdateyearcurrent" style="display: none; color: #888; font-size: 90%;" title="Using the current year instead of the historic date, per the 'Use current location name for burial' setting.">(using current year)</span></p>
                     <!-- #239: same FamilySearch-Places-only visibility as
                     the lookup year row above - Google has no equivalent
                     place-correction process to link to. Points at

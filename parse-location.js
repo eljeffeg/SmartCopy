@@ -547,28 +547,74 @@ function attemptFamilySearchQuery(placeSegment, year, fullLocationString, placeN
                 callback(undefined);
                 return;
             }
-            // Entries are pre-sorted by relevance score (highest first) -
-            // walk down from the best match FamilySearch itself picked
-            // (already narrowed by the +date: filter above when a year was
-            // available) until one is actually settlement-level, not a
-            // broader jurisdiction wrongly standing in for it.
-            var places;
+            // Entries are pre-sorted by relevance score (highest first).
+            // Collect every non-broad candidate tied at the TOP score seen
+            // (not just the first one) - #237 (live-reported, DanCornett):
+            // FamilySearch itself can score two genuinely different
+            // interpretations of the same query identically (e.g.
+            // "Washington, Virginia" scores a Village named Washington and
+            // Washington County equally at 100) - picking blindly whichever
+            // happened to sort first ignored real tie-break signal.
+            var topScore;
+            var tiedCandidates = [];
             for (var e = 0; e < entries.length; e++) {
                 var candidatePlaces = entries[e].content.gedcomx.places;
-                if (exists(candidatePlaces) && candidatePlaces.length > 0 && !isBroadPlaceType(candidatePlaces[0])) {
-                    places = candidatePlaces;
-                    break;
+                if (!exists(candidatePlaces) || candidatePlaces.length === 0 || isBroadPlaceType(candidatePlaces[0])) {
+                    continue;
                 }
+                if (!exists(topScore)) {
+                    topScore = entries[e].score;
+                } else if (entries[e].score !== topScore) {
+                    break; // pre-sorted descending - nothing further can tie
+                }
+                tiedCandidates.push(candidatePlaces);
             }
-            if (!exists(places) || places.length === 0) {
+            if (tiedCandidates.length === 0) {
                 callback(undefined);
                 return;
             }
+            var places = selectBestTiedFsMatch(tiedCandidates, placeSegment, fullLocationString, placeName);
             callback(familySearchPlaceToGeoLocation(places, fullLocationString, placeName));
         } catch (e) {
             callback(undefined);
         }
     });
+}
+
+// #237 (live-reported, DanCornett): picks the best of several FamilySearch
+// candidates that tied at the same top relevance score. First choice: a
+// precise county-only match for the query term - reuses countyOnlyOverride()
+// as-is, the same function and reasoning #225 already established for
+// Google's path ("genealogical records are typically indexed at county
+// level, not city"). Otherwise falls back to DanCornett's stated general
+// preference: fewest populated fields wins (e.g. "County, State, Country"
+// over "City, County, State, Country"); ties within that tier keep
+// FamilySearch's own original relevance order (first candidate in the
+// array). A single tied candidate always short-circuits straight through,
+// completely inert for the (overwhelmingly common) non-tied case.
+function selectBestTiedFsMatch(tiedCandidates, placeSegment, fullLocationString, placeName) {
+    if (tiedCandidates.length === 1) {
+        return tiedCandidates[0];
+    }
+    var queryFirstSegment = placeSegment.split(",")[0].trim();
+    var geos = tiedCandidates.map(function (places) {
+        return familySearchPlaceToGeoLocation(places, fullLocationString, placeName);
+    });
+    for (var i = 0; i < geos.length; i++) {
+        if (countyOnlyOverride(queryFirstSegment, geos[i])) {
+            return tiedCandidates[i];
+        }
+    }
+    var best = 0;
+    var bestCount = countGeoFields(geos[0]);
+    for (var j = 1; j < geos.length; j++) {
+        var c = countGeoFields(geos[j]);
+        if (c < bestCount) {
+            best = j;
+            bestCount = c;
+        }
+    }
+    return tiedCandidates[best];
 }
 
 // Maps FamilySearch's place + ancestor-jurisdiction chain onto this
@@ -698,15 +744,30 @@ function familySearchPlaceToGeoLocation(places, query, placeName) {
     // feature exists to provide, just a type label the original two
     // cases didn't anticipate. Mapped to "state" for the same reason as
     // Province - the closest fit in Geni's 4-field schema.
-    var FS_MATCH_ADMIN_LEVEL = { "County": "county", "State": "state", "Province": "state", "Colony": "state" };
+    // #237 follow-up (live-reported): "Country" added - querying a bare
+    // country name with nothing more specific ("United States" alone, no
+    // city/state/county in the original string) was falling all the way
+    // through to the settlement/city branch below, since nothing in the
+    // original three cases anticipated places[0] itself being a country -
+    // live-confirmed via direct query: places[0].display.type "Country",
+    // a single-element places array (no ancestors at all, not even a
+    // continent), landing "United States" in City with every real field
+    // left blank.
+    var FS_MATCH_ADMIN_LEVEL = { "County": "county", "State": "state", "Province": "state", "Colony": "state", "Country": "country" };
     var matchedAdminLevel = (exists(places[0]) && exists(places[0].display)) ?
         FS_MATCH_ADMIN_LEVEL[places[0].display.type] : undefined;
 
     var ancestors = places.slice(1);
-    if (ancestors.length >= 1) {
+    if (matchedAdminLevel !== "country" && ancestors.length >= 1) {
         location.country = nameOf(ancestors[ancestors.length - 1]);
     }
-    if (matchedAdminLevel === "county") {
+    if (matchedAdminLevel === "country") {
+        location.country = nameOf(places[0]);
+        // City/county/state intentionally stay blank - nothing more
+        // specific than a bare country was actually matched. A country's
+        // own ancestor (if any - at most a continent) has no home in
+        // Geni's 4-field schema, so it's deliberately ignored here.
+    } else if (matchedAdminLevel === "county") {
         location.county = nameOf(places[0]);
         var stateAncestors = ancestors.slice(0, ancestors.length - 1);
         if (stateAncestors.length >= 1) {
@@ -749,10 +810,25 @@ function familySearchPlaceToGeoLocation(places, query, placeName) {
     // the #237 "Colony" fix surfaced) - the county still needs Geni's
     // same " County" convention regardless of which side of 1776 the
     // record falls on.
-    var FS_US_COUNTY_SUFFIX_COUNTRIES = ["United States", "British Colonial America"];
+    // #237 follow-up (live-reported): "Republic of Texas" added - the
+    // same reasoning, live-confirmed via "Gonzales, Texas" dated 1840/1842
+    // (Texas's independent-republic era, 1836-1845): county ancestor name
+    // resolves plain "Gonzales" under country "Republic of Texas", which
+    // needs the same " County" suffix as its later "United States" era.
+    var FS_US_COUNTY_SUFFIX_COUNTRIES = ["United States", "British Colonial America", "Republic of Texas"];
+    // #237 follow-up (live-reported): Louisiana calls its county-equivalent
+    // divisions "Parish", not "County" - live-confirmed querying "New
+    // Orleans, Louisiana" returns county ancestor name plain "Orleans"
+    // (same as every other state), so without a state-specific override
+    // this produced "Orleans County", which isn't a real place ("Orleans
+    // Parish" is). Not exhaustive - only Louisiana is live-evidenced;
+    // every other US state/colonial-era polity keeps the plain "County"
+    // default.
+    var FS_COUNTY_SUFFIX_WORD_BY_STATE = { "Louisiana": "Parish" };
     if (FS_US_COUNTY_SUFFIX_COUNTRIES.indexOf(location.country) !== -1 && location.county !== "" &&
-            !/\s*County\s*$/i.test(location.county)) {
-        location.county = location.county + " County";
+            !/\s*(County|Parish)\s*$/i.test(location.county)) {
+        var countySuffixWord = FS_COUNTY_SUFFIX_WORD_BY_STATE[location.state] || "County";
+        location.county = location.county + " " + countySuffixWord;
     }
     // #229 follow-up (live-reported regression): recomputing .place here
     // via computeLeftoverPlaceName() - live-reported as "Potsdam, Preussen"
@@ -1050,12 +1126,14 @@ function countyOnlyOverride(queryTerm, candidate) {
     if (!exists(candidate) || candidate.city !== "" || candidate.county === "") {
         return false;
     }
-    // Strip a trailing "County" from BOTH sides before comparing - the
-    // scraped source text might already spell it out explicitly ("Story
-    // County, Iowa") or might not ("Story, Iowa"), and the comparison
-    // needs to work either way.
-    var normQuery = String(queryTerm || "").replace(/\s*County\s*$/i, "").trim().toLowerCase();
-    var normCounty = candidate.county.replace(/\s*County\s*$/i, "").trim().toLowerCase();
+    // Strip a trailing "County" (or Louisiana's "Parish" - see
+    // FS_COUNTY_SUFFIX_WORD_BY_STATE in familySearchPlaceToGeoLocation())
+    // from BOTH sides before comparing - the scraped source text might
+    // already spell it out explicitly ("Story County, Iowa" / "Orleans
+    // Parish, Louisiana") or might not ("Story, Iowa" / "Orleans,
+    // Louisiana"), and the comparison needs to work either way.
+    var normQuery = String(queryTerm || "").replace(/\s*(County|Parish)\s*$/i, "").trim().toLowerCase();
+    var normCounty = candidate.county.replace(/\s*(County|Parish)\s*$/i, "").trim().toLowerCase();
     return normQuery !== "" && normCounty !== "" && normQuery === normCounty;
 }
 

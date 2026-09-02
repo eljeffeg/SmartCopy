@@ -16,6 +16,13 @@ var geolocation = [];
 // existing field's meaning entirely. The revert button still always
 // restores the TRUE original via getParsedLocation(), untouched by this.
 var lastEditedLocationText = {};
+// #251 (live-reported): the FamilySearch lookup year field in the same
+// modal always reset to the current source date's year on every reopen,
+// unlike lastEditedLocationText above - inconsistent, since the two fields
+// sit right next to each other in the same panel. Same keying/rationale as
+// lastEditedLocationText; Revert still always restores the true computed
+// default (see #georevertbtn's click handler, popup.js), never this store.
+var lastEditedLocationYear = {};
 var parsecomplete = false;
 var unionurls = [];
 var databyid = [];
@@ -2325,7 +2332,12 @@ function updateClassResponse() {
                 // a visible reminder of which one is in effect.
                 var isBurialRow = id.split("_")[1] === "burial";
                 var usingCurrentYear = isBurialRow && $('#burialcurrentlocationonoffswitch').prop('checked');
-                $('#geoupdateyear').val(usingCurrentYear ? moment().format('YYYY') : getCurrentEventYear(id));
+                var originalYear = usingCurrentYear ? moment().format('YYYY') : getCurrentEventYear(id);
+                $('#georevertbtn').attr("yearvalue", originalYear);
+                // #251: mirrors the textbox above - reopening shows the
+                // last year actually looked up for this row, not always
+                // the current computed default.
+                $('#geoupdateyear').val(exists(lastEditedLocationYear[id]) ? lastEditedLocationYear[id] : originalYear);
                 $('#geoupdateyearcurrent').css('display', usingCurrentYear ? 'inline' : 'none');
                 $('#geoupdateyearrow').css('display', 'block');
                 // #239: same FamilySearch-Places-only visibility as the

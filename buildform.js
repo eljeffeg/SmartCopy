@@ -3416,6 +3416,51 @@ function applyEstimatedDate(target, title, value) {
 // an estimate must never silently overwrite real Geni data, but it should
 // still be visible and available to manually check even when Geni's side
 // isn't blank.
+// #259: date-precision helper for the burial-date-upgrade extension below.
+// level is 0 (year only), 1 (month+year), or 2 (day+month+year), determined
+// by which of dateformatter's own format strings (popup.js) strict-matches
+// - reused rather than a separate format list, so this stays in lockstep
+// with whatever shapes cleanDate()/scraping already actually produce.
+// month is the parsed month number whenever the matched format includes
+// one, else undefined - used to require the death and burial months agree
+// before upgrading (see fillMissingDeathOrBurialDate()'s own comment).
+function getDatePrecisionInfo(dateStr) {
+    if (!exists(dateStr) || dateStr.trim() === "") {
+        return undefined;
+    }
+    var stripped = dateStr.replace(DATE_QUALIFIER_PATTERN, "").replace(/(\d+)(st|nd|rd|th)\b/i, "$1").trim();
+    var dt = moment(stripped, dateformatter, true);
+    if (!dt.isValid()) {
+        return undefined;
+    }
+    var matchedFormat = dt.creationData().format;
+    var hasDay = /D/.test(matchedFormat);
+    var hasMonth = /M/.test(matchedFormat);
+    return { level: hasDay ? 2 : (hasMonth ? 1 : 0), month: hasMonth ? dt.get('month') : undefined };
+}
+
+// #259: overwrites an EXISTING non-blank, non-estimated date on the first
+// matching array element with a more precise upgrade - unlike
+// attachEstimatedDateToLocationEntry() (which only ever fills a BLANK
+// date), this deliberately replaces a real but less-precise value. Same
+// whole-array scan as getRealDateString() uses to find "the real date" in
+// the first place, so this always upgrades exactly the element that
+// produced burialDateStr below.
+function attachRealDateUpgrade(dateArray, value) {
+    if (!exists(dateArray)) {
+        return false;
+    }
+    for (var i = 0; i < dateArray.length; i++) {
+        if (exists(dateArray[i]) && exists(dateArray[i].date) && dateArray[i].date.trim() !== "" &&
+                dateArray[i].estimated !== true) {
+            dateArray[i].date = value;
+            dateArray[i].estimated = true;
+            return true;
+        }
+    }
+    return false;
+}
+
 function fillMissingDeathOrBurialDate(target) {
     var deathDateStr = getRealDateString(target["death"], true);
     var burialDateStr = getRealDateString(target["burial"], true);
@@ -3428,6 +3473,30 @@ function fillMissingDeathOrBurialDate(target) {
         var deathEstimate = computeQualifiedDateFromRelatedDate(burialDateStr, -1);
         if (exists(deathEstimate) && !attachEstimatedDateToLocationEntry(target["death"], deathEstimate)) {
             applyEstimatedDate(target, "death", deathEstimate);
+        }
+    } else if (exists(deathDateStr) && exists(burialDateStr)) {
+        // #259 (live-reported): extends the same estimate to the case
+        // where the source page's burial date ISN'T blank, just less
+        // precise than the death date (e.g. burial recorded only as a
+        // bare year while death has a full day/month/year) - the
+        // blank-burial branch above already covers "no source burial
+        // date at all." Only upgrades when burial has no month at all,
+        // or its month agrees with death's - a burial month that
+        // genuinely conflicts with the death month is left untouched
+        // rather than silently overwritten (DanCornett's own stated
+        // rule: "death: dd-Jun-yyyy, burial: Nov-yyyy => do NOT
+        // over-ride burial date"). Never runs the reverse direction
+        // (upgrading death from burial) - not requested; this is framed
+        // as an extension of "Estimate burial date," not a new death-side
+        // feature.
+        var deathPrecision = getDatePrecisionInfo(deathDateStr);
+        var burialPrecision = getDatePrecisionInfo(burialDateStr);
+        if (exists(deathPrecision) && exists(burialPrecision) && deathPrecision.level > burialPrecision.level &&
+                (burialPrecision.level === 0 || deathPrecision.month === burialPrecision.month)) {
+            var burialUpgrade = computeQualifiedDateFromRelatedDate(deathDateStr, 1);
+            if (exists(burialUpgrade)) {
+                attachRealDateUpgrade(target["burial"], burialUpgrade);
+            }
         }
     }
 }

@@ -262,14 +262,12 @@ function updateGeoLocation() {
         // any OTHER leftover text (e.g. "Sagrario" ahead of a resolved
         // Xalapa/Veracruz/Mexico chain) that the normal buildForm() render
         // already preserves via computeLeftoverPlaceName(). Same
-        // hasGeoFields/parenthesization rules as that render path, so a
-        // location edited through the pencil behaves identically to one
-        // parsed on initial load.
+        // hasGeoFields logic as that render path, so a location edited
+        // through the pencil behaves identically to one parsed on initial
+        // load. #256: no longer parenthesized - see itemPlaceNameValue's
+        // own comment (below) for why.
         var updateHasGeoFields = isValue(locationdata.city) || isValue(locationdata.county) || isValue(locationdata.state) || isValue(locationdata.country);
         var updatePlaceNameValue = updateHasGeoFields ? computeLeftoverPlaceName(locationdata.query, locationdata) : locationdata.place;
-        if (updateHasGeoFields && updatePlaceNameValue !== "") {
-            updatePlaceNameValue = "(" + updatePlaceNameValue + ")";
-        }
         $(eventrow).find("input[type=text]")[0].value = updatePlaceNameValue;
         $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
@@ -871,37 +869,17 @@ function buildForm() {
                         // Geni data stays protected/unchecked by default"
                         // rule as everything else, so this only takes effect
                         // if the user explicitly checks the box.
-                        // #229 follow-up (live-requested): same
-                        // parenthesized treatment as Row 1's computed
-                        // leftover below, applied here too - live-reported
-                        // as inconsistent otherwise ("Jüdischer Friedhof
-                        // Storkow" showing unwrapped here, since it's a
-                        // confidently-extracted venue name rather than
-                        // computed residue, while a DIFFERENT record's
-                        // leftover text showed wrapped in Row 1 - from the
-                        // user's own perspective both are equally "the
-                        // remainder," regardless of which specific Geni
-                        // sub-field they end up landing in).
-                        if (hasGeoFields && placegeo !== "") {
-                            placegeo = "(" + placegeo + ")";
-                        }
+                        // #256 (live-reported): previously parenthesized
+                        // ("(Potsdam, Preussen)") per #229's own decision to
+                        // visually mark this as computed residue rather than
+                        // a literal continuation of the official address -
+                        // dropped on request ("unnecessary clutter... makes
+                        // me think that info is of less value"). The text
+                        // itself is untouched, still computed the exact same
+                        // way (whatever isn't already represented by
+                        // city/county/state/country/place survives, "" when
+                        // nothing does) - only the wrapping is gone.
                         var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar1) : place;
-                        // #229 follow-up (live-requested): wrap a non-empty
-                        // computed leftover in parentheses - "Potsdam,
-                        // Preussen" reads as if it were a literal, precise
-                        // continuation of the official address the same
-                        // way "Storkow, Beeskow-Storkow, Brandenburg,
-                        // Germany" is; it isn't - it's whatever historical/
-                        // supplementary text didn't fit into the resolved
-                        // fields, genuinely useful context but a different
-                        // KIND of information. Only applied to the computed
-                        // leftover (hasGeoFields true) - the plain raw
-                        // string used when nothing resolved at all is left
-                        // unwrapped, since that's not "leftover after
-                        // diffing" at all, just the untouched original text.
-                        if (hasGeoFields && itemPlaceNameValue !== "") {
-                            itemPlaceNameValue = "(" + itemPlaceNameValue + ")";
-                        }
                         locationval = locationval +
                             '<tr id="focus_'+title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                             '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + itemGeoicon + '" height="14px">';
@@ -1751,19 +1729,11 @@ function buildForm() {
                                 var itemGeolochidden = hasGeoFields ? "" : " geohidden";
                                 var placeScored = scored && !geoAnySourceEnabled();
                                 var geoScored = scored && geoAnySourceEnabled();
-                                // #229 follow-up: same parenthesized treatment
-                                // as the focus profile block above.
-                                if (hasGeoFields && placegeo !== "") {
-                                    placegeo = "(" + placegeo + ")";
-                                }
                                 // #224: same rule as the focus profile block
                                 // above - see its own comment.
+                                // #256: no longer parenthesized - see the
+                                // focus profile block's own comment.
                                 var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar2) : place;
-                                // #229 follow-up: same parenthesized-leftover
-                                // treatment as the focus profile block above.
-                                if (hasGeoFields && itemPlaceNameValue !== "") {
-                                    itemPlaceNameValue = "(" + itemPlaceNameValue + ")";
-                                }
                                 locationval = locationval +
                                     '<tr id="'+ i + "_" +title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                                     '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + itemGeoicon + '" height="14px">';

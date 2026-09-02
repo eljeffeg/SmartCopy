@@ -255,7 +255,22 @@ function updateGeoLocation() {
         // every field this walks is checked whenever geo parsing applies
         // to this row (geoon) at all, regardless of its own value.
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
-        $(eventrow).find("input[type=text]")[0].value = locationdata.place;
+        // #253 (live-reported): this manual "Update Location" re-query path
+        // predates #224's computed-leftover feature and never got it added -
+        // it wrote locationdata.place (just the venue/keyword segment
+        // extractPlaceNameSegments() stripped) directly, silently dropping
+        // any OTHER leftover text (e.g. "Sagrario" ahead of a resolved
+        // Xalapa/Veracruz/Mexico chain) that the normal buildForm() render
+        // already preserves via computeLeftoverPlaceName(). Same
+        // hasGeoFields/parenthesization rules as that render path, so a
+        // location edited through the pencil behaves identically to one
+        // parsed on initial load.
+        var updateHasGeoFields = isValue(locationdata.city) || isValue(locationdata.county) || isValue(locationdata.state) || isValue(locationdata.country);
+        var updatePlaceNameValue = updateHasGeoFields ? computeLeftoverPlaceName(locationdata.query, locationdata) : locationdata.place;
+        if (updateHasGeoFields && updatePlaceNameValue !== "") {
+            updatePlaceNameValue = "(" + updatePlaceNameValue + ")";
+        }
+        $(eventrow).find("input[type=text]")[0].value = updatePlaceNameValue;
         $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.city;

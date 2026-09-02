@@ -341,10 +341,23 @@ function applyFsLookupYearFallback(locationEntry, year) {
 // 19th-century Prussian-era records, the case this feature was built
 // against; add to it as further cases turn up.
 var PLACE_SEGMENT_QUALIFIER_PATTERN = /\((?:[^)]*)\)|\b(kr\.?|kreis|landkreis|amt|bez\.?|bezirk|regierungsbezirk|provinz|province|königreich|koenigreich|grafschaft)\b/gi;
+// #253 follow-up (found while investigating a live-reported leftover-text
+// bug): the old /[^\w\s]/g punctuation strip is ASCII-only - \w never
+// matches an accented letter, so "México" got mangled to "m xico" (a
+// stray space where the "é" was), silently breaking a match against a
+// resolved "Mexico" field. Two-part fix: NFD-normalize and strip
+// combining marks so an accented letter folds to its plain-ASCII base
+// ("México" -> "Mexico") BEFORE the punctuation strip - live-confirmed
+// this exact mismatch (FamilySearch returns the unaccented "Mexico", the
+// scraped source text has "México") would otherwise leave a real match
+// undetected. Unicode property escapes (\p{L}/\p{N}) then keep any
+// remaining real letter/digit in any script the fold didn't cover, only
+// stripping actual punctuation.
 function normalizePlaceSegmentForMatch(text) {
     return String(text || "")
         .replace(PLACE_SEGMENT_QUALIFIER_PATTERN, " ")
-        .replace(/[^\w\s]/g, " ")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^\p{L}\p{N}\s]/gu, " ")
         .replace(/\s+/g, " ")
         .trim()
         .toLowerCase();

@@ -3230,12 +3230,23 @@ $(function () {
         }
     });
 
+    // #254: burial-current-location only ever affects the FamilySearch
+    // lookup for burial location (see burialCurrentLocationOn's own
+    // comment, shared.js) - showing it while FS Places itself is off is
+    // pure clutter with no effect, live-reported. Same pattern as
+    // #google_apirow only showing while Google Geocoding is on
+    // (geoonoff()).
+    function updateBurialCurrentLocationRowVisibility() {
+        $('#burialcurrentlocationrow').css('display',
+            $('#familysearchplacesonoffswitch').prop('checked') ? 'table-row' : 'none');
+    }
     chrome.storage.local.get('familysearchplaces', function (result) {
         var familysearchplaceschecked = result.familysearchplaces;
         if (exists(familysearchplaceschecked)) {
             $('#familysearchplacesonoffswitch').prop('checked', familysearchplaceschecked);
             familysearchPlacesOn = familysearchplaceschecked;
         }
+        updateBurialCurrentLocationRowVisibility();
         // #229: FamilySearch Places/Google Geocoding both now default per
         // the HTML markup itself (FamilySearch checked, Google not) for a
         // genuinely fresh install with no saved preference at all - but
@@ -3309,6 +3320,7 @@ $(function () {
     $('#familysearchplacesonoffswitch').on('click', function () {
         chrome.storage.local.set({'familysearchplaces': this.checked});
         familysearchPlacesOn = this.checked;
+        updateBurialCurrentLocationRowVisibility();
     });
     $('#burialcurrentlocationonoffswitch').on('click', function () {
         chrome.storage.local.set({'burialcurrentlocation': this.checked});
@@ -3666,6 +3678,9 @@ $(function () {
             // pretending the event itself happened then.
             if ($('#familysearchplacesonoffswitch').prop('checked') && $('#geoupdateyear').val() !== "") {
                 locationset.dateForFsLookup = $('#geoupdateyear').val();
+                // #251: same last-edited retention as the location text
+                // above.
+                lastEditedLocationYear[googlerequery] = $('#geoupdateyear').val();
             }
             modal.style.display = "none";
             queryGeo(locationset);
@@ -3688,6 +3703,12 @@ $(function () {
     $(function () {
         $('#georevertbtn').on('click', function () {
             $('#geoupdatetext').val($('#georevertbtn').attr("value"));
+            // #251: Restore now resets BOTH fields to their true current-
+            // source defaults, not just the location text.
+            var yearvalue = $('#georevertbtn').attr("yearvalue");
+            if (exists(yearvalue)) {
+                $('#geoupdateyear').val(yearvalue);
+            }
         });
     });
 });

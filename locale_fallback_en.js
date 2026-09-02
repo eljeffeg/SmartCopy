@@ -473,6 +473,12 @@ var EN_FALLBACK_MESSAGES = {
     "Parse_locations_with_FamilySearch_Places": {
         "message": "Parse locations with FamilySearch Places (experimental)"
     },
+    "Use_current_location_name_for_burial": {
+        "message": "Use current name for burial loc. (vs. historical)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Move cemetery from death loc. to burial loc."
+    },
     "Naming": {
         "message": "Naming"
     },

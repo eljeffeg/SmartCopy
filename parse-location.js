@@ -307,7 +307,20 @@ function isBroadPlaceType(place) {
 // segment like "Oak Hill Cem" was never even recognized as a venue at
 // all here - it would flow straight into the FamilySearch jurisdiction
 // query instead of being stripped into the Place Name field.
-var PLACE_NAME_KEYWORD_PATTERN = /\b(cemetery|cem\.?|cemetary|church|chapel|synagogue|temple|hospital|clinic|camp|prison|fort|plantation|plot|lot|grave|section|block|row|space|apt|apartment|suite|room|building|street|st\.?|avenue|ave\.?|road|rd\.?|lane|ln\.?|drive|dr\.?|boulevard|blvd\.?|highway|hwy\.?|route|rt\.?|farm|ranch|friedhof|kirchhof|kirche|kapelle|synagoge|kloster|krankenhaus|gefängnis|gefangnis)\b/i;
+// #252 (live-reported): "fort" removed - it was meant to catch landmark
+// text (e.g. "at the old fort"), but as a bare word it also matches the
+// START of real, populous US city names ("Fort Worth", "Fort Wayne",
+// "Fort Lauderdale", "Fort Collins", "Fort Myers", "Fort Smith" all
+// test true against \bfort\b) - live-confirmed via "Fort Worth, Tarrant,
+// TX" being wrongly stripped into the Place Name field entirely, instead
+// of being sent to the geocoder where it resolves cleanly to City. No
+// live-confirmed case ever needed "fort" specifically (unlike every
+// other word here), so removed rather than special-cased - same
+// evidence-based discipline as the rest of this list. "camp" and
+// "plantation" carry the identical risk (real cities: Camp Hill PA,
+// Plantation FL) but have no live-reported failure yet - left as-is
+// pending one, not preemptively removed.
+var PLACE_NAME_KEYWORD_PATTERN = /\b(cemetery|cem\.?|cemetary|church|chapel|synagogue|temple|hospital|clinic|camp|prison|plantation|plot|lot|grave|section|block|row|space|apt|apartment|suite|room|building|street|st\.?|avenue|ave\.?|road|rd\.?|lane|ln\.?|drive|dr\.?|boulevard|blvd\.?|highway|hwy\.?|route|rt\.?|farm|ranch|friedhof|kirchhof|kirche|kapelle|synagoge|kloster|krankenhaus|gefängnis|gefangnis)\b/i;
 // A segment that's essentially just a number (a house/plot/lot number,
 // with an optional trailing letter like "15191a"), starts with one
 // followed by more text (the US street-address convention, "123 Main"),

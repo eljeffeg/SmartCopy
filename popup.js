@@ -987,7 +987,18 @@ function loadSelectPage(request) {
         '<tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong>Geni ID or URL:</strong></td></tr>' +
         '<tr><td style="padding-right: 5px;"><input type="text" style="width: 100%;" id="changeprofile"></td></tr>' +
         '<tr><td style="padding-top: 5px;"><button id="changefocus">Set Destination</button></td></tr></table>');
-    var parsed = $('<div>').html(JSON.stringify(request).replace(/<img[^>]*>/ig, ""));
+    // #257 (live-reported): was JSON.stringify(request), not request.source
+    // - wrapped the WHOLE request object (including its raw HTML) into one
+    // JSON string with every quote escaped, then fed that JSON text to
+    // jQuery's .html() as if it were markup. The browser's HTML parser hit
+    // literal backslash-quote sequences inside attribute values (e.g. an
+    // SVG icon's "cx=\"8\"", an iframe's "sandbox=\"allow-forms...") and
+    // threw a console error for each one - text extraction below
+    // (.individualInformationName, etc.) partially survived anyway since
+    // jQuery's HTML parsing is lenient, which is why this never broke the
+    // visible UI, just spammed the console. Matches every other call site
+    // in this function - request.source is the actual page HTML.
+    var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
     var focusperson = parsed.find(".individualInformationName").text().trim();
     if (focusperson == "<Private>") {
         focusperson = parsed.find("#BreadcrumbsFinalText").text().trim();

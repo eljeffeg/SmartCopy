@@ -4138,7 +4138,58 @@ function cleanHTML(html) {
     return div.text() || "";
 }
 
+// #242 (live-reported): source pages can render dates with non-English
+// month names depending on the viewer's own site-language setting - e.g.
+// Filae showing "Le 16 juillet 1813" instead of "16 July 1813" when
+// viewed with French as the site language. moment() only recognizes
+// English month names in this project (no locale files are vendored -
+// see moment.js's own header comment); every collection's scraped date
+// string eventually flows through cleanDate() below, so translating
+// here benefits all of them at once rather than teaching each collection
+// separately. Scoped to languages with LIVE evidence of a source site
+// actually rendering dates that way - French added first (confirmed live
+// via a Filae profile viewed in French, both long "juillet" and, once a
+// real short-form case turns up, "juil" forms). Add further languages
+// here only when a real case turns up, not preemptively guessed - this
+// project has no way to verify a guessed translation is actually correct,
+// and a wrong one would silently misparse a real date.
+var MONTH_NAME_TRANSLATIONS = {
+    fr: {
+        long: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+        short: ["janv", "févr", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc"]
+    }
+};
+var ENGLISH_MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+function translateForeignMonthNames(dateval) {
+    if (!exists(dateval) || dateval.trim() === "") {
+        return dateval;
+    }
+    var result = dateval;
+    for (var lang in MONTH_NAME_TRANSLATIONS) if (MONTH_NAME_TRANSLATIONS.hasOwnProperty(lang)) {
+        var forms = MONTH_NAME_TRANSLATIONS[lang];
+        ["long", "short"].forEach(function (formKey) {
+            var names = forms[formKey];
+            for (var m = 0; m < names.length; m++) {
+                // Optional trailing "." handles a short form written as an
+                // abbreviation ("févr." for February) - harmless on a long
+                // form, which would never have one. A trailing \b would
+                // never match right after that period - "." and the
+                // following space/end are BOTH non-word characters, so
+                // there's no word-boundary transition there at all - so
+                // this uses a lookahead instead, which only checks what
+                // follows without requiring \b's word-boundary semantics.
+                var pattern = new RegExp('\\b' + names[m] + '\\.?(?=\\s|$)', 'i');
+                if (pattern.test(result)) {
+                    result = result.replace(pattern, ENGLISH_MONTH_NAMES[m]);
+                }
+            }
+        });
+    }
+    return result;
+}
+
 function cleanDate(dateval) {
+    dateval = translateForeignMonthNames(dateval);
     if (dateval.contains("WFT ") || dateval.contains("Calculated") || dateval.toLowerCase().contains("deceased")) {
         /*
         WFT is an abbreviation for the World Family Tree algorithm, used in cases where the submitter did not provide a date.

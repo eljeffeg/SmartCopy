@@ -182,7 +182,12 @@ function parseFilaeEventSentence(sentence) {
     // left is a plain "{Month} {Year}" or "{Day} {Month} {Year}" moment.js
     // can parse via cleanDate/getDateFormat, matching how every other
     // collection in this codebase hands dates off.
-    datePart = datePart.replace(/^(The|In)\s+/i, "");
+    // #242 (live-reported): "Le" added - Filae rendered in French uses the
+    // exact same sentence template with its own lead-in word ("Le 16
+    // juillet 1813" instead of "The 16th of July 1813"). The month name
+    // itself is translated separately, by cleanDate() (buildform.js) -
+    // this only needs to strip the lead-in word.
+    datePart = datePart.replace(/^(The|In|Le)\s+/i, "");
     datePart = datePart.replace(/^(\d+)(st|nd|rd|th)\s+of\s+/i, "$1 ");
     datePart = datePart.replace(/\s+of\s+/i, " ");
     var cleanedDate = cleanDate(datePart);

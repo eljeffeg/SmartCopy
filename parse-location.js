@@ -1051,9 +1051,12 @@ function queryGeoGoogle(locationset, test) {
     }
 }
 
+// #258 (live-reported): "united states of america" added - FindAGrave's
+// own default location string uses the full phrase, not the shorter
+// "United States" this already matched.
 function USCheck(location) {
     l = location.toLowerCase();
-    return (l.endsWith("united states") || l.endsWith(" usa") || l.endsWith(" us"));
+    return (l.endsWith("united states of america") || l.endsWith("united states") || l.endsWith(" usa") || l.endsWith(" us"));
 }
 
 function matchGeoFields(g1, g2, cnt) {

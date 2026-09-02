@@ -4146,17 +4146,27 @@ function cleanHTML(html) {
 // see moment.js's own header comment); every collection's scraped date
 // string eventually flows through cleanDate() below, so translating
 // here benefits all of them at once rather than teaching each collection
-// separately. Scoped to languages with LIVE evidence of a source site
-// actually rendering dates that way - French added first (confirmed live
-// via a Filae profile viewed in French, both long "juillet" and, once a
-// real short-form case turns up, "juil" forms). Add further languages
-// here only when a real case turns up, not preemptively guessed - this
-// project has no way to verify a guessed translation is actually correct,
-// and a wrong one would silently misparse a real date.
+// separately. French added first (confirmed live via a Filae profile
+// viewed in French). German added on explicit request (#242 follow-up) -
+// this project already deals with several German-sourced sites
+// (Online-OFB, FamilySearch's German-language records), so the same risk
+// applies even without one specific live-captured page dump the way
+// French had; German's own month names are standard/unambiguous enough
+// (unlike several other locales this project ships UI translations for -
+// Hebrew, Japanese, Korean, Chinese, Russian, etc. - where getting a
+// guess wrong is a real risk) to add with confidence. Add further
+// languages here only when there's a concrete reason to (a live example,
+// or an explicit ask like this one) - not preemptively guessed across
+// all 30+ locales this project's UI already supports, since a wrong
+// guess would silently misparse a real date rather than fail loudly.
 var MONTH_NAME_TRANSLATIONS = {
     fr: {
         long: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
         short: ["janv", "févr", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc"]
+    },
+    de: {
+        long: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+        short: ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
     }
 };
 var ENGLISH_MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

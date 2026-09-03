@@ -9,7 +9,6 @@
         "48": "images/icon48.png",
         "128": "images/icon128.png" },
     "background": {
-        "scripts": ["background.js"],
         "service_worker": "background.js"
     },
     "browser_specific_settings": {

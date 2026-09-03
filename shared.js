@@ -404,20 +404,60 @@ function normalizePlaceSegmentForMatch(text) {
 }
 
 // #224: true when segment is either empty after normalizing (nothing but
-// a qualifier word/parenthetical - no real content to preserve) or is a
-// close match (equal, or a substring either direction) of one of the
-// already-resolved fields. Deliberately NOT an exact-only match - the
-// scrape's own text and FamilySearch's/Google's resolved short names are
-// rarely byte-identical even when they clearly refer to the same place.
+// a qualifier word/parenthetical - no real content to preserve) or is an
+// exact match (after normalizing - accent-folding, qualifier-stripping,
+// and the abbreviation/equivalence lookup all still apply, e.g. "IL"
+// against a resolved "Illinois") of one of the already-resolved fields.
+// Checks each field's own individual comma-parts separately (a field can
+// itself be compound, e.g. geo.city "Price Hill, Cincinnati" - a
+// neighborhood folded into its enclosing city, #234) rather than the
+// field as one whole string - so a plain segment naming just one part
+// ("Cincinnati" alone) still correctly matches.
+// #249 (live-reported, DanCornett): this used to also accept a substring
+// match either direction, which correctly caught minor wording
+// differences ("Storkow (Mark)" vs resolved "Storkow" - though that
+// specific case is actually handled by the qualifier-pattern stripping
+// above, not this) but ALSO wrongly discarded an entire segment that
+// merely CONTAINED a resolved field name glued onto genuine extra prefix
+// text with no comma to split on - "at the crossroads 1 mile south of
+// Springfield" (City: "Springfield") was being thrown away whole instead
+// of kept as real, useful leftover context. DanCornett's own call:
+// simpler and safer to keep the whole segment intact (accepting
+// "Springfield" appearing twice, once in City and once here) than to try
+// to algorithmically split out just the redundant part - the string-
+// position heuristics considered for that were flagged as easy to get
+// subtly wrong on edge cases.
+// #249 follow-up (live-confirmed regression against #260's own existing
+// tests): a raw segment often carries a "County"/"Parish" suffix
+// ("Hamilton County", "Kings County") that a resolved field sometimes
+// doesn't (a bare Google Geocoding county, e.g. "Hamilton") and
+// sometimes does (FamilySearch's own results - see the " County"/"
+// Parish" suffix logic in familySearchPlaceToGeoLocation(),
+// parse-location.js) - needs to match regardless of which side, if
+// either, carries the suffix. Stripped only from the very END of the
+// string (never mid-word, unlike PLACE_SEGMENT_QUALIFIER_PATTERN above)
+// since that's the only place this specific suffix convention actually
+// appears - a targeted, evidence-based exception, not a reversion to
+// the general substring matching #249's fix above just removed.
+function stripTrailingCountySuffix(normalizedText) {
+    return normalizedText.replace(/\s+(county|parish)$/, "");
+}
 function segmentMatchesAnyField(segment, fields) {
     var normSeg = normalizePlaceSegmentForMatch(segment);
     if (normSeg === "") {
         return true;
     }
+    var normSegBare = stripTrailingCountySuffix(normSeg);
     for (var i = 0; i < fields.length; i++) {
-        var normField = normalizePlaceSegmentForMatch(fields[i]);
-        if (normField !== "" && (normSeg === normField || normSeg.indexOf(normField) !== -1 || normField.indexOf(normSeg) !== -1)) {
-            return true;
+        if (!exists(fields[i]) || fields[i] === "") {
+            continue;
+        }
+        var fieldParts = fields[i].split(",");
+        for (var j = 0; j < fieldParts.length; j++) {
+            var normPart = normalizePlaceSegmentForMatch(fieldParts[j]);
+            if (normPart !== "" && (normSeg === normPart || normSegBare === stripTrailingCountySuffix(normPart))) {
+                return true;
+            }
         }
     }
     return false;

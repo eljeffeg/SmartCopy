@@ -4,11 +4,12 @@
     "short_name": "__MSG_appShortName__",
     "description": "__MSG_appDesc__",
     "default_locale": "en",
-    "version": "4.17.3.18",
+    "version": "4.17.3.19",
     "icons": { "16": "images/icon16.png",
         "48": "images/icon48.png",
         "128": "images/icon128.png" },
     "background": {
+        "scripts": ["background.js"],
         "service_worker": "background.js"
     },
     "browser_specific_settings": {

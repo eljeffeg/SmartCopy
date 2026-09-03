@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "パートナー"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Google ジオコーディングを有効にする"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "FamilySearch Places で場所を解析する（実験的機能）"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "埋葬地に現在の地名を使用する（歴史的地名の代わりに）"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "死亡地から埋葬地へ墓地情報を移動する"
+    },
+    "Family_Data": {
+        "message": "家族データ"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "詳細情報のための徹底調査（時間がかかります）"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "徹底調査をスキップ"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "残りの検索をスキップしています..."
+    },
+    "Estimate_birth_years": {
+        "message": "出生/結婚/死亡/埋葬年を推定する"
+    },
+    "Average_generational_gap_years": {
+        "message": "平均世代間隔（年）："
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "配偶者間の平均年齢差（年）："
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "ドロップダウンに生没年を表示する"
     }
 }

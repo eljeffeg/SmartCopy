@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "pareja"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Activar geocodificación de Google"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Analizar ubicaciones con FamilySearch Places (experimental)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Usar el nombre actual del lugar de entierro (en vez del histórico)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Mover el cementerio del lugar de defunción al lugar de entierro"
+    },
+    "Family_Data": {
+        "message": "Datos familiares"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Investigación profunda para detalles completos (tarda más)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Omitir investigación profunda"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Omitiendo búsquedas restantes..."
+    },
+    "Estimate_birth_years": {
+        "message": "Estimar años de nacimiento/matrimonio/defunción/entierro"
+    },
+    "Average_generational_gap_years": {
+        "message": "Diferencia generacional promedio (años):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Diferencia de edad promedio entre cónyuges (años):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Mostrar años de nacimiento/defunción en los menús desplegables"
     }
 }

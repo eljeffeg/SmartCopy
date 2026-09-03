@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "партньор"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Активиране на Google Геокодиране"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Анализиране на местоположения с FamilySearch Places (експериментално)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Използване на текущото име за мястото на погребение (срещу историческото)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Преместване на гробището от мястото на смъртта към мястото на погребение"
+    },
+    "Family_Data": {
+        "message": "Семейни данни"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Задълбочено проучване за пълни детайли (отнема повече време)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Пропускане на задълбоченото търсене"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Пропускане на оставащите заявки..."
+    },
+    "Estimate_birth_years": {
+        "message": "Оценка на години на раждане/брак/смърт/погребение"
+    },
+    "Average_generational_gap_years": {
+        "message": "Средна разлика между поколенията (години):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Средна възрастова разлика между съпрузи (години):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Показване на години на раждане/смърт в падащите менюта"
     }
 }

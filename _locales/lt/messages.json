@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "partneris"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Įjungti „Google Geocoding“"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Apdoroti vietoves naudojant FamilySearch Places (eksperimentinė)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Naudoti dabartinį vietovės pavadinimą laidojimo vietai (vietoj istorinio)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Perkelti kapines iš mirties vietos į laidojimo vietą"
+    },
+    "Family_Data": {
+        "message": "Šeimos duomenys"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Nuodugni paieška visai informacijai (užtrunka ilgiau)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Praleisti nuodugnią paiešką"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Praleidžiamos likusios paieškos..."
+    },
+    "Estimate_birth_years": {
+        "message": "Įvertinti gimimo/santuokos/mirties/laidojimo metus"
+    },
+    "Average_generational_gap_years": {
+        "message": "Vidutinis kartų skirtumas (metais):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Vidutinis sutuoktinių amžiaus skirtumas (metais):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Rodyti gimimo/mirties metus išskleidžiamuosiuose sąrašuose"
     }
 }

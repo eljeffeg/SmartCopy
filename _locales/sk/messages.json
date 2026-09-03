@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "partner"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Povoliť Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Spracovať miesta pomocou FamilySearch Places (experimentálne)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Použiť súčasný názov miesta pre pohreb (namiesto historického)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Presunúť cintorín z miesta úmrtia na miesto pohrebu"
+    },
+    "Family_Data": {
+        "message": "Rodinné údaje"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Hĺbkový výskum pre úplné podrobnosti (trvá dlhšie)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Preskočiť hĺbkový výskum"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Preskakujú sa zostávajúce vyhľadávania..."
+    },
+    "Estimate_birth_years": {
+        "message": "Odhadnúť roky narodenia/sobáša/úmrtia/pohrebu"
+    },
+    "Average_generational_gap_years": {
+        "message": "Priemerný generačný rozdiel (roky):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Priemerný vekový rozdiel manželov (roky):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Zobraziť roky narodenia/úmrtia v rozbaľovacích zoznamoch"
     }
 }

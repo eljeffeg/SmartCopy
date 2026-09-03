@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "σύντροφος"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Ενεργοποίηση Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Ανάλυση τοποθεσιών με FamilySearch Places (πειραματικό)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Χρήση τρέχοντος ονόματος τοποθεσίας για την ταφή (αντί του ιστορικού)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Μετακίνηση νεκροταφείου από τον τόπο θανάτου στον τόπο ταφής"
+    },
+    "Family_Data": {
+        "message": "Οικογενειακά δεδομένα"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Εκτενής έρευνα για πλήρεις λεπτομέρειες (διαρκεί περισσότερο)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Παράλειψη εκτενούς έρευνας"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Παράλειψη υπόλοιπων αναζητήσεων..."
+    },
+    "Estimate_birth_years": {
+        "message": "Εκτίμηση ετών γέννησης/γάμου/θανάτου/ταφής"
+    },
+    "Average_generational_gap_years": {
+        "message": "Μέση γενεαλογική απόσταση (έτη):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Μέση διαφορά ηλικίας συζύγων (έτη):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Εμφάνιση ετών γέννησης/θανάτου στις αναπτυσσόμενες λίστες"
     }
 }

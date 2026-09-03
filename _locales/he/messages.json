@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "בן/בת זוג"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "הפעל מיקום גיאוגרפי של Google"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "פענוח מיקומים באמצעות FamilySearch Places (ניסיוני)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "השתמש בשם המיקום הנוכחי לקבורה (במקום ההיסטורי)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "העבר את בית הקברות ממקום הפטירה למקום הקבורה"
+    },
+    "Family_Data": {
+        "message": "נתוני משפחה"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "מחקר מעמיק לפרטים מלאים (אורך יותר זמן)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "דלג על מחקר מעמיק"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "מדלג על החיפושים הנותרים..."
+    },
+    "Estimate_birth_years": {
+        "message": "הערך שנות לידה/נישואין/פטירה/קבורה"
+    },
+    "Average_generational_gap_years": {
+        "message": "פער דורות ממוצע (שנים):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "פער גיל ממוצע בין בני זוג (שנים):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "הצג שנות לידה/פטירה בתפריטים הנפתחים"
     }
 }

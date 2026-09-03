@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "伴侶"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "啟用 Google 地理編碼"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "使用 FamilySearch Places 解析地點（實驗性功能）"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "安葬地使用現今地名（而非歷史地名）"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "將墓地資訊從死亡地點移至安葬地點"
+    },
+    "Family_Data": {
+        "message": "家庭資料"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "深度研究以取得完整詳情（耗時較長）"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "跳過深度研究"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "正在跳過剩餘查詢..."
+    },
+    "Estimate_birth_years": {
+        "message": "估算出生/結婚/死亡/安葬年份"
+    },
+    "Average_generational_gap_years": {
+        "message": "平均世代差（年）："
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "配偶平均年齡差（年）："
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "在下拉選單中顯示出生/死亡年份"
     }
 }

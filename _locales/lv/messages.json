@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "partneris"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Iespējot Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Apstrādāt vietas ar FamilySearch Places (eksperimentāls)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Izmantot pašreizējo vietas nosaukumu apbedīšanai (nevis vēsturisko)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Pārvietot kapsētu no nāves vietas uz apbedīšanas vietu"
+    },
+    "Family_Data": {
+        "message": "Ģimenes dati"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Padziļināta izpēte pilnīgai informācijai (aizņem ilgāku laiku)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Izlaist padziļināto izpēti"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Izlaiž atlikušos meklējumus..."
+    },
+    "Estimate_birth_years": {
+        "message": "Novērtēt dzimšanas/laulības/nāves/apbedīšanas gadus"
+    },
+    "Average_generational_gap_years": {
+        "message": "Vidējā paaudžu atšķirība (gados):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Vidējā laulāto vecuma starpība (gados):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Rādīt dzimšanas/nāves gadus nolaižamajos sarakstos"
     }
 }

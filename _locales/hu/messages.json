@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "partner"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Google Geocoding engedélyezése"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Helyszínek feldolgozása a FamilySearch Places segítségével (kísérleti)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "A temetés helyének jelenlegi nevét használja (a történelmi helyett)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Temető áthelyezése a halálozás helyéről a temetés helyére"
+    },
+    "Family_Data": {
+        "message": "Családi adatok"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Mélykutatás a teljes részletekért (tovább tart)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Mélykutatás kihagyása"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "A hátralévő keresések kihagyása..."
+    },
+    "Estimate_birth_years": {
+        "message": "Születési/házasságkötési/halálozási/temetési évek becslése"
+    },
+    "Average_generational_gap_years": {
+        "message": "Átlagos generációs különbség (évek):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Átlagos házastársi korkülönbség (évek):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Születési/halálozási évek megjelenítése a legördülő menükben"
     }
 }

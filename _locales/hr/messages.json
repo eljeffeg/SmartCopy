@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "partner"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Omogući Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Obradi lokacije pomoću FamilySearch Places (eksperimentalno)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Koristi trenutni naziv mjesta za pokop (umjesto povijesnog)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Premjesti groblje s mjesta smrti na mjesto pokopa"
+    },
+    "Family_Data": {
+        "message": "Obiteljski podaci"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Dubinsko istraživanje za potpune detalje (traje dulje)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Preskoči dubinsko istraživanje"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Preskačem preostala pretraživanja..."
+    },
+    "Estimate_birth_years": {
+        "message": "Procijeni godine rođenja/vjenčanja/smrti/pokopa"
+    },
+    "Average_generational_gap_years": {
+        "message": "Prosječni generacijski razmak (godine):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Prosječna razlika u dobi supružnika (godine):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Prikaži godine rođenja/smrti u padajućim izbornicima"
     }
 }

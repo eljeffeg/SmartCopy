@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "partner"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Aktivera Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Tolka platser med FamilySearch Places (experimentell)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Använd nuvarande platsnamn för gravplats (istället för historiskt)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Flytta kyrkogård från dödsort till gravplats"
+    },
+    "Family_Data": {
+        "message": "Familjedata"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Djupforskning för fullständiga detaljer (tar längre tid)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Hoppa över djupforskning"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Hoppar över återstående sökningar..."
+    },
+    "Estimate_birth_years": {
+        "message": "Uppskatta födelse-/gifte-/döds-/begravningsår"
+    },
+    "Average_generational_gap_years": {
+        "message": "Genomsnittligt generationsavstånd (år):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Genomsnittlig åldersskillnad mellan makar (år):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Visa födelse-/dödsår i rullgardinsmenyer"
     }
 }

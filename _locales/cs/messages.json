@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "partner"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Povolit Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Zpracovat místa pomocí FamilySearch Places (experimentální)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Použít současný název místa pro pohřeb (místo historického)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Přesunout hřbitov z místa úmrtí do místa pohřbu"
+    },
+    "Family_Data": {
+        "message": "Rodinná data"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Hloubkový výzkum pro úplné podrobnosti (trvá déle)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Přeskočit hloubkový výzkum"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Přeskakují se zbývající vyhledávání..."
+    },
+    "Estimate_birth_years": {
+        "message": "Odhadnout roky narození/sňatku/úmrtí/pohřbu"
+    },
+    "Average_generational_gap_years": {
+        "message": "Průměrný generační rozdíl (roky):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Průměrný věkový rozdíl mezi manžely (roky):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Zobrazit roky narození/úmrtí v rozevíracích seznamech"
     }
 }

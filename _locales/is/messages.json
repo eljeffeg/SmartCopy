@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "maki"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Virkja Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Vinna úr staðsetningum með FamilySearch Places (tilraunaeiginleiki)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Nota núverandi nafn staðar fyrir greftrun (í stað sögulegs nafns)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Flytja kirkjugarð frá dánarstað til greftrunarstaðar"
+    },
+    "Family_Data": {
+        "message": "Fjölskyldugögn"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Ítarleg rannsókn fyrir öll smáatriði (tekur lengri tíma)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Sleppa ítarlegri rannsókn"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Sleppi eftirstandandi uppflettingum..."
+    },
+    "Estimate_birth_years": {
+        "message": "Áætla fæðingar-/hjónabands-/dánar-/greftrunarár"
+    },
+    "Average_generational_gap_years": {
+        "message": "Meðalkynslóðabil (ár):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Meðalaldursmunur hjóna (ár):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Sýna fæðingar-/dánarár í fellilistum"
     }
 }

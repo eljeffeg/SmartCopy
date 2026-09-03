@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "Partner"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Google Geocoding aktivieren"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Orte mit FamilySearch Places verarbeiten (experimentell)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Aktuellen Ortsnamen für Begräbnisort verwenden (statt historischem)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Friedhof vom Sterbeort zum Begräbnisort verschieben"
+    },
+    "Family_Data": {
+        "message": "Familiendaten"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Tiefenrecherche für vollständige Details (dauert länger)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Tiefenrecherche überspringen"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Verbleibende Abfragen werden übersprungen..."
+    },
+    "Estimate_birth_years": {
+        "message": "Geburts-/Heirats-/Sterbe-/Begräbnisjahre schätzen"
+    },
+    "Average_generational_gap_years": {
+        "message": "Durchschnittlicher Generationenabstand (Jahre):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Durchschnittlicher Altersunterschied der Ehepartner (Jahre):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Geburts-/Sterbejahre in Dropdown-Menüs anzeigen"
     }
 }

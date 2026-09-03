@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "partner"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Aktiver Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Tolk steder med FamilySearch Places (eksperimentell)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Bruk nåværende stedsnavn for gravsted (i stedet for historisk)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Flytt gravlund fra dødssted til gravsted"
+    },
+    "Family_Data": {
+        "message": "Familiedata"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Dybdesøk for fullstendige detaljer (tar lengre tid)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Hopp over dybdesøk"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Hopper over gjenværende søk..."
+    },
+    "Estimate_birth_years": {
+        "message": "Anslå fødsels-/ekteskaps-/døds-/gravferdsår"
+    },
+    "Average_generational_gap_years": {
+        "message": "Gjennomsnittlig generasjonsavstand (år):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Gjennomsnittlig aldersforskjell mellom ektefeller (år):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Vis fødsels-/dødsår i rullegardinmenyer"
     }
 }

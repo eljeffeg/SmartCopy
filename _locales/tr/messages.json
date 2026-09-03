@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "partner"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Google Geocoding'i etkinleştir"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Konumları FamilySearch Places ile işle (deneysel)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Defin için güncel yer adını kullan (tarihi ad yerine)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Mezarlığı ölüm yerinden defin yerine taşı"
+    },
+    "Family_Data": {
+        "message": "Aile Verileri"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Tam ayrıntılar için derin araştırma (daha uzun sürer)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Derin araştırmayı atla"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Kalan aramalar atlanıyor..."
+    },
+    "Estimate_birth_years": {
+        "message": "Doğum/evlilik/ölüm/defin yıllarını tahmin et"
+    },
+    "Average_generational_gap_years": {
+        "message": "Ortalama nesil farkı (yıl):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Eşler arası ortalama yaş farkı (yıl):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Açılır menülerde doğum/ölüm yıllarını göster"
     }
 }

@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "partener"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Activează Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Procesează locațiile cu FamilySearch Places (experimental)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Folosește numele actual al locului pentru înmormântare (în loc de cel istoric)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Mută cimitirul din locul decesului în locul înmormântării"
+    },
+    "Family_Data": {
+        "message": "Date familiale"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Cercetare aprofundată pentru detalii complete (durează mai mult)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Omite cercetarea aprofundată"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Se omit căutările rămase..."
+    },
+    "Estimate_birth_years": {
+        "message": "Estimează anii de naștere/căsătorie/deces/înmormântare"
+    },
+    "Average_generational_gap_years": {
+        "message": "Diferența medie de generație (ani):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Diferența medie de vârstă între soți (ani):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Afișează anii de naștere/deces în listele derulante"
     }
 }

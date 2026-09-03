@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "partner"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Luba Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Töötle asukohti FamilySearch Places abil (katseline)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Kasuta matmiskoha praegust nime (ajaloolise asemel)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Liiguta kalmistu info surmakohalt matmiskohale"
+    },
+    "Family_Data": {
+        "message": "Perekonnaandmed"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Põhjalik uuring täielike andmete jaoks (võtab kauem aega)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Jäta põhjalik uuring vahele"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Ülejäänud otsingud jäetakse vahele..."
+    },
+    "Estimate_birth_years": {
+        "message": "Hinda sünni-/abielu-/surma-/matmisaastaid"
+    },
+    "Average_generational_gap_years": {
+        "message": "Keskmine põlvkondadevaheline vahe (aastates):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Keskmine abikaasade vanusevahe (aastates):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Näita sünni-/surma-aastaid rippmenüüdes"
     }
 }

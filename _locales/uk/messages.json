@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "партнер"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Увімкнути Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Обробляти місця за допомогою FamilySearch Places (експериментально)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Використовувати сучасну назву місця для поховання (замість історичної)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Перенести цвинтар з місця смерті до місця поховання"
+    },
+    "Family_Data": {
+        "message": "Сімейні дані"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Поглиблене дослідження для повних деталей (триває довше)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Пропустити поглиблене дослідження"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Пропуск решти запитів..."
+    },
+    "Estimate_birth_years": {
+        "message": "Оцінити роки народження/шлюбу/смерті/поховання"
+    },
+    "Average_generational_gap_years": {
+        "message": "Середній розрив між поколіннями (роки):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Середня різниця у віці подружжя (роки):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Показувати роки народження/смерті у розкривних списках"
     }
 }

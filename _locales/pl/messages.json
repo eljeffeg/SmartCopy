@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "partner"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Włącz Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Analizuj lokalizacje za pomocą FamilySearch Places (eksperymentalne)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Użyj obecnej nazwy miejsca pochówku (zamiast historycznej)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Przenieś cmentarz z miejsca zgonu do miejsca pochówku"
+    },
+    "Family_Data": {
+        "message": "Dane rodzinne"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Dogłębne badanie dla pełnych szczegółów (trwa dłużej)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Pomiń dogłębne badanie"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Pomijanie pozostałych wyszukiwań..."
+    },
+    "Estimate_birth_years": {
+        "message": "Oszacuj lata urodzenia/ślubu/zgonu/pochówku"
+    },
+    "Average_generational_gap_years": {
+        "message": "Średnia różnica pokoleniowa (lata):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Średnia różnica wieku małżonków (lata):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Pokaż lata urodzenia/zgonu na listach rozwijanych"
     }
 }

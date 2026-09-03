@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "партнёр"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Включить Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Обрабатывать места с помощью FamilySearch Places (экспериментально)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Использовать современное название места захоронения (вместо исторического)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Перенести кладбище из места смерти в место захоронения"
+    },
+    "Family_Data": {
+        "message": "Семейные данные"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Глубокое исследование для полных данных (занимает больше времени)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Пропустить глубокое исследование"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Пропуск оставшихся запросов..."
+    },
+    "Estimate_birth_years": {
+        "message": "Оценить годы рождения/брака/смерти/захоронения"
+    },
+    "Average_generational_gap_years": {
+        "message": "Средний разрыв между поколениями (лет):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Средняя разница в возрасте супругов (лет):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Показывать годы рождения/смерти в раскрывающихся списках"
     }
 }

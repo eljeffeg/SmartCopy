@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "kumppani"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Ota Google Geocoding käyttöön"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Jäsennä sijainnit FamilySearch Placesin avulla (kokeellinen)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Käytä hautauspaikan nykyistä nimeä (historiallisen sijaan)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Siirrä hautausmaa kuolinpaikasta hautauspaikkaan"
+    },
+    "Family_Data": {
+        "message": "Perhetiedot"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Syväluotaava tutkimus täysiä tietoja varten (kestää kauemmin)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Ohita syväluotaava tutkimus"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Ohitetaan jäljellä olevat haut..."
+    },
+    "Estimate_birth_years": {
+        "message": "Arvioi syntymä-/avioliitto-/kuolin-/hautausvuodet"
+    },
+    "Average_generational_gap_years": {
+        "message": "Keskimääräinen sukupolvien välinen ero (vuosina):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Keskimääräinen puolisoiden ikäero (vuosina):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Näytä syntymä-/kuolinvuodet pudotusvalikoissa"
     }
 }

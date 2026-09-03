@@ -703,5 +703,41 @@
     },
     "partner": {
         "message": "pasangan"
+    },
+    "Enable_Google_Geocoding": {
+        "message": "Aktifkan Google Geocoding"
+    },
+    "Parse_locations_with_FamilySearch_Places": {
+        "message": "Uraikan lokasi dengan FamilySearch Places (eksperimental)"
+    },
+    "Use_current_location_name_for_burial": {
+        "message": "Gunakan nama lokasi saat ini untuk pemakaman (bukan nama historis)"
+    },
+    "Move_cemetery_info_from_death_to_burial_location": {
+        "message": "Pindahkan pemakaman dari lokasi kematian ke lokasi pemakaman"
+    },
+    "Family_Data": {
+        "message": "Data Keluarga"
+    },
+    "Deep_Research_for_full_details_takes_longer": {
+        "message": "Penelitian Mendalam untuk detail lengkap (lebih lama)"
+    },
+    "Skip_Deep_Research_for_this_run": {
+        "message": "Lewati Penelitian Mendalam"
+    },
+    "Deep_Research_skipped_for_this_run": {
+        "message": "Melewati pencarian yang tersisa..."
+    },
+    "Estimate_birth_years": {
+        "message": "Perkirakan tahun lahir/menikah/meninggal/pemakaman"
+    },
+    "Average_generational_gap_years": {
+        "message": "Rata-rata jarak generasi (tahun):"
+    },
+    "Average_spousal_age_gap_years": {
+        "message": "Rata-rata selisih usia pasangan (tahun):"
+    },
+    "Show_birth_death_years_in_dropdowns": {
+        "message": "Tampilkan tahun lahir/meninggal di menu tarik-turun"
     }
 }

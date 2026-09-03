@@ -410,6 +410,30 @@ function computeLeftoverPlaceName(rawLocation, geo) {
     return leftover.join(", ");
 }
 
+// #260 follow-up (live-reported, DanCornett - screenshots confirmed the
+// exact symptom): buildform.js's visible-by-default "Place: " row
+// (title:location:place_name_geo, fed by geo.place alone) only ever
+// showed whatever extractPlaceNameSegments() stripped as a recognized
+// venue keyword before searching - genuinely blank whenever nothing
+// matched a keyword, even when there's real leftover text with nowhere
+// else to go (e.g. "Sagrario" ahead of a resolved Xalapa/Veracruz/Mexico
+// chain). That leftover WAS being computed correctly all along by
+// computeLeftoverPlaceName() above - it just fed a DIFFERENT row
+// (title:location:place_name, "Baptism Place:") that's hidden by default
+// behind the geoicon toggle whenever real geo fields exist, which
+// DanCornett was never interacting with. Combines both into the one
+// value users actually see by default: the stripped venue (if any)
+// first, then any additional leftover residue. Safe to concatenate
+// without ever duplicating text - computeLeftoverPlaceName() already
+// excludes anything matching geo.place from its own output (geo.place is
+// one of its own comparison fields).
+function computeCombinedPlaceValue(rawLocation, geo) {
+    var parts = [geo.place, computeLeftoverPlaceName(rawLocation, geo)].filter(function (v) {
+        return exists(v) && v !== "";
+    });
+    return parts.join(", ");
+}
+
 function startsWithHTTP(url, match) {
     //remove protocol and comapre
     url = url.replace("https://", "").replace("http://", "");

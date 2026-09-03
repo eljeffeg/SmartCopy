@@ -261,19 +261,19 @@ function updateGeoLocation() {
         // every field this walks is checked whenever geo parsing applies
         // to this row (geoon) at all, regardless of its own value.
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
-        // #253 (live-reported): this manual "Update Location" re-query path
-        // predates #224's computed-leftover feature and never got it added -
-        // it wrote locationdata.place (just the venue/keyword segment
-        // extractPlaceNameSegments() stripped) directly, silently dropping
-        // any OTHER leftover text (e.g. "Sagrario" ahead of a resolved
-        // Xalapa/Veracruz/Mexico chain) that the normal buildForm() render
-        // already preserves via computeLeftoverPlaceName(). Same
-        // hasGeoFields logic as that render path, so a location edited
+        // #253/#260 (both live-reported): this is the SAME visible-by-
+        // default "Place: " row buildForm()'s own initial render feeds via
+        // computeCombinedPlaceValue() (shared.js - see its own comment for
+        // the full history: the #253 fix here originally substituted pure
+        // computeLeftoverPlaceName() output, which actually LOSES a real
+        // stripped venue name, since that function deliberately excludes
+        // anything matching geo.place from its own output). Matches
+        // buildForm()'s own logic exactly now, so a location edited
         // through the pencil behaves identically to one parsed on initial
         // load. #256: no longer parenthesized - see itemPlaceNameValue's
         // own comment (below) for why.
         var updateHasGeoFields = isValue(locationdata.city) || isValue(locationdata.county) || isValue(locationdata.state) || isValue(locationdata.country);
-        var updatePlaceNameValue = updateHasGeoFields ? computeLeftoverPlaceName(locationdata.query, locationdata) : locationdata.place;
+        var updatePlaceNameValue = updateHasGeoFields ? computeCombinedPlaceValue(locationdata.query, locationdata) : locationdata.place;
         $(eventrow).find("input[type=text]")[0].value = updatePlaceNameValue;
         $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
@@ -886,6 +886,14 @@ function buildForm() {
                         // city/county/state/country/place survives, "" when
                         // nothing does) - only the wrapping is gone.
                         var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar1) : place;
+                        // #260: the visible-by-default "Place: " row also
+                        // shows any leftover residue alongside the stripped
+                        // venue - see computeCombinedPlaceValue()'s own
+                        // comment (shared.js) for why this doesn't apply
+                        // when !hasGeoFields (geovar1 isn't a real result).
+                        if (hasGeoFields) {
+                            placegeo = computeCombinedPlaceValue(place, geovar1);
+                        }
                         locationval = locationval +
                             '<tr id="focus_'+title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-left: 2px; padding-left: 5px; padding-right: 2px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                             '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + itemGeoicon + '" height="14px">';
@@ -1740,6 +1748,11 @@ function buildForm() {
                                 // #256: no longer parenthesized - see the
                                 // focus profile block's own comment.
                                 var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar2) : place;
+                                // #260: same combined Place value as the
+                                // focus profile block above.
+                                if (hasGeoFields) {
+                                    placegeo = computeCombinedPlaceValue(place, geovar2);
+                                }
                                 locationval = locationval +
                                     '<tr id="'+ i + "_" +title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                                     '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + itemGeoicon + '" height="14px">';

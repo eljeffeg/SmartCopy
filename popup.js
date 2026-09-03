@@ -1011,7 +1011,17 @@ function loadSelectPage(request) {
     // jQuery's HTML parsing is lenient, which is why this never broke the
     // visible UI, just spammed the console. Matches every other call site
     // in this function - request.source is the actual page HTML.
-    var parsed = $('<div>').html(request.source.replace(/<img[^>]*>/ig, ""));
+    // #257 follow-up (found during a QA pass): request.source can
+    // genuinely be undefined here - a failed fetch (loadPage()'s own
+    // exists(request.source) check, above, guards the ONE call site that
+    // handles that directly, but execution still falls through past it
+    // to the buildhistory/opener-chain fallbacks and can end up here
+    // regardless). Unlike JSON.stringify(undefined) (the old code, which
+    // silently produced the string "undefined" rather than throwing),
+    // calling .replace() directly on undefined throws - degrade to the
+    // empty string instead, matching this project's established "never
+    // let an unreliable external source crash the run" convention.
+    var parsed = $('<div>').html(exists(request.source) ? request.source.replace(/<img[^>]*>/ig, "") : "");
     var focusperson = parsed.find(".individualInformationName").text().trim();
     if (focusperson == "<Private>") {
         focusperson = parsed.find("#BreadcrumbsFinalText").text().trim();

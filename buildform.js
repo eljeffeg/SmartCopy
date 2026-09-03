@@ -198,6 +198,12 @@ function updateGeoLocation() {
         setTimeout(updateGeoLocation, 50);
     } else {
         var locationdata = geolocation[geoid-1];
+        // #260: persist the correction back into alldata's own entry once
+        // the fresh query has actually completed (queryGeo() is async -
+        // this only runs once geostatus confirms it's done) - see
+        // persistGeoUpdateToSourceEntry()'s own comment for why this
+        // matters.
+        persistGeoUpdateToSourceEntry(googlerequery, locationdata.query, geoid - 1);
         var eventrow = $('#'+googlerequery);
         var pincolor = "clear";
         if (locationdata.ambiguous || locationdata.count > 1) {
@@ -2360,7 +2366,12 @@ function updateClassResponse() {
     });
 }
 
-function getParsedLocation(dataid) {
+// #260 follow-up (live-reported, DanCornett): returns the actual
+// location-bearing array ELEMENT (not just its .location string) for a
+// given dataid, so a caller can correct it in place, not just read it -
+// same [1]-then-[0] resolution getParsedLocation() (below) already uses,
+// factored out so persistGeoUpdateToSourceEntry() can reuse it exactly.
+function getParsedLocationEntry(dataid) {
     var idsplit = dataid.split("_");
     var item = idsplit[1];
     var dataroot;
@@ -2371,12 +2382,40 @@ function getParsedLocation(dataid) {
         dataroot = databyid[id];
     }
     if (checkNested(dataroot, item, 1, "location")) {
-        return dataroot[item][1]["location"];
+        return dataroot[item][1];
     } else if (checkNested(dataroot, item, 0, "location")) {
-        return dataroot[item][0]["location"];
+        return dataroot[item][0];
     } else {
-        return "";
+        return undefined;
     }
+}
+
+function getParsedLocation(dataid) {
+    var entry = getParsedLocationEntry(dataid);
+    return exists(entry) ? entry.location : "";
+}
+
+// #260 (live-reported, DanCornett): the pencil-edit "Update Location"
+// button always queries a brand-new, disposable geoid slot
+// (queryGeo()/updateGeoLocation(), popup.js) and writes the result
+// straight into the visible DOM row - but never touches the ORIGINAL
+// alldata entry (obj[item].location / geolocation[obj[item].id]) that a
+// later re-render of the form reads from. Live-confirmed as the root
+// cause of "initial FS lookup differs from after Edit Locations": once
+// the form re-renders for any reason, the row silently reverted to
+// showing the stale original result, discarding the correction. Called
+// right after that fresh query completes (see its call site, popup.js) -
+// repoints the alldata entry at the SAME fresh id the query just
+// populated (queryGeo() already wrote a correct result there), rather
+// than duplicating the geolocation entry across two ids. The fresh id's
+// own geolocation[] slot is simply left in place, orphaned but harmless.
+function persistGeoUpdateToSourceEntry(dataid, newLocationText, newId) {
+    var entry = getParsedLocationEntry(dataid);
+    if (!exists(entry)) {
+        return;
+    }
+    entry.location = newLocationText;
+    entry.id = newId;
 }
 
 // #233: the year offered as a default in the manual location-edit modal's

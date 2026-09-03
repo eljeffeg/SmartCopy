@@ -364,10 +364,33 @@ var PLACE_SEGMENT_QUALIFIER_PATTERN = /\((?:[^)]*)\)|\b(kr\.?|kreis|landkreis|am
 // Not an exhaustive list - built from live-confirmed cases; extend as
 // further ones turn up, matching this project's usual evidence-based
 // discipline for this kind of table.
+// #260 follow-up: the country-abbreviation gap above turned out to be
+// inconsistent for US state abbreviations too, not just missing outright
+// - "IL" happens to already match a resolved "Illinois" by sheer
+// substring coincidence ("illinois" starts with "il"), but "NY" does NOT
+// match "New York" (no "ny" substring exists once the space is in the
+// way), confirmed directly. Rather than leave it working for some states
+// and not others depending on spelling luck, the standard USPS
+// two-letter codes are unambiguous, standardized data (not a guessed
+// translation) - safe to include in full rather than wait for a report
+// naming each individual unlucky state one at a time.
 var PLACE_SEGMENT_EQUIVALENTS = {
     "usa": "united states",
     "us": "united states",
-    "united states of america": "united states"
+    "united states of america": "united states",
+    "al": "alabama", "ak": "alaska", "az": "arizona", "ar": "arkansas",
+    "ca": "california", "co": "colorado", "ct": "connecticut", "de": "delaware",
+    "dc": "district of columbia", "fl": "florida", "ga": "georgia", "hi": "hawaii",
+    "id": "idaho", "il": "illinois", "in": "indiana", "ia": "iowa",
+    "ks": "kansas", "ky": "kentucky", "la": "louisiana", "me": "maine",
+    "md": "maryland", "ma": "massachusetts", "mi": "michigan", "mn": "minnesota",
+    "ms": "mississippi", "mo": "missouri", "mt": "montana", "ne": "nebraska",
+    "nv": "nevada", "nh": "new hampshire", "nj": "new jersey", "nm": "new mexico",
+    "ny": "new york", "nc": "north carolina", "nd": "north dakota", "oh": "ohio",
+    "ok": "oklahoma", "or": "oregon", "pa": "pennsylvania", "ri": "rhode island",
+    "sc": "south carolina", "sd": "south dakota", "tn": "tennessee", "tx": "texas",
+    "ut": "utah", "vt": "vermont", "va": "virginia", "wa": "washington",
+    "wv": "west virginia", "wi": "wisconsin", "wy": "wyoming", "pr": "puerto rico"
 };
 function normalizePlaceSegmentForMatch(text) {
     var normalized = String(text || "")

@@ -883,7 +883,12 @@ function familySearchPlaceToGeoLocation(places, query, placeName, ambiguous) {
     // call (unaffected by this revert) remains the one and only place that
     // computes and shows the leftover, in the row that's actually
     // protected for it.
-    location.place = placeName || "";
+    // #248 follow-up (live-reported): stripRedundantPlaceSuffix() (shared.js)
+    // trims only a trailing word-run that duplicates part of city/county/
+    // state/country now that they're all final - see its own comment for
+    // why this is safe where the computeLeftoverPlaceName() attempt just
+    // above was reverted (that one added text; this one only ever removes).
+    location.place = stripRedundantPlaceSuffix(placeName || "", location);
     return location;
 }
 

@@ -474,6 +474,63 @@ function computeCombinedPlaceValue(rawLocation, geo) {
     return parts.join(", ");
 }
 
+// #248 follow-up (live-reported: "Adath Israel Price Hill, Cincinnati,
+// United States" showed "Price Hill" duplicated into Place even though
+// it's already part of City). Root cause: extractPlaceNameSegments()
+// (parse-location.js) strips a whole comma-segment as venue text BEFORE
+// the FamilySearch query ever runs - it has no way to know FamilySearch
+// will later independently resolve PART of that same glued segment as a
+// real jurisdiction (here, "Price Hill" folded into City alongside its
+// enclosing "Cincinnati", per the #234 neighborhood-in-a-city fix).
+// segmentMatchesAnyField() above only compares a whole raw segment
+// against a whole field value, so it can't catch a field's value glued
+// onto extra text with no comma to split on. This instead checks the
+// TRAILING words of placeText against each individual comma-part of the
+// resolved fields (city/county/state/country can themselves contain an
+// internal comma, e.g. "Price Hill, Cincinnati") and strips a trailing
+// run of words that exactly matches one, leaving genuine venue text
+// ("Adath Israel") intact. Only ever REMOVES a redundant trailing
+// fragment, never adds anything - unlike the computeLeftoverPlaceName()
+// approach tried and reverted at this same call site before (see
+// familySearchPlaceToGeoLocation()'s own comment), which failed because
+// it injected extra "leftover residue" text into a field that
+// auto-submits. Trailing only - no live-confirmed case yet of the same
+// duplication happening as a leading run instead. A placeText that is
+// ENTIRELY the redundant fragment correctly strips down to "" - same as
+// computeLeftoverPlaceName()'s own "nothing left over" case above, not a
+// special case to guard against.
+function stripRedundantPlaceSuffix(placeText, geo) {
+    if (!exists(placeText) || placeText.trim() === "" || !exists(geo)) {
+        return placeText;
+    }
+    var fieldParts = [];
+    [geo.city, geo.county, geo.state, geo.country].forEach(function (field) {
+        if (exists(field) && field !== "") {
+            field.split(",").forEach(function (part) {
+                part = part.trim();
+                if (part !== "") {
+                    fieldParts.push(part);
+                }
+            });
+        }
+    });
+    fieldParts.sort(function (a, b) {
+        return b.trim().split(/\s+/).length - a.trim().split(/\s+/).length;
+    });
+    var words = placeText.trim().split(/\s+/);
+    for (var i = 0; i < fieldParts.length; i++) {
+        var partWords = fieldParts[i].trim().split(/\s+/);
+        if (words.length >= partWords.length) {
+            var trailing = words.slice(words.length - partWords.length).join(" ");
+            if (normalizePlaceSegmentForMatch(trailing) === normalizePlaceSegmentForMatch(fieldParts[i])) {
+                words = words.slice(0, words.length - partWords.length);
+                break;
+            }
+        }
+    }
+    return words.join(" ").trim();
+}
+
 function startsWithHTTP(url, match) {
     //remove protocol and comapre
     url = url.replace("https://", "").replace("http://", "");

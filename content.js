@@ -2055,157 +2055,91 @@ function concat(type) {
 
 function getSettings() {
     geniconsistency = undefined;
-    chrome.storage.local.get('accountinfo', function (result) {
+    // A single storage read for every key, not one call per key - the
+    // previous version fired ~25 independent async gets and relied on the
+    // last one issued (geniconsistency) to also be the last one to resolve,
+    // to know when it was safe to set getsettingsdone. That's not
+    // guaranteed by the API - callbacks can resolve in any order - and
+    // when accountinfo's callback lost that race, queryGeni() would run
+    // with accountinfo still undefined and throw reading .access_token.
+    // One call has one callback, so there's no ordering to get wrong.
+    chrome.storage.local.get(null, function (result) {
         if (result.accountinfo !== undefined) {
             accountinfo = result.accountinfo;
         }
-    });
-    chrome.storage.local.get('dataconflict', function (result) {
         if (result.dataconflict !== undefined) {
             dataconflictoption = result.dataconflict;
         }
-    });
-
-    chrome.storage.local.get('namecheck', function (result) {
         if (result.namecheck !== undefined) {
             namecheckoption = result.namecheck;
         }
-    });
-
-    chrome.storage.local.get('livingnameexclude', function (result) {
         if (result.livingnameexclude !== undefined) {
             livingnameoption = result.livingnameexclude;
         }
-    });
-
-    chrome.storage.local.get('siblingcheck', function (result) {
         if (result.siblingcheck !== undefined) {
             siblingcheckoption = result.siblingcheck;
         }
-    });
-
-    chrome.storage.local.get('agelimitwarn', function (result) {
         if (result.agelimitwarn !== undefined) {
             longevity_warn = result.agelimitwarn;
         }
-    });
-
-    chrome.storage.local.get('agelimiterror', function (result) {
         if (result.agelimiterror !== undefined) {
             longevity_error = result.agelimiterror;
         }
-    });
-
-    chrome.storage.local.get('publicyearval', function (result) {
         if (result.publicyearval !== undefined) {
             publicyear = result.publicyearval;
         }
-    });
-
-    chrome.storage.local.get('childcheck', function (result) {
         if (result.childcheck !== undefined) {
             childcheckoption = result.childcheck;
         }
-    });
-
-    chrome.storage.local.get('partnercheck', function (result) {
         if (result.partnercheck !== undefined) {
             partnercheckoption = result.partnercheck;
         }
-    });
-
-    chrome.storage.local.get('agecheck', function (result) {
         if (result.agecheck !== undefined) {
             agecheckoption = result.agecheck;
         }
-    });
-
-    chrome.storage.local.get('privatecheck', function (result) {
         if (result.privatecheck !== undefined) {
             privatecheck = result.privatecheck;
         }
-    });
-
-    chrome.storage.local.get('birthyoung', function (result) {
         if (result.birthyoung !== undefined) {
             birthage_young = result.birthyoung;
         }
-    });
-
-    chrome.storage.local.get('birthold', function (result) {
         if (result.birthold !== undefined) {
             birthage_old = result.birthold;
         }
-    });
-
-    chrome.storage.local.get('marriageyoung', function (result) {
         if (result.marriageyoung !== undefined) {
             marriageage_young = result.marriageyoung;
         }
-    });
-
-    chrome.storage.local.get('marriagedif', function (result) {
         if (result.marriagedif !== undefined) {
             spouse_age_dif = result.marriagedif;
         }
-    });
-
-    chrome.storage.local.get('wedlockcheck', function (result) {
         if (result.wedlockcheck !== undefined) {
             wedlock = result.wedlockcheck;
         }
-    });
-
-    chrome.storage.local.get('termlimit', function (result) {
         if (result.termlimit !== undefined) {
             termlimit = result.termlimit;
             pregnancy = termlimit * (year / 12);
         }
-    });
-
-    chrome.storage.local.get('selfcheck', function (result) {
         if (result.selfcheck !== undefined) {
             selfcheckoption = result.selfcheck;
         }
-    });
-
-    chrome.storage.local.get('datecheck', function (result) {
         if (result.datecheck !== undefined) {
             datecheckoption = result.datecheck;
         }
-    });
-
-    chrome.storage.local.get('locationcheck', function (result) {
         if (result.locationcheck !== undefined) {
             locationcheckoption = result.locationcheck;
         }
-    });
-
-    chrome.storage.local.get('samenamecheck', function (result) {
         if (result.samenamecheck !== undefined) {
             samenameoption = result.samenamecheck;
         }
-    });
-
-    chrome.storage.local.get('compoundlast', function (result) {
         if (result.compoundlast !== undefined) {
             compoundlast = result.compoundlast;
         }
-    });
-
-    chrome.storage.local.get('addbiobutton', function (result) {
         if (result.addbiobutton !== undefined) {
             addbioonoff = result.addbiobutton;
         }
-    });
-
-    chrome.storage.local.get('exportprojectsbutton', function (result) {
         if (result.exportprojectsbutton !== undefined) {
             exportprojectsonoff = result.exportprojectsbutton;
         }
-    });
-
-    chrome.storage.local.get('geniconsistency', function (result) {
         if (result.geniconsistency !== undefined) {
             geniconsistency = result.geniconsistency;
         } else {
@@ -2213,7 +2147,6 @@ function getSettings() {
                 'geniconsistency': geniconsistency
             });
         }
-        //Save as last option setting as it delays content execution
         getsettingsdone = true;
     });
 }

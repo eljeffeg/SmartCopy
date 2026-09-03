@@ -586,8 +586,8 @@ function attemptFamilySearchQuery(placeSegment, year, fullLocationString, placeN
                 callback(undefined);
                 return;
             }
-            var places = selectBestTiedFsMatch(tiedCandidates, placeSegment, fullLocationString, placeName);
-            callback(familySearchPlaceToGeoLocation(places, fullLocationString, placeName));
+            var picked = selectBestTiedFsMatch(tiedCandidates, placeSegment, fullLocationString, placeName);
+            callback(familySearchPlaceToGeoLocation(picked.places, fullLocationString, placeName, picked.ambiguous));
         } catch (e) {
             callback(undefined);
         }
@@ -605,9 +605,22 @@ function attemptFamilySearchQuery(placeSegment, year, fullLocationString, placeN
 // FamilySearch's own original relevance order (first candidate in the
 // array). A single tied candidate always short-circuits straight through,
 // completely inert for the (overwhelmingly common) non-tied case.
+//
+// #262 (live-reported, DanCornett): also reports whether the
+// pick was actually CONFIDENT or just an arbitrary tie-break, via the
+// returned .ambiguous flag - familySearchPlaceToGeoLocation() (below)
+// wires this into the same location.ambiguous field Google's own path
+// already sets, which the existing render code already reads to show a
+// yellow "Location lookup may be incorrect" pin. A tie resolved by the
+// county-only override is a confident, reasoned pick (not ambiguous); a
+// tie that fell through to fewest-fields is exactly the case DanCornett
+// flagged as needing to be visible - two live different interpretations
+// of the same query, with no strong signal to prefer one over the other
+// (e.g. "Texas, USA" 1831 scoring four different, unrelated hamlets all
+// named Texas identically).
 function selectBestTiedFsMatch(tiedCandidates, placeSegment, fullLocationString, placeName) {
     if (tiedCandidates.length === 1) {
-        return tiedCandidates[0];
+        return { places: tiedCandidates[0], ambiguous: false };
     }
     var queryFirstSegment = placeSegment.split(",")[0].trim();
     var geos = tiedCandidates.map(function (places) {
@@ -615,7 +628,7 @@ function selectBestTiedFsMatch(tiedCandidates, placeSegment, fullLocationString,
     });
     for (var i = 0; i < geos.length; i++) {
         if (countyOnlyOverride(queryFirstSegment, geos[i])) {
-            return tiedCandidates[i];
+            return { places: tiedCandidates[i], ambiguous: false };
         }
     }
     var best = 0;
@@ -627,7 +640,7 @@ function selectBestTiedFsMatch(tiedCandidates, placeSegment, fullLocationString,
             bestCount = c;
         }
     }
-    return tiedCandidates[best];
+    return { places: tiedCandidates[best], ambiguous: true };
 }
 
 // Maps FamilySearch's place + ancestor-jurisdiction chain onto this
@@ -648,7 +661,16 @@ function selectBestTiedFsMatch(tiedCandidates, placeSegment, fullLocationString,
 // polity like Prussia, when a modern country like Germany also appears
 // after it) ever gets dropped. For shallower hierarchies every level maps
 // cleanly with nothing dropped at all.
-function familySearchPlaceToGeoLocation(places, query, placeName) {
+// #262 (live-reported, DanCornett): ambiguous (optional, defaults false)
+// - true when this result came from an UNRESOLVED tied-score match (see
+// selectBestTiedFsMatch()'s own comment above). Previously always
+// hardcoded false here regardless of how the match was actually picked,
+// so the render code's existing yellow "Location lookup may be
+// incorrect" pin (already wired to read this same field for Google
+// results) could never fire for a genuinely ambiguous FamilySearch match
+// - e.g. "Texas, USA" 1831 scoring four different, unrelated hamlets
+// identically, with no reliable way to prefer one over the others.
+function familySearchPlaceToGeoLocation(places, query, placeName, ambiguous) {
     var location = {
         // #224: placeName is whatever extractPlaceNameSegments() stripped
         // out of the raw string before searching (a venue/address/plot
@@ -671,7 +693,7 @@ function familySearchPlaceToGeoLocation(places, query, placeName) {
         // populated before now.
         latitude: exists(places[0].latitude) ? places[0].latitude : "",
         longitude: exists(places[0].longitude) ? places[0].longitude : "",
-        count: 1, ambiguous: false
+        count: 1, ambiguous: ambiguous === true
     };
 
     // Live-reported bug: the "City" field showed the WHOLE comma-joined

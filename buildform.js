@@ -1920,6 +1920,7 @@ function buildForm() {
     iconUpdate();
     updateClassResponse();
     placementUpdate();
+    syncPersonCheckboxWithPreCheckedFields();
     if ($('#genislideonoffswitch').prop('checked')) {
         $(".genisliderow").not(".genihidden").slideToggle();
     }
@@ -2055,7 +2056,24 @@ function iconUpdate() {
     });
     for (var property in genibuildaction) {
         if (genibuildaction.hasOwnProperty(property)) {
-            setGeniFamilyData(genibuildaction[property], property);
+            // #261 (live-reported): the action icon's INITIAL markup value
+            // (set far earlier, during row construction) only ever checked
+            // geniHas("father")/geniHas("mother") for PARENTS - sibling/
+            // child auto-matching uses the richer findExistingFamilyMatch()
+            // (which DOES correctly pre-select the <option>, populating
+            // this same genibuildaction map), but that result was never fed
+            // back to the icon at all, so it silently stayed on "+" until
+            // the user manually reselected the dropdown (which fires
+            // actionUpdate() via the 'change' handler above). Reusing
+            // actionUpdate() here - the exact same function, not a
+            // parallel copy - keeps the icon and the dropdown's already-
+            // correct selected value from ever disagreeing again.
+            var selectElement = $("#familytable_" + genibuildaction[property] + " select.actionselect")[0];
+            if (exists(selectElement)) {
+                actionUpdate(selectElement);
+            } else {
+                setGeniFamilyData(genibuildaction[property], property);
+            }
         }
     }
     genibuildaction = {};
@@ -2079,6 +2097,30 @@ function actionUpdate(object) {
         $("#" + id + "_geni_name_language").val(namelang);
     }
     setGeniFamilyData(id, profile);
+}
+
+// #263 (live-reported): a detail field pre-checked at build time (via its
+// own per-field scored signal, e.g. "note" scored true while "sibling"
+// itself wasn't) never propagated up to the person-level .checkslide
+// checkbox - that cascade only happens today via the .checknext click
+// handler, which only runs on an actual user click, never for a field
+// that already started out checked in the initial markup. Left alone, a
+// person could show a genuinely-checked detail field sitting under an
+// unchecked, easy-to-miss top-level box. One-time pass right after the
+// form is built - not an ongoing reactive side effect, just making the
+// very first render honestly reflect what it already, legitimately
+// pre-selected. Matches DanCornett's own explicit framing in #261: the
+// top-level box should stay unchecked purely because a profile
+// auto-matched (that's the icon, #261, a separate concern), but SHOULD
+// reflect real pre-selected details underneath it.
+function syncPersonCheckboxWithPreCheckedFields() {
+    $('.membertitle').each(function () {
+        var personslide = $(this);
+        var expand = personslide.next('.memberexpand');
+        if (expand.length > 0 && expand.find('.checknext:checked').length > 0) {
+            personslide.find('.checkslide').prop('checked', true);
+        }
+    });
 }
 
 function updateClassResponse() {

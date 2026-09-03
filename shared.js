@@ -353,14 +353,31 @@ var PLACE_SEGMENT_QUALIFIER_PATTERN = /\((?:[^)]*)\)|\b(kr\.?|kreis|landkreis|am
 // undetected. Unicode property escapes (\p{L}/\p{N}) then keep any
 // remaining real letter/digit in any script the fold didn't cover, only
 // stripping actual punctuation.
+// #260 follow-up (live-reported): common country abbreviations share NO
+// substring with FamilySearch/Google's own resolved full name ("USA" vs
+// "United States"), so a raw segment like "Price Hill, Hamilton County,
+// Ohio, USA" left "USA" surviving as leftover text - previously invisible
+// (hidden behind the geoicon toggle), now shown by default since #260,
+// which is what actually surfaced this as a real, visible bug. Exact
+// whole-segment lookup only (never a substring replace), so this can't
+// corrupt an unrelated word that merely contains "us" (e.g. "Russia").
+// Not an exhaustive list - built from live-confirmed cases; extend as
+// further ones turn up, matching this project's usual evidence-based
+// discipline for this kind of table.
+var PLACE_SEGMENT_EQUIVALENTS = {
+    "usa": "united states",
+    "us": "united states",
+    "united states of america": "united states"
+};
 function normalizePlaceSegmentForMatch(text) {
-    return String(text || "")
+    var normalized = String(text || "")
         .replace(PLACE_SEGMENT_QUALIFIER_PATTERN, " ")
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(/[^\p{L}\p{N}\s]/gu, " ")
         .replace(/\s+/g, " ")
         .trim()
         .toLowerCase();
+    return PLACE_SEGMENT_EQUIVALENTS.hasOwnProperty(normalized) ? PLACE_SEGMENT_EQUIVALENTS[normalized] : normalized;
 }
 
 // #224: true when segment is either empty after normalizing (nothing but

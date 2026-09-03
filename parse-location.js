@@ -1,5 +1,51 @@
 var verbose = false;
 var countryPattern = new RegExp(' County', 'i');
+
+// #234: Geni appends " County" to disambiguate a US county from a
+// same-named city (e.g. "Santa Cruz, Santa Cruz County, California,
+// United States") - FamilySearch's own data doesn't carry that suffix
+// (live-confirmed: querying "Santa Cruz, California" returns county
+// ancestor name "Santa Cruz", plain, country "United States"). US-only
+// for now, matching countyOnlyOverride()'s own "County" detection regex -
+// other countries may have their own disambiguation convention, but
+// nothing here is evidenced yet.
+// #237 follow-up (live-reported): "British Colonial America" added - a
+// pre-1776 US record (Westmoreland, Virginia, dated 1660-1709) resolves
+// with country "British Colonial America", not "United States" (the same
+// historically-accurate colonial-era country label the #237 "Colony" fix
+// surfaced) - the county still needs Geni's same " County" convention
+// regardless of which side of 1776 the record falls on.
+// #237 follow-up (live-reported): "Republic of Texas" added - the same
+// reasoning, live-confirmed via "Gonzales, Texas" dated 1840/1842 (Texas's
+// independent-republic era, 1836-1845): county ancestor name resolves
+// plain "Gonzales" under country "Republic of Texas", which needs the
+// same " County" suffix as its later "United States" era.
+var FS_US_COUNTY_SUFFIX_COUNTRIES = ["United States", "British Colonial America", "Republic of Texas"];
+// #237 follow-up (live-reported): Louisiana calls its county-equivalent
+// divisions "Parish", not "County" - live-confirmed querying "New
+// Orleans, Louisiana" returns county ancestor name plain "Orleans" (same
+// as every other state), so without a state-specific override this
+// produced "Orleans County", which isn't a real place ("Orleans Parish"
+// is). Not exhaustive - only Louisiana is live-evidenced; every other US
+// state/colonial-era polity keeps the plain "County" default.
+var FS_COUNTY_SUFFIX_WORD_BY_STATE = { "Louisiana": "Parish" };
+// #249 follow-up: hoisted out of familySearchPlaceToGeoLocation() (below)
+// so parseGoogle() can apply the identical normalization - previously
+// this only ran for FamilySearch results, leaving a Google-sourced county
+// name entirely dependent on whatever Google's own API happened to
+// return (usually already includes "County", but nothing enforced it -
+// the gap that made stripTrailingCountySuffix() (shared.js, #249)
+// necessary in the first place). "British Colonial America"/"Republic of
+// Texas" will simply never match a Google result's country (Google has no
+// period-correct historical naming), so sharing the same list rather than
+// a Google-only subset is harmless, not just convenient.
+function applyCountySuffix(location) {
+    if (FS_US_COUNTY_SUFFIX_COUNTRIES.indexOf(location.country) !== -1 && location.county !== "" &&
+            !/\s*(County|Parish)\s*$/i.test(location.county)) {
+        var countySuffixWord = FS_COUNTY_SUFFIX_WORD_BY_STATE[location.state] || "County";
+        location.county = location.county + " " + countySuffixWord;
+    }
+}
 var GeoLocation = function (results, query) {
     var location = {};
     if (!exists(results["results"])) {
@@ -153,6 +199,12 @@ function parseGoogle(result, query) {
             }
         }
     }
+    // #249 follow-up: Google's own API usually already includes "County"
+    // in its returned county name, but nothing here enforced that - see
+    // applyCountySuffix()'s own comment at the top of this file. No-op
+    // (guarded by the same regex check) whenever Google already supplied
+    // the suffix itself.
+    applyCountySuffix(location);
     return location;
 }
 
@@ -830,41 +882,10 @@ function familySearchPlaceToGeoLocation(places, query, placeName, ambiguous) {
             location.state = nameOf(adminAncestors[1]);
         }
     }
-    // #234: Geni appends " County" to disambiguate a US county from a
-    // same-named city (e.g. "Santa Cruz, Santa Cruz County, California,
-    // United States") - FamilySearch's own data doesn't carry that
-    // suffix (live-confirmed: querying "Santa Cruz, California" returns
-    // county ancestor name "Santa Cruz", plain, country "United
-    // States"). US-only for now, matching countyOnlyOverride()'s own
-    // "County" detection regex - other countries may have their own
-    // disambiguation convention, but nothing here is evidenced yet.
-    // #237 follow-up (live-reported): "British Colonial America" added -
-    // a pre-1776 US record (Westmoreland, Virginia, dated 1660-1709)
-    // resolves with country "British Colonial America", not "United
-    // States" (the same historically-accurate colonial-era country label
-    // the #237 "Colony" fix surfaced) - the county still needs Geni's
-    // same " County" convention regardless of which side of 1776 the
-    // record falls on.
-    // #237 follow-up (live-reported): "Republic of Texas" added - the
-    // same reasoning, live-confirmed via "Gonzales, Texas" dated 1840/1842
-    // (Texas's independent-republic era, 1836-1845): county ancestor name
-    // resolves plain "Gonzales" under country "Republic of Texas", which
-    // needs the same " County" suffix as its later "United States" era.
-    var FS_US_COUNTY_SUFFIX_COUNTRIES = ["United States", "British Colonial America", "Republic of Texas"];
-    // #237 follow-up (live-reported): Louisiana calls its county-equivalent
-    // divisions "Parish", not "County" - live-confirmed querying "New
-    // Orleans, Louisiana" returns county ancestor name plain "Orleans"
-    // (same as every other state), so without a state-specific override
-    // this produced "Orleans County", which isn't a real place ("Orleans
-    // Parish" is). Not exhaustive - only Louisiana is live-evidenced;
-    // every other US state/colonial-era polity keeps the plain "County"
-    // default.
-    var FS_COUNTY_SUFFIX_WORD_BY_STATE = { "Louisiana": "Parish" };
-    if (FS_US_COUNTY_SUFFIX_COUNTRIES.indexOf(location.country) !== -1 && location.county !== "" &&
-            !/\s*(County|Parish)\s*$/i.test(location.county)) {
-        var countySuffixWord = FS_COUNTY_SUFFIX_WORD_BY_STATE[location.state] || "County";
-        location.county = location.county + " " + countySuffixWord;
-    }
+    // #234/#237/#249: see applyCountySuffix()'s own comment at the top of
+    // this file - shared with parseGoogle() so both geocoding paths
+    // guarantee the same " County"/" Parish" suffix, not just this one.
+    applyCountySuffix(location);
     // #229 follow-up (live-reported regression): recomputing .place here
     // via computeLeftoverPlaceName() - live-reported as "Potsdam, Preussen"
     // (a genuine leftover, correctly computed) silently getting auto-

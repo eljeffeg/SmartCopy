@@ -1651,8 +1651,17 @@ var submitform = function () {
                 // Category-level summary of what this submission actually
                 // touched, appended to the same Reference note rather than
                 // a separate formal sources/citations system - see #59.
+                // #255 (live-reported, DanCornett): wording is "this
+                // update:", not "updated:" - a footnote from the same
+                // source touching the SAME category again later gets
+                // suppressed as reference spam (isLastLineFromSameSource()
+                // below), so an older line's list can't be read as a
+                // cumulative history of every change from that source,
+                // only what THAT specific submission touched. The real
+                // per-field change history lives in Geni's own Revisions
+                // tab.
                 var updatedCategories = summarizeUpdatedCategories(profileout, exists(focusphotoinfo), marriagedates[profileout.profile_id]);
-                var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
+                var updatedSuffix = updatedCategories.length > 0 ? " (this update: " + updatedCategories.join(", ") + ")" : "";
                 // #236: FamilySearch/FindAGrave show their own stable
                 // record ID in the visible link text instead of the plain
                 // site name - see footnoteLabel()'s own comment.
@@ -1785,7 +1794,7 @@ var submitform = function () {
                                 focusprofileurl = "https://www.geni.com/" + focusid;
                             }
                             var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]), marriagedates[familyout.profile_id]);
-                            var updatedSuffix = updatedCategories.length > 0 ? " (updated: " + updatedCategories.join(", ") + ")" : "";
+                            var updatedSuffix = updatedCategories.length > 0 ? " (this update: " + updatedCategories.join(", ") + ")" : "";
                             // #236: see footnoteLabel()'s own comment.
                             var familyFootnoteRecordtype = footnoteLabel(fdata.url, recordtype);
                             if (exists(fdata.url)) {

@@ -316,7 +316,20 @@ function buildHistorySelect() {
 // Geni's own display convention - or a range-qualified one like "After
 // January 20, 1891" - lost its year entirely everywhere this array is
 // used (getGeoDedupKey(), FamilySearch's date query, the 95-year checks).
-var dateformatter = ["MMM YYYY", "MMMM YYYY", "MMM D YYYY", "MMMM D YYYY", "MMM D, YYYY", "MMMM D, YYYY", "YYYY", "MM/ /YYYY", "D MMM YYYY"];
+// #259 follow-up (found during a QA pass, not yet live-reported): "D MMM
+// YYYY" (day-first, abbreviated month - e.g. "16 Jul 1813") was here, but
+// its full-month counterpart "D MMMM YYYY" (e.g. "16 July 1813") was
+// missing entirely - confirmed via direct moment() strict-parse test that
+// this exact string failed to parse against every format in this list.
+// Live-relevant now that #242's foreign-month-name translation can
+// produce this exact shape (a day-first source date, e.g. "16 juillet
+// 1813", translates its month name but keeps the day-first order), and
+// getDatePrecisionInfo() (buildform.js, #259's burial-date-upgrade
+// feature) depends on this list correctly recognizing every shape a real
+// scraped date can take - a format gap here means a silently-skipped
+// upgrade, not a crash, which is easy to miss without a targeted check
+// like this one.
+var dateformatter = ["MMM YYYY", "MMMM YYYY", "MMM D YYYY", "MMMM D YYYY", "MMM D, YYYY", "MMMM D, YYYY", "YYYY", "MM/ /YYYY", "D MMM YYYY", "D MMMM YYYY"];
 //noinspection JSUnusedGlobalSymbols
 var expandparent = true; //used in expandAll function window[...] var call
 //noinspection JSUnusedGlobalSymbols

@@ -442,6 +442,23 @@ function normalizePlaceSegmentForMatch(text) {
 function stripTrailingCountySuffix(normalizedText) {
     return normalizedText.replace(/\s+(county|parish)$/, "");
 }
+// #270 (live-reported, DanCornett): FamilySearch resolves some US records
+// to a historically-accurate predecessor country name instead of "United
+// States" - "Republic of Texas" (the 1836-1845 independence era) and
+// "British Colonial America" (pre-1776) are the two this codebase already
+// tracks (FS_US_COUNTY_SUFFIX_COUNTRIES, parse-location.js - kept as a
+// separate literal list here rather than a cross-file reference, since
+// shared.js loads before parse-location.js and nothing else here depends
+// on that file). A raw segment reading "USA"/"US" - how most source
+// records are actually written, regardless of the event's own historical
+// era - needs to be recognized as ALSO representing one of these, not
+// just literal "United States", or it shows up as spurious leftover
+// Place text right next to a correctly period-resolved Country field.
+// DanCornett's own note: "this is going to be a VERY common situation."
+// One-directional only (a segment normalizing to "united states" matches
+// any of these) - no live-evidenced case yet of raw text literally
+// spelling out "Republic of Texas" needing the reverse.
+var US_HISTORICAL_COUNTRY_EQUIVALENTS = ["united states", "british colonial america", "republic of texas"];
 function segmentMatchesAnyField(segment, fields) {
     var normSeg = normalizePlaceSegmentForMatch(segment);
     if (normSeg === "") {
@@ -455,7 +472,8 @@ function segmentMatchesAnyField(segment, fields) {
         var fieldParts = fields[i].split(",");
         for (var j = 0; j < fieldParts.length; j++) {
             var normPart = normalizePlaceSegmentForMatch(fieldParts[j]);
-            if (normPart !== "" && (normSeg === normPart || normSegBare === stripTrailingCountySuffix(normPart))) {
+            if (normPart !== "" && (normSeg === normPart || normSegBare === stripTrailingCountySuffix(normPart) ||
+                    (normSeg === "united states" && US_HISTORICAL_COUNTRY_EQUIVALENTS.indexOf(normPart) !== -1))) {
                 return true;
             }
         }

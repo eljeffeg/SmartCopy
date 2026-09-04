@@ -350,9 +350,26 @@ function isSupportedSite(url) {
     }
 }
 
+// #269 (live-reported): none of the chrome.action.* calls below passed a
+// callback, so each one returns a Promise (MV3) that rejects with "No tab
+// with id: <id>" whenever the tab closes between refreshAllTabBadges()'s
+// chrome.tabs.query({}) resolving and this function actually running for
+// it - a real, expected race (not a bug in the badge logic itself),
+// especially right at extension load/reload when many tabs are being
+// processed in one synchronous loop. Nothing here is unhandled-rejection-
+// safe by default the way a callback is, so it surfaced as an uncaught
+// promise rejection in Chrome's own extension error log. Reading
+// chrome.runtime.lastError inside a callback is what suppresses it -
+// matches this project's established callback-style convention for
+// chrome.* APIs (see CLAUDE.md) rather than a .catch()-based promise
+// chain mixed into otherwise-callback code.
+function ignoreTabError() {
+    void chrome.runtime.lastError;
+}
+
 function updateBadgeForTab(tabId, url) {
     if (isExperimentalSite(url)) {
-        chrome.action.setBadgeText({tabId: tabId, text: "✓"});
+        chrome.action.setBadgeText({tabId: tabId, text: "✓"}, ignoreTabError);
         // Exact match for #experimentalmessage's background in popup.html -
         // same pale yellow the in-popup warning already uses. Light enough
         // that the default white badge text would be nearly unreadable on
@@ -360,34 +377,34 @@ function updateBadgeForTab(tabId, url) {
         // Chrome-only (no confirmed Firefox support as of this extension's
         // 140+ floor) - guarded so a browser without it just keeps the
         // default (white) text rather than throwing.
-        chrome.action.setBadgeBackgroundColor({tabId: tabId, color: "#f8ff86"});
+        chrome.action.setBadgeBackgroundColor({tabId: tabId, color: "#f8ff86"}, ignoreTabError);
         if (chrome.action.setBadgeTextColor) {
-            chrome.action.setBadgeTextColor({tabId: tabId, color: "#000000"});
+            chrome.action.setBadgeTextColor({tabId: tabId, color: "#000000"}, ignoreTabError);
         }
         // The amber/green distinction was color-only until now - no
         // difference for anyone who can't rely on color (colorblind, low
         // contrast display) beyond opening the popup itself. setTitle()
         // doesn't touch the badge's own color/glyph, just adds a hover
         // tooltip carrying the same distinction in text.
-        chrome.action.setTitle({tabId: tabId, title: "SmartCopy - experimental site support, double-check results"});
+        chrome.action.setTitle({tabId: tabId, title: "SmartCopy - experimental site support, double-check results"}, ignoreTabError);
     } else if (isSupportedSite(url)) {
-        chrome.action.setBadgeText({tabId: tabId, text: "✓"});
-        chrome.action.setBadgeBackgroundColor({tabId: tabId, color: "#2e7d32"});
+        chrome.action.setBadgeText({tabId: tabId, text: "✓"}, ignoreTabError);
+        chrome.action.setBadgeBackgroundColor({tabId: tabId, color: "#2e7d32"}, ignoreTabError);
         // Explicitly reset to white - badge text color is set per-tabId and
         // otherwise persists across navigations within the same tab, so an
         // experimental site's black text (needed for the pale yellow
         // background above) would otherwise carry over onto this dark green
         // one, where it'd be just as unreadable.
         if (chrome.action.setBadgeTextColor) {
-            chrome.action.setBadgeTextColor({tabId: tabId, color: "#ffffff"});
+            chrome.action.setBadgeTextColor({tabId: tabId, color: "#ffffff"}, ignoreTabError);
         }
-        chrome.action.setTitle({tabId: tabId, title: "SmartCopy - supported site"});
+        chrome.action.setTitle({tabId: tabId, title: "SmartCopy - supported site"}, ignoreTabError);
     } else {
-        chrome.action.setBadgeText({tabId: tabId, text: ""});
+        chrome.action.setBadgeText({tabId: tabId, text: ""}, ignoreTabError);
         // Reset back to the manifest default (extension name) - title is
         // also set per-tabId and would otherwise carry over from whichever
         // badge state this tab last had.
-        chrome.action.setTitle({tabId: tabId, title: ""});
+        chrome.action.setTitle({tabId: tabId, title: ""}, ignoreTabError);
     }
 }
 

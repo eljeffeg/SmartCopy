@@ -1181,7 +1181,7 @@ function buildForm() {
                 scored = false;
                 halfsibling = true;
             }
-            if (skipprivate && checkLiving(fullname)) {
+            if (skipprivate && (checkLiving(fullname) || hasPlaceholderIdentityName(fullname))) {
                 scored = false;
             } else {
                 scoreused = true;
@@ -4422,6 +4422,30 @@ function loadGeniData() {
 
 function checkLiving(name) {
     return (name.startsWith("\<Private\>") || name.startsWith("Private") || name.startsWith("Living"));
+}
+
+// #263 follow-up (live-reported, DanCornett): a SEPARATE check from
+// checkLiving() above, not an extension of it - checkLiving()'s "<Private>"/
+// "Private"/"Living" patterns are Geni's own convention for a currently-
+// LIVING person whose info is privacy-protected, and checkLiving() is also
+// used (updateInfoData()) to INFER person["alive"] = true from exactly that
+// signal. "Desconocido" (Spanish "Unknown") and "Unknown" mean something
+// different: the ancestor's IDENTITY wasn't recorded in the source, which
+// says nothing about whether they're alive - a live-reported case was an
+// 1800s Mexican family, where an unnamed ancestor from that era is almost
+// certainly deceased, not living. Folding these into checkLiving() would
+// have wrongly inferred "alive" for a historical unnamed ancestor. This is
+// used only to gate per-field/top-level auto-select for a placeholder-
+// identity entry (buildForm(), alongside the existing skipprivate/
+// checkLiving() check), never to infer living status. Checked at both
+// ends of the name -
+// unlike "<Private>"/"Living" (always leading), "Desconocido" commonly
+// appears as a placeholder SURNAME ("Joaquin Jose Maria Desconocido" -
+// unknown last name), trailing, not leading. Not exhaustive - only these
+// two languages are live-evidenced; extend as further ones turn up.
+function hasPlaceholderIdentityName(name) {
+    return (name.startsWith("Desconocido") || name.endsWith("Desconocido") ||
+        name.startsWith("Unknown") || name.endsWith("Unknown"));
 }
 
 function recursiveCompare(obj, reference) {

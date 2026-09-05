@@ -639,7 +639,15 @@ function buildForm() {
                 applyEstimatedDate(alldata["profile"], "marriage", "circa " + focusMarriageEstimate.year);
             }
         }
-        if ($('#estimatebirthyearsonoffswitch').prop('checked')) {
+        // #263 follow-up (live-reported, DanCornett): "Est. burial date
+        // from death if location" (#burialonoffswitch) has existed in
+        // Settings the whole time but was never actually read anywhere -
+        // the #230 rewrite gated fillMissingDeathOrBurialDate() only
+        // behind the master estimatebirthyearsonoffswitch, leaving this
+        // specifically-labeled toggle completely disconnected from the
+        // feature it names. Turning it off did nothing, which is exactly
+        // what was reported.
+        if ($('#estimatebirthyearsonoffswitch').prop('checked') && $('#burialonoffswitch').prop('checked')) {
             fillMissingDeathOrBurialDate(alldata["profile"]);
         }
         var living = false;
@@ -1426,8 +1434,10 @@ function buildForm() {
 
             // #208/#230: death<->burial mutual fill for this member - whichever
             // side has a real date supplies the other, same rule as the
-            // focus profile above.
-            if ($('#estimatebirthyearsonoffswitch').prop('checked')) {
+            // focus profile above. #263 follow-up: also gated on
+            // #burialonoffswitch now - see the focus-profile call site's
+            // own comment.
+            if ($('#estimatebirthyearsonoffswitch').prop('checked') && $('#burialonoffswitch').prop('checked')) {
                 fillMissingDeathOrBurialDate(members[member]);
             }
 
@@ -1616,7 +1626,7 @@ function buildForm() {
                 // different matches. data-birthyear carries memberBirthYear
                 // through to that recompute, since it's not otherwise
                 // available outside this closure.
-                var memberPrivacy = buildPrivacySelect(living, memberBirthYear, undefined);
+                var memberPrivacy = buildPrivacySelect(living, memberBirthYear, undefined, true);
                 membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input id="' + i + '_public_checkbox" type="checkbox" class="checknext" ' + (memberPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect privacyselect" update="'+ i + '" data-birthyear="' + (exists(memberBirthYear) ? memberBirthYear : "") + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacy.enabled ? "" : "disabled") + '>' +
                     memberPrivacy.options + '</select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 // The genislideinput below (missing until now) is what lets
@@ -1660,23 +1670,24 @@ function buildForm() {
                                     dateambig = 'style="color: #ff0000;" ';
                                     ambigdatecheck.push(i);
                                 }
-                                // #208: scored here is the whole-member-
-                                // level value shared by every field row
-                                // (name, gender, living, birth, etc.) -
-                                // forcing it globally for an estimated field
-                                // would incorrectly auto-check unrelated
-                                // fields too, so this override is scoped to
-                                // just this row's own isChecked()/isEnabled()
-                                // call via a local fieldScored, not scored
-                                // itself. Same reasoning as the focus-profile
-                                // equivalent above - an injected estimate
-                                // (birth/baptism/marriage/death/burial, all
-                                // #208) was never scraped, so nothing else
-                                // would otherwise mark it as checkable.
+                                // #208 original design, #263 follow-up
+                                // (live-reported, DanCornett): this used to
+                                // force fieldScored = true for ANY estimated
+                                // field, unconditionally - the field only
+                                // ever needed that when the member's own
+                                // scored was already false, which is exactly
+                                // the case where doing so is wrong: an
+                                // unmatched, no-real-data member (e.g. a
+                                // synthesized "Unknown" spouse with nothing
+                                // scraped but an estimated date) would get
+                                // ONLY that one estimated field pre-checked -
+                                // no name, no gender, nothing else - which on
+                                // submission creates an almost-empty new
+                                // profile with just a date on it. An estimate
+                                // is still fully visible and checkable, just
+                                // no longer forced ahead of the member's own
+                                // relevance signal.
                                 var fieldScored = scored;
-                                if (exists(memberobj[item].estimated) && memberobj[item].estimated === true) {
-                                    fieldScored = true;
-                                }
                                 // #230 (was hardcoded ""): matchedCandidateForEstimate is
                                 // the same matched Geni node already resolved once per
                                 // member above (used by the birth/marriage/baptism
@@ -5062,7 +5073,7 @@ function refreshPrivacySelect(id) {
     // sites consistent.
     var geniPublicRaw = getGeniData(profile, "public");
     var currentlyPublicNow = geniPublicRaw === "" ? undefined : geniPublicRaw;
-    var refreshedPrivacy = buildPrivacySelect(memberLivingNow, memberBirthYearNow, currentlyPublicNow);
+    var refreshedPrivacy = buildPrivacySelect(memberLivingNow, memberBirthYearNow, currentlyPublicNow, true);
     privacySelect.html(refreshedPrivacy.options);
     // "Select all" means all, full stop - it doesn't try to skip fields
     // that happen to be no-ops (that's parseForm()'s job at actual submit
@@ -5113,7 +5124,16 @@ function refreshPrivacySelect(id) {
 // match, or the Vital dropdown itself changes - both call sites read
 // living/currentlyPublic fresh rather than relying on a stale render-time
 // snapshot.
-function buildPrivacySelect(living, birthYear, currentlyPublic) {
+// #263 follow-up (live-reported, DanCornett): isFamilyMember (default
+// false, preserving the focus-profile call site's existing behavior
+// exactly) - a living FAMILY MEMBER's Privacy field should never auto-
+// select, even when otherwise matched/scored: "a Private 'source' doesn't
+// really have enough info to reliably say it correctly matches a Geni
+// profile" (his own words). The focus profile is the one confirmed
+// identity this whole run is already built around, not an ambiguous
+// match - auto-protecting a living focus person's privacy is still
+// wanted there, unchanged.
+function buildPrivacySelect(living, birthYear, currentlyPublic, isFamilyMember) {
     if (living) {
         // Private is the only real choice for a living profile - Geni
         // doesn't allow a normal living person to be Public without
@@ -5125,7 +5145,7 @@ function buildPrivacySelect(living, birthYear, currentlyPublic) {
         // same principle every other branch below already follows.
         return {
             options: '<option value=false selected>Private</option>',
-            enabled: currentlyPublic !== false
+            enabled: isFamilyMember ? false : currentlyPublic !== false
         };
     }
     var currentYear = new Date().getFullYear();

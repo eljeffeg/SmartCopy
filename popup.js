@@ -1553,6 +1553,15 @@ $(function () {
         // <span class="matches-counter" data-match-counter='profile-34758447241'>
         // and G.PageProfile = {..., "node_number":"34758447241", ...}. Fetch
         // this Geni page's own source and pull it from there instead.
+        // #272 (live-reported, DanCornett): this whole-page fetch (added
+        // by #177) is genuinely what makes this click take several
+        // seconds now, unlike before #177 when this was instant - nothing
+        // here can be skipped (the id truly isn't available any lighter
+        // way), so this shows a spinner instead, matching the pattern
+        // already used elsewhere in this same popup (#loginspinner,
+        // "Reading Family Data...") rather than leaving the click looking
+        // like it did nothing.
+        $('#addhistoryspinner').show();
         chrome.runtime.sendMessage({
             method: "GET",
             action: "xhttp",
@@ -1570,6 +1579,7 @@ $(function () {
             }
             addHistory(focusid, tablink, getProfileName(focusname), "", aliasId);
             buildHistoryBox();
+            $('#addhistoryspinner').hide();
         });
     });
 });

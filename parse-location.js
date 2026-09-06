@@ -571,6 +571,62 @@ function queryFamilySearchPlaces(locationset, callback) {
     })(0);
 }
 
+// #270 (live-reported, DanCornett): "+date:YEAR" in the query text
+// (below) is NOT a hard filter on FamilySearch's own search - live-
+// confirmed via direct query: "Philadelphia, Pennsylvania" +date:2026
+// still top-scores (100 vs 97) a "County"-type entry whose own
+// temporalDescription is "+1776/+1854" (a jurisdiction that stopped
+// existing in 1854, when the city and county consolidated), ahead of the
+// "Independent City"-type entry actually valid from 1854 onward that
+// correctly answers a 2026 query. Adjusting the lookup year in the pencil
+// popup has no effect on this - the server-side ranking simply doesn't
+// enforce it. parseFsTemporalYear()/isYearWithinFsTemporalRange() below
+// read each candidate's own temporalDescription.formal ("+startYear/
+// +endYear", either side optionally open-ended) and let the search-year
+// this query already knows about override FamilySearch's own (evidently
+// soft, relevance-only) date scoring - preferring the highest-scored
+// candidate whose OWN valid range actually contains the query year, only
+// falling back to the raw top score when nothing does (never returning
+// undefined just because every candidate happens to be date-mismatched -
+// a wrong-era match is still better than none, matching this codebase's
+// usual "degrade, don't break" convention).
+function parseFsTemporalYear(part) {
+    if (!exists(part) || part.trim() === "") {
+        return undefined;
+    }
+    var parsed = parseInt(part.replace(/^\+/, ""), 10);
+    return isNaN(parsed) ? undefined : parsed;
+}
+function isYearWithinFsTemporalRange(year, temporalDescription) {
+    if (!exists(temporalDescription) || !exists(temporalDescription.formal)) {
+        return true;
+    }
+    var parts = temporalDescription.formal.split("/");
+    var start = parseFsTemporalYear(parts[0]);
+    var end = parseFsTemporalYear(parts[1]);
+    if (exists(start) && year < start) {
+        return false;
+    }
+    if (exists(end) && year > end) {
+        return false;
+    }
+    return true;
+}
+// Prefers only the entries whose OWN temporalDescription actually covers
+// the queried year - falls back to the unfiltered entries array when
+// nothing survives (no year known for this query, or every candidate is
+// date-mismatched) - never narrows to an empty set.
+function selectFsEntriesForYear(entries, year) {
+    if (!exists(year)) {
+        return entries;
+    }
+    var temporallyValidEntries = entries.filter(function (entry) {
+        var places = entry.content.gedcomx.places;
+        return exists(places) && places.length > 0 && isYearWithinFsTemporalRange(year, places[0].temporalDescription);
+    });
+    return temporallyValidEntries.length > 0 ? temporallyValidEntries : entries;
+}
+
 // One search attempt for a given (place, year) pair. Calls back with a
 // GeoLocation-shaped result (see familySearchPlaceToGeoLocation()) on a
 // good settlement-level match, or undefined if nothing usable came back -
@@ -612,6 +668,7 @@ function attemptFamilySearchQuery(placeSegment, year, fullLocationString, placeN
                 callback(undefined);
                 return;
             }
+            var entriesForSelection = selectFsEntriesForYear(entries, year);
             // Entries are pre-sorted by relevance score (highest first).
             // Collect every non-broad candidate tied at the TOP score seen
             // (not just the first one) - #237 (live-reported, DanCornett):
@@ -622,14 +679,14 @@ function attemptFamilySearchQuery(placeSegment, year, fullLocationString, placeN
             // happened to sort first ignored real tie-break signal.
             var topScore;
             var tiedCandidates = [];
-            for (var e = 0; e < entries.length; e++) {
-                var candidatePlaces = entries[e].content.gedcomx.places;
+            for (var e = 0; e < entriesForSelection.length; e++) {
+                var candidatePlaces = entriesForSelection[e].content.gedcomx.places;
                 if (!exists(candidatePlaces) || candidatePlaces.length === 0 || isBroadPlaceType(candidatePlaces[0])) {
                     continue;
                 }
                 if (!exists(topScore)) {
-                    topScore = entries[e].score;
-                } else if (entries[e].score !== topScore) {
+                    topScore = entriesForSelection[e].score;
+                } else if (entriesForSelection[e].score !== topScore) {
                     break; // pre-sorted descending - nothing further can tie
                 }
                 tiedCandidates.push(candidatePlaces);

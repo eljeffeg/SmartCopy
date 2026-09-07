@@ -1676,11 +1676,6 @@ var submitform = function () {
                 // without this, re-running "select all" + update on the
                 // same profile appended a second (then third, ...) copy of
                 // the same scraped About content on every repeat touch.
-                // #235: snapshot the RAW newly-scraped content before the
-                // merge below overwrites `about` with the merged result -
-                // footnoteBulletPrefix() needs to see just this update's
-                // own new text, not the whole merged history.
-                var newAboutContentThisUpdate = about;
                 about = mergeAboutText(focusabout, about);
                 if (about !== "" && !about.endsWith("\n")) {
                     about += "\n";
@@ -1725,13 +1720,19 @@ var submitform = function () {
                 // regardless of which category it falls under - gets its
                 // own line.
                 var alreadyReferenced = isLastLineFromSameSource(about, token);
-                // #235: nest the footnote as a sub-bullet ("**") when this
-                // update's own newly-scraped content is itself a bulleted
-                // line - reads as an annotation ON that content rather than
-                // an unrelated new top-level fact. Stays flat ("*",
-                // unchanged from before) for plain prose or when nothing
-                // new was scraped this round.
-                var bulletPrefix = footnoteBulletPrefix(newAboutContentThisUpdate);
+                // #235/#286 (live-reported, DanCornett): nest the footnote
+                // one level deeper than whatever the About text's own last
+                // line already sits at, so it reads as an annotation ON
+                // that content rather than an unrelated new top-level
+                // fact. #286 follow-up: reads the line from the fully
+                // merged `about` (as it stands right now, including any
+                // existing footnote or ANY manually-added user text -
+                // "any 'source' type" per the issue), not just this
+                // update's own newly-scraped content - and counts however
+                // many "*" are already there instead of a fixed "*"/"**"
+                // choice, so a third or later nested level still nests one
+                // deeper rather than collapsing back to "**".
+                var bulletPrefix = footnoteBulletPrefix(about);
                 if (!alreadyReferenced) {
                     if (exists(refurl)) {
                         profileout["about_me"] = about + bulletPrefix + " '''[" + encodeURI(refurl) + " " + footnoteRecordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
@@ -2650,23 +2651,22 @@ function isLastLineFromSameSource(text, token) {
     return lines[lines.length - 1].contains(token);
 }
 
-// #235: "*" (top-level bullet) normally, but "**" (nested) when the last
-// non-blank line of THIS update's own newly-scraped content (before it
-// was merged into the existing About above) is itself already a bulleted
-// line - the footnote then reads as an annotation on that specific
-// content rather than an unrelated new top-level fact. newContent is
-// deliberately just this update's own text, not the full merged About -
-// an existing bullet somewhere earlier in profile history shouldn't
-// affect a footnote documenting a completely different, later update.
-function footnoteBulletPrefix(newContent) {
-    if (!exists(newContent) || newContent === "") {
+// #235/#286 (live-reported, DanCornett): counts however many "*" the About
+// text's own last non-blank line already starts with and returns one more
+// than that - "*" becomes "**", "**" becomes "***", and so on - rather
+// than the old fixed "*"/"**" choice, which collapsed any already-nested
+// line back down to "**" instead of continuing to nest deeper. No bullet
+// at all on the last line still just starts fresh at "*".
+function footnoteBulletPrefix(existingAbout) {
+    if (!exists(existingAbout) || existingAbout === "") {
         return "*";
     }
-    var lines = newContent.split("\n").filter(function (line) { return line.trim() !== ""; });
+    var lines = existingAbout.split("\n").filter(function (line) { return line.trim() !== ""; });
     if (lines.length === 0) {
         return "*";
     }
-    return lines[lines.length - 1].trim().startsWith("*") ? "**" : "*";
+    var leadingBullets = lines[lines.length - 1].trim().match(/^(\*+)/);
+    return exists(leadingBullets) ? leadingBullets[1] + "*" : "*";
 }
 
 // #209: whitespace-only normalization for comparing About content - collapses

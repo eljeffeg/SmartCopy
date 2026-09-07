@@ -490,15 +490,24 @@ function buildForm() {
         // "closed"; a blank Suffix collapses) instead of one shared
         // secondaryNameRowAttrs string applied uniformly regardless of
         // which of these six fields actually has data.
+        // #281 (live-reported, DanCornett): each secondary field's
+        // visibility used to depend only on whether the SOURCE had a
+        // value - a source name split as "John Jay" in one First Name
+        // field left Geni's own (real) Middle Name hidden, since nothing
+        // scraped ever populates that specific field for this profile.
+        // Now an OR: visible if EITHER side has something, matching the
+        // rest of this project's "only hidden when blank on both sides"
+        // convention. Never changes pre-selection/checked state - purely
+        // about whether the row starts visible.
         membersstring +=
-            buildTextFieldRow("Title:", "title", nameval.prefix, "", "disabled", "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.prefix)), namelocked) +
+            buildTextFieldRow("Title:", "title", nameval.prefix, "", "disabled", "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.prefix) || isValue(String(genifocusdata.get("names", namelang + ".title") || ""))), namelocked) +
             buildTextFieldRow("First Name:", "first_name", nameval.firstName, "", "disabled", "focus_geni_first_name", null, genifocusdata.get("names", namelang + ".first_name"), nameimage, undefined, namelocked) +
-            buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, middleNameChecked, middleNameEnabled, "focus_geni_middle_name", null, genifocusdata.get("names", namelang + ".middle_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.middleName)), namelocked) +
+            buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, middleNameChecked, middleNameEnabled, "focus_geni_middle_name", null, genifocusdata.get("names", namelang + ".middle_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.middleName) || isValue(String(genifocusdata.get("names", namelang + ".middle_name") || ""))), namelocked) +
             buildTextFieldRow("Last Name:", "last_name", nameval.lastName, "", "disabled", "focus_geni_last_name", null, genifocusdata.get("names", namelang + ".last_name"), nameimage, undefined, namelocked) +
-            buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", "disabled", "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.birthName)), namelocked) +
-            buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", "disabled", "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.suffix)), namelocked) +
-            buildTextFieldRow("Display Name: ", "display_name", displayname, "", "disabled", "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(displayname)), namelocked) +
-            buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", "disabled", "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png", ' ' + hiddenRowAttrs(hidden, isValue(nameval.nickName)));
+            buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", "disabled", "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.birthName) || isValue(String(genifocusdata.get("names", namelang + ".maiden_name") || ""))), namelocked) +
+            buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", "disabled", "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.suffix) || isValue(String(genifocusdata.get("names", namelang + ".suffix") || ""))), namelocked) +
+            buildTextFieldRow("Display Name: ", "display_name", displayname, "", "disabled", "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(displayname) || isValue(String(genifocusdata.get("names", namelang + ".display_name") || ""))), namelocked) +
+            buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", "disabled", "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png", ' ' + hiddenRowAttrs(hidden, isValue(nameval.nickName) || isValue(String(genifocusdata.get("nicknames") || ""))));
         if (hasNameData) {
             x += 1;
         }
@@ -580,7 +589,12 @@ function buildForm() {
         } else {
             var gender = focusgender;
             membersstring = $(div[0]).html();
-            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, gender !== "unknown") + '><td class="profilediv"><input type="checkbox" class="checknext" ' + (genderlocked ? 'disabled ' : '') + isChecked(gender, false, false, undefined, genderlocked) + '>Gender: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, false, false, undefined, genderlocked) + '>' +
+            // #281 (live-reported, DanCornett): OR with genigender too -
+            // previously hid this row whenever the SOURCE had no gender,
+            // even when Geni already has a real one (the "unknown &&
+            // !== unknown" branch above already covers the other
+            // direction, source-has/Geni-doesn't).
+            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, gender !== "unknown" || genigender !== "unknown") + '><td class="profilediv"><input type="checkbox" class="checknext" ' + (genderlocked ? 'disabled ' : '') + isChecked(gender, false, false, undefined, genderlocked) + '>Gender: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, false, false, undefined, genderlocked) + '>' +
                 '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + capFL(genifocusdata.get("gender")) + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         }
@@ -727,7 +741,14 @@ function buildForm() {
         }
         var focusPrivacy = buildPrivacySelect(living, focusBirthYear, genifocusdata.get("public") === true);
         var publiclocked = focusFieldLocked("public"); // #78
-        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input type="checkbox" class="checknext" ' + (publiclocked ? 'disabled ' : '') + (focusPrivacy.enabled && !publiclocked ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (focusPrivacy.enabled && !publiclocked ? "" : "disabled") + '>' +
+        // #281 (live-reported, DanCornett): Privacy used to always start
+        // collapsed under "hide empty fields," with no content-aware
+        // check at all - now visible whenever Geni already has an
+        // explicit Public/Private value (source has no independent
+        // "scraped privacy" concept of its own to check the other side
+        // of - it's derived from living/birth-year, not an original
+        // field).
+        membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, genifocusdata.get("public") === true || genifocusdata.get("public") === false) + '><td class="profilediv"><input type="checkbox" class="checknext" ' + (publiclocked ? 'disabled ' : '') + (focusPrivacy.enabled && !publiclocked ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (focusPrivacy.enabled && !publiclocked ? "" : "disabled") + '>' +
         focusPrivacy.options + '</select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
         $(div[0]).html(membersstring);
         if (exists(alldata["profile"].about)) {
@@ -1644,15 +1665,29 @@ function buildForm() {
                 // every other secondary field - previously these had NO
                 // rowAttrs at all, so they never respected the eyeball for
                 // family members even after the focus-profile fix.
+                // #281 (live-reported, DanCornett): same OR-visibility fix
+                // as the focus profile above - a matched member's own
+                // secondary name fields on Geni now also keep the row
+                // visible, not just the source's own value. No-op
+                // (falls back to source-only) for an unmatched member,
+                // same as every other matchedCandidateForEstimate read.
+                var matchedMemberNameLang = exists(matchedCandidateForEstimate) ? matchedCandidateForEstimate.get("name_language") : undefined;
+                var memberHasGeniName = exists(matchedCandidateForEstimate) && exists(matchedMemberNameLang);
+                var memberGeniTitleHasValue = memberHasGeniName && isValue(String(matchedCandidateForEstimate.get("names", matchedMemberNameLang + ".title") || ""));
+                var memberGeniMiddleNameHasValue = memberHasGeniName && isValue(String(matchedCandidateForEstimate.get("names", matchedMemberNameLang + ".middle_name") || ""));
+                var memberGeniMaidenNameHasValue = memberHasGeniName && isValue(String(matchedCandidateForEstimate.get("names", matchedMemberNameLang + ".maiden_name") || ""));
+                var memberGeniSuffixHasValue = memberHasGeniName && isValue(String(matchedCandidateForEstimate.get("names", matchedMemberNameLang + ".suffix") || ""));
+                var memberGeniDisplayNameHasValue = memberHasGeniName && isValue(String(matchedCandidateForEstimate.get("names", matchedMemberNameLang + ".display_name") || ""));
+                var memberGeniNicknamesHasValue = exists(matchedCandidateForEstimate) && isValue(String(matchedCandidateForEstimate.get("nicknames") || ""));
                 membersstring +=
-                    buildTextFieldRow("Title:", "title", nameval.prefix, isChecked(nameval.prefix, scored, false, ""), isEnabled(nameval.prefix, scored, false, ""), i + "_geni_title", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.prefix))) +
+                    buildTextFieldRow("Title:", "title", nameval.prefix, isChecked(nameval.prefix, scored, false, ""), isEnabled(nameval.prefix, scored, false, ""), i + "_geni_title", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.prefix) || memberGeniTitleHasValue)) +
                     buildTextFieldRow("First Name:", "first_name", nameval.firstName, isChecked(nameval.firstName, scored, false, ""), isEnabled(nameval.firstName, scored, false, ""), i + "_geni_first_name") +
-                    buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, isChecked(nameval.middleName, scored, false, ""), isEnabled(nameval.middleName, scored, false, ""), i + "_geni_middle_name", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.middleName))) +
+                    buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, isChecked(nameval.middleName, scored, false, ""), isEnabled(nameval.middleName, scored, false, ""), i + "_geni_middle_name", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.middleName) || memberGeniMiddleNameHasValue)) +
                     buildTextFieldRow("Last Name:", "last_name", nameval.lastName, (lastNameAutoFilled ? lastNameInitialChecked : isChecked(nameval.lastName, scored, false, "")), (lastNameAutoFilled ? 'data-guessed="true"' : isEnabled(nameval.lastName, scored, false, "")), i + "_geni_last_name") +
-                    buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, isChecked(nameval.birthName, scored, false, ""), isEnabled(nameval.birthName, scored, false, ""), i + "_geni_maiden_name", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.birthName))) +
-                    buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, isChecked(nameval.suffix, scored, false, ""), isEnabled(nameval.suffix, scored, false, ""), i + "_geni_suffix", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.suffix))) +
-                    buildTextFieldRow("Display Name: ", "display_name", displayname, isChecked(displayname, scored, false, ""), isEnabled(displayname, scored, false, ""), i + "_geni_display_name", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(displayname))) +
-                    buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, isChecked(nameval.nickName, scored, false, ""), isEnabled(nameval.nickName, scored, false, ""), i + "_geni_nicknames", i + "_geni_nickimage", undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.nickName)));
+                    buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, isChecked(nameval.birthName, scored, false, ""), isEnabled(nameval.birthName, scored, false, ""), i + "_geni_maiden_name", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.birthName) || memberGeniMaidenNameHasValue)) +
+                    buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, isChecked(nameval.suffix, scored, false, ""), isEnabled(nameval.suffix, scored, false, ""), i + "_geni_suffix", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.suffix) || memberGeniSuffixHasValue)) +
+                    buildTextFieldRow("Display Name: ", "display_name", displayname, isChecked(displayname, scored, false, ""), isEnabled(displayname, scored, false, ""), i + "_geni_display_name", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(displayname) || memberGeniDisplayNameHasValue)) +
+                    buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, isChecked(nameval.nickName, scored, false, ""), isEnabled(nameval.nickName, scored, false, ""), i + "_geni_nicknames", i + "_geni_nickimage", undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.nickName) || memberGeniNicknamesHasValue));
                 if (exists(members[member]["occupation"])) {
                     var occupation = members[member]["occupation"].trim();
                     membersstring = membersstring + buildTextFieldRow("Occupation: ", "occupation", occupation, isChecked(occupation, scored, false, ""), isEnabled(occupation, scored, false, ""), i + "_geni_occupation");
@@ -1679,7 +1714,11 @@ function buildForm() {
                 // through to that recompute, since it's not otherwise
                 // available outside this closure.
                 var memberPrivacy = buildPrivacySelect(living, memberBirthYear, undefined, true);
-                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td class="profilediv"><input id="' + i + '_public_checkbox" type="checkbox" class="checknext" ' + (memberPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect privacyselect" update="'+ i + '" data-birthyear="' + (exists(memberBirthYear) ? memberBirthYear : "") + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacy.enabled ? "" : "disabled") + '>' +
+                // #281: same OR-visibility as the focus profile's Privacy
+                // row above.
+                var memberGeniPublicHasValue = exists(matchedCandidateForEstimate) &&
+                    (matchedCandidateForEstimate.get("public") === true || matchedCandidateForEstimate.get("public") === false);
+                membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, memberGeniPublicHasValue) + '><td class="profilediv"><input id="' + i + '_public_checkbox" type="checkbox" class="checknext" ' + (memberPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect privacyselect" update="'+ i + '" data-birthyear="' + (exists(memberBirthYear) ? memberBirthYear : "") + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacy.enabled ? "" : "disabled") + '>' +
                     memberPrivacy.options + '</select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 // The genislideinput below (missing until now) is what lets
                 // refreshFieldCheckState()/parseForm()'s no-op skip see

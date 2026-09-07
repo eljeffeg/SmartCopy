@@ -279,22 +279,50 @@ function updateGeoLocation() {
         // through the pencil behaves identically to one parsed on initial
         // load. #256: no longer parenthesized - see itemPlaceNameValue's
         // own comment (below) for why.
+        // #287 (live-reported, DanCornett): further refinement on top of
+        // #278 - when forceAllGeoFields is off, a field should only
+        // pre-check when the source value actually DIFFERS from what
+        // Geni already has, not merely whenever it resolved to
+        // something. Reduces how much gets submitted and makes clear to
+        // the user what's actually changing. The comparison value is
+        // read directly from each row's own already-rendered
+        // .genislideinput (Geni's current value, read-only) rather than
+        // re-deriving it, so this always matches whatever the row
+        // actually displays. GPS fields are handled separately (#288 -
+        // FamilySearch/Geni report different decimal precision, so a
+        // naive string-equality check would almost always "differ" even
+        // when the location hasn't really changed).
+        function updateFieldDiffersFromGeni(row, sourceValue) {
+            var geniInput = $(row).find(".genislideinput")[0];
+            return isValue(sourceValue) && (!exists(geniInput) || sourceValue !== geniInput.value);
+        }
         var updateHasGeoFields = isValue(locationdata.city) || isValue(locationdata.county) || isValue(locationdata.state) || isValue(locationdata.country);
         var updatePlaceNameValue = updateHasGeoFields ? computeCombinedPlaceValue(locationdata.query, locationdata) : locationdata.place;
+        var anyNonGpsFieldDiffers = false;
         $(eventrow).find("input[type=text]")[0].value = updatePlaceNameValue;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(updatePlaceNameValue))).trigger("click");
+        var placeDiffers = updateFieldDiffersFromGeni(eventrow, updatePlaceNameValue);
+        anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || placeDiffers;
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || placeDiffers)).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.city;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(locationdata.city))).trigger("click");
+        var cityDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.city);
+        anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || cityDiffers;
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || cityDiffers)).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.county;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(locationdata.county))).trigger("click");
+        var countyDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.county);
+        anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || countyDiffers;
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || countyDiffers)).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.state;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(locationdata.state))).trigger("click");
+        var stateDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.state);
+        anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || stateDiffers;
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || stateDiffers)).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.country;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(locationdata.country))).trigger("click");
+        var countryDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.country);
+        anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || countryDiffers;
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || countryDiffers)).trigger("click");
         // #229 follow-up (found during a full-codebase re-audit): this is
         // the same row-count-drift bug already fixed once in .geotopcheck
         // (0a48a3a) and once in .geoicon (this same audit pass) - a manual
@@ -305,12 +333,39 @@ function updateGeoLocation() {
         // coordinates back - leaving the ORIGINAL (possibly wrong -
         // correcting a bad/ambiguous match is exactly why someone uses
         // this modal) latitude/longitude silently stuck in the form.
+        // #288 (live-reported, DanCornett): FamilySearch and Geni report
+        // GPS coordinates at different decimal precision (FS has 4 or
+        // fewer digits after the decimal), so a naive string-equality
+        // check would almost always flag them as "different" even when
+        // they describe the same point - only really meaningful once
+        // truncated both to the SHORTER value's own length minus one
+        // digit. Also never pre-selects GPS at all when any OTHER
+        // location field differs (Geni may hold a more precise point the
+        // user manually placed - a cemetery plot, for instance - that a
+        // broader source match shouldn't casually override).
+        function gpsEffectivelyMatches(sourceValue, geniValue) {
+            if (!isValue(sourceValue) || !isValue(geniValue)) {
+                return false;
+            }
+            var compareLength = Math.min(String(sourceValue).length, String(geniValue).length) - 1;
+            if (compareLength <= 0) {
+                return String(sourceValue) === String(geniValue);
+            }
+            return String(sourceValue).slice(0, compareLength) === String(geniValue).slice(0, compareLength);
+        }
+        function gpsFieldDiffersFromGeni(row, sourceValue) {
+            if (anyNonGpsFieldDiffers || !isValue(sourceValue)) {
+                return false;
+            }
+            var geniInput = $(row).find(".genislideinput")[0];
+            return !exists(geniInput) || !gpsEffectivelyMatches(sourceValue, geniInput.value);
+        }
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.latitude;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(locationdata.latitude))).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || gpsFieldDiffersFromGeni(eventrow, locationdata.latitude))).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.longitude;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(locationdata.longitude))).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || gpsFieldDiffersFromGeni(eventrow, locationdata.longitude))).trigger("click");
         $("body").toggleClass("wait");
     }
 }

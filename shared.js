@@ -392,8 +392,32 @@ var PLACE_SEGMENT_EQUIVALENTS = {
     "ut": "utah", "vt": "vermont", "va": "virginia", "wa": "washington",
     "wv": "west virginia", "wi": "wisconsin", "wy": "wyoming", "pr": "puerto rico"
 };
+// #280/#282 (live-reported, DanCornett): expands a burial-venue
+// abbreviation to its full word - "Cem"/"Cem."->"Cemetery" (also the
+// misspelled "Cemetary"), "Mem."/"Mem" immediately before "Garden(s)"/
+// "Park"->"Memorial" (a bare "Mem" alone is too ambiguous to expand
+// unconditionally, matching the same discipline already applied to a
+// bare "Cem" - see PLACE_NAME_KEYWORD_PATTERN's own comment,
+// parse-location.js). The negative lookahead on "cem" prevents matching
+// its own prefix inside the word "Cemetery" once already expanded (or
+// already spelled that way to begin with) - without it, "Cemetery" would
+// corrupt into "Cemeteryetery" on a second pass. Shared between
+// normalizeCemeteryAbbreviation() (parse-location.js, builds the Place
+// Name field's display text and pre-splits the raw location string
+// before segmenting it for the FamilySearch query) and this file's own
+// normalizePlaceSegmentForMatch() (decides whether a raw segment already
+// duplicates a resolved field) - without sharing this, an abbreviated
+// raw segment like "Liberty Cem" was never recognized as the SAME thing
+// as an already-expanded "Liberty Cemetery" field value, so it survived
+// into computeLeftoverPlaceName()'s leftover text as a spurious near-
+// duplicate.
+function expandBurialVenueAbbreviation(text) {
+    var expanded = String(text || "").replace(/\bcemetary\b/i, "Cemetery");
+    expanded = expanded.replace(/\bmem\.?(\s+(?:garden|park))/i, "Memorial$1");
+    return expanded.replace(/\bcem\.?(?![a-z])/i, "Cemetery");
+}
 function normalizePlaceSegmentForMatch(text) {
-    var normalized = String(text || "")
+    var normalized = expandBurialVenueAbbreviation(String(text || ""))
         .replace(PLACE_SEGMENT_QUALIFIER_PATTERN, " ")
         .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
         .replace(/[^\p{L}\p{N}\s]/gu, " ")

@@ -379,7 +379,16 @@ function isBroadPlaceType(place) {
 // real, ordinary part of many actual place names, the same false-positive
 // risk "fort" turned out to have) - needs its own live-confirmed case
 // before adding, same discipline as the rest of this list.
-var PLACE_NAME_KEYWORD_PATTERN = /\b(cemetery|cem\.?|cemetary|mausoleum|church|chapel|synagogue|temple|hospital|clinic|camp|prison|plantation|plot|lot|grave|section|block|row|space|apt|apartment|suite|room|building|street|st\.?|avenue|ave\.?|road|rd\.?|lane|ln\.?|drive|dr\.?|boulevard|blvd\.?|highway|hwy\.?|route|rt\.?|farm|ranch|friedhof|kirchhof|kirche|kapelle|synagoge|kloster|krankenhaus|gefängnis|gefangnis)\b/i;
+// #280 (live-reported, DanCornett, with his own researched reasoning):
+// that live-confirmed case has now shown up - "Memorial Park"/"Memorial
+// Garden(s)" (abbreviated "Mem."), plus "Burial Ground(s)" and
+// "Graveyard" (both noted as common historical naming, relevant to this
+// codebase's frequent older records). Added as specific multi-word
+// phrases, not a bare "memorial"/"burial" - keeps the same false-positive
+// discipline "fort" was removed over (a bare "memorial" is a real,
+// ordinary part of many unrelated place/monument names, e.g. "Dignity
+// Memorial").
+var PLACE_NAME_KEYWORD_PATTERN = /\b(cemetery|cem\.?|cemetary|mausoleum|memorial gardens?|mem\.? gardens?|memorial park|mem\.? park|burial grounds?|graveyard|church|chapel|synagogue|temple|hospital|clinic|camp|prison|plantation|plot|lot|grave|section|block|row|space|apt|apartment|suite|room|building|street|st\.?|avenue|ave\.?|road|rd\.?|lane|ln\.?|drive|dr\.?|boulevard|blvd\.?|highway|hwy\.?|route|rt\.?|farm|ranch|friedhof|kirchhof|kirche|kapelle|synagoge|kloster|krankenhaus|gefängnis|gefangnis)\b/i;
 // A segment that's essentially just a number (a house/plot/lot number,
 // with an optional trailing letter like "15191a"), starts with one
 // followed by more text (the US street-address convention, "123 Main"),
@@ -401,20 +410,28 @@ function isPlaceNameSegment(segment) {
 // #244: normalizes "Cem"/"Cem." (abbreviated) and "Cemetary" (misspelled)
 // to "Cemetery" in text destined for the Place Name field - the same
 // cleanup checkPlace() already does for Google's path, ported here since
-// FamilySearch's own venue extraction never got it. Two cases: "Cem"/
-// "Cem." at the END of the text (nothing following) becomes plain
-// "Cemetery" - never trails a comma when there's nothing after it. "Cem."
-// followed by MORE text in the same segment (e.g. a source punctuated
-// "XYZ Cem. Plot 15" with a period rather than a comma) becomes
-// "Cemetery, " + that text, treating the abbreviation's period as the
-// clause break it was standing in for.
+// FamilySearch's own venue extraction never got it. Delegates the actual
+// abbreviation expansion to expandBurialVenueAbbreviation() (shared.js -
+// #280/#282 extended it to "Mem."/"Mem" -> "Memorial" too, so this
+// function picks that up for free).
+// #282 (live-reported, DanCornett): once expanded, an assumed comma is
+// inserted immediately after ANY recognized burial-venue keyword
+// (already-correctly-spelled or just-expanded) whenever more text follows
+// it in the same segment with no separator at all - "Mount Vernon
+// Cemetery Sharon" and "Liberty Cem Dresden" (now "Liberty Cemetery
+// Dresden" post-expansion) both need this: without a real comma,
+// FamilySearch's own query bundles the jurisdiction text that follows
+// (here, the actual city) into the venue name instead of letting it
+// resolve as City. A keyword with nothing following (the original #244
+// case, "XYZ Cem" alone) needs no comma at all - the trailing \S
+// requirement here only matches when there's real text to separate from.
+var BURIAL_VENUE_KEYWORD_TRAILING_TEXT_PATTERN = /\b(cemetery|mausoleum|memorial gardens?|memorial park|burial grounds?|graveyard)(\s+\S)/i;
 function normalizeCemeteryAbbreviation(text) {
     if (!exists(text) || text.trim() === "") {
         return text;
     }
-    var normalized = text.replace(/\bcemetary\b/i, "Cemetery");
-    normalized = normalized.replace(/\bcem\.?(\s+\S)/i, "Cemetery,$1");
-    normalized = normalized.replace(/\bcem\.?\s*$/i, "Cemetery");
+    var normalized = expandBurialVenueAbbreviation(text);
+    normalized = normalized.replace(BURIAL_VENUE_KEYWORD_TRAILING_TEXT_PATTERN, "$1,$2");
     return normalized.replace(/\s+/g, ' ').trim();
 }
 
@@ -491,6 +508,23 @@ function extractPlaceNameSegments(segments) {
 // source.
 function queryFamilySearchPlaces(locationset, callback) {
     var location = locationset.location.trim();
+    // #280/#282 (live-reported, DanCornett): normalize the WHOLE raw
+    // string - not just an already-isolated leading/trailing segment -
+    // before ever splitting it on commas. A burial-venue keyword glued
+    // directly to the jurisdiction text that follows it ("Liberty Cem
+    // Dresden", "Mount Vernon Cemetery Sharon") would otherwise be split
+    // on commas FIRST, landing "Cem Dresden"/"Cemetery Sharon" together
+    // in one segment that extractPlaceNameSegments() then swallows whole
+    // into the Place Name field - losing the real city ("Dresden"/
+    // "Sharon") from the FamilySearch query entirely rather than letting
+    // it resolve normally into City. Normalizing here, before the split,
+    // inserts the comma that separates them first, so each side becomes
+    // its own real segment. This also fixes the "both expanded and
+    // abbreviated form kept" duplication (#280) - computeLeftoverPlaceName
+    // (shared.js) compares this SAME normalized string's segments against
+    // the resolved fields, so an abbreviation is never compared against
+    // its own already-expanded field value as if they were different text.
+    location = normalizeCemeteryAbbreviation(location);
     // #224: strip a venue/address/plot segment (leading, trailing, or
     // both) before searching - see extractPlaceNameSegments()'s own
     // comment. What's left is the actual jurisdiction chain to query.

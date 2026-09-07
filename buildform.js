@@ -751,7 +751,13 @@ function buildForm() {
         // #275 follow-up (live-reported, DanCornett): OR, not AND - burial
         // estimation should fire whenever ITS OWN toggle is on, regardless
         // of the master switch's state, not require both together.
-        if ($('#estimatebirthyearsonoffswitch').prop('checked') || $('#burialonoffswitch').prop('checked')) {
+        // #283 follow-up (live-reported, DanCornett): but when it's ONLY
+        // burialonoffswitch firing this (master switch off), require an
+        // actual burial location on the source or Geni side first - the
+        // master switch's own "estimate with or without a location" is
+        // deliberately more permissive and stays unrestricted.
+        if ($('#estimatebirthyearsonoffswitch').prop('checked') ||
+            ($('#burialonoffswitch').prop('checked') && hasAnyBurialLocation(alldata["profile"], genifocusdata.get("burial", "location_string")))) {
             fillMissingDeathOrBurialDate(alldata["profile"]);
         }
         var living = false;
@@ -1584,7 +1590,13 @@ function buildForm() {
             // focus profile above. #263/#275 follow-up: also gated on
             // #burialonoffswitch now - OR, not AND, with the master switch
             // - see the focus-profile call site's own comment.
-            if ($('#estimatebirthyearsonoffswitch').prop('checked') || $('#burialonoffswitch').prop('checked')) {
+            // #283 follow-up: burialonoffswitch-only firing (master off)
+            // also requires an actual burial location, source or Geni -
+            // see the focus-profile call site's own comment.
+            var geniMemberBurialLocation = exists(matchedCandidateForEstimate) ?
+                matchedCandidateForEstimate.get("burial", "location_string") : undefined;
+            if ($('#estimatebirthyearsonoffswitch').prop('checked') ||
+                ($('#burialonoffswitch').prop('checked') && hasAnyBurialLocation(members[member], geniMemberBurialLocation))) {
                 fillMissingDeathOrBurialDate(members[member]);
             }
 
@@ -3708,6 +3720,33 @@ function attachRealDateUpgrade(dateArray, value) {
     return false;
 }
 
+// #283 (live-reported, DanCornett): when only #burialonoffswitch is on (the
+// master estimatebirthyearsonoffswitch is off), burial-date estimation
+// should be more conservative than the master switch's own "estimate with
+// or without a location" behavior - it should only fire if there's an
+// actual burial location on EITHER the source side or Geni's existing side.
+// geniBurialLocation is passed in rather than read here so this stays a
+// pure, DOM-free function like fillMissingDeathOrBurialDate() itself -
+// focus and family-member call sites resolve it differently
+// (genifocusdata vs. matchedCandidateForEstimate).
+function isUsableLocationValue(location) {
+    return isValue(location) && exists(location) && location.trim().toLowerCase() !== "unknown";
+}
+function hasAnyBurialLocation(target, geniBurialLocation) {
+    if (isUsableLocationValue(geniBurialLocation)) {
+        return true;
+    }
+    if (!exists(target["burial"])) {
+        return false;
+    }
+    for (var i = 0; i < target["burial"].length; i++) {
+        if (exists(target["burial"][i]) && isUsableLocationValue(target["burial"][i].location)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function fillMissingDeathOrBurialDate(target) {
     var deathDateStr = getRealDateString(target["death"], true);
     var burialDateStr = getRealDateString(target["burial"], true);
@@ -4714,7 +4753,12 @@ function addEvent(profiledata, event, dateval, eventlocation) {
         }
         data.push({date: dateval});
     }
-    if (eventlocation !== "") {
+    // #283 (live-reported, DanCornett): a source page's own burial location
+    // field can literally read "Unknown" (e.g. FindAGrave's own
+    // #burialLocationLabel when a burial record exists but no cemetery is
+    // recorded) - stripped here the same way dateval's "unknown" is already
+    // stripped above, rather than storing it as if it were real place text.
+    if (eventlocation !== "" && eventlocation.trim().toLowerCase() !== "unknown") {
         data.push({id: geoid, location: eventlocation});
         geoid++;
     }

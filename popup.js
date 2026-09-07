@@ -1547,20 +1547,27 @@ $(function () {
 
 $(function () {
     $('#addhistory').on('click', function () {
+        // #272 (live-reported, DanCornett): added instantly with whatever
+        // id is already on hand - restores the pre-#177 snappy feel. The
+        // node_number alias fetched below (needed so this profile matches
+        // correctly under either id format later - see #177) is merged
+        // into this SAME entry once it arrives, via addHistory()'s own
+        // by-id merge - pickPrimaryId() re-derives the primary id from
+        // the full set every call, so the final result (primary =
+        // node_number, the user-facing guid kept as its alias) ends up
+        // identical to having known both ids from the start, just without
+        // making the click wait for it.
+        addHistory(focusid, tablink, getProfileName(focusname), "");
+        buildHistoryBox();
         // Geni's REST API doesn't expose the short internal "node_number"
         // (confirmed - neither genifocusdata.get("id") nor .get("node_number")
         // returned it), but the page itself embeds it directly, e.g.
         // <span class="matches-counter" data-match-counter='profile-34758447241'>
         // and G.PageProfile = {..., "node_number":"34758447241", ...}. Fetch
-        // this Geni page's own source and pull it from there instead.
-        // #272 (live-reported, DanCornett): this whole-page fetch (added
-        // by #177) is genuinely what makes this click take several
-        // seconds now, unlike before #177 when this was instant - nothing
-        // here can be skipped (the id truly isn't available any lighter
-        // way), so this shows a spinner instead, matching the pattern
-        // already used elsewhere in this same popup (#loginspinner,
-        // "Reading Family Data...") rather than leaving the click looking
-        // like it did nothing.
+        // this Geni page's own source and pull it from there instead - in
+        // the background now, with a small spinner next to the button
+        // while it's in flight (matching the pattern already used
+        // elsewhere in this popup) rather than blocking the click on it.
         $('#addhistoryspinner').show();
         chrome.runtime.sendMessage({
             method: "GET",
@@ -1577,8 +1584,10 @@ $(function () {
                     aliasId = match[1];
                 }
             }
-            addHistory(focusid, tablink, getProfileName(focusname), "", aliasId);
-            buildHistoryBox();
+            if (aliasId !== "") {
+                addHistory(focusid, tablink, getProfileName(focusname), "", aliasId, true);
+                buildHistoryBox();
+            }
             $('#addhistoryspinner').hide();
         });
     });
@@ -3091,7 +3100,14 @@ function dateAmbigous(valdate) {
     return false;
 }
 
-function addHistory(id, itemId, name, data, aliasId) {
+// #272 follow-up: skipTouchRecord (optional, default false - every
+// existing caller is unaffected) is for a background alias-merge only -
+// the manual "Add to History" button now adds instantly with whatever id
+// it already has, then fetches the Geni page's own node_number in the
+// background (see its own comment) and calls this a second time just to
+// merge that alias in. Without this flag, that second call would log a
+// second, near-simultaneous touch record for what's really one click.
+function addHistory(id, itemId, name, data, aliasId, skipTouchRecord) {
     if (exists(id)) {
         var incomingOriginalIds = [id];
         // aliasId may be a single id (existing callers) or an array of
@@ -3108,6 +3124,7 @@ function addHistory(id, itemId, name, data, aliasId) {
         var priorSubmissions = [];
         var priorOriginalIds = [];
         var priorItemIds = [];
+        var priorDate;
         buildhistory = buildhistory.filter(function (entry) {
             if (!idSetsOverlap(getAllHistoryIds(entry), incomingNormIds)) {
                 return true;
@@ -3119,9 +3136,12 @@ function addHistory(id, itemId, name, data, aliasId) {
             }
             priorOriginalIds = [entry.id].concat(Array.isArray(entry.aliasIds) ? entry.aliasIds : []);
             priorItemIds = Array.isArray(entry.itemIds) ? entry.itemIds : (exists(entry.itemId) && entry.itemId !== "" ? [entry.itemId] : []);
+            priorDate = entry.date;
             return false;
         });
-        var submissions = [{date: Date.now(), data: exists(data) ? data : ""}].concat(priorSubmissions);
+        var submissions = (skipTouchRecord && priorSubmissions.length > 0) ? priorSubmissions :
+            [{date: Date.now(), data: exists(data) ? data : ""}].concat(priorSubmissions);
+        var entryDate = (skipTouchRecord && exists(priorDate)) ? priorDate : Date.now();
         var allOriginalIds = incomingOriginalIds.concat(priorOriginalIds).filter(function (v, idx, arr) {
             return arr.map(normalizeProfileId).indexOf(normalizeProfileId(v)) === idx;
         });
@@ -3139,7 +3159,7 @@ function addHistory(id, itemId, name, data, aliasId) {
             }
             return arr.map(normalizeItemId).indexOf(normalizeItemId(v)) === idx;
         });
-        buildhistory.unshift({id: primary, aliasIds: aliasIds, itemIds: itemIds, name: name, date: Date.now(), data: submissions});
+        buildhistory.unshift({id: primary, aliasIds: aliasIds, itemIds: itemIds, name: name, date: entryDate, data: submissions});
         if (buildhistory.length > 300) {
             buildhistory.pop();
         }

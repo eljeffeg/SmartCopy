@@ -767,6 +767,24 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
 
 function loadPage(request) {
     if (!profilechanged) {
+        // #276 (live-reported, DanCornett): collection can genuinely be
+        // undefined here - the "getSource" message listener just above
+        // this function already anticipates exactly this case
+        // (exists(collection) && exists(collection.isPageReady)) before
+        // ever calling loadPage(), but this function itself had no
+        // matching guard, so a page whose URL doesn't match ANY
+        // registered collectionMatch() threw uncaught reading
+        // collection.parseProfileData. Degrades the same way the
+        // "reading the page" failure a few lines below already does,
+        // rather than leaving the popup stuck on its loading screen with
+        // no explanation.
+        if (!exists(collection)) {
+            document.getElementById("top-container").style.display = "block";
+            document.getElementById("submitbutton").style.display = "none";
+            document.getElementById("loading").style.display = "none";
+            setMessage(warningmsg, _('SmartCopy_is_having_difficulty_reading_the_page'));
+            return;
+        }
         if (collection.parseProfileData) {
             if (collection.loadPage) {
                 if (exists(request.source)) {

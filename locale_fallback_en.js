@@ -470,6 +470,9 @@ var EN_FALLBACK_MESSAGES = {
     "Location_fields_auto_select_one_select_all": {
         "message": "Location fields select one select all"
     },
+    "Location_edit_pre_selects_all_fields": {
+        "message": "Location edit pre-selects all fields"
+    },
     "Parse_locations_with_FamilySearch_Places": {
         "message": "Parse locations with FamilySearch Places (experimental)"
     },

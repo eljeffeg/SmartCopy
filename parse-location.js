@@ -372,7 +372,14 @@ function isBroadPlaceType(place) {
 // "plantation" carry the identical risk (real cities: Camp Hill PA,
 // Plantation FL) but have no live-reported failure yet - left as-is
 // pending one, not preemptively removed.
-var PLACE_NAME_KEYWORD_PATTERN = /\b(cemetery|cem\.?|cemetary|church|chapel|synagogue|temple|hospital|clinic|camp|prison|plantation|plot|lot|grave|section|block|row|space|apt|apartment|suite|room|building|street|st\.?|avenue|ave\.?|road|rd\.?|lane|ln\.?|drive|dr\.?|boulevard|blvd\.?|highway|hwy\.?|route|rt\.?|farm|ranch|friedhof|kirchhof|kirche|kapelle|synagoge|kloster|krankenhaus|gefängnis|gefangnis)\b/i;
+// #277 (live-reported, DanCornett): "mausoleum" added - a burial-venue
+// keyword exactly like "cemetery" that simply wasn't in the list at all.
+// "garden(s)"/"memorial garden(s)" deliberately NOT added yet - flagged
+// by DanCornett himself as possibly too broad (a bare "garden(s)" is a
+// real, ordinary part of many actual place names, the same false-positive
+// risk "fort" turned out to have) - needs its own live-confirmed case
+// before adding, same discipline as the rest of this list.
+var PLACE_NAME_KEYWORD_PATTERN = /\b(cemetery|cem\.?|cemetary|mausoleum|church|chapel|synagogue|temple|hospital|clinic|camp|prison|plantation|plot|lot|grave|section|block|row|space|apt|apartment|suite|room|building|street|st\.?|avenue|ave\.?|road|rd\.?|lane|ln\.?|drive|dr\.?|boulevard|blvd\.?|highway|hwy\.?|route|rt\.?|farm|ranch|friedhof|kirchhof|kirche|kapelle|synagoge|kloster|krankenhaus|gefängnis|gefangnis)\b/i;
 // A segment that's essentially just a number (a house/plot/lot number,
 // with an optional trailing letter like "15191a"), starts with one
 // followed by more text (the US street-address convention, "123 Main"),
@@ -857,7 +864,20 @@ function familySearchPlaceToGeoLocation(places, query, placeName, ambiguous) {
     // county value to extract here regardless; folding it into City
     // ("Manhattan, New York City") is the closest correct answer, not
     // "Manhattan" with a wrong county.
-    var FS_SETTLEMENT_ANCESTOR_TYPES = ["186", "308", "376", "201", "520"];
+    // #277 follow-up (live-reported, DanCornett): "378" (Township) added -
+    // a Midwest US civil township sits between a settlement and its real
+    // county (e.g. "Monroeville, Monroe Township, Allen, Indiana, United
+    // States" - live-confirmed via direct API query: Monroe Township is
+    // type 378, Allen the real county is type 209, Indiana the real state
+    // is type 362). Without this, the township consumed the county slot
+    // (adminAncestors[0]) and the real county consumed the state slot,
+    // pushing the real state out of the schema entirely - it fell through
+    // to Place as unmatched leftover text instead of vanishing outright,
+    // which is how this got noticed, but County/State were still wrong.
+    // Same live-confirmed pattern in a second, independent example
+    // ("Dowling, Baltimore Township, Barry, Michigan" - Baltimore
+    // Township also type 378).
+    var FS_SETTLEMENT_ANCESTOR_TYPES = ["186", "308", "376", "201", "520", "378"];
     function typeId(p) {
         if (!exists(p) || !exists(p.type)) {
             return "";

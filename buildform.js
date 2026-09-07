@@ -248,18 +248,25 @@ function updateGeoLocation() {
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.query;
         $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", geoon).trigger("click");
-        // Live-reported: Place/City/County/State/Country/Latitude/Longitude
-        // below used to stay UNCHECKED whenever their own resolved value
-        // came back blank (the usual "don't auto-check a blank, might
-        // silently clear real Geni data" protection) - but this function
-        // only ever runs after the user explicitly clicked "Update
-        // Location" and typed a correction, an already-explicit action,
-        // not a passive render. A field that resolves blank after that
-        // correction (e.g. Place, once City/County/State fully account for
-        // everything) needs to be submitted as blank too, or a stale prior
-        // value is left behind unchecked and never actually cleared. So
-        // every field this walks is checked whenever geo parsing applies
-        // to this row (geoon) at all, regardless of its own value.
+        // #278 (live-reported, DanCornett): Place/City/County/State/
+        // Country/Latitude/Longitude below used to always check
+        // regardless of their own value - added on the reasoning that
+        // this function only runs after an explicit "Update Location"
+        // correction, so a field resolving blank needs to be submitted as
+        // blank too, or a stale prior value is left behind never actually
+        // cleared (still true, and still what forceAllGeoFields=true
+        // gives you). But the source page's own correction can easily be
+        // LESS detailed than what's already on Geni (a plain city name
+        // where Geni already has full city/county/state), and
+        // unconditionally checking blank fields would offer to CLEAR that
+        // richer existing data - the exact thing this project's whole
+        // checkbox-protection convention exists to prevent. Now gated on
+        // the same "Location fields auto-select one, select all"
+        // (#forcegeoswitch) setting already used at initial render (off
+        // by default): off, a field only checks when it actually
+        // resolved to something; on, restores the prior always-check
+        // behavior for anyone who wants stale values force-cleared.
+        var forceAllGeoFields = $('#forcegeoswitch').prop('checked');
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         // #253/#260 (both live-reported): this is the SAME visible-by-
         // default "Place: " row buildForm()'s own initial render feeds via
@@ -275,19 +282,19 @@ function updateGeoLocation() {
         var updateHasGeoFields = isValue(locationdata.city) || isValue(locationdata.county) || isValue(locationdata.state) || isValue(locationdata.country);
         var updatePlaceNameValue = updateHasGeoFields ? computeCombinedPlaceValue(locationdata.query, locationdata) : locationdata.place;
         $(eventrow).find("input[type=text]")[0].value = updatePlaceNameValue;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(updatePlaceNameValue))).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.city;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(locationdata.city))).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.county;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(locationdata.county))).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.state;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(locationdata.state))).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.country;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(locationdata.country))).trigger("click");
         // #229 follow-up (found during a full-codebase re-audit): this is
         // the same row-count-drift bug already fixed once in .geotopcheck
         // (0a48a3a) and once in .geoicon (this same audit pass) - a manual
@@ -300,10 +307,10 @@ function updateGeoLocation() {
         // this modal) latitude/longitude silently stuck in the form.
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.latitude;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(locationdata.latitude))).trigger("click");
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.longitude;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon).trigger("click");
+        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || isValue(locationdata.longitude))).trigger("click");
         $("body").toggleClass("wait");
     }
 }

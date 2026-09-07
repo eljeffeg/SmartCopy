@@ -501,7 +501,18 @@ function buildForm() {
             if (x > 0) {
                 membersstring = membersstring + '<tr><td colspan="3" style="padding: 0;"><div class="separator"></div></td></tr>';
             } else {
-                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td colspan="3" style="padding: 0;"><div class="separator"></div></td></tr>';
+                // #273 (live-reported, DanCornett): a separator row has no
+                // "value" of its own - it's a purely visual divider between
+                // data segments (Name/Birth/Baptism/etc.) - but was missing
+                // data-hasvalue entirely, so "Hide unused fields"'s
+                // find('.hiddenrow[data-hasvalue="false"]') never matched
+                // it. Initial render correctly starts it hidden whenever
+                // its own segment is empty (isHidden(hidden) above already
+                // handles that); this is what lets it also get RE-hidden
+                // after "Show all fields" reveals it - without this, an
+                // empty segment's separator stayed visible forever once
+                // shown even once, appearing as an unexplained extra line.
+                membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" data-hasvalue="false"><td colspan="3" style="padding: 0;"><div class="separator"></div></td></tr>';
             }
             var title = "photo";
             var scorephoto = false;
@@ -633,10 +644,24 @@ function buildForm() {
         // separate, render-time decision).
         if ($('#estimatebirthyearsonoffswitch').prop('checked') &&
             !exists(getBirthYear(alldata["profile"]["marriage"]))) {
-            var focusMarriageEstimate = estimateMarriageYear("focus", undefined, focusgender,
-                parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
-            if (exists(focusMarriageEstimate)) {
-                applyEstimatedDate(alldata["profile"], "marriage", "circa " + focusMarriageEstimate.year);
+            // #274 (live-reported, DanCornett): marriage is one shared
+            // event between exactly two people - if the focus person's
+            // own spouse already has a REAL (never estimated - excludes
+            // chaining off another guess) scraped marriage record, that
+            // exact record (date AND location) is used instead of an
+            // independent statistical estimate, which previously could
+            // land on a different, location-less date than the spouse's
+            // own real one for the SAME marriage.
+            var focusSpouseForMarriage = getMemberSpouse("focus", undefined);
+            var focusSpouseRealMarriageYear = exists(focusSpouseForMarriage) ? getBirthYear(focusSpouseForMarriage["marriage"], true) : undefined;
+            if (exists(focusSpouseRealMarriageYear) && exists(focusSpouseForMarriage["marriage"])) {
+                alldata["profile"]["marriage"] = JSON.parse(JSON.stringify(focusSpouseForMarriage["marriage"]));
+            } else {
+                var focusMarriageEstimate = estimateMarriageYear("focus", undefined, focusgender,
+                    parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
+                if (exists(focusMarriageEstimate)) {
+                    applyEstimatedDate(alldata["profile"], "marriage", "circa " + focusMarriageEstimate.year);
+                }
             }
         }
         // #263 follow-up (live-reported, DanCornett): "Est. burial date
@@ -647,7 +672,10 @@ function buildForm() {
         // specifically-labeled toggle completely disconnected from the
         // feature it names. Turning it off did nothing, which is exactly
         // what was reported.
-        if ($('#estimatebirthyearsonoffswitch').prop('checked') && $('#burialonoffswitch').prop('checked')) {
+        // #275 follow-up (live-reported, DanCornett): OR, not AND - burial
+        // estimation should fire whenever ITS OWN toggle is on, regardless
+        // of the master switch's state, not require both together.
+        if ($('#estimatebirthyearsonoffswitch').prop('checked') || $('#burialonoffswitch').prop('checked')) {
             fillMissingDeathOrBurialDate(alldata["profile"]);
         }
         var living = false;
@@ -719,7 +747,7 @@ function buildForm() {
         }
         if (sepx === 0) {
             membersstring = $(div[0]).html();
-            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td colspan="3"><div class="separator"></div></td></tr>';
+            membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" data-hasvalue="false"><td colspan="3"><div class="separator"></div></td></tr>';
             $(div[0]).html(membersstring);
         } else {
             membersstring = $(div[0]).html();
@@ -1018,7 +1046,7 @@ function buildForm() {
                 membersstring = membersstring + locationval;
             } else {
                 if (x > 0) {
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td colspan="3"><div class="separator"></div></td><td></td></tr>';
+                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" data-hasvalue="false"><td colspan="3"><div class="separator"></div></td><td></td></tr>';
                 }
 
                 membersstring = membersstring +
@@ -1424,20 +1452,37 @@ function buildForm() {
                 var geniMemberMarriage = exists(matchedCandidateForEstimate) ?
                     matchedCandidateForEstimate.get("marriage", "date.formatted_date") : undefined;
                 if (!exists(geniMemberMarriage) || !isValue(geniMemberMarriage)) {
-                    var memberMarriageEstimate = estimateMarriageYear(relationship, members[member], focusgender,
-                        parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
-                    if (exists(memberMarriageEstimate)) {
-                        applyEstimatedDate(members[member], "marriage", "circa " + memberMarriageEstimate.year);
+                    // #274 (live-reported, DanCornett): marriage is one
+                    // shared event between exactly two people - if this
+                    // member's own spouse already has a REAL (never
+                    // estimated) scraped marriage record, that exact
+                    // record (date AND location) is used instead of an
+                    // independent statistical estimate. Live-reported
+                    // case: adding both parents fresh, the father had a
+                    // real scraped marriage date+location, but the mother
+                    // independently got a location-less estimated date -
+                    // a "lottery" as to which one Geni would actually end
+                    // up with.
+                    var spouseForMemberMarriage = getMemberSpouse(relationship, members[member]);
+                    var spouseRealMarriageYear = exists(spouseForMemberMarriage) ? getBirthYear(spouseForMemberMarriage["marriage"], true) : undefined;
+                    if (exists(spouseRealMarriageYear) && exists(spouseForMemberMarriage["marriage"])) {
+                        members[member]["marriage"] = JSON.parse(JSON.stringify(spouseForMemberMarriage["marriage"]));
+                    } else {
+                        var memberMarriageEstimate = estimateMarriageYear(relationship, members[member], focusgender,
+                            parseInt($('#generationalgapyears').val(), 10), parseInt($('#spousalgapyears').val(), 10));
+                        if (exists(memberMarriageEstimate)) {
+                            applyEstimatedDate(members[member], "marriage", "circa " + memberMarriageEstimate.year);
+                        }
                     }
                 }
             }
 
             // #208/#230: death<->burial mutual fill for this member - whichever
             // side has a real date supplies the other, same rule as the
-            // focus profile above. #263 follow-up: also gated on
-            // #burialonoffswitch now - see the focus-profile call site's
-            // own comment.
-            if ($('#estimatebirthyearsonoffswitch').prop('checked') && $('#burialonoffswitch').prop('checked')) {
+            // focus profile above. #263/#275 follow-up: also gated on
+            // #burialonoffswitch now - OR, not AND, with the master switch
+            // - see the focus-profile call site's own comment.
+            if ($('#estimatebirthyearsonoffswitch').prop('checked') || $('#burialonoffswitch').prop('checked')) {
                 fillMissingDeathOrBurialDate(members[member]);
             }
 
@@ -1876,7 +1921,7 @@ function buildForm() {
                         }
                         membersstring = membersstring + locationval;
                     } else {
-                        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow"><td colspan="3"><div class="separator"></div></td></tr>';
+                        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" data-hasvalue="false"><td colspan="3"><div class="separator"></div></td></tr>';
 
                         membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                         if (title === "death") {

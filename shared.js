@@ -772,10 +772,19 @@ function isMale(title) {
     return (title === "husband" || title === "ex-husband" || title === "father" || title === "brother" || title === "son" || title === "male" || title === "m");
 }
 
+// #284 (live-reported, DanCornett): "half brother"/"half sister"/"half
+// sibling" (hyphenated or not) added - a source explicitly labeling the
+// relationship this way previously matched none of the exact strings
+// here at all, falling through to the unrecognized-relationship branch
+// entirely rather than being included as a sibling. buildForm() (see its
+// own #284 comment) separately infers halfsibling=true from this same
+// "half" wording, so recognizing the label here is what lets that
+// member be included as a sibling in the first place.
 function isSibling(relationship) {
     if (!exists(relationship)) { return false; }
-    relationship = relationship.toLowerCase().replace(" (implied)", "");
-    return (relationship === "siblings" || relationship === "sibling" || relationship === "brother" || relationship === "sister" || relationship === "bro" || relationship === "sis");
+    relationship = relationship.toLowerCase().replace(" (implied)", "").replace("half-", "half ");
+    return (relationship === "siblings" || relationship === "sibling" || relationship === "brother" || relationship === "sister" || relationship === "bro" || relationship === "sis" ||
+        relationship === "half brother" || relationship === "half sister" || relationship === "half sibling" || relationship === "half siblings");
 }
 
 function isChild(relationship) {

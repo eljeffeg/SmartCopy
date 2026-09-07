@@ -1145,6 +1145,25 @@ function buildForm() {
     var photoscore = $('#photoonoffswitch').prop('checked');
     for (var relationship in obj) if (obj.hasOwnProperty(relationship)) {
         var members = obj[relationship];
+        // #284 (live-reported, DanCornett): isSibling() only recognized
+        // exact labels ("brother"/"sister"/etc.) - a source explicitly
+        // labeling someone "Half Brother"/"Half Sister" didn't match at
+        // all, falling through to the unrecognized-relationship branch
+        // entirely rather than being included as a sibling whose parental
+        // spouse isn't fully known. Captured here, before relationship
+        // gets normalized to the bare "sibling"/"child"/etc. string below -
+        // alldata["family"] groups members by their exact original label,
+        // so every member under this SAME key shares this same signal.
+        // Only infers halfsibling when a parser hasn't already set it
+        // explicitly (none currently do, but this shouldn't override one
+        // that someday does).
+        if (/half/i.test(relationship)) {
+            for (var halfSiblingMember in members) if (members.hasOwnProperty(halfSiblingMember)) {
+                if (!exists(members[halfSiblingMember].halfsibling)) {
+                    members[halfSiblingMember].halfsibling = true;
+                }
+            }
+        }
         var scored = false;
         var sibcheck = false;
         var childck = false;

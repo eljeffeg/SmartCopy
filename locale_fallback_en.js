@@ -748,5 +748,20 @@ var EN_FALLBACK_MESSAGES = {
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Show birth/death years in dropdowns"
+    },
+    "Male": {
+        "message": "Male"
+    },
+    "Female": {
+        "message": "Female"
+    },
+    "Unknown": {
+        "message": "Unknown"
+    },
+    "Living": {
+        "message": "Living"
+    },
+    "Deceased": {
+        "message": "Deceased"
     }
 };

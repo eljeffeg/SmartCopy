@@ -639,7 +639,7 @@ function buildForm() {
             sepx++;
             membersstring = $(div[0]).html();
             membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + (genderlocked ? 'disabled ' : '') + isChecked(gender, true, false, undefined, genderlocked) + '>Gender: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, true, false, undefined, genderlocked) + '>' +
-                '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + capFL(genifocusdata.get("gender")) + '" disabled></td></tr>';
+                '<option value="male" ' + setGender("male", gender) + '>' + _("Male") + '</option><option value="female" ' + setGender("female", gender) + '>' + _("Female") + '</option><option value="unknown" ' + setGender("unknown", gender) + '>' + _("Unknown") + '</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + localizedGender(genifocusdata.get("gender")) + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         } else {
             var gender = focusgender;
@@ -650,7 +650,7 @@ function buildForm() {
             // !== unknown" branch above already covers the other
             // direction, source-has/Geni-doesn't).
             membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, gender !== "unknown" || genigender !== "unknown") + '><td class="profilediv"><input type="checkbox" class="checknext" ' + (genderlocked ? 'disabled ' : '') + isChecked(gender, false, false, undefined, genderlocked) + '>Gender: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, false, false, undefined, genderlocked) + '>' +
-                '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + capFL(genifocusdata.get("gender")) + '" disabled></td></tr>';
+                '<option value="male" ' + setGender("male", gender) + '>' + _("Male") + '</option><option value="female" ' + setGender("female", gender) + '>' + _("Female") + '</option><option value="unknown" ' + setGender("unknown", gender) + '>' + _("Unknown") + '</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("gender") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + localizedGender(genifocusdata.get("gender")) + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         }
         // #208: fills a genuinely-blank focus-profile birth date with an
@@ -788,13 +788,13 @@ function buildForm() {
         if (geniliving && !living) {
             sepx++;
             membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + (livinglocked ? 'disabled ' : '') + isChecked(living, true, false, undefined, livinglocked) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, true, false, undefined, livinglocked) + '>' +
-                '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
+                '<option value=false ' + setLiving("deceased", living) + '>' + _("Deceased") + '</option><option value=true ' + setLiving("living", living) + '>' + _("Living") + '</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
         } else {
             if (!geniliving && living) {
                 living = geniliving;
             }
             membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, exists(alldata["profile"].alive)) + '><td class="profilediv"><input type="checkbox" class="checknext" ' + (livinglocked ? 'disabled ' : '') + isChecked(living, false, false, undefined, livinglocked) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, false, false, undefined, livinglocked) + '>' +
-                '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
+                '<option value=false ' + setLiving("deceased", living) + '>' + _("Deceased") + '</option><option value=true ' + setLiving("living", living) + '>' + _("Living") + '</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
         }
         var focusBirthYear = undefined;
         if (exists(alldata["profile"]["birth"]) && exists(alldata["profile"]["birth"][0]) && exists(alldata["profile"]["birth"][0]["date"])) {
@@ -1781,9 +1781,9 @@ function buildForm() {
                     membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + ' id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 }
                 membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect genderselect" update="'+ i + '" relationship="' + relationship + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
-                    '<option value="male" ' + setGender("male", gender) + '>Male</option><option value="female" ' + setGender("female", gender) + '>Female</option><option value="unknown" ' + setGender("unknown", gender) + '>Unknown</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_gender" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
+                    '<option value="male" ' + setGender("male", gender) + '>' + _("Male") + '</option><option value="female" ' + setGender("female", gender) + '>' + _("Female") + '</option><option value="unknown" ' + setGender("unknown", gender) + '>' + _("Unknown") + '</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_gender" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                     '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(living, scored) + '>Vital: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect livingselect" data-scraped="' + livingScraped + '" update="'+ i + '"  style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, scored) + '>' +
-                    '<option value=false ' + setLiving("deceased", living) + '>Deceased</option><option value=true ' + setLiving("living", living) + '>Living</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_is_alive" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                    '<option value=false ' + setLiving("deceased", living) + '>' + _("Deceased") + '</option><option value=true ' + setLiving("living", living) + '>' + _("Living") + '</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_is_alive" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 var memberBirthYear = undefined;
                 if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
                     memberBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
@@ -3867,7 +3867,7 @@ function setBirthName(relation, lastname, mnameonoff) {
 
 function buildUnknown(gender) {
     var pselect = "";
-    pselect += '<option value="unknown" selected>Unknown</option>';
+    pselect += '<option value="unknown" selected>' + _("Unknown") + '</option>';
     if (gender === "unknown") {
         pselect += '<option value="parent">Parent</option>';
         pselect += '<option value="sibling">Sibling</option>';
@@ -4276,7 +4276,7 @@ function buildParentSelect(id) {
     } else if (id == -1 && geniparent && genispouse.length === 1) {
         geniselect = " selected";
     } else if (id == -1) {
-        pselect += '<option value="-1" selected>Unknown</option>';
+        pselect += '<option value="-1" selected>' + _("Unknown") + '</option>';
     }
     for (var key in myhspouse) if (myhspouse.hasOwnProperty(key)) {
         if (exists(databyid[myhspouse[key]])) {
@@ -5096,7 +5096,7 @@ function setGeniFamilyData(id, profile) {
     $("#" + id + "_geni_occupation").val(geniOccupation);
     $("#" + id + "_geni_occupation").prev().attr('src', getGeniLock(profile, "occupation"));
     refreshFieldCheckState(id, "occupation", geniOccupation, getGeniFieldLocked(profile, "occupation"));
-    $("#" + id + "_geni_gender").val(capFL(getGeniData(profile, "gender")));
+    $("#" + id + "_geni_gender").val(localizedGender(getGeniData(profile, "gender")));
     $("#" + id + "_geni_gender").prev().attr('src', getGeniLock(profile, "gender"));
     refreshFieldCheckState(id, "gender", getGeniData(profile, "gender"), getGeniFieldLocked(profile, "gender"), "unknown");
     $("#" + id + "_geni_is_alive").val(isAlive(getGeniData(profile, "is_alive")));
@@ -5225,9 +5225,27 @@ function isAlive(alive) {
     if (alive === "") {
         return "";
     } else if (alive) {
-        return "Living";
+        return _("Living");
     } else {
-        return "Deceased";
+        return _("Deceased");
+    }
+}
+
+// Localizes Geni's raw "male"/"female"/"unknown" gender value for display
+// in the read-only comparison column - same role for gender that
+// isAlive() plays for living status. capFL() alone (the previous
+// approach) only ever capitalized the raw English API value, so the
+// comparison column stayed English regardless of the active locale even
+// after the dropdown options themselves were localized.
+function localizedGender(gender) {
+    if (gender === "male") {
+        return _("Male");
+    } else if (gender === "female") {
+        return _("Female");
+    } else if (gender === "unknown") {
+        return _("Unknown");
+    } else {
+        return "";
     }
 }
 

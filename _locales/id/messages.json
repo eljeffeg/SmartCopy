@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Tampilkan tahun lahir/meninggal di menu tarik-turun"
+    },
+    "Male": {
+        "message": "Pria"
+    },
+    "Female": {
+        "message": "Wanita"
+    },
+    "Unknown": {
+        "message": "Tidak diketahui"
+    },
+    "Living": {
+        "message": "Masih hidup"
+    },
+    "Deceased": {
+        "message": "Meninggal"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Perbaiki semua"
     }
 }

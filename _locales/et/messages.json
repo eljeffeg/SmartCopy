@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Näita sünni-/surma-aastaid rippmenüüdes"
+    },
+    "Male": {
+        "message": "Mees"
+    },
+    "Female": {
+        "message": "Naine"
+    },
+    "Unknown": {
+        "message": "Teadmata"
+    },
+    "Living": {
+        "message": "Elus"
+    },
+    "Deceased": {
+        "message": "Surnud"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Paranda kõik"
     }
 }

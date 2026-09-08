@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Vis fødsels-/dødsår i rullegardinmenyer"
+    },
+    "Male": {
+        "message": "Mann"
+    },
+    "Female": {
+        "message": "Kvinne"
+    },
+    "Unknown": {
+        "message": "Ukjent"
+    },
+    "Living": {
+        "message": "Levende"
+    },
+    "Deceased": {
+        "message": "Avdød"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Rett alle"
     }
 }

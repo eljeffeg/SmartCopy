@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Εμφάνιση ετών γέννησης/θανάτου στις αναπτυσσόμενες λίστες"
+    },
+    "Male": {
+        "message": "Άνδρας"
+    },
+    "Female": {
+        "message": "Γυναίκα"
+    },
+    "Unknown": {
+        "message": "Άγνωστο"
+    },
+    "Living": {
+        "message": "Εν ζωή"
+    },
+    "Deceased": {
+        "message": "Αποβιώσας"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Διόρθωση όλων"
     }
 }

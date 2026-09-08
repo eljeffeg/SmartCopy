@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Показывать годы рождения/смерти в раскрывающихся списках"
+    },
+    "Male": {
+        "message": "Мужской"
+    },
+    "Female": {
+        "message": "Женский"
+    },
+    "Unknown": {
+        "message": "Неизвестно"
+    },
+    "Living": {
+        "message": "Жив"
+    },
+    "Deceased": {
+        "message": "Умер"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Исправить всё"
     }
 }

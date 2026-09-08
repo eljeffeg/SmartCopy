@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Prikaži leta rojstva/smrti v spustnih seznamih"
+    },
+    "Male": {
+        "message": "Moški"
+    },
+    "Female": {
+        "message": "Ženska"
+    },
+    "Unknown": {
+        "message": "Neznano"
+    },
+    "Living": {
+        "message": "Živ"
+    },
+    "Deceased": {
+        "message": "Pokojni"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Popravi vse"
     }
 }

@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Mostrar anos de nascimento/falecimento nos menus suspensos"
+    },
+    "Male": {
+        "message": "Masculino"
+    },
+    "Female": {
+        "message": "Feminino"
+    },
+    "Unknown": {
+        "message": "Desconhecido"
+    },
+    "Living": {
+        "message": "Vivo"
+    },
+    "Deceased": {
+        "message": "Falecido"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Corrigir tudo"
     }
 }

@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Rodyti gimimo/mirties metus išskleidžiamuosiuose sąrašuose"
+    },
+    "Male": {
+        "message": "Vyras"
+    },
+    "Female": {
+        "message": "Moteris"
+    },
+    "Unknown": {
+        "message": "Nežinoma"
+    },
+    "Living": {
+        "message": "Gyvas"
+    },
+    "Deceased": {
+        "message": "Miręs"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Taisyti viską"
     }
 }

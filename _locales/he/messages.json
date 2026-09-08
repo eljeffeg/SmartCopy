@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "הצג שנות לידה/פטירה בתפריטים הנפתחים"
+    },
+    "Male": {
+        "message": "זכר"
+    },
+    "Female": {
+        "message": "נקבה"
+    },
+    "Unknown": {
+        "message": "לא ידוע"
+    },
+    "Living": {
+        "message": "חי"
+    },
+    "Deceased": {
+        "message": "נפטר"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "תקן הכל"
     }
 }

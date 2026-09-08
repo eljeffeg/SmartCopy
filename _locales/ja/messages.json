@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "ドロップダウンに生没年を表示する"
+    },
+    "Male": {
+        "message": "男性"
+    },
+    "Female": {
+        "message": "女性"
+    },
+    "Unknown": {
+        "message": "不明"
+    },
+    "Living": {
+        "message": "存命"
+    },
+    "Deceased": {
+        "message": "死亡"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "すべて修正"
     }
 }

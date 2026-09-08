@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Прикажи године рођења/смрти у падајућим листама"
+    },
+    "Male": {
+        "message": "Мушко"
+    },
+    "Female": {
+        "message": "Женско"
+    },
+    "Unknown": {
+        "message": "Непознато"
+    },
+    "Living": {
+        "message": "Живи"
+    },
+    "Deceased": {
+        "message": "Преминуо"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Поправи све"
     }
 }

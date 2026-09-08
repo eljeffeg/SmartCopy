@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Показувати роки народження/смерті у розкривних списках"
+    },
+    "Male": {
+        "message": "Чоловік"
+    },
+    "Female": {
+        "message": "Жінка"
+    },
+    "Unknown": {
+        "message": "Невідомо"
+    },
+    "Living": {
+        "message": "Живий"
+    },
+    "Deceased": {
+        "message": "Помер"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Виправити все"
     }
 }

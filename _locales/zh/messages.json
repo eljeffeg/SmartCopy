@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "在下拉菜单中显示出生/死亡年份"
+    },
+    "Male": {
+        "message": "男"
+    },
+    "Female": {
+        "message": "女"
+    },
+    "Unknown": {
+        "message": "未知"
+    },
+    "Living": {
+        "message": "在世"
+    },
+    "Deceased": {
+        "message": "已故"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "全部修复"
     }
 }

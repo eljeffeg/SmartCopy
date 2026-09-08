@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Geboorte-/overlijdensjaren tonen in vervolgkeuzelijsten"
+    },
+    "Male": {
+        "message": "Man"
+    },
+    "Female": {
+        "message": "Vrouw"
+    },
+    "Unknown": {
+        "message": "Onbekend"
+    },
+    "Living": {
+        "message": "Levend"
+    },
+    "Deceased": {
+        "message": "Overleden"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Alles herstellen"
     }
 }

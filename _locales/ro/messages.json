@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Afișează anii de naștere/deces în listele derulante"
+    },
+    "Male": {
+        "message": "Bărbat"
+    },
+    "Female": {
+        "message": "Femeie"
+    },
+    "Unknown": {
+        "message": "Necunoscut"
+    },
+    "Living": {
+        "message": "În viață"
+    },
+    "Deceased": {
+        "message": "Decedat"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Corectează tot"
     }
 }

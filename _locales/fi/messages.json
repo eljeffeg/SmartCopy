@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Näytä syntymä-/kuolinvuodet pudotusvalikoissa"
+    },
+    "Male": {
+        "message": "Mies"
+    },
+    "Female": {
+        "message": "Nainen"
+    },
+    "Unknown": {
+        "message": "Tuntematon"
+    },
+    "Living": {
+        "message": "Elossa"
+    },
+    "Deceased": {
+        "message": "Kuollut"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Korjaa kaikki"
     }
 }

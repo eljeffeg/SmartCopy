@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Zobraziť roky narodenia/úmrtia v rozbaľovacích zoznamoch"
+    },
+    "Male": {
+        "message": "Muž"
+    },
+    "Female": {
+        "message": "Žena"
+    },
+    "Unknown": {
+        "message": "Neznámy"
+    },
+    "Living": {
+        "message": "Žijúci"
+    },
+    "Deceased": {
+        "message": "Zosnulý"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Opraviť všetko"
     }
 }

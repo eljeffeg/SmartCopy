@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "드롭다운에 출생/사망 연도 표시"
+    },
+    "Male": {
+        "message": "남성"
+    },
+    "Female": {
+        "message": "여성"
+    },
+    "Unknown": {
+        "message": "알 수 없음"
+    },
+    "Living": {
+        "message": "생존"
+    },
+    "Deceased": {
+        "message": "사망"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "모두 수정"
     }
 }

@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Születési/halálozási évek megjelenítése a legördülő menükben"
+    },
+    "Male": {
+        "message": "Férfi"
+    },
+    "Female": {
+        "message": "Nő"
+    },
+    "Unknown": {
+        "message": "Ismeretlen"
+    },
+    "Living": {
+        "message": "Élő"
+    },
+    "Deceased": {
+        "message": "Elhunyt"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Összes javítása"
     }
 }

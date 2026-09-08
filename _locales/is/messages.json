@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Sýna fæðingar-/dánarár í fellilistum"
+    },
+    "Male": {
+        "message": "Karl"
+    },
+    "Female": {
+        "message": "Kona"
+    },
+    "Unknown": {
+        "message": "Óþekkt"
+    },
+    "Living": {
+        "message": "Á lífi"
+    },
+    "Deceased": {
+        "message": "Látinn"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Laga allt"
     }
 }

@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Prikaži godine rođenja/smrti u padajućim izbornicima"
+    },
+    "Male": {
+        "message": "Muško"
+    },
+    "Female": {
+        "message": "Žensko"
+    },
+    "Unknown": {
+        "message": "Nepoznato"
+    },
+    "Living": {
+        "message": "Živ"
+    },
+    "Deceased": {
+        "message": "Preminuo"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Popravi sve"
     }
 }

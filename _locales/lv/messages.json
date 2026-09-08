@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Rādīt dzimšanas/nāves gadus nolaižamajos sarakstos"
+    },
+    "Male": {
+        "message": "Vīrietis"
+    },
+    "Female": {
+        "message": "Sieviete"
+    },
+    "Unknown": {
+        "message": "Nezināms"
+    },
+    "Living": {
+        "message": "Dzīvs"
+    },
+    "Deceased": {
+        "message": "Miris"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Labot visu"
     }
 }

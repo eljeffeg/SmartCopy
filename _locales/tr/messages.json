@@ -739,5 +739,23 @@
     },
     "Show_birth_death_years_in_dropdowns": {
         "message": "Açılır menülerde doğum/ölüm yıllarını göster"
+    },
+    "Male": {
+        "message": "Erkek"
+    },
+    "Female": {
+        "message": "Kadın"
+    },
+    "Unknown": {
+        "message": "Bilinmiyor"
+    },
+    "Living": {
+        "message": "Sağ"
+    },
+    "Deceased": {
+        "message": "Vefat etmiş"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Tümünü düzelt"
     }
 }

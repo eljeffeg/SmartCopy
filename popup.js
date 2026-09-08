@@ -1451,7 +1451,17 @@ function capFL(string) {   //Capitalize the first letter of the string
     if (!exists(string)) {
         return "";
     }
-    return string.charAt(0).toUpperCase() + string.slice(1);
+    var rest = string.slice(1);
+    // A source page written entirely in one case ("JOHN", "john") gets
+    // normalized to proper case here - but a genuinely mixed-case value
+    // ("McDonald", "DiCaprio") is left completely untouched, never forced
+    // to lowercase. The check requires at least one real letter (rest
+    // !== rest.toLowerCase() rules out a numbers/symbols-only remainder,
+    // which trivially equals its own uppercase form either way).
+    if (rest !== "" && rest === rest.toUpperCase() && rest !== rest.toLowerCase()) {
+        rest = rest.toLowerCase();
+    }
+    return string.charAt(0).toUpperCase() + rest;
 }
 
 $(function () {

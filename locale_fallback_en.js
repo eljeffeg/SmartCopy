@@ -763,5 +763,8 @@ var EN_FALLBACK_MESSAGES = {
     },
     "Deceased": {
         "message": "Deceased"
+    },
+    "Fix_All_Case_Issues": {
+        "message": "Fix All"
     }
 };

@@ -1854,7 +1854,15 @@ function formatName(namepart) {
 
 function updateQMessage() {
     if (consistencymessage !== "") {
-        $("#consistencyck").html("<span style='float: right; margin-top: -1px; padding-left: 10px;'><img id='refreshcheck' src='" +
+        // Found reviewing a third-party fork (pquenee/SmartCopy) - a
+        // one-click "fix every flagged case issue on this page" button,
+        // instead of clicking each person's own [fixCase] link one at a
+        // time. Only rendered when there's at least one to fix. Text link
+        // (not a new icon asset) to match this UI's existing convention
+        // for per-person fix actions ([fixCase]/[fixSuffix]/[fixSpace]).
+        var fixAllButton = consistencymessage.indexOf("fixcase") !== -1 ?
+            "<a href='#' id='fixallcases' style='margin-right: 6px; font-size: 90%;'>[" + _("Fix_All_Case_Issues") + "]</a>" : "";
+        $("#consistencyck").html("<span style='float: right; margin-top: -1px; padding-left: 10px;'>" + fixAllButton + "<img id='refreshcheck' src='" +
             chrome.runtime.getURL("images/content_update.png") +
             "' style='cursor: pointer; margin-right: 3px; width: 12px;'><img class='consistencyslide' src='" +
             chrome.runtime.getURL("images/content_close.png") +
@@ -1867,6 +1875,29 @@ function updateQMessage() {
         $('.consistencyslide').off();
         $('.consistencyslide').on('click', function () {
             displayCheck(false);
+        });
+        $('#fixallcases').off();
+        $('#fixallcases').on('click', function (e) {
+            e.preventDefault();
+            // Each individual .fixcase click already updates its own DOM
+            // element synchronously (see below) and fires its API call
+            // fire-and-forget - sequencing with a short delay here is
+            // purely to avoid bursting many concurrent requests at Geni's
+            // API at once for a profile with several flagged people,
+            // not to work around any race condition in the DOM updates
+            // themselves. querySelectorAll() takes a static snapshot, so
+            // it stays valid as earlier links in the list get replaced by
+            // their own "[fixed]" confirmation span.
+            var fixCaseLinks = document.querySelectorAll('a.fixcase');
+            var index = 0;
+            (function clickNextFixCase() {
+                if (index >= fixCaseLinks.length) {
+                    return;
+                }
+                fixCaseLinks[index].click();
+                index++;
+                setTimeout(clickNextFixCase, 200);
+            })();
         });
         $('.fixcase').off();
         $('.fixcase').on('click', function (e) {

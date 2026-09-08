@@ -1448,6 +1448,9 @@ function expandFamily(member) {
 }
 
 function capFL(string) {   //Capitalize the first letter of the string
+    if (!exists(string)) {
+        return "";
+    }
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 

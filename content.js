@@ -182,8 +182,9 @@ function addBioButton() {
     if ($("#add-language-button").length == 0) {
         setTimeout(addBioButton, 50);
     } else {
-        $("<a id='addbio' href='javascript:void(0)' class='super grey tab button flt_r' style='margin-right: 2px;' title='" + _("appShortName") + " " + _("Add_Biography") + "'>" + _("Add_Biography") + "</a>").insertAfter($("#add-language-button"));
-        $('#addbio').on('click', function () {
+        $("<a id='addbio' href='#' class='super grey tab button flt_r' style='margin-right: 2px;' title='" + _("appShortName") + " " + _("Add_Biography") + "'>" + _("Add_Biography") + "</a>").insertAfter($("#add-language-button"));
+        $('#addbio').on('click', function (e) {
+            e.preventDefault();
             $("*").css("cursor", "progress");
             appendBio();
         });
@@ -204,8 +205,9 @@ function addProjectExportButton() {
         }
         if (menu !== undefined) {
             $("<hr>").insertBefore($(menu));
-            $("<a id='exportProjectProfiles' href='javascript:void(0)' draggable='false' title='" + _("appShortName") + " " + _("Export_Profiles") + "'>" + _("Export_Profiles") + "</a>").insertBefore($(menu));
-            $('#exportProjectProfiles').on('click', function () {
+            $("<a id='exportProjectProfiles' href='#' draggable='false' title='" + _("appShortName") + " " + _("Export_Profiles") + "'>" + _("Export_Profiles") + "</a>").insertBefore($(menu));
+            $('#exportProjectProfiles').on('click', function (e) {
+                e.preventDefault();
                 $("#panel_overlay").show();
                 var progress = $(`<div id="exportprojectprogress" style="position: absolute; z-index: 9006; width: 500px; cursor: default; top: 50%; left: 50%; margin-left: -260px; margin-top: -72.4545px;" class="modal_lightbox"><div id="project_people_form" class="collaborators_form" style="cursor: default;">
                     <div class="module modal" style="cursor: progress;">
@@ -1119,10 +1121,10 @@ function buildConsistency() {
             //Old private profiles
             if (namelist.length > 1) {
                 consistencymessage = concat("info") + _("numFamilyMembersBornBeforeYearAreSetAsPrivate", [publiclist.length, publicyear]) +
-                    "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' class='makepublic'>[" + _("makePublic") + "]</a></sup>";
+                    "<sup><a title='" + namelist.join("; ") + "' href='#' class='makepublic'>[" + _("makePublic") + "]</a></sup>";
             } else {
                 consistencymessage = concat("info") + _("personWasBornBeforeYearAndIsSetAsPrivate", [buildEditLink(publiclist[0]), publicyear]) +
-                    "<sup><a title='" + namelist.join("; ") + "' href='javascript:void(0)' class='makepublic'>[" + _("makePublic") + "]</a></sup>";
+                    "<sup><a title='" + namelist.join("; ") + "' href='#' class='makepublic'>[" + _("makePublic") + "]</a></sup>";
             }
         }
     }
@@ -1464,7 +1466,7 @@ function checkSpace(person, quickfix) {
         if (permissions.indexOf("update-basics") !== -1) {
             if (quickfix) {
                 consistencymessage += "<sup><a title='" + nameupdate.join("; ") +
-                    "' class='fixspace' href='javascript:void(0)' id='space" + getGeniData(person, "id") + "' name='" + namevaluecheck +
+                    "' class='fixspace' href='#' id='space" + getGeniData(person, "id") + "' name='" + namevaluecheck +
                     "'>[" + _("fixSpace") + "]</a></sup>";
             } else {
                 consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
@@ -1567,7 +1569,7 @@ function checkCase(person, quickfix) {
         let permissions = genifocusdata.get("actions");
         if (permissions.indexOf("update-basics") !== -1) {
             if (quickfix) {
-                consistencymessage += "<sup><a title='" + nameupdate.join("; ") + "' class='fixcase' href='javascript:void(0)' id='case" + getGeniData(person, "id") +
+                consistencymessage += "<sup><a title='" + nameupdate.join("; ") + "' class='fixcase' href='#' id='case" + getGeniData(person, "id") +
                     "' name='" + namevaluecheck + "'>[" + _("fixCase") + "]</a></sup>";
             } else {
                 consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
@@ -1588,7 +1590,7 @@ function checkSuffixInFirstName(person, quickfix) {
         let permissions = genifocusdata.get("actions");
         if (permissions.indexOf("update-basics") !== -1) {
             if (quickfix) {
-                consistencymessage += "<sup><a title='Move Suffix' class='fixsuffix' href='javascript:void(0)' id='fsuffix" + getGeniData(person, "id") +
+                consistencymessage += "<sup><a title='Move Suffix' class='fixsuffix' href='#' id='fsuffix" + getGeniData(person, "id") +
                     "'>" + _("fixSuffix") + "</a></sup>";
             } else {
                 consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
@@ -1611,7 +1613,7 @@ function checkTitle(person, quickfix) {
 
             if (permissions.indexOf("update-basics") !== -1) {
                 if (quickfix) {
-                    consistencymessage += "<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='cleartitle" +
+                    consistencymessage += "<sup><a title='Remove salutation' class='clearfield' href='#' id='cleartitle" +
                         getGeniData(person, "id") + "' name='title'>" + _("fixTitle") + "</a></sup>";
                 } else {
                     consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
@@ -1625,7 +1627,7 @@ function checkTitle(person, quickfix) {
                 getPronoun(getGeniData(person, "gender")) + _("_title") + ".";
             if (permissions.indexOf("update-basics") !== -1) {
                 if (quickfix) {
-                    consistencymessage += "<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='cleartitle" +
+                    consistencymessage += "<sup><a title='Remove relationship' class='clearfield' href='#' id='cleartitle" +
                         getGeniData(person, "id") + "' name='title'>" + _("fixTitle") + "</a></sup>";
                 } else {
                     consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
@@ -1648,7 +1650,7 @@ function checkMaidenName(person, quickfix) {
         let permissions = genifocusdata.get("actions");
         if (permissions.indexOf("update-basics") !== -1) {
             if (quickfix) {
-                consistencymessage += "<sup><a title='Remove numeric' class='clearfield' href='javascript:void(0)' id='clearmaiden_name" +
+                consistencymessage += "<sup><a title='Remove numeric' class='clearfield' href='#' id='clearmaiden_name" +
                     getGeniData(person, "id") + "' name='maiden_name'>" + _("fixName") + "</a></sup>";
             } else {
                 consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
@@ -1671,7 +1673,7 @@ function checkSuffix(person, quickfix) {
                 getPronoun(getGeniData(person, "gender")) + _("_suffix.");
             if (permissions.indexOf("update-basics") !== -1) {
                 if (quickfix) {
-                    consistencymessage += "<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix" +
+                    consistencymessage += "<sup><a title='Remove salutation' class='clearfield' href='#' id='clearsuffix" +
                         getGeniData(person, "id") + "' name='suffix'>" + _("fixSuffix") + "</a></sup>";
                 } else {
                     consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
@@ -1685,7 +1687,7 @@ function checkSuffix(person, quickfix) {
                 getPronoun(getGeniData(person, "gender")) + _("_suffix.");
             if (permissions.indexOf("update-basics") !== -1) {
                 if (quickfix) {
-                    consistencymessage += "<sup><a title='Remove salutation' class='clearfield' href='javascript:void(0)' id='clearsuffix" +
+                    consistencymessage += "<sup><a title='Remove salutation' class='clearfield' href='#' id='clearsuffix" +
                         getGeniData(person, "id") + "' name='suffix'>" + _("fixSuffix") + "</a></sup>";
                 } else {
                     consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
@@ -1699,7 +1701,7 @@ function checkSuffix(person, quickfix) {
                 getPronoun(getGeniData(person, "gender")) + _("_suffix.");
             if (permissions.indexOf("update-basics") !== -1) {
                 if (quickfix) {
-                    consistencymessage += "<sup><a title='Remove relationship' class='clearfield' href='javascript:void(0)' id='clearsuffix" +
+                    consistencymessage += "<sup><a title='Remove relationship' class='clearfield' href='#' id='clearsuffix" +
                         getGeniData(person, "id") + "' name='suffix'>" + _("fixSuffix") + "</a></sup>";
                 } else {
                     consistencymessage += "<sup>[" + profileStatus(person) + "]</sup>";
@@ -1867,7 +1869,8 @@ function updateQMessage() {
             displayCheck(false);
         });
         $('.fixcase').off();
-        $('.fixcase').on('click', function () {
+        $('.fixcase').on('click', function (e) {
+            e.preventDefault();
             var id = $(this)[0].id.replace("case", "");
             var args = {};
             var nameparts = $(this)[0].name.split(",");
@@ -1887,7 +1890,8 @@ function updateQMessage() {
             }, function (response) {});
         });
         $('.makepublic').off();
-        $('.makepublic').on('click', function () {
+        $('.makepublic').on('click', function (e) {
+            e.preventDefault();
             // Live report: the API calls below always worked, but the link
             // never visually changed - $("#makepublic") looked for an
             // element with that literal ID, which this link never had (it's
@@ -1914,7 +1918,8 @@ function updateQMessage() {
             }
         });
         $('.fixsuffix').off();
-        $('.fixsuffix').on('click', function () {
+        $('.fixsuffix').on('click', function (e) {
+            e.preventDefault();
             var id = $(this)[0].id.replace("fsuffix", "");
             var fnamesplit = getGeniData(id, "first_name").split(" ");
             var suffix = fnamesplit.pop();
@@ -1933,7 +1938,8 @@ function updateQMessage() {
             }, function (response) {});
         });
         $('.fixspace').off();
-        $('.fixspace').on('click', function () {
+        $('.fixspace').on('click', function (e) {
+            e.preventDefault();
             var id = $(this)[0].id.replace("space", "");
             var args = {};
             var nameparts = $(this)[0].name.split(",");
@@ -1951,7 +1957,8 @@ function updateQMessage() {
             }, function (response) {});
         });
         $('.clearfield').off();
-        $('.clearfield').on('click', function () {
+        $('.clearfield').on('click', function (e) {
+            e.preventDefault();
             var args = {};
             var name = $(this)[0].name;
             var id = $(this)[0].id.replace("clear" + name, "");

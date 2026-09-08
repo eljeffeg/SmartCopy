@@ -329,7 +329,7 @@ function buildHistorySelect() {
 // scraped date can take - a format gap here means a silently-skipped
 // upgrade, not a crash, which is easy to miss without a targeted check
 // like this one.
-var dateformatter = ["MMM YYYY", "MMMM YYYY", "MMM D YYYY", "MMMM D YYYY", "MMM D, YYYY", "MMMM D, YYYY", "YYYY", "MM/ /YYYY", "D MMM YYYY", "D MMMM YYYY"];
+var dateformatter = ["MMM YYYY", "MMMM YYYY", "MMM D YYYY", "MMMM D YYYY", "MMM D, YYYY", "MMMM D, YYYY", "YYYY", "MM/DD/YYYY", "D MMM YYYY", "D MMMM YYYY"];
 //noinspection JSUnusedGlobalSymbols
 var expandparent = true; //used in expandAll function window[...] var call
 //noinspection JSUnusedGlobalSymbols

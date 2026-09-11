@@ -953,7 +953,7 @@ function buildForm() {
                             fieldName: title,
                             value: dateval,
                             checkedAttr: isCheckedDateField(dateval, scored, genifocusdata.get(title, "date.formatted_date"), datelocked, exists(obj[item].estimated) && obj[item].estimated === true),
-                            enabledAttr: isEnabled(dateval, scored, false, genifocusdata.get(title, "date.formatted_date"), datelocked),
+                            enabledAttr: isEnabledDateField(dateval, scored, genifocusdata.get(title, "date.formatted_date"), datelocked, exists(obj[item].estimated) && obj[item].estimated === true),
                             dateambig: dateambig,
                             geniValue: genifocusdata.get(title, "date.formatted_date"),
                             icon: dateicon,
@@ -1964,7 +1964,7 @@ function buildForm() {
                                     fieldName: title,
                                     value: dateval,
                                     checkedAttr: isCheckedDateField(dateval, fieldScored, geniFieldValue, undefined, exists(memberobj[item].estimated) && memberobj[item].estimated === true),
-                                    enabledAttr: isEnabled(dateval, fieldScored, false, geniFieldValue),
+                                    enabledAttr: isEnabledDateField(dateval, fieldScored, geniFieldValue, undefined, exists(memberobj[item].estimated) && memberobj[item].estimated === true),
                                     dateambig: dateambig,
                                     geniInputId: i + "_geni_" + title + "_date",
                                     imgIdAttr: ' imgid="' + i + '"',
@@ -3089,6 +3089,26 @@ function isCheckedDateField(dateval, score, currentValue, locked, estimated) {
         return "";
     }
     return isChecked(dateval, score, false, currentValue, locked);
+}
+
+// (live-reported, DanCornett, #301): isCheckedDateField() above correctly
+// force-unchecks an estimated date when Geni already has a real value -
+// but every call site paired it with a PLAIN isEnabled() call for the
+// same field's enabledAttr, which has no equivalent estimated-awareness.
+// Since resolveFieldEnabled()'s isValue(value) branch fires unconditionally
+// (an estimate's own written-out "Circa <year>"/"After <date>" text is
+// itself non-blank), the field rendered enabled/not-disabled even while
+// its own checkbox rendered unchecked - and parseForm() (popup.js)
+// decides what to submit purely from whether the FIELD is disabled, never
+// from whether its checkbox is checked. That mismatch meant an unchecked
+// estimated date could still reach Geni - confirmed live via Geni's own
+// Revisions tab. Mirrors isCheckedDateField()'s exact condition so the
+// two can never disagree again.
+function isEnabledDateField(dateval, score, currentValue, locked, estimated) {
+    if (estimated === true && exists(currentValue) && isValue(currentValue)) {
+        return "disabled";
+    }
+    return isEnabled(dateval, score, false, currentValue, locked);
 }
 
 // #208: shared "get the year from a birth array" lookup - scans for the

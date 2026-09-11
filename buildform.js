@@ -1077,7 +1077,7 @@ function buildForm() {
                             if (geoAnySourceEnabled()) {
                                 locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                             }
-                            locationval = locationval + '<img class="geopin" title="' + pintitle + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
+                            locationval = locationval + '<img class="geopin" title="' + escapeHtml(pintitle) + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                             buildLocationFieldRow({
                                 trClass: "geoplace" + itemGeoplacehidden, classStyleSep: "", displayVal: itemGeoplace,
                                 checkedAttr: isChecked(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked),
@@ -2031,7 +2031,7 @@ function buildForm() {
                                     if (geoAnySourceEnabled()) {
                                         locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
                                     }
-                                    locationval = locationval + '<img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + pintitle + '" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
+                                    locationval = locationval + '<img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + escapeHtml(pintitle) + '" style="height: 14px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                                     buildLocationFieldRow({
                                         trClass: "geoplace" + itemGeoplacehidden, displayVal: itemGeoplace,
                                         checkedAttr: isChecked(itemPlaceNameValue, placeScored, false, ""),

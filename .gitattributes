@@ -8,4 +8,6 @@
 .gitignore export-ignore
 CLAUDE.md export-ignore
 package.json export-ignore
+package-lock.json export-ignore
 scripts export-ignore
+tests export-ignore

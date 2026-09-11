@@ -62,13 +62,17 @@ Unverified and worth a live reload-and-retest rather than assuming it's fine.
 
 ## Verification & Testing Commands
 
-There is no linter, type checker, or test framework in this project -
-`package.json` has no other tooling beyond what's described here. The one
-automated check available is **syntax validation**:
+There is no linter or type checker in this project. Two separate automated
+checks exist, and they catch different things - run the one that matches
+what you're verifying, or `npm run test:all` for both:
 
 ```
-npm test        # or: npm run lint / npm run check (same thing)
+npm test              # or: npm run lint / npm run check (same thing) - syntax only, ~1s
+npm run test:regression   # tests/*.js - real behavior, ~10s
+npm run test:all      # both, in that order
 ```
+
+**`npm test` is syntax validation only:**
 
 This runs `scripts/check-syntax.js`, which calls `node --check` once per
 project `.js` file and reports every failure, not just the first one. Note:
@@ -83,9 +87,11 @@ future vendored addition following a normal minified-file naming convention
 is excluded automatically rather than needing a manual list update. See
 `EXCLUDED_FILENAMES`/`EXCLUDED_FILE_PATTERNS` in `scripts/check-syntax.js`.
 
-**Run `npm test` before reporting any code change or QA step as complete.**
-It won't catch logic bugs, but it will catch a broken commit before it ships -
-which has real value given there's no other automated safety net here.
+**Run `npm test` before reporting any code change or QA step as complete**,
+and `npm run test:regression` too whenever `tests/` has coverage touching
+what changed (or after adding new coverage for it - see "The `tests/`
+regression suite" below). `npm test` alone won't catch logic bugs, but it
+will catch a broken commit before it ships.
 
 A pre-commit hook (`scripts/pre-commit`, installed to `.git/hooks/pre-commit`
 via `npm install`'s `prepare` script, or directly via
@@ -117,12 +123,51 @@ Syntax validation only. It will not catch:
 - Whether a fix actually behaves correctly against live Geni/source-site pages
 - Regressions in behavior that's syntactically valid but semantically wrong
 
-For anything beyond syntax, prefer live verification (asking the user to test
-against the real site) or a targeted synthetic test (extract the specific
-function from the live file via regex/eval and run representative + adversarial
-cases against it - this repo's recent history has examples of exactly that
-approach for things like URL/hostname matching and family-member matching
-logic). Don't claim something "works" based on syntax validation alone.
+The `tests/` regression suite (below) covers the first and third of these for
+whatever it has coverage of - it does NOT cover the second. Don't claim
+something "works" based on syntax validation OR the regression suite alone
+when it hasn't been checked against a real site/live session - report it as
+Unverified (see "Reporting QA/completion status" below) either way.
+
+## The `tests/` regression suite
+
+`npm run test:regression` (`scripts/run-tests.js`) runs every `tests/test_*.js`
+file and reports pass/fail per file, aggregated at the end - same "report
+every failure, not just the first" convention as `check-syntax.js`. Each test
+file is a standalone Node script using a plain hand-rolled assertion pattern
+(`assertEqual`/`assertTrue` printing `PASS:`/`FAIL:` per check, `process.exit`
+non-zero on any failure) - no test framework dependency beyond `jsdom`
+(`devDependencies`), consistent with this project's "no build step" stance.
+
+**These are never reimplementations - every test extracts the REAL function(s)
+under test verbatim from the actual source file** (via a brace-counting
+`extractFunction()` helper feeding `new Function(...)`, or for anything that
+needs real DOM/jQuery behavior, by loading a real `jsdom` window and `eval`-ing
+the actual project files into it exactly like `popup.html` does, then calling
+the real top-level function directly). A synthetic reimplementation of the
+logic being tested only proves the reimplementation is self-consistent, not
+that the real code works - this repo's own history has a concrete example of
+exactly that gap: two prior rounds of "fixes" for #287 were verified only by
+re-reading the source and were both still broken live, until a genuine jsdom
+reproduction was built first and caught two real bugs neither prior round had
+found. Several tests go further and assert against a real saved page from the
+actual source site (`tests/fixtures/*.html` - MyHeritage census/marriage/
+obituary pages saved by a live user, not fabricated) rather than synthetic
+HTML, for exactly the same reason.
+
+**When fixing a bug or adding behavior that's more than a one-line change,
+add or extend a test here** rather than only verifying by hand in this
+session - a synthetic/jsdom verification you ran once and discarded protects
+nothing the next time this code changes. Follow the existing files' pattern:
+name it `test_<issue-or-topic>.js`, open with a comment explaining what real
+bug/behavior it verifies and why (not just what it does), extract the real
+function(s) rather than reimplementing them, and cover both the reported
+case and at least one adjacent case that should NOT trigger the same
+behavior (the "safety" side, not just the "it works" side).
+
+This suite is intentionally excluded from the release zip
+(`.gitattributes` `export-ignore`, alongside `scripts/`) - it's dev-only,
+never loaded by the extension at runtime.
 
 ## URL/hostname matching guardrail
 

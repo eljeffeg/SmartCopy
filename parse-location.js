@@ -668,6 +668,26 @@ function selectFsEntriesForYear(entries, year) {
     return temporallyValidEntries.length > 0 ? temporallyValidEntries : entries;
 }
 
+// Companion to selectFsEntriesForYear() above - true when a real year was
+// known AND that function had to fall back to the unfiltered set because
+// NONE of the entries FamilySearch actually returned had their own valid
+// date range covering it. Checked against the ORIGINAL, unfiltered
+// entries (not whatever selectFsEntriesForYear() already returned) -
+// asking "did filtering find anything" is exactly what determines
+// whether it fell back in the first place. (live-reported, DanCornett):
+// this degradation ("a wrong-era match is still better than none") was
+// previously silent - see familySearchPlaceToGeoLocation()'s own comment
+// on the dateMismatch param this feeds.
+function fsSelectionHadTemporalMismatch(entries, year) {
+    if (!exists(year)) {
+        return false;
+    }
+    return !entries.some(function (entry) {
+        var places = entry.content.gedcomx.places;
+        return exists(places) && places.length > 0 && isYearWithinFsTemporalRange(year, places[0].temporalDescription);
+    });
+}
+
 // One search attempt for a given (place, year) pair. Calls back with a
 // GeoLocation-shaped result (see familySearchPlaceToGeoLocation()) on a
 // good settlement-level match, or undefined if nothing usable came back -
@@ -710,6 +730,7 @@ function attemptFamilySearchQuery(placeSegment, year, fullLocationString, placeN
                 return;
             }
             var entriesForSelection = selectFsEntriesForYear(entries, year);
+            var dateMismatch = fsSelectionHadTemporalMismatch(entries, year);
             // Entries are pre-sorted by relevance score (highest first).
             // Collect every non-broad candidate tied at the TOP score seen
             // (not just the first one) - #237 (live-reported, DanCornett):
@@ -737,7 +758,7 @@ function attemptFamilySearchQuery(placeSegment, year, fullLocationString, placeN
                 return;
             }
             var picked = selectBestTiedFsMatch(tiedCandidates, placeSegment, fullLocationString, placeName);
-            callback(familySearchPlaceToGeoLocation(picked.places, fullLocationString, placeName, picked.ambiguous));
+            callback(familySearchPlaceToGeoLocation(picked.places, fullLocationString, placeName, picked.ambiguous, dateMismatch));
         } catch (e) {
             callback(undefined);
         }
@@ -820,7 +841,17 @@ function selectBestTiedFsMatch(tiedCandidates, placeSegment, fullLocationString,
 // results) could never fire for a genuinely ambiguous FamilySearch match
 // - e.g. "Texas, USA" 1831 scoring four different, unrelated hamlets
 // identically, with no reliable way to prefer one over the others.
-function familySearchPlaceToGeoLocation(places, query, placeName, ambiguous) {
+// (live-reported, DanCornett): dateMismatch (optional, defaults false) -
+// true when NONE of the candidates FamilySearch actually returned had
+// their own valid date range covering the record's year (see
+// selectFsEntriesForYear()'s own comment - it degrades to the unfiltered/
+// best-scored candidate rather than finding nothing, "a wrong-era match
+// is still better than none"). That degradation was previously silent -
+// a result could look perfectly confident (a single, unambiguous top
+// score) while actually being reached via a place whose own dates don't
+// cover the event at all, e.g. the source page using a place name only
+// valid in a different era than the one being searched.
+function familySearchPlaceToGeoLocation(places, query, placeName, ambiguous, dateMismatch) {
     var location = {
         // #224: placeName is whatever extractPlaceNameSegments() stripped
         // out of the raw string before searching (a venue/address/plot
@@ -845,6 +876,23 @@ function familySearchPlaceToGeoLocation(places, query, placeName, ambiguous) {
         longitude: exists(places[0].longitude) ? places[0].longitude : "",
         count: 1, ambiguous: ambiguous === true
     };
+    // Built incrementally, one reason per applicable condition - matches
+    // DanCornett's own proposed design ("FS warning can be something
+    // like '...', and then queryGeo would append its own warning
+    // message"), so a future caller (a later Google comparison, say) can
+    // append its own reason onto whatever's already here rather than
+    // this needing a whole new signal mechanism. buildform.js shows this
+    // directly as the location pin's tooltip when non-blank, falling
+    // back to its existing generic text otherwise (a plain Google
+    // ambiguity, which doesn't build a reason string).
+    var warningReasons = [];
+    if (ambiguous === true) {
+        warningReasons.push("Multiple equally-likely FamilySearch matches were found for this place - double-check which one is correct.");
+    }
+    if (dateMismatch === true) {
+        warningReasons.push("This place's own FamilySearch date range doesn't include this record's year - the source page may be using a differently-dated (e.g. more modern) place name than was in use at the time.");
+    }
+    location.warningReason = warningReasons.join(" ");
 
     // Live-reported bug: the "City" field showed the WHOLE comma-joined
     // hierarchy ("Storkow, Oder-Spree, Brandenburg, Germany") instead of
@@ -1027,7 +1075,25 @@ function familySearchPlaceToGeoLocation(places, query, placeName, ambiguous) {
 function queryGeoGoogle(locationset, test) {
     var geoenabled = geoqueryCheck();
     if (!geoenabled) {
-        geolocation[locationset.id] = parseGoogle("");
+        // (live-reported, DanCornett): previously returned a fully blank
+        // result here - unlike a live Google query that finds nothing,
+        // which GeoLocation() already falls back to the raw query text
+        // for (see its own comment) - so this specific case (Google
+        // simply not configured/enabled) silently lost the original
+        // scraped text at the data level. The popup's own render code
+        // has a separate, independent fallback to the raw text for
+        // display (buildform.js), so nothing was ever actually invisible
+        // to the user - but the underlying result object should carry it
+        // too, for consistency with every other "found nothing" path,
+        // rather than relying on that second safety net alone. count=0
+        // also now gets set explicitly, matching a real "nothing found"
+        // Google response - previously left undefined here, which meant
+        // neither the "may be incorrect" nor "lookup failed" pin ever
+        // triggered for this specific case.
+        var disabledResult = parseGoogle("", exists(locationset.location) ? locationset.location : "");
+        disabledResult.place = disabledResult.query;
+        disabledResult.count = 0;
+        geolocation[locationset.id] = disabledResult;
         return;
     }
     //locationset should contain "location", "id", and optionally "place" if detected prior to date.

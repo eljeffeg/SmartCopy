@@ -941,7 +941,18 @@ function buildForm() {
                         if (geovar1 === undefined) {
                             geovar1 = parseGoogle("");
                         }
-                        if (geovar1.ambiguous || geovar1.count > 1) {
+                        if (geovar1.warningReason) {
+                            // (live-reported, DanCornett): a specific
+                            // reason - e.g. the matched place's own date
+                            // range doesn't cover this record's year -
+                            // beats the generic text below whenever
+                            // familySearchPlaceToGeoLocation() actually
+                            // built one. Google's own ambiguous case never
+                            // sets this, so it falls through to the
+                            // existing generic text unchanged.
+                            pincolor = "yellow";
+                            pintitle = geovar1.warningReason;
+                        } else if (geovar1.ambiguous || geovar1.count > 1) {
                             pincolor = "yellow";
                             pintitle = "Location lookup may be incorrect";
                         } else if (geovar1.count === 0) {
@@ -1902,7 +1913,13 @@ function buildForm() {
                                 if (geovar2 === undefined) {
                                     geovar2 = parseGoogle("");
                                 }
-                                if (geovar2.ambiguous || geovar2.count > 1) {
+                                if (geovar2.warningReason) {
+                                    // See the matching comment at the
+                                    // focus-profile call site above.
+                                    pincolor = "yellow";
+                                    pintitle = geovar2.warningReason;
+                                    membersstring = membersstring.replace('id="' + i + 'gpin" src="images/clearpin.png"', 'id="' + i + 'gpin" src="images/yellowpin.png" title="' + escapeHtml(geovar2.warningReason) + '"');
+                                } else if (geovar2.ambiguous || geovar2.count > 1) {
                                     pincolor = "yellow";
                                     pintitle = "Location lookup may be incorrect";
                                     membersstring = membersstring.replace('id="' + i + 'gpin" src="images/clearpin.png"', 'id="' + i + 'gpin" src="images/yellowpin.png" title="Location lookup may be incorrect"');

@@ -2631,6 +2631,11 @@ function footnoteLabel(url, baseRecordtype) {
         if (exists(fsMatch)) {
             return "FamilySearch, ID:" + fsMatch[1];
         }
+    } else if (baseRecordtype === "WikiTree Genealogy") {
+        var wtMatch = url.match(/\/wiki\/([A-Za-z0-9-]+)/);
+        if (exists(wtMatch)) {
+            return "WikiTree, ID:" + wtMatch[1];
+        }
     }
     return baseRecordtype;
 }

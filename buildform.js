@@ -245,9 +245,30 @@ function updateGeoLocation() {
         }
         var titlesplit = titleobj[0].nextSibling.nodeValue.split("Location: ");
         titleobj[0].nextSibling.nodeValue = titlesplit[0] + "Location: " + locationdata.query;
+        // (live-reported, DanCornett - #287 follow-up): jQuery's
+        // .trigger("click") on a checkbox invokes the browser's own
+        // native default action for a click on a checkbox - which
+        // TOGGLES it - in addition to firing the bound .checknext
+        // handler this call actually needs (to enable/disable the row's
+        // text input and cascade the top .geotopcheck). That native
+        // toggle silently inverted every single .prop(X).trigger("click")
+        // call below: whatever X was computed as, the checkbox ended up
+        // as !X once the trigger's own default action ran - confirmed
+        // directly via a real jsdom DOM (not just reading the source),
+        // reproducing Dan's exact "Place and Country checked when they
+        // shouldn't be" report byte-for-byte. Re-asserting the intended
+        // state with a second .prop() AFTER the trigger keeps the
+        // handler's necessary side effects (still fired once, during the
+        // trigger) while guaranteeing the checkbox actually ends up where
+        // this function intended - .prop() alone never re-fires the
+        // click handler, so this can't double-cascade the geotopcheck
+        // update either.
+        function setLocationFieldChecked(checkbox, checked) {
+            $(checkbox).prop("checked", checked).trigger("click").prop("checked", checked);
+        }
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.query;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", geoon).trigger("click");
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], geoon);
         // #278 (live-reported, DanCornett): Place/City/County/State/
         // Country/Latitude/Longitude below used to always check
         // regardless of their own value - added on the reasoning that
@@ -266,6 +287,22 @@ function updateGeoLocation() {
         // by default): off, a field only checks when it actually
         // resolved to something; on, restores the prior always-check
         // behavior for anyone who wants stale values force-cleared.
+        // (live-reported, DanCornett - #287 follow-up): the 7 checked-
+        // state expressions below used to also require !geoon (this
+        // location's master geo-toggle was OFF before this update, i.e.
+        // "first time enabling geo for this location") - a leftover
+        // condition that predates both #278's forceAllGeoFields gate and
+        // #287's own diff-based checking, and which completely defeated
+        // both: correcting an ALREADY geo-enabled location (geoon=true -
+        // the overwhelmingly common case, since that's what "Update
+        // Location" is normally used for) silently suppressed every one
+        // of these checkboxes regardless of forceAllGeoFields or whether
+        // the field actually differed. Removing it changes nothing for
+        // the geoon=false case (already unconditionally true there), and
+        // fixes the geoon=true case to actually apply the diff-based
+        // logic these fields were built for - confirmed directly against
+        // a real jsdom DOM reproducing Dan's exact report (County
+        // genuinely differing but never getting checked).
         var forceAllGeoFields = $('#forcegeoswitch').prop('checked');
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         // #253/#260 (both live-reported): this is the SAME visible-by-
@@ -302,27 +339,27 @@ function updateGeoLocation() {
         $(eventrow).find("input[type=text]")[0].value = updatePlaceNameValue;
         var placeDiffers = updateFieldDiffersFromGeni(eventrow, updatePlaceNameValue);
         anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || placeDiffers;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || placeDiffers)).trigger("click");
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || placeDiffers));
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.city;
         var cityDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.city);
         anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || cityDiffers;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || cityDiffers)).trigger("click");
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || cityDiffers));
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.county;
         var countyDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.county);
         anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || countyDiffers;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || countyDiffers)).trigger("click");
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || countyDiffers));
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.state;
         var stateDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.state);
         anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || stateDiffers;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || stateDiffers)).trigger("click");
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || stateDiffers));
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.country;
         var countryDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.country);
         anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || countryDiffers;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || countryDiffers)).trigger("click");
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || countryDiffers));
         // #229 follow-up (found during a full-codebase re-audit): this is
         // the same row-count-drift bug already fixed once in .geotopcheck
         // (0a48a3a) and once in .geoicon (this same audit pass) - a manual
@@ -362,10 +399,10 @@ function updateGeoLocation() {
         }
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.latitude;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || gpsFieldDiffersFromGeni(eventrow, locationdata.latitude))).trigger("click");
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || gpsFieldDiffersFromGeni(eventrow, locationdata.latitude)));
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.longitude;
-        $($(eventrow).find("input[type=checkbox]")[0]).prop("checked", !geoon && (forceAllGeoFields || gpsFieldDiffersFromGeni(eventrow, locationdata.longitude))).trigger("click");
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || gpsFieldDiffersFromGeni(eventrow, locationdata.longitude)));
         $("body").toggleClass("wait");
     }
 }

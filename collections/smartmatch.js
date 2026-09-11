@@ -137,8 +137,26 @@ registerCollection({
                             // person actually matched - prefer it whenever
                             // present, same technique loadSelectPage()
                             // (popup.js) already uses for this exact widget.
+                            //
+                            // #289 (live-reported, DanCornett): that fallback
+                            // used to fire unconditionally whenever the
+                            // sidebar widget existed at all - which is true
+                            // for every ordinary Smart Match, not just a
+                            // marriage record. .individualInformationName is
+                            // GENI'S OWN name for the matched person, not the
+                            // source page's - for a normal single-person
+                            // record (a census entry, a MyHeritage family
+                            // tree profile), .recordTitle already correctly
+                            // names just that one person, and this was
+                            // silently overriding the real source name with
+                            // Geni's instead. Scope the override to the
+                            // specific case it was built for - the record's
+                            // own title actually naming multiple people -
+                            // using the same isAmbiguousFocusPage() signal
+                            // already trusted elsewhere in this file for
+                            // exactly that detection.
                             var matchedName = parsed.find(".individualInformationName").text().trim();
-                            if (matchedName !== "") {
+                            if (matchedName !== "" && this.isAmbiguousFocusPage(request.source)) {
                                 focusname = matchedName;
                             }
                             updateLinks("?profile=" + focusid);

@@ -1100,7 +1100,34 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             alldata["profile"] = profiledata;
             alldata["scorefactors"] = smscorefactors;
 
-            child = children[2];
+            // #248 (live-reported): this used to always be children[2] -
+            // MyHeritage census records now insert extra sibling elements
+            // inside .recordFieldsContainer ahead of it (an empty scribe-ai
+            // widget div, then a second, unrelated table holding the
+            // collapsible "Census details" - City/County/Enum. District,
+            // etc.), which shifted the real relatives table (Parents:/
+            // Siblings:/Spouse:/Children: rows) back down to children[0] -
+            // the SAME table the Profile Data section above already reads
+            // for Gender:/Birth:/Residence:. Locate it by content (does it
+            // have a row whose label is an actual relation type) instead
+            // of trusting a fixed index, falling back to the old children[2]
+            // guess if nothing matches so other record shapes this already
+            // worked for are unaffected.
+            var familyChild = null;
+            for (var fc = 0; fc < children.length; fc++) {
+                var fcRows = $(children[fc]).find('tr');
+                for (var fr = 0; fr < fcRows.length; fr++) {
+                    var fcTitle = $(fcRows[fr]).find(".recordFieldLabel").text().toLowerCase().replace(":", "").trim();
+                    if (isParent(fcTitle) || isPartner(fcTitle) || isChild(fcTitle) || isSibling(fcTitle)) {
+                        familyChild = children[fc];
+                        break;
+                    }
+                }
+                if (exists(familyChild)) {
+                    break;
+                }
+            }
+            child = exists(familyChild) ? familyChild : children[2];
 
             var rows = $(child).find('tr');
 
@@ -1173,6 +1200,78 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                             familystatus.pop();
                         }
                     });
+                }
+                // #248 (live-reported): MyHeritage now renders some family
+                // rows (Parents/Siblings on this record, Spouse/Children on
+                // others - all reported symptoms of the same underlying
+                // change) as bare <span data-item-id="..."> text rather than
+                // the clickable .individualsListContainer list the loop
+                // above already handles - famlist stayed empty and no
+                // spouse/parent/sibling/child ever got added for these
+                // rows, even though the SAME people (with real, fetchable
+                // URLs) are already sitting in this page's own Household
+                // table, already parsed into housearray above. Fall back to
+                // resolving each plain span against housearray by item id
+                // whenever the normal list format isn't present.
+                if (famlist.length === 0 && exists(housearray) && housearray.length > 0) {
+                    var plainMembers = $(valfamily).find('span[data-item-id]');
+                    for (var p = 0; p < plainMembers.length; p++) {
+                        var plainItemId = $(plainMembers[p]).attr('data-item-id').replace(/-/g, '');
+                        var houseMatch = null;
+                        for (var h = 0; h < housearray.length; h++) {
+                            if (getMHURLId(housearray[h].url) === plainItemId) {
+                                houseMatch = housearray[h];
+                                break;
+                            }
+                        }
+                        if (!exists(houseMatch)) {
+                            continue;
+                        }
+                        familystatus.push(familystatus.length);
+                        if (isPartner(title) && genderval === "unknown") {
+                            if (title === "wife" || title === "ex-wife") {
+                                genderval = "male";
+                            } else if (title === "husband" || title === "ex-husband") {
+                                genderval = "female";
+                            }
+                            focusgender = genderval;
+                            profiledata["gender"] = genderval;
+                        }
+                        var gendersv = "unknown";
+                        if (isFemale(title)) {
+                            gendersv = "female";
+                        } else if (isMale(title)) {
+                            gendersv = "male";
+                        }
+                        var subdata = {name: houseMatch.name, gender: gendersv, title: title};
+                        var itemid = getMHURLId(houseMatch.url);
+                        if (isParent(title)) {
+                            parentlist.push(itemid);
+                        }
+                        subdata["url"] = houseMatch.url;
+                        subdata["itemId"] = itemid;
+                        subdata["profile_id"] = famid;
+                        unionurls[famid] = itemid;
+                        famid++;
+                        chrome.runtime.sendMessage({
+                            method: "GET",
+                            action: "xhttp",
+                            url: houseMatch.url,
+                            variable: subdata
+                        }, function (response) {
+                            // try/finally guarantees the pop below regardless
+                            // of what throws inside - see issue #196.
+                            try {
+                                var arg = response.variable;
+                                var person = exists(response) ? parseSmartMatch(response.source, false, {"title": arg.title, "proid": arg.profile_id, "url": arg.url}) : "";
+                                person = updateInfoData(person, arg);
+                                databyid[arg.profile_id] = person;
+                                alldata["family"][arg.title].push(person);
+                            } finally {
+                                familystatus.pop();
+                            }
+                        });
+                    }
                 }
             }
             if (genderval === "unknown") {

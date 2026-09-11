@@ -472,7 +472,22 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
             // for the same "don't misattribute a coincidental match"
             // reasoning as the exact-match design above.
             if (marriageFocusRole === "" && exists(roleNames["groom"]) && exists(roleNames["bride"])) {
-                var focusParsed = NameParse.parse(genifocusdata.get("name"), mnameonoff);
+                // #248 follow-up (live-reported): comparing NameParse's own
+                // firstName/lastName split on BOTH sides used to fail for a
+                // focus name NameParse can't cleanly split - e.g. Geni's
+                // "Rita Motta Tramuta" (maiden name "Motta" kept alongside
+                // the married surname) parses as firstName "Rita Motta",
+                // not "Rita", so it never matched the marriage record's own
+                // cleanly-split bride firstName "Rita" even though this is
+                // exactly the person this whole fallback exists for.
+                // Checking whether each target name appears as a whole
+                // word anywhere in the focus's raw, unsplit name sidesteps
+                // NameParse's split entirely - only the SOURCE record's own
+                // (reliably two-field) names still need to be split.
+                var focusWords = focusNameLower.split(/\s+/);
+                function focusHasWord(word) {
+                    return exists(word) && word !== "" && focusWords.indexOf(word.toLowerCase()) !== -1;
+                }
                 ["groom", "bride"].forEach(function (roleTitle) {
                     if (marriageFocusRole !== "" || roleNames[roleTitle] === "") {
                         return;
@@ -480,12 +495,7 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                     var otherRole = (roleTitle === "groom") ? "bride" : "groom";
                     var roleParsed = NameParse.parse(roleNames[roleTitle], mnameonoff);
                     var otherParsed = NameParse.parse(roleNames[otherRole], mnameonoff);
-                    if (exists(focusParsed.firstName) && focusParsed.firstName !== "" &&
-                        exists(roleParsed.firstName) && roleParsed.firstName !== "" &&
-                        focusParsed.firstName.toLowerCase() === roleParsed.firstName.toLowerCase() &&
-                        exists(focusParsed.lastName) && focusParsed.lastName !== "" &&
-                        exists(otherParsed.lastName) && otherParsed.lastName !== "" &&
-                        focusParsed.lastName.toLowerCase() === otherParsed.lastName.toLowerCase()) {
+                    if (focusHasWord(roleParsed.firstName) && focusHasWord(otherParsed.lastName)) {
                         marriageFocusRole = roleTitle;
                     }
                 });
@@ -517,6 +527,33 @@ function parseSmartMatch(htmlstring, familymembers, relation) {
                         gendersv = "female";
                     } else if (isMale(title)) {
                         gendersv = "male";
+                    }
+                    // #248 (live-reported): an obituary's own relative rows
+                    // (Daughter/Son/Brother/etc.) nest that person's Name/
+                    // Residence/spouse into a sub-table under the same row -
+                    // the exact shape MyHeritage marriage records already
+                    // use for Groom:/Bride: (handled separately, further
+                    // below) - but neither branch below (a link list, or a
+                    // plain comma-separated text run) recognizes a nested
+                    // table at all, so every relative like this silently
+                    // produced zero family members. Unlike Groom:/Bride:,
+                    // there's no role ambiguity to resolve here - the row's
+                    // own label already IS the relation to the focus.
+                    var nestedRelativeTable = $(row).find(".recordFieldValue > table");
+                    if (nestedRelativeTable.length > 0) {
+                        var relativeName = nestedRelativeTable.find("td.infoGroup").filter(function () {
+                            return $(this).text().toLowerCase().replace(":", "").trim() === "name";
+                        }).first().next("td").text().trim();
+                        if (relativeName !== "") {
+                            var relativeProfile = {name: relativeName, gender: gendersv, profile_id: famid, title: title, status: title};
+                            alldata["family"][title].push(relativeProfile);
+                            databyid[famid] = relativeProfile;
+                            if (isPartner(title)) {
+                                myhspouse.push(famid);
+                            }
+                            famid++;
+                        }
+                        continue;
                     }
                     var listrow = $(row).find(".recordFieldValue").contents();
                     var checklist = false;

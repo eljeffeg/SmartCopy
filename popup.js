@@ -2002,6 +2002,23 @@ function buildTree(data, action, sendid) {
                 submitstatus.pop();
                 return;
             }
+            // #300 (live-reported): a brand-new "add" profile can reach here
+            // with no name field checked at all (e.g. only Privacy or Vital
+            // status ended up selected for that family member), which Geni
+            // happily creates as an empty, unusable "(No Name)" profile.
+            // Require at least one real name field before submitting.
+            var hasRealName = exists(data.names) && Object.keys(data.names).some(function (lang) {
+                var nameset = data.names[lang];
+                return ["first_name", "last_name", "maiden_name", "display_name"].some(function (field) {
+                    return exists(nameset[field]) && nameset[field] !== "";
+                });
+            });
+            if (!hasRealName) {
+                updateMessage(errormsg, "Skipped creating a new profile with no name selected - check at least First or Last Name before adding: " + sendid);
+                console.warn("Skipping empty-name 'add' submission - see #300", data);
+                submitstatus.pop();
+                return;
+            }
         }
         var posturl = "https://www.geni.com/api/" + sendid + "/" + action +  "?fields=id,unions,name&access_token=" + accountinfo.access_token;
         if (action === "add-photo" && permissions.indexOf("add-photo") === -1) {

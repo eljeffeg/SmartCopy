@@ -841,12 +841,16 @@ function buildForm() {
         var publiclocked = focusFieldLocked("public"); // #78
         // #281 (live-reported, DanCornett): Privacy used to always start
         // collapsed under "hide empty fields," with no content-aware
-        // check at all - now visible whenever Geni already has an
-        // explicit Public/Private value (source has no independent
-        // "scraped privacy" concept of its own to check the other side
-        // of - it's derived from living/birth-year, not an original
-        // field).
-        membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, genifocusdata.get("public") === true || genifocusdata.get("public") === false) + '><td class="profilediv"><input type="checkbox" class="checknext" ' + (publiclocked ? 'disabled ' : '') + (focusPrivacy.enabled && !publiclocked ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (focusPrivacy.enabled && !publiclocked ? "" : "disabled") + '>' +
+        // check at all. (live-reported, DanCornett, #293 follow-up):
+        // that "Geni already has an explicit value" condition above was
+        // itself wrong - Privacy is a COMPUTED field (buildPrivacySelect()
+        // always resolves a real Public/Private/Auto decision from
+        // living status/birth year, it's never genuinely "blank" the way
+        // a scraped text field can be), so gating its visibility on
+        // whether Geni happens to already have an explicit value hid the
+        // row entirely whenever nothing was matched yet - always visible
+        // now, matching that there's always a real decision to show.
+        membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, true) + '><td class="profilediv"><input type="checkbox" class="checknext" ' + (publiclocked ? 'disabled ' : '') + (focusPrivacy.enabled && !publiclocked ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (focusPrivacy.enabled && !publiclocked ? "" : "disabled") + '>' +
         focusPrivacy.options + '</select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
         $(div[0]).html(membersstring);
         if (exists(alldata["profile"].about)) {
@@ -1848,11 +1852,19 @@ function buildForm() {
                 // through to that recompute, since it's not otherwise
                 // available outside this closure.
                 var memberPrivacy = buildPrivacySelect(living, memberBirthYear, undefined, true);
-                // #281: same OR-visibility as the focus profile's Privacy
-                // row above.
-                var memberGeniPublicHasValue = exists(matchedCandidateForEstimate) &&
-                    (matchedCandidateForEstimate.get("public") === true || matchedCandidateForEstimate.get("public") === false);
-                membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, memberGeniPublicHasValue) + '><td class="profilediv"><input id="' + i + '_public_checkbox" type="checkbox" class="checknext" ' + (memberPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect privacyselect" update="'+ i + '" data-birthyear="' + (exists(memberBirthYear) ? memberBirthYear : "") + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacy.enabled ? "" : "disabled") + '>' +
+                // (live-reported, DanCornett, #293): the #281 OR-visibility
+                // check above was wrong for Privacy specifically - it's a
+                // COMPUTED field (buildPrivacySelect() always resolves a
+                // real Public/Private/Auto decision, never genuinely
+                // "blank" the way a scraped text field can be), so gating
+                // on whether this member happened to match an existing
+                // Geni profile with an explicit value hid the row
+                // entirely for any BRAND NEW group (no parents/siblings/
+                // etc at all yet on Geni - matchedCandidateForEstimate is
+                // undefined for every member in that case). Always
+                // visible now, matching that there's always a real
+                // decision to show regardless of whether a match exists.
+                membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, true) + '><td class="profilediv"><input id="' + i + '_public_checkbox" type="checkbox" class="checknext" ' + (memberPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect privacyselect" update="'+ i + '" data-birthyear="' + (exists(memberBirthYear) ? memberBirthYear : "") + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacy.enabled ? "" : "disabled") + '>' +
                     memberPrivacy.options + '</select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 // The genislideinput below (missing until now) is what lets
                 // refreshFieldCheckState()/parseForm()'s no-op skip see

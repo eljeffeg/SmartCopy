@@ -1371,6 +1371,24 @@ function buildForm() {
                     scored = true;
                 } else if (scorefactors.contains("mother") && !geniHas("mother")  && members[member].gender !== "male") {
                     scored = true;
+                // (live-reported, DanCornett, #296): neither branch above
+                // ever fires once BOTH father and mother already exist on
+                // Geni - but a parent that's already confidently matched
+                // (the Action dropdown will default to "Update", not "Add
+                // Profile" - geniHas() is exactly that same category-match
+                // signal) can still have genuinely new field data worth
+                // flagging (a birth name, an AKA, ...) that the empty-
+                // category/empty-slot checks above were never designed to
+                // catch. A confirmed match is itself just as safe and
+                // deterministic a signal as an empty category already is -
+                // scored=true only makes fields ELIGIBLE for checking, a
+                // field whose value already matches Geni's still gets
+                // excluded at actual submit time (parseForm()), so this
+                // can't cause a no-op resubmission.
+                } else if (members[member].gender === "male" && geniHas("father")) {
+                    scored = true;
+                } else if (members[member].gender === "female" && geniHas("mother")) {
+                    scored = true;
                 }
             }
             if (isSibling(relationship) && exists(members[member].halfsibling) && members[member].halfsibling) {

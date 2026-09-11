@@ -1521,7 +1521,7 @@ function buildForm() {
                 if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
                     earlyBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
                 }
-                if (findExistingFamilyMatch(relationship, gender, nameval.firstName, (nameval.lastName || nameval.birthName), earlyBirthYear)) {
+                if (findExistingFamilyMatch(relationship, gender, nameval.firstName, nameval.middleName, (nameval.lastName || nameval.birthName), earlyBirthYear)) {
                     scored = false;
                 }
             }
@@ -1757,7 +1757,7 @@ function buildForm() {
                 // blanket no-edit-permission sweep answers for the fields
                 // themselves, surfaced right at Action: where the match is
                 // actually chosen.
-                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span class="showhide" title="' + showtitle + '" style="cursor: pointer; font-weight: normal; font-size: 90%; white-space: nowrap; margin-left: 6px;">' + showlabel + '</span><img id="' + i + '_action_lock" src="images/lock.png" title="This profile is locked - you do not have edit permission, so all fields are disabled" style="width: 14px; height: 14px; margin-left: 4px; display: none; vertical-align: middle;"><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
+                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span class="showhide" title="' + showtitle + '" style="cursor: pointer; font-weight: normal; font-size: 90%; white-space: nowrap; margin-left: 6px;">' + showlabel + '</span><img id="' + i + '_action_lock" src="images/lock.png" title="This profile is locked - you do not have edit permission, so all fields are disabled" style="width: 14px; height: 14px; margin-left: 4px; display: none; vertical-align: middle;"><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, nameval.middleName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
 
                 if (isChild(relationship) || relationship === "unknown") {
                     var parentrel = "Parent";
@@ -4022,16 +4022,73 @@ function buildUnknown(gender) {
     return pselect;
 }
 
+// #285: a person's given name can be split between First/Middle
+// differently on each side (source has first="Daniel", middle="Ira";
+// Geni has first_name="Daniel Ira", middle_name="") or even written in a
+// different order (Geni first_name="Max Rudolph" vs. first_name="Rudolph
+// Max") - comparing first_name to first_name alone missed all of these.
+// Combining first+middle into one string, then comparing as an
+// order-independent set of words rather than a fixed sequence, handles
+// both a shifted field boundary and a reordered name with the same rule.
+function getGivenNameWords(firstName, middleName) {
+    var combined = ((firstName || "") + " " + (middleName || "")).trim();
+    if (combined === "") {
+        return [];
+    }
+    return normalizeGermanic(combined.toLowerCase()).split(/\s+/).filter(function (word) {
+        return word !== "";
+    });
+}
+
+// #285: compares two given-name word sets (see getGivenNameWords() above)
+// and returns how strong a match they are - "exact" (same words, any
+// order - e.g. "max rudolph" vs. "rudolph max"), "subset" (one side's
+// words are all present in the other's - e.g. source only ever captured
+// "max" with no middle name field at all, vs. Geni's "max rudolph"), or
+// null (no relationship between the two word sets at all). Never
+// "subset" for two equal-length lists - if they're the same length and
+// not an exact match, they contain at least one genuinely different word
+// and are correctly left unrelated instead of loosely matched.
+function compareGivenNameWordSets(wordsA, wordsB) {
+    if (wordsA.length === 0 || wordsB.length === 0) {
+        return null;
+    }
+    var sortedA = wordsA.slice().sort();
+    var sortedB = wordsB.slice().sort();
+    if (sortedA.length === sortedB.length && sortedA.every(function (word, i) { return word === sortedB[i]; })) {
+        return "exact";
+    }
+    var smaller = wordsA.length <= wordsB.length ? wordsA : wordsB;
+    var largerPool = (wordsA.length <= wordsB.length ? wordsB : wordsA).slice();
+    var isSubset = smaller.every(function (word) {
+        var idx = largerPool.indexOf(word);
+        if (idx === -1) {
+            return false;
+        }
+        largerPool.splice(idx, 1);
+        return true;
+    });
+    return isSubset ? "subset" : null;
+}
+
 // Shared by buildAction() (below) and the auto-check gate in buildForm() -
-// matches an incoming family member against genifamilydata by exact,
-// case/diacritic-normalized name and, when more than one same-named
-// candidate could apply, a non-conflicting birth year (a classic namesake
-// signal - e.g. a grandson named after his grandfather - see #186 for the
-// full reasoning). Father/mother are excluded since Geni's data model
-// guarantees at most one of each - no ambiguity to resolve, and that case
-// is handled separately via geniHas(). Returns the matched genifamilydata
-// entry, or null if nothing qualifies.
-function findExistingFamilyMatch(relationship, gender, firstName, lastName, birthYear) {
+// matches an incoming family member against genifamilydata by given-name
+// word-set comparison (see compareGivenNameWordSets() above - handles a
+// shifted First/Middle boundary or reordered name, not just an exact
+// string match) plus an exact, case/diacritic-normalized last name. When
+// more than one same-named candidate could apply at the best name tier
+// reached, a real (never estimated - Geni's own recorded value is always
+// real, this codebase never marks an existing Geni birth date as
+// estimated) birth year within a small tolerance breaks the tie - a
+// classic namesake signal, e.g. a grandson named after his grandfather,
+// see #186 for the fuller reasoning on that tolerance. If two or more
+// tied candidates both have a usable birth year within tolerance (or
+// neither does), there's no way to safely pick between them, so this
+// returns null rather than guessing. Father/mother are excluded since
+// Geni's data model guarantees at most one of each - no ambiguity to
+// resolve, and that case is handled separately via geniHas(). Returns
+// the matched genifamilydata entry, or null if nothing qualifies.
+function findExistingFamilyMatch(relationship, gender, firstName, middleName, lastName, birthYear) {
     if (!exists(genifamily)) {
         return null;
     }
@@ -4070,42 +4127,67 @@ function findExistingFamilyMatch(relationship, gender, firstName, lastName, birt
             (famRel === "parent" && isParent(relationship));
     }
 
-    var incomingFirst = normalizeGermanic((firstName || "").trim().toLowerCase());
+    var incomingWords = getGivenNameWords(firstName, middleName);
     var incomingLast = normalizeGermanic((lastName || "").trim().toLowerCase());
-    if ((incomingFirst === "" && incomingLast === "") || relationship === "father" || relationship === "mother") {
+    if ((incomingWords.length === 0 && incomingLast === "") || relationship === "father" || relationship === "mother") {
         return null;
     }
-    var nameMatches = [];
+    var exactMatches = [];
+    var subsetMatches = [];
     for (var node in genifamilydata) {
         if (!genifamilydata.hasOwnProperty(node)) continue;
         var candidate = genifamilydata[node];
         if (!categoryMatches(candidate)) continue;
         var candidateLang = candidate.get("name_language");
-        var candidateFirst = normalizeGermanic((candidate.get("names", candidateLang + ".first_name") || "").trim().toLowerCase());
+        var candidateWords = getGivenNameWords(
+            candidate.get("names", candidateLang + ".first_name"),
+            candidate.get("names", candidateLang + ".middle_name")
+        );
         // Sites like Ancestry generally only ever record a woman's maiden
         // surname, while Geni's own "name" for her may show her married
         // surname (or vice versa) - match against either of Geni's surname
         // fields rather than assuming which one the source data used.
         var candidateLastName = normalizeGermanic((candidate.get("names", candidateLang + ".last_name") || "").trim().toLowerCase());
         var candidateMaidenName = normalizeGermanic((candidate.get("names", candidateLang + ".maiden_name") || "").trim().toLowerCase());
-        if (candidateFirst === incomingFirst &&
-            (candidateLastName === incomingLast || candidateMaidenName === incomingLast)) {
-            nameMatches.push(candidate);
+        if (candidateLastName !== incomingLast && candidateMaidenName !== incomingLast) continue;
+        var givenNameTier = compareGivenNameWordSets(incomingWords, candidateWords);
+        if (givenNameTier === "exact") {
+            exactMatches.push(candidate);
+        } else if (givenNameTier === "subset") {
+            subsetMatches.push(candidate);
         }
     }
-    if (nameMatches.length === 1) {
-        var candidateBirthYear = nameMatches[0].get("birth", "date.year");
+    // Only fall back to the subset tier when NO exact match exists at all -
+    // a looser tier should never dilute/join a tie that the stronger tier
+    // already resolved (or failed to resolve) on its own.
+    var tiedMatches = exactMatches.length > 0 ? exactMatches : subsetMatches;
+    if (tiedMatches.length === 0) {
+        return null;
+    }
+    if (tiedMatches.length === 1) {
+        var candidateBirthYear = tiedMatches[0].get("birth", "date.year");
         // Allow a small gap rather than requiring an exact match - source
         // data commonly disagrees by a year or two for the same person
         // (e.g. an estimated vs. recorded birth year), which shouldn't by
         // itself read as a namesake conflict.
         var birthConflict = exists(birthYear) && exists(candidateBirthYear) && candidateBirthYear !== "" &&
             Math.abs(Number(birthYear) - Number(candidateBirthYear)) > 2;
-        if (!birthConflict) {
-            return nameMatches[0];
-        }
+        return birthConflict ? null : tiedMatches[0];
     }
-    return null;
+    // More than one candidate tied at the best name tier reached - a
+    // unique, real birth year within the same tolerance can still break
+    // the tie (see this function's own comment), but only when it
+    // resolves to exactly one candidate. Two+ still within tolerance, or
+    // none at all, means there's no safe way to choose between them.
+    if (!exists(birthYear)) {
+        return null;
+    }
+    var withinTolerance = tiedMatches.filter(function (candidate) {
+        var candidateBirthYear = candidate.get("birth", "date.year");
+        return exists(candidateBirthYear) && candidateBirthYear !== "" &&
+            Math.abs(Number(birthYear) - Number(candidateBirthYear)) <= 2;
+    });
+    return withinTolerance.length === 1 ? withinTolerance[0] : null;
 }
 
 // #204 further follow-up / #208 follow-up: resolves the SAME matched Geni
@@ -4131,7 +4213,7 @@ function getMatchedGeniFamilyCandidate(relationship, gender, nameval, birthYear)
         }
         return null;
     }
-    return findExistingFamilyMatch(relationship, gender, nameval.firstName, (nameval.lastName || nameval.birthName), birthYear);
+    return findExistingFamilyMatch(relationship, gender, nameval.firstName, nameval.middleName, (nameval.lastName || nameval.birthName), birthYear);
 }
 
 // #224: computes the approximate birth/baptism/marriage/death/burial years
@@ -4268,7 +4350,7 @@ function candidateOptionLabel(familymem) {
     return name + ' [' + birthText + '-' + deathText + ']';
 }
 
-function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
+function buildAction(relationship, gender, id, firstName, middleName, lastName, birthYear) {
     var pselect = "";
     var selected = true;
     // #78 part C: adding a brand-new family member requires the "add"
@@ -4303,7 +4385,7 @@ function buildAction(relationship, gender, id, firstName, lastName, birthYear) {
             }
         }
 
-        var existingMatch = findExistingFamilyMatch(relationship, gender, firstName, lastName, birthYear);
+        var existingMatch = findExistingFamilyMatch(relationship, gender, firstName, middleName, lastName, birthYear);
         var autoSelectId = existingMatch ? existingMatch.get("id") : null;
 
         function addCandidateOption(familymem) {

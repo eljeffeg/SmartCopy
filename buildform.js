@@ -5340,7 +5340,17 @@ function setGeniFamilyData(id, profile) {
             (memberActionsForLockSweep.indexOf("update") === -1 && memberActionsForLockSweep.indexOf("update-basics") === -1));
     if (noEditPermission) {
         memberexpand.find('.checknext').prop('checked', false).prop('disabled', true);
-        memberexpand.find('input, select, textarea').not('.genislideinput').prop('disabled', true);
+        // #298 (live-reported): leave the Action dropdown itself enabled even
+        // when the currently-selected match can't be written to - otherwise
+        // there's no way to switch to a different Geni match or to "Add
+        // Profile" instead (e.g. the match is wrong, or there's a public/
+        // private duplicate pair on Geni and the other one IS writable).
+        // Switching the dropdown already re-runs this whole check via
+        // actionUpdate() -> setGeniFamilyData(), so re-locking correctly
+        // whenever the newly-picked profile also can't be written to is
+        // already handled - this only needs to stop blocking the escape
+        // route itself.
+        memberexpand.find('input, select, textarea').not('.genislideinput, .actionselect').prop('disabled', true);
         checkslideEl.prop('checked', false).prop('disabled', true);
     }
     // Toggled both ways (not just shown) - switching the Action: dropdown

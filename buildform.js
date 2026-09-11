@@ -2686,7 +2686,22 @@ function updateClassResponse() {
                 // #222: only re-collapse rows that are ACTUALLY blank
                 // (data-hasvalue) - same reasoning as hideempty() in
                 // popup.js, scoped to just this person's own table.
-                $(this).closest("table").find('.hiddenrow[data-hasvalue="false"]').css("display", "none");
+                // #295 (live-reported, DanCornett): data-hasvalue is a
+                // static snapshot taken at render time ("nothing was
+                // scraped or on Geni for this field originally") - it
+                // never updates if the user manually types into a field
+                // after clicking "Show all fields", so a real manual edit
+                // (his own example: a middle name) vanished right along
+                // with the genuinely-still-blank rows the next time "Hide
+                // unused fields" ran. Re-checks each candidate row's own
+                // CURRENT text/textarea value here - only actually
+                // re-collapses it when that's ALSO still blank, so a
+                // manual edit survives the toggle instead of disappearing.
+                $(this).closest("table").find('.hiddenrow[data-hasvalue="false"]').filter(function () {
+                    return $(this).find('input[type="text"], textarea').not(".genislideinput").filter(function () {
+                        return $(this).val() !== "";
+                    }).length === 0;
+                }).css("display", "none");
                 value.text(SHOW_ALL_LABEL);
                 value.attr("title", "Hiding Unused Fields");
             } else {

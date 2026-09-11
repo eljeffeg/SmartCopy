@@ -2611,6 +2611,15 @@ function updateClassResponse() {
             // already edited this session), not whatever was originally
             // scraped, so a date correction made first is reflected here
             // without having to remember and retype it.
+            // (live-reported, DanCornett): the modal's own description
+            // line always named Google specifically, even when
+            // FamilySearch is the source that's actually going to run -
+            // confusing when it's the ONLY source enabled (as in #287's
+            // own screenshots). Now reflects whichever source this
+            // update will actually use, same condition as the rest of
+            // this modal's FamilySearch-only rows below.
+            $('#geoUpdateModalDescription').text($('#familysearchplacesonoffswitch').prop('checked') ?
+                _("Update_location_resubmit_to_FamilySearch") : _("Update_location_resubmit_to_Google"));
             if ($('#familysearchplacesonoffswitch').prop('checked')) {
                 // #241: mirrors the SAME override applied automatically
                 // during the initial parse (updateGeo(), see

@@ -766,5 +766,11 @@ var EN_FALLBACK_MESSAGES = {
     },
     "Fix_All_Case_Issues": {
         "message": "Fix All"
+    },
+    "Update_location_resubmit_to_Google": {
+        "message": "Update the location and resubmit it to Google for GeoLocation."
+    },
+    "Update_location_resubmit_to_FamilySearch": {
+        "message": "Update the location and/or year, then resubmit to FamilySearch's historical places lookup."
     }
 };

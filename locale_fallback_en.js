@@ -101,7 +101,7 @@ var EN_FALLBACK_MESSAGES = {
             }
         }
     },
-    "living": {
+    "consistencyCheckLiving": {
         "message": "living"
     },
     "claimed": {

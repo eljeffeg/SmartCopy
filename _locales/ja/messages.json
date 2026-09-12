@@ -92,7 +92,7 @@
             }
         }
     },
-    "living": {
+    "consistencyCheckLiving": {
         "message": "存命"
     },
     "claimed": {

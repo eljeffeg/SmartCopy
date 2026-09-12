@@ -92,7 +92,7 @@
             }
         }
     },
-    "living": {
+    "consistencyCheckLiving": {
         "message": "εν ζωή"
     },
     "claimed": {

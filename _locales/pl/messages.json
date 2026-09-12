@@ -92,7 +92,7 @@
             }
         }
     },
-    "living": {
+    "consistencyCheckLiving": {
         "message": "żyjący"
     },
     "claimed": {

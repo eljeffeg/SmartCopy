@@ -92,7 +92,7 @@
             }
         }
     },
-    "living": {
+    "consistencyCheckLiving": {
         "message": "în viață"
     },
     "claimed": {

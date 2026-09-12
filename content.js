@@ -1717,7 +1717,15 @@ function profileStatus(person) {
     if (getGeniData(person, "claimed")) {
         return _("claimed");
     } else {
-        return _("living");
+        // #297 follow-up (live-reported, DanCornett): this used to be the
+        // key "living" (lowercase) - chrome.i18n.getMessage() is
+        // case-insensitive, so it collided with the unrelated "Living"
+        // key added for the Vital status dropdown (buildform.js), and
+        // Chrome served this Consistency Checker badge's plain-lowercase
+        // value for BOTH, silently defeating "Living"'s correct
+        // capitalization everywhere the Vital dropdown used it. Renamed to
+        // something that can't collide with any other key.
+        return _("consistencyCheckLiving");
     }
 }
 

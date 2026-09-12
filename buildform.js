@@ -571,8 +571,17 @@ function buildForm() {
         var hasNameData = isValue(nameval.prefix) || isValue(nameval.firstName) || isValue(nameval.middleName) ||
             isValue(nameval.lastName) || isValue(nameval.birthName) || isValue(nameval.suffix) ||
             isValue(displayname) || isValue(nameval.nickName);
-        var middleNameChecked = (namescore && mnameonoff) ? "checked" : "";
-        var middleNameEnabled = (namescore && mnameonoff) ? "" : "disabled";
+        // (found while investigating #296's live-reported "Middle Name
+        // pre-checks while shown blank"): namescore/mnameonoff alone never
+        // checked whether nameval.middleName actually has a value - a
+        // checked-but-blank box risks clearing a real Geni middle name if
+        // submitted without looking. The specific case reported turned out
+        // to be a symptom of #289 (the wrong, Geni-sourced focus name
+        // producing a genuinely blank middleName after parsing) rather
+        // than this gate itself, but the missing value check is real and
+        // worth closing regardless.
+        var middleNameChecked = (namescore && mnameonoff && isValue(nameval.middleName)) ? "checked" : "";
+        var middleNameEnabled = (namescore && mnameonoff && isValue(nameval.middleName)) ? "" : "disabled";
         // #210: each row now goes through buildTextFieldRow(), which
         // escapes the scraped value before it reaches the value="..."
         // attribute - previously none of these did (the same fix

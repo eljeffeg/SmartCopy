@@ -1506,23 +1506,49 @@ function buildForm() {
                 }
             }
 
-            // Siblings/children re-checked on a re-run: unlike parent, which
-            // is guarded above by geniHas(), sibling/child/partner had no
-            // "already in Geni's tree" check at all - only whether
-            // scorefactors flagged the relationship as a match factor, so
-            // re-running a build on the same profile after a prior run
-            // already added these people re-checked them again. Use the
-            // same name+birth-year match buildAction() uses to decide
-            // "Update" vs "Add Profile" in the dropdown below, so a member
-            // already linked to an existing Geni family member doesn't get
-            // flagged as needing to be added a second time.
-            if (scored && (isSibling(relationship) || isChild(relationship) || isPartner(relationship))) {
+            // (live-reported, DanCornett, #296 follow-up): sibling/child/
+            // partner had no "already confidently matched" -> scored=true
+            // path at all, unlike parent (see the geniHas() branches
+            // above) - scorefactors/sibcheck-and-friends are the ONLY way
+            // any of these three ever became eligible for field-level
+            // pre-checking. For a category Geni already has several of
+            // (sibcheck/childck/partnerck false) on a source that never
+            // populates a per-relationship SmartMatch signal at all (a
+            // plain census household listing, not an actual MyHeritage
+            // SmartMatch comparison), scored stayed false for the entire
+            // member's row even when confidently matched to an existing
+            // Geni person with genuinely new field data - exactly the
+            // parent-side gap #296 originally fixed, just never
+            // generalized to these three categories.
+            //
+            // This used to be the OPPOSITE check ("if already scored via
+            // scorefactors AND also matched, force scored back to false")
+            // - meant to stop a re-run from re-flagging an already-added
+            // person as needing to be added again. That concern is already
+            // covered elsewhere: buildAction() resolves the same match to
+            // "Update: <name>" in the Action dropdown regardless of
+            // scored, and parseForm() independently excludes any
+            // genuinely-unchanged field at submit time - so a confirmed
+            // match is exactly as safe a signal here as it already is for
+            // parent, and gating it behind an already-true `scored` served
+            // no purpose a confirmed match doesn't already provide on its
+            // own.
+            //
+            // Deliberately NOT applied when skipprivate just suppressed
+            // this member above - that's a privacy safeguard (the user's
+            // own "exclude private profile auto-select" setting for a
+            // still-living/placeholder-identity person), not an
+            // uncertainty heuristic a confirmed match should be allowed to
+            // override, unlike the halfsibling caution this same
+            // reasoning does correctly override.
+            if (!(skipprivate && (checkLiving(fullname) || hasPlaceholderIdentityName(fullname))) &&
+                (isSibling(relationship) || isChild(relationship) || isPartner(relationship))) {
                 var earlyBirthYear = undefined;
                 if (exists(members[member]["birth"]) && exists(members[member]["birth"][0]) && exists(members[member]["birth"][0]["date"])) {
                     earlyBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
                 }
                 if (findExistingFamilyMatch(relationship, gender, nameval.firstName, nameval.middleName, (nameval.lastName || nameval.birthName), earlyBirthYear)) {
-                    scored = false;
+                    scored = true;
                 }
             }
 

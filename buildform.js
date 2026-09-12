@@ -623,8 +623,22 @@ function buildForm() {
                 membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" data-hasvalue="false"><td colspan="3" style="padding: 0;"><div class="separator"></div></td></tr>';
             }
             var title = "photo";
+            // (live-reported, DanCornett, #296 follow-up): gating this on
+            // scorefactors.contains("photo") meant a real, new photo never
+            // pre-selected unless MyHeritage's own auto-generated "value
+            // add" summary text happened to literally mention "photo" -
+            // e.g. a census record's summary reading "Adds: middle name
+            // and residence" never does, even when a real scanned image is
+            // attached and Geni has none. Unlike every other field, adding
+            // a photo is purely additive - Geni adds it to the gallery, it
+            // never replaces or overwrites an existing one - so there's no
+            // "protect existing data" reason to gate this on an identity/
+            // relevance signal at all for the ONE person (the focus) there
+            // was never any identity uncertainty about in the first place.
+            // Matches the family-member photo row below, which already
+            // never had this gate - just the user's own on/off setting.
             var scorephoto = false;
-            if (scorefactors.contains(title) && $('#photoonoffswitch').prop('checked')) {
+            if ($('#photoonoffswitch').prop('checked')) {
                 scorephoto = true;
                 ck++;
             }

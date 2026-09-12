@@ -115,7 +115,13 @@ assertEqual(makeGetFocusRefUrl({ profile: {} }, "https://tab.link/fallback")(),
 // --- Deferred call site wiring (structural checks on the real source) ---
 assertTrue(src.indexOf("var focusMarriageFootnoteAdded = false;") !== -1,
     "focusMarriageFootnoteAdded guard variable is declared");
-assertTrue(src.indexOf("if (!$.isEmptyObject(marriageupdate) && sourcecheck && $.isEmptyObject(profileout) && !focusMarriageFootnoteAdded) {") !== -1,
+// #303: sourcecheck/profileout used to be read directly here, but both
+// are locals of submitform() - a completely different function from
+// submitChildren() (where this line lives), which has no closure over
+// them. Fixed to read the checkbox directly and a captured module-level
+// global instead (see test_303_marriage_footnote_scope_crash.js for the
+// full regression coverage of that crash).
+assertTrue(src.indexOf("if (!$.isEmptyObject(marriageupdate) && $('#sourceonoffswitch').prop('checked') && focusProfileSubmissionWasEmpty && !focusMarriageFootnoteAdded) {") !== -1,
     "The deferred footnote only fires when: a real marriage/divorce update exists, reference notes are on, the focus person's OWN update didn't already run, and it hasn't already fired this session");
 assertTrue(src.indexOf("focusMarriageFootnoteAdded = true;") !== -1,
     "The guard flips to true so a second spouse's marriage update in the same run doesn't add a second footnote");

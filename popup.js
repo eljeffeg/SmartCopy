@@ -1644,6 +1644,19 @@ var focusphotoinfo = null;
 // spouselist loop) so it fires at most once per run, even if more than
 // one spouse's marriage/divorce data gets submitted in the same session.
 var focusMarriageFootnoteAdded = false;
+// #303 (live-reported, DanCornett - hung/crashed updating any spouse
+// whenever one or more already existed): the marriage-via-spouse
+// footnote check below used to read `sourcecheck` and `profileout`
+// directly - both real, but declared as LOCALS inside submitform()
+// (the "Update Profile"/"Submit" click handler), not inside
+// submitChildren() (a separate, plain top-level function declaration,
+// with no closure over submitform()'s locals no matter when or from
+// where it's called). Every marriage/
+// divorce submission hit this line and threw "ReferenceError: sourcecheck
+// is not defined" outright. Captured here instead, at the one point
+// submitform() itself already knows the answer, so submitChildren() (and
+// anything else called later in the same chain) can read it safely.
+var focusProfileSubmissionWasEmpty = false;
 var submitform = function () {
     if (parsecomplete && submitcheck) {
         document.getElementById("bottomsubmit").style.display = "none";
@@ -1658,6 +1671,8 @@ var submitform = function () {
         var sourcecheck = $('#sourceonoffswitch').prop('checked');
         var fs = $('#profiletable');
         var profileout = parseForm(fs);
+        // #303: see focusProfileSubmissionWasEmpty's own declaration.
+        focusProfileSubmissionWasEmpty = $.isEmptyObject(profileout);
         var profileupdatestatus = "";
         if (!$.isEmptyObject(profileout)) {
             updatetotal += 1;
@@ -2356,7 +2371,16 @@ function submitChildren() {
                 // happen (never a duplicate alongside their own real
                 // footnote) and only when the reference-note setting
                 // itself is on.
-                if (!$.isEmptyObject(marriageupdate) && sourcecheck && $.isEmptyObject(profileout) && !focusMarriageFootnoteAdded) {
+                //
+                // #303 (live-reported, DanCornett): sourcecheck/profileout
+                // here used to reference submitform()'s own locals of the
+                // same name, which this function has no access to at all -
+                // threw "ReferenceError: sourcecheck is not defined" on
+                // every marriage/divorce submission. Reads the live
+                // checkbox directly (matching sourcecheck's own original
+                // definition) and the captured
+                // focusProfileSubmissionWasEmpty flag instead.
+                if (!$.isEmptyObject(marriageupdate) && $('#sourceonoffswitch').prop('checked') && focusProfileSubmissionWasEmpty && !focusMarriageFootnoteAdded) {
                     focusMarriageFootnoteAdded = true;
                     var focusMarriageCategories = summarizeUpdatedCategories({}, false, marriagedates[i]);
                     var focusMarriageAboutMe = buildFocusReferenceAboutMe("", getFocusRefUrl(), focusMarriageCategories);

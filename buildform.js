@@ -870,10 +870,17 @@ function buildForm() {
         if (exists(alldata["profile"].about)) {
             sepx++;
             membersstring = $(div[0]).html();
-            var scoreabout = false;
-    //        if (focusabout.contains(alldata["profile"].about)) {
-    //            scoreabout = false;
-    //        }
+            // (live-reported, DanCornett, #296 follow-up): this was
+            // hardcoded false, so a real, non-empty About never
+            // pre-selected for the focus profile no matter what. Unlike a
+            // plain text field, submitting About is additive, not an
+            // overwrite - the actual submission path (popup.js, around
+            // "merge-existing-About") explicitly prepends whatever Geni
+            // already has onto the new text before sending it, so there's
+            // nothing here to protect by leaving it unchecked. Matches
+            // Dan's own expectation: About should pre-select whenever
+            // there's real content, regardless of what Geni currently has.
+            var scoreabout = true;
             var about = alldata["profile"].about;
             // #210: escapes `about` before it reaches the textarea's text content.
             membersstring = membersstring + buildAboutFieldRow({

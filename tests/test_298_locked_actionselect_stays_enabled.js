@@ -67,6 +67,8 @@ const getGeniLockSrc = extractFunction(bfSrc, 'getGeniLock');
 const getGeniFieldLockedSrc = extractFunction(bfSrc, 'getGeniFieldLocked');
 const getGeniPhotoLockedSrc = extractFunction(bfSrc, 'getGeniPhotoLocked');
 const isAppendSrc = extractFunction(bfSrc, 'isAppend');
+const resolveFieldEnabledSrc = extractFunction(bfSrc, 'resolveFieldEnabled');
+const isEnabledSrc = extractFunction(bfSrc, 'isEnabled');
 const applyProtectedDisabledStateSrc = extractFunction(bfSrc, 'applyProtectedDisabledState');
 const refreshFieldCheckStateSrc = extractFunction(bfSrc, 'refreshFieldCheckState');
 const refreshLivingCheckStateSrc = extractFunction(bfSrc, 'refreshLivingCheckState');
@@ -84,6 +86,8 @@ function build(genifamilydata) {
         ${getGeniFieldLockedSrc}
         ${getGeniPhotoLockedSrc}
         ${isAppendSrc}
+        ${resolveFieldEnabledSrc}
+        ${isEnabledSrc}
         ${applyProtectedDisabledStateSrc}
         ${refreshFieldCheckStateSrc}
         ${refreshLivingCheckStateSrc}

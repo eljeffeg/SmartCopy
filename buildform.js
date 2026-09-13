@@ -676,11 +676,21 @@ function buildForm() {
             membersstring = $(div[0]).html();
             sepx++;
             var title = "occupation";
-            var scoreoccupation = false;
-            if (scorefactors.contains(title)) {
-                scoreoccupation = true;
-                ck++;
-            }
+            // (found during a pre-selection audit): this used to require
+            // scorefactors.contains("occupation") - MyHeritage's own
+            // auto-generated "value add" summary text literally mentioning
+            // "occupation" - the same gate Photo/About had (#296) before
+            // being removed. Unlike Photo, Occupation already compares
+            // against Geni's real current value below (isChecked(...,
+            // genifocusdata.get("occupation"), ...)), so the existing
+            // blank/differs/protect logic already handles this safely
+            // without needing a separate relevance signal - the gate was
+            // only ever making this MISS real, safe opportunities to
+            // pre-select (most record types never mention "occupation" in
+            // that summary even when a real occupation was scraped), never
+            // protecting anything the value comparison doesn't already.
+            var scoreoccupation = true;
+            ck++;
             var occupation = alldata["profile"]["occupation"].trim();
             var occlocked = focusFieldLocked("occupation"); // #78
             membersstring = membersstring +
@@ -5231,24 +5241,36 @@ function syncGeotopcheckState(fs) {
 // computes.
 function applyProtectedDisabledState(input, scrapedValue, currentValue, locked) {
     var checknext = input.closest('tr').find('.checknext');
-    if (locked) {
+    // A family-member field's checked state at initial render is computed
+    // with currentValue hardcoded blank (no match resolved yet to read a
+    // real Geni value from) - once setGeniFamilyData() learns the real
+    // value here, a field that render-time guessed wrong needs correcting.
+    // isChecked()/isEnabled() themselves guarantee checked+enabled always
+    // agree at render time; this is the one place that can reach a
+    // different answer once more is known.
+    var fieldWouldBeDisabled = isEnabled(scrapedValue, true, false, currentValue, locked) === "disabled";
+    if (locked || fieldWouldBeDisabled) {
         // A field discovered to be Geni-locked (or missing update
-        // permission) only becomes knowable once this member is matched
-        // to a real Geni profile - after initial render, which may have
+        // permission), OR one that turns out to need protecting (Geni
+        // already has real data the render-time guess would otherwise
+        // blank), only becomes knowable once this member is matched to a
+        // real Geni profile - after initial render, which may have
         // already checked this box (safely, with the information
         // available at the time). Un-checking here is always the safe
         // direction (removing eligibility to submit), unlike auto-
         // CHECKING, which this function deliberately never does (see the
         // comment above) - without this, a field checked at render time
-        // stayed checked-but-disabled forever after, a state
-        // isChecked()/isEnabled() themselves guarantee never happens at
-        // render time but this refresh path previously didn't uphold.
-        // Live-reported: this is what let a locked family member's
-        // estimated marriage date stay checked (and get submitted,
-        // rejected by Geni for permissions) after the lock was discovered.
+        // stayed checked-but-disabled forever after: not destructive on
+        // its own (parseForm() gates on disabled, not checked), but
+        // exactly the "checkbox and reality disagree" state this whole
+        // rule exists to prevent, just reached from the checked side
+        // instead of the disabled side. Live-reported (locked case): this
+        // is what let a locked family member's estimated marriage date
+        // stay checked (and get submitted, rejected by Geni for
+        // permissions) after the lock was discovered.
         checknext.prop('checked', false);
     }
-    var enabled = checknext.prop('checked') && isEnabled(scrapedValue, true, false, currentValue, locked) !== "disabled";
+    var enabled = checknext.prop('checked') && !fieldWouldBeDisabled;
     input.prop("disabled", !enabled);
     checknext.prop('disabled', !!locked);
 }

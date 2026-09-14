@@ -4096,12 +4096,18 @@ function buildUnknown(gender) {
 // Combining first+middle into one string, then comparing as an
 // order-independent set of words rather than a fixed sequence, handles
 // both a shifted field boundary and a reordered name with the same rule.
+// Periods/commas are stripped per-word (not just from the whole string)
+// so an abbreviated middle initial like "Vivian E." matches "Vivian E" -
+// otherwise "e." and "e" are two different strings and the exact-match
+// tier never fires.
 function getGivenNameWords(firstName, middleName) {
     var combined = ((firstName || "") + " " + (middleName || "")).trim();
     if (combined === "") {
         return [];
     }
-    return normalizeGermanic(combined.toLowerCase()).split(/\s+/).filter(function (word) {
+    return normalizeGermanic(combined.toLowerCase()).split(/\s+/).map(function (word) {
+        return word.replace(/[.,]/g, "");
+    }).filter(function (word) {
         return word !== "";
     });
 }

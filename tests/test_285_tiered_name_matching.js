@@ -90,6 +90,18 @@ assertEqual(ctx.compareGivenNameWordSets([], ['max']), null, "Blank side never m
 assertEqual(JSON.stringify(ctx.getGivenNameWords('Daniel', 'Ira')), JSON.stringify(['daniel', 'ira']), "Source: first+middle combine into one word list");
 assertEqual(JSON.stringify(ctx.getGivenNameWords('Daniel Ira', '')), JSON.stringify(['daniel', 'ira']), "Geni: compound first_name with blank middle_name produces the SAME word list");
 
+// --- getGivenNameWords: #285 follow-up - abbreviated middle initial punctuation ---
+assertEqual(JSON.stringify(ctx.getGivenNameWords('Vivian', 'E.')), JSON.stringify(['vivian', 'e']), "Trailing period on a middle initial is stripped, not kept as part of the word");
+assertEqual(JSON.stringify(ctx.getGivenNameWords('Vivian', 'E')), JSON.stringify(['vivian', 'e']), "Unpunctuated initial produces the identical word list to the punctuated form above");
+assertEqual(JSON.stringify(ctx.compareGivenNameWordSets(ctx.getGivenNameWords('Vivian', 'E.'), ctx.getGivenNameWords('Vivian', 'E'))), JSON.stringify('exact'), "\"Vivian E.\" vs \"Vivian E\" - the reported #285 follow-up bug - now compares exact instead of failing to match");
+assertEqual(JSON.stringify(ctx.getGivenNameWords('Mary, Jane', '')), JSON.stringify(['mary', 'jane']), "A stray comma between words is stripped too, not just trailing periods");
+
+// Scenario 10: end-to-end, the exact reported #285 follow-up scenario - a punctuated middle initial on one side only
+withFamily({ p1: makeCandidate('daughter', 'Vivian', 'E', 'Kenney', '', '1900') }, function () {
+    var match = ctx.findExistingFamilyMatch('child', 'female', 'Vivian', 'E.', 'Kenney', '1900');
+    assertEqual(match && match.get('relation'), 'daughter', "Source's punctuated \"E.\" now matches Geni's unpunctuated \"E\" middle name - Tier 1 exact word-set");
+});
+
 // --- findExistingFamilyMatch: end-to-end, real reported scenarios ---
 
 // Scenario 1: Geni's compound "Daniel Ira" vs source's split Daniel/Ira - the original report

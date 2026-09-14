@@ -46,6 +46,7 @@ function extractFunction(srcText, name) {
 }
 const resolveFieldEnabled = new Function('isValue', 'exists', 'return ' + extractFunction(src, 'resolveFieldEnabled'))(isValue, exists);
 const isChecked = new Function('resolveFieldEnabled', 'return ' + extractFunction(src, 'isChecked'))(resolveFieldEnabled);
+const valuesAreEquivalent = new Function('return ' + extractFunction(src, 'valuesAreEquivalent'))();
 
 const scoreoccupation = true; // matches the real fixed code exactly - no scorefactors dependency
 assertEqual(isChecked('Farmer', scoreoccupation, false, ''), 'checked',
@@ -56,6 +57,15 @@ assertEqual(isChecked('', scoreoccupation, false, 'Blacksmith'), '',
     "Blank scraped + Geni already has a real occupation - still correctly protected, unchanged from before");
 assertEqual(isChecked('', scoreoccupation, false, ''), 'checked',
     "Blank scraped + Geni also blank - still correctly starts checked, nothing to protect");
+
+// --- #304: the focus profile's own occSameAsGeni computation (buildform.js's real render call site) ---
+function occSameAsGeni(occupation, geniOccupation) {
+    return isValue(occupation) && isValue(geniOccupation) && valuesAreEquivalent(occupation, geniOccupation);
+}
+assertEqual(isChecked('FARMER', scoreoccupation, false, 'Farmer', false, occSameAsGeni('FARMER', 'Farmer')), '',
+    "#304: an occupation identical to Geni's except for case no longer pre-checks - closes the 'wall of green' once a person is confidently matched");
+assertEqual(isChecked('Farmer', scoreoccupation, false, 'Blacksmith', false, occSameAsGeni('Farmer', 'Blacksmith')), 'checked',
+    "A genuinely different occupation still pre-checks, unaffected by #304");
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

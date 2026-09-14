@@ -196,7 +196,19 @@ value is non-empty:
   deliberate "clear this field" action), just never pre-checked into it.
 - **Scraped blank, Geni also blank:** starts checked/enabled - nothing to
   protect, saves a click before typing.
-- **Scraped has data:** checked/enabled as before, regardless of Geni's side.
+- **Scraped has data, and Geni's real value is known but different:**
+  checked/enabled, same as always.
+- **Scraped has data, and it's meaningfully identical to Geni's real value**
+  (#304 - case-insensitive, whitespace-collapsed; "Circa"/"About" ignored for
+  dates, but Before/After/Between kept strict; nicknames use containment,
+  not exact string equality): stays unchecked/disabled too - there's nothing
+  actually different to submit, so it shouldn't light up green. This only
+  applies once a real Geni value is knowable (a confirmed match) -
+  `valuesAreEquivalentForFieldType()` in `buildform.js` is the per-field-type
+  dispatch (generic/date/nicknames; About/Photo/Gender/Living are excluded -
+  About and Photo are additive so "already has this" isn't a reason to skip,
+  Gender/Living already have their own separate comparison-aware path with a
+  different, non-comparable vocabulary).
 
 **Checking a box must only ever be the result of an explicit user action** -
 an individual field checkbox, or a person's "select all" button - never a
@@ -224,10 +236,19 @@ and its "select all" companions were a real bug here before this was fixed.
 identical to what Geni already has, checked or not - covers the blank-to-
 blank case above, and also a checked field whose non-blank value happens to
 already match Geni (e.g. a birth year of 1821 landing on a profile Geni
-already has as 1821, or a Privacy value Geni already has). This is what lets
-"select all" stay simple (always checks everything it safely can, no
-no-op-skipping logic in the UI itself) without submitting a pointless update
-or logging a false "(updated: ...)" reference-note category.
+already has as 1821, or a Privacy value Geni already has). This is the final
+safety net regardless of anything above - even a field the pre-selection
+logic gets wrong can never actually submit a genuine no-op.
+
+`isFieldEmptyForCheckAll()` (popup.js) - "select all"'s own independent
+protection - mirrors the same #304 comparison for exactly this reason: a
+field non-blank but identical to Geni (not just blank-vs-Geni-has-data) is
+also excluded from what "select all" force-checks, using
+`valuesAreEquivalentForFieldType()` the same way the main resolver does.
+Without this, turning "select all" on for a person would immediately
+re-check every field the new comparison-aware logic had just correctly
+un-checked, the next time a match/action change re-runs the resync
+(`setGeniFamilyData()` -> `applySelectAllState()`).
 
 **Category-level "add all parents/siblings/children/partners" and each
 individual member's own auto-select both fire when Geni has zero existing

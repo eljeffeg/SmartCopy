@@ -78,5 +78,19 @@ assertEqual(datesAreEquivalent('', '3 January 1920'), false,
 assertEqual(datesAreEquivalent(undefined, undefined), true,
     "Two undefined values don't crash - the identical-value shortcut (a === b) catches this before the blank/exists guard even runs");
 
+// --- #304: ignoreCirca - new optional 3rd param, used by the pre-selection comparator ---
+assertEqual(datesAreEquivalent('Circa 1890', '1890', true), true,
+    "#304 (ignoreCirca=true): 'Circa 1890' is now equivalent to a bare '1890' - Dan's explicit ask, so a Circa-qualified estimate doesn't pre-check over an identical real Geni date");
+assertEqual(datesAreEquivalent('About 1890', '1890', true), true,
+    "#304 (ignoreCirca=true): 'About' normalizes the same as 'Circa' here too");
+assertEqual(datesAreEquivalent('1890', 'Circa 1890', true), true,
+    "#304 (ignoreCirca=true): works with the qualifier on either side, not just one direction");
+assertEqual(datesAreEquivalent('Before 1890', '1890', true), false,
+    "#304 (ignoreCirca=true): Before/After/Between are deliberately never stripped, even with ignoreCirca - a real, meaningful qualifier difference stays a real difference");
+assertEqual(datesAreEquivalent('Before 1890', 'After 1890', true), false,
+    "#304 (ignoreCirca=true): Before vs. After on the same year still never match, per Dan's explicit requirement");
+assertEqual(datesAreEquivalent('Circa 1890', '1890'), false,
+    "#304: omitting the 3rd argument (or passing false) reproduces the EXISTING default behavior unchanged - parseForm()'s submit-time no-op skip, the only real caller today, never passes ignoreCirca and must not be affected by this change");
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

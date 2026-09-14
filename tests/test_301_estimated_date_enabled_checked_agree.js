@@ -26,24 +26,31 @@ function extractFunction(srcText, name) {
     return srcText.slice(start, i + 1);
 }
 
-function exists(v) { return v !== undefined && v !== null && v !== ""; }
-function isValue(v) { return v !== ""; }
-function resolveFieldEnabled(value, score, force, currentValue, locked) {
-    if (locked) { return false; }
-    else if (force && score) { return true; }
-    else if (score && isValue(value)) { return true; }
-    else if (score && !isValue(value) && exists(currentValue) && !isValue(currentValue)) { return true; }
-    else { return false; }
-}
-function isChecked(value, score, force, currentValue, locked) {
-    return resolveFieldEnabled(value, score, force, currentValue, locked) ? "checked" : "";
-}
-function isEnabled(value, score, force, currentValue, locked) {
-    return resolveFieldEnabled(value, score, force, currentValue, locked) ? "" : "disabled";
+function extractArrayStatement(src, name) {
+    const marker = 'var ' + name + ' =';
+    const start = src.indexOf(marker);
+    if (start === -1) throw new Error('not found: ' + name);
+    const semi = src.indexOf(';', start);
+    return src.slice(start, semi + 1);
 }
 
-const isCheckedDateField = new Function('exists', 'isValue', 'isChecked', 'return ' + extractFunction(bfSrc, 'isCheckedDateField'))(exists, isValue, isChecked);
-const isEnabledDateField = new Function('exists', 'isValue', 'isEnabled', 'return ' + extractFunction(bfSrc, 'isEnabledDateField'))(exists, isValue, isEnabled);
+function exists(v) { return v !== undefined && v !== null && v !== ""; }
+function isValue(v) { return v !== ""; }
+// #304: datesAreEquivalent(), extracted from popup.js verbatim -
+// isCheckedDateField()/isEnabledDateField() now call it internally, so it
+// must be present in this harness (same extraction shape as
+// tests/test_212_240_dates_are_equivalent.js).
+const DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
+const moment = require(path.join(ROOT, 'moment.js'));
+const datesAreEquivalentSrc = extractArrayStatement(popupSrc, 'DATE_PARSE_FORMATS') + '\n' + extractFunction(popupSrc, 'datesAreEquivalent');
+const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN', datesAreEquivalentSrc + '\nreturn datesAreEquivalent;')(exists, moment, DATE_QUALIFIER_PATTERN);
+
+const resolveFieldEnabled = new Function('isValue', 'exists', 'return ' + extractFunction(bfSrc, 'resolveFieldEnabled'))(isValue, exists);
+const isChecked = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isChecked'))(resolveFieldEnabled);
+const isEnabled = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isEnabled'))(resolveFieldEnabled);
+
+const isCheckedDateField = new Function('exists', 'isValue', 'isChecked', 'datesAreEquivalent', 'return ' + extractFunction(bfSrc, 'isCheckedDateField'))(exists, isValue, isChecked, datesAreEquivalent);
+const isEnabledDateField = new Function('exists', 'isValue', 'isEnabled', 'datesAreEquivalent', 'return ' + extractFunction(bfSrc, 'isEnabledDateField'))(exists, isValue, isEnabled, datesAreEquivalent);
 
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {

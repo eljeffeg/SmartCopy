@@ -1536,24 +1536,38 @@ function isFieldEmptyForCheckAll(row) {
     if (valueFields.length === 0) {
         return false;
     }
+    var companion = row.find(".genislideinput").val();
     for (var i = 0; i < valueFields.length; i++) {
-        if (!isFieldValueBlank(valueFields[i])) {
+        if (isFieldValueBlank(valueFields[i])) {
+            continue;
+        }
+        // #304: a field that's non-blank but identical to what Geni
+        // already has (case/whitespace/Circa-insensitive, or - for
+        // nicknames - already contained in Geni's list) is nothing new to
+        // select either - without this, "Select All" would immediately
+        // re-check a field the new comparison-aware pre-selection just
+        // correctly un-checked, the moment a match/action change re-runs
+        // this resync (setGeniFamilyData() -> applySelectAllState()).
+        var fieldName = valueFields[i].name || "";
+        var fieldType = fieldName.endsWith(":date") ? "date" : (fieldName === "nicknames" ? "nicknames" : "generic");
+        if ((fieldName === "about_me" || fieldName === "photo" || fieldName === "gender" || fieldName === "is_alive") ||
+            !valuesAreEquivalentForFieldType(valueFields[i].value, companion, fieldType)) {
             return false;
         }
     }
-    // Every value field in this row is blank - safe to include (don't
-    // exclude) only if Geni's own value, read directly from this row's
-    // .genislideinput companion, is ALSO blank. Deliberately does NOT look
-    // at the field's disabled attribute - that toggles on every "all"
-    // check/uncheck cycle (see the second filter below and
-    // refreshFieldCheckState() in buildform.js), so a field correctly
-    // enabled once (e.g. after the action dropdown settles on "Add
-    // Profile") would otherwise get disabled again by simply unchecking
-    // "all", then wrongly look "protected" and get excluded the next time
-    // "all" is checked. The .genislideinput companion only changes when
-    // setGeniFamilyData()/render-time genifocusdata actually updates it,
-    // which is exactly when this determination should change too.
-    var companion = row.find(".genislideinput").val();
+    // Every value field in this row is either blank, or non-blank but
+    // identical to Geni's own value - safe to include (don't exclude) only
+    // if Geni's own value, read directly from this row's .genislideinput
+    // companion, is ALSO blank. Deliberately does NOT look at the field's
+    // disabled attribute - that toggles on every "all" check/uncheck cycle
+    // (see the second filter below and refreshFieldCheckState() in
+    // buildform.js), so a field correctly enabled once (e.g. after the
+    // action dropdown settles on "Add Profile") would otherwise get
+    // disabled again by simply unchecking "all", then wrongly look
+    // "protected" and get excluded the next time "all" is checked. The
+    // .genislideinput companion only changes when setGeniFamilyData()/
+    // render-time genifocusdata actually updates it, which is exactly
+    // when this determination should change too.
     return !isCompanionBlank(companion, valueFields[0]);
 }
 
@@ -2829,7 +2843,14 @@ function mergeAboutText(existingAbout, newContent) {
 // already recognized this same need for scraping generally, just never
 // ported over to this comparison-specific list).
 var DATE_PARSE_FORMATS = ["D MMMM YYYY", "D MMM YYYY", "MMMM D, YYYY", "MMM D, YYYY", "MMMM D YYYY", "MMM D YYYY", "YYYY-MM-DD", "YYYY"];
-function datesAreEquivalent(a, b) {
+// #304: ignoreCirca lets the pre-selection comparison treat "Circa 1890"/
+// "About 1890" as equivalent to a bare "1890" - every existing caller
+// (including parseForm()'s submit-time no-op skip below) never passes this
+// 3rd argument, so their behavior is unchanged: a qualifier mismatch still
+// means "not equivalent" by default. Before/After/Between are deliberately
+// never treated as ignorable, with or without this flag - those change a
+// date's meaning too much to silently treat as "the same."
+function datesAreEquivalent(a, b, ignoreCirca) {
     if (a === b) {
         return true;
     }
@@ -2842,8 +2863,15 @@ function datesAreEquivalent(a, b) {
         q = (q || "").toLowerCase();
         return q === "about" ? "circa" : q;
     };
-    if (normalizeQualifier(qualifierMatchA && qualifierMatchA[1]) !== normalizeQualifier(qualifierMatchB && qualifierMatchB[1])) {
-        return false;
+    var qualifierA = normalizeQualifier(qualifierMatchA && qualifierMatchA[1]);
+    var qualifierB = normalizeQualifier(qualifierMatchB && qualifierMatchB[1]);
+    if (qualifierA !== qualifierB) {
+        var bothBlankOrCirca = ignoreCirca &&
+            (qualifierA === "" || qualifierA === "circa") &&
+            (qualifierB === "" || qualifierB === "circa");
+        if (!bothBlankOrCirca) {
+            return false;
+        }
     }
     var restA = a.replace(DATE_QUALIFIER_PATTERN, "").replace(/(\d+)(st|nd|rd|th)\b/i, "$1").trim();
     var restB = b.replace(DATE_QUALIFIER_PATTERN, "").replace(/(\d+)(st|nd|rd|th)\b/i, "$1").trim();

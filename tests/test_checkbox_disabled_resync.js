@@ -53,6 +53,26 @@ function extractFunction(srcText, name) {
 // Real isChecked/isEnabled/resolveFieldEnabled, extracted verbatim.
 const resolveFieldEnabled = new Function('isValue', 'exists', 'return ' + extractFunction(src, 'resolveFieldEnabled'))(isValue, exists);
 const isEnabled = new Function('resolveFieldEnabled', 'return ' + extractFunction(src, 'isEnabled'))(resolveFieldEnabled);
+// #304: applyProtectedDisabledState() now computes sameAsGeni via
+// valuesAreEquivalentForFieldType(), which itself needs the real
+// valuesAreEquivalent()/nicknamesAreEquivalent()/datesAreEquivalent() -
+// all extracted verbatim, same pattern as tests/test_304_pre_selection_comparison.js.
+const popupSrc = fs.readFileSync(path.join(ROOT, 'popup.js'), 'utf8');
+function extractArrayStatement(srcText, name) {
+    const marker = 'var ' + name + ' =';
+    const start = srcText.indexOf(marker);
+    if (start === -1) throw new Error('not found: ' + name);
+    const semi = srcText.indexOf(';', start);
+    return srcText.slice(start, semi + 1);
+}
+const DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
+const moment = require(path.join(ROOT, 'moment.js'));
+const datesAreEquivalentSrc = extractArrayStatement(popupSrc, 'DATE_PARSE_FORMATS') + '\n' + extractFunction(popupSrc, 'datesAreEquivalent');
+const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN', datesAreEquivalentSrc + '\nreturn datesAreEquivalent;')(exists, moment, DATE_QUALIFIER_PATTERN);
+const valuesAreEquivalent = new Function('return ' + extractFunction(src, 'valuesAreEquivalent'))();
+const nicknamesAreEquivalent = new Function('return ' + extractFunction(src, 'nicknamesAreEquivalent'))();
+const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nicknamesAreEquivalent', 'valuesAreEquivalent',
+    'return ' + extractFunction(src, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, valuesAreEquivalent);
 const applyProtectedDisabledStateSrc = extractFunction(src, 'applyProtectedDisabledState');
 
 // Minimal jQuery-shaped stand-in for a single <input> + its row's
@@ -78,8 +98,8 @@ function makeRow(initialChecked) {
     return { input: input, state: state };
 }
 
-function callApplyProtectedDisabledState(input, scrapedValue, currentValue, locked) {
-    return new Function('isEnabled', 'return ' + applyProtectedDisabledStateSrc)(isEnabled)(input, scrapedValue, currentValue, locked);
+function callApplyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType) {
+    return new Function('isEnabled', 'isValue', 'valuesAreEquivalentForFieldType', 'return ' + applyProtectedDisabledStateSrc)(isEnabled, isValue, valuesAreEquivalentForFieldType)(input, scrapedValue, currentValue, locked, fieldType);
 }
 
 // --- The historical bug scenario: render-time guessed "checked" (blank scraped, blank hardcoded currentValue), but Geni's REAL value turns out to be real/non-blank ---
@@ -121,6 +141,56 @@ function callApplyProtectedDisabledState(input, scrapedValue, currentValue, lock
     callApplyProtectedDisabledState(row.input, 'Real Scraped Value', 'Geni Value', false);
     assertEqual(row.state.inputDisabled, true, "A manually-unchecked box's field stays disabled - never silently re-enabled just because the value comparison would otherwise allow it");
     assertEqual(row.state.checkboxChecked, false, "The checkbox itself is never auto-CHECKED by this function - only ever un-checked, matching the documented rule");
+}
+
+// --- #304: generic fieldType - case/whitespace-only difference now un-checks too ---
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, 'FARMER', 'farmer', false, 'generic');
+    assertEqual(row.state.inputDisabled, true, "#304: a field identical to Geni's value except for case now correctly un-checks - no more wall-of-green on fields that already match");
+    assertEqual(row.state.checkboxChecked, false, "Its checkbox un-checks to match");
+}
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, 'Genuinely Different', 'Farmer', false, 'generic');
+    assertEqual(row.state.inputDisabled, false, "Regression: a genuinely different generic-fieldType value still stays checked/enabled");
+    assertEqual(row.state.checkboxChecked, true, "");
+}
+
+// --- #304: date fieldType - Circa-stripped equivalence un-checks, Before/After stays strict ---
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, 'Circa 1890', '1890', false, 'date');
+    assertEqual(row.state.checkboxChecked, false, "#304: 'Circa 1890' un-checks against Geni's plain '1890' - the exact scenario from #304's design brief");
+}
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, 'Before 1890', '1890', false, 'date');
+    assertEqual(row.state.checkboxChecked, true, "Before/After/Between are never stripped - 'Before 1890' still counts as genuinely different from '1890', per Dan's explicit requirement");
+}
+
+// --- #304: nicknames fieldType - scraped subset already on Geni un-checks ---
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, 'Johnny', ['Johnny', 'Jack'], false, 'nicknames');
+    assertEqual(row.state.checkboxChecked, false, "#304: a scraped nickname already present in Geni's (array) list un-checks - no duplicate re-add");
+}
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, 'Johnny,Rusty', 'Johnny,Jack', false, 'nicknames');
+    assertEqual(row.state.checkboxChecked, true, "A genuinely new nickname among the scraped set still stays checked");
+}
+
+// --- #304: about_me/photo/gender/living fieldTypes are explicitly NEVER affected by the new comparator ---
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, 'Same text', 'Same text', false, 'about_me');
+    assertEqual(row.state.checkboxChecked, true, "Regression: about_me stays checked even when byte-identical to Geni - additive, never protected, tail-comparison deferred");
+}
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, 'male', 'male', false, 'gender');
+    assertEqual(row.state.checkboxChecked, true, "Regression: gender fieldType is excluded from the new comparator - already comparison-aware via its own separate bespoke path");
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

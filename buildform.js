@@ -693,9 +693,13 @@ function buildForm() {
             ck++;
             var occupation = alldata["profile"]["occupation"].trim();
             var occlocked = focusFieldLocked("occupation"); // #78
+            // #304: don't pre-check when the scraped occupation is already
+            // on Geni, modulo case/whitespace - the wall-of-green problem.
+            var occSameAsGeni = isValue(occupation) && isValue(genifocusdata.get("occupation")) &&
+                valuesAreEquivalent(occupation, genifocusdata.get("occupation"));
             membersstring = membersstring +
-                '<tr id="occupation"><td class="profilediv"><input type="checkbox" class="checknext" ' + (occlocked ? 'disabled ' : '') + isChecked(occupation, scoreoccupation, false, genifocusdata.get("occupation"), occlocked) + '>' +
-                capFL(title) + ': </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="' + title + '" value="' + occupation + '" ' + isEnabled(occupation, scoreoccupation, false, genifocusdata.get("occupation"), occlocked) + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
+                '<tr id="occupation"><td class="profilediv"><input type="checkbox" class="checknext" ' + (occlocked ? 'disabled ' : '') + isChecked(occupation, scoreoccupation, false, genifocusdata.get("occupation"), occlocked, occSameAsGeni) + '>' +
+                capFL(title) + ': </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="' + title + '" value="' + occupation + '" ' + isEnabled(occupation, scoreoccupation, false, genifocusdata.get("occupation"), occlocked, occSameAsGeni) + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         } else {
             membersstring = $(div[0]).html();
@@ -1120,64 +1124,64 @@ function buildForm() {
                             locationval = locationval + '<img class="geopin" title="' + escapeHtml(pintitle) + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 14px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                             buildLocationFieldRow({
                                 trClass: "geoplace" + itemGeoplacehidden, classStyleSep: "", displayVal: itemGeoplace,
-                                checkedAttr: isChecked(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked),
-                                enabledAttr: isEnabled(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked),
+                                checkedAttr: isChecked(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked, isValue(itemPlaceNameValue) && isValue(genifocusdata.get(title, "location_string")) && valuesAreEquivalent(itemPlaceNameValue, genifocusdata.get(title, "location_string"))),
+                                enabledAttr: isEnabled(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked, isValue(itemPlaceNameValue) && isValue(genifocusdata.get(title, "location_string")) && valuesAreEquivalent(itemPlaceNameValue, genifocusdata.get(title, "location_string"))),
                                 label: capFL(title) + " Place:", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:place_name", value: itemPlaceNameValue, icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location_string"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name"), locationlocked),
-                                enabledAttr: isEnabled(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name"), locationlocked),
+                                checkedAttr: isChecked(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name"), locationlocked, isValue(placegeo) && isValue(genifocusdata.get(title, "location.place_name")) && valuesAreEquivalent(placegeo, genifocusdata.get(title, "location.place_name"))),
+                                enabledAttr: isEnabled(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name"), locationlocked, isValue(placegeo) && isValue(genifocusdata.get(title, "location.place_name")) && valuesAreEquivalent(placegeo, genifocusdata.get(title, "location.place_name"))),
                                 label: "Place: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:place_name_geo", value: placegeo, icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.place_name"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(city, geoScored, geoone, genifocusdata.get(title, "location.city"), locationlocked),
-                                enabledAttr: isEnabled(city, geoScored, geoone, genifocusdata.get(title, "location.city"), locationlocked),
+                                checkedAttr: isChecked(city, geoScored, geoone, genifocusdata.get(title, "location.city"), locationlocked, isValue(city) && isValue(genifocusdata.get(title, "location.city")) && valuesAreEquivalent(city, genifocusdata.get(title, "location.city"))),
+                                enabledAttr: isEnabled(city, geoScored, geoone, genifocusdata.get(title, "location.city"), locationlocked, isValue(city) && isValue(genifocusdata.get(title, "location.city")) && valuesAreEquivalent(city, genifocusdata.get(title, "location.city"))),
                                 label: "City: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:city", value: city, icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.city"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(county, geoScored, geoone, genifocusdata.get(title, "location.county"), locationlocked),
-                                enabledAttr: isEnabled(county, geoScored, geoone, genifocusdata.get(title, "location.county"), locationlocked),
+                                checkedAttr: isChecked(county, geoScored, geoone, genifocusdata.get(title, "location.county"), locationlocked, isValue(county) && isValue(genifocusdata.get(title, "location.county")) && valuesAreEquivalent(county, genifocusdata.get(title, "location.county"))),
+                                enabledAttr: isEnabled(county, geoScored, geoone, genifocusdata.get(title, "location.county"), locationlocked, isValue(county) && isValue(genifocusdata.get(title, "location.county")) && valuesAreEquivalent(county, genifocusdata.get(title, "location.county"))),
                                 label: "County: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:county", value: county, icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.county"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(state, geoScored, geoone, genifocusdata.get(title, "location.state"), locationlocked),
-                                enabledAttr: isEnabled(state, geoScored, geoone, genifocusdata.get(title, "location.state"), locationlocked),
+                                checkedAttr: isChecked(state, geoScored, geoone, genifocusdata.get(title, "location.state"), locationlocked, isValue(state) && isValue(genifocusdata.get(title, "location.state")) && valuesAreEquivalent(state, genifocusdata.get(title, "location.state"))),
+                                enabledAttr: isEnabled(state, geoScored, geoone, genifocusdata.get(title, "location.state"), locationlocked, isValue(state) && isValue(genifocusdata.get(title, "location.state")) && valuesAreEquivalent(state, genifocusdata.get(title, "location.state"))),
                                 label: "State: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:state", value: state, icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.state"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(country, geoScored, geoone, genifocusdata.get(title, "location.country"), locationlocked),
-                                enabledAttr: isEnabled(country, geoScored, geoone, genifocusdata.get(title, "location.country"), locationlocked),
+                                checkedAttr: isChecked(country, geoScored, geoone, genifocusdata.get(title, "location.country"), locationlocked, isValue(country) && isValue(genifocusdata.get(title, "location.country")) && valuesAreEquivalent(country, genifocusdata.get(title, "location.country"))),
+                                enabledAttr: isEnabled(country, geoScored, geoone, genifocusdata.get(title, "location.country"), locationlocked, isValue(country) && isValue(genifocusdata.get(title, "location.country")) && valuesAreEquivalent(country, genifocusdata.get(title, "location.country"))),
                                 label: "Country: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:country", value: country, icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.country"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked),
-                                enabledAttr: isEnabled(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked),
+                                checkedAttr: isChecked(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked, isValue(String(latitude)) && isValue(genifocusdata.get(title, "location.latitude")) && valuesAreEquivalent(latitude, genifocusdata.get(title, "location.latitude"))),
+                                enabledAttr: isEnabled(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked, isValue(String(latitude)) && isValue(genifocusdata.get(title, "location.latitude")) && valuesAreEquivalent(latitude, genifocusdata.get(title, "location.latitude"))),
                                 label: "Latitude: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:latitude", value: String(latitude), icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.latitude"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked),
-                                enabledAttr: isEnabled(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked),
+                                checkedAttr: isChecked(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked, isValue(String(longitude)) && isValue(genifocusdata.get(title, "location.longitude")) && valuesAreEquivalent(longitude, genifocusdata.get(title, "location.longitude"))),
+                                enabledAttr: isEnabled(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked, isValue(String(longitude)) && isValue(genifocusdata.get(title, "location.longitude")) && valuesAreEquivalent(longitude, genifocusdata.get(title, "location.longitude"))),
                                 label: "Longitude: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:longitude", value: String(longitude), icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.longitude"), locked: locationlocked
@@ -2376,6 +2380,38 @@ function normalizeGermanic(s) {
     return (s || "").replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss");
 }
 
+// #304: generic "is this scraped value meaningfully different from what
+// Geni already has" comparator, used to decide whether a field should
+// pre-select once a real Geni value is known - case-insensitive and
+// whitespace-collapsed (per Geni's own search/compare conventions), for
+// comparison purposes only. Never mutates the actual scraped string that
+// gets submitted.
+function valuesAreEquivalent(a, b) {
+    var normalize = function (v) {
+        return (v === undefined || v === null ? "" : String(v)).replace(/\s+/g, " ").trim().toLowerCase();
+    };
+    return normalize(a) === normalize(b);
+}
+
+// #304: nicknames need containment, not exact equality - Geni's "Also
+// Known As" is a collection (returned as an array by the API), so a
+// scraped value should be considered "nothing new" whenever every nickname
+// it lists is already present on Geni's side, regardless of order or of
+// Geni having additional ones the source doesn't mention.
+function nicknamesAreEquivalent(scraped, current) {
+    var toWordSet = function (v) {
+        if (v instanceof Array) { v = v.join(","); }
+        return (v || "").split(",").map(function (s) {
+            return s.replace(/\s+/g, " ").trim().toLowerCase();
+        }).filter(function (s) { return s !== ""; });
+    };
+    var scrapedWords = toWordSet(scraped);
+    var currentWords = toWordSet(current);
+    return scrapedWords.length > 0 && scrapedWords.every(function (w) {
+        return currentWords.indexOf(w) !== -1;
+    });
+}
+
 /**
  * @return {string}
  */
@@ -3047,12 +3083,22 @@ function buildLocationFieldRow(opts) {
 // checked/enabled string labels themselves, which genuinely do need to
 // differ - that's the one real difference, kept in the two thin wrappers
 // below rather than in the condition logic itself).
-function resolveFieldEnabled(value, score, force, currentValue, locked) {
+// #304: sameAsGeni is a new, optional trailing parameter - every existing
+// call site that doesn't pass it keeps its exact current behavior
+// (undefined is falsy). When a caller has determined the scraped value is
+// meaningfully identical to what Geni already has (see
+// valuesAreEquivalent()/valuesAreEquivalentForFieldType()), this suppresses
+// the "scraped has data" branch so an already-matching field no longer
+// pre-checks - closing the gap where every field the source had data for
+// pre-checked regardless of whether it was actually different from Geni's
+// side, defeating the point of the highlighting once a person is
+// confidently matched.
+function resolveFieldEnabled(value, score, force, currentValue, locked, sameAsGeni) {
     if (locked) {
         return false;
     } else if (force && score) {
         return true;
-    } else if (score && isValue(value)) {
+    } else if (score && isValue(value) && !sameAsGeni) {
         return true;
     } else if (score && !isValue(value) && exists(currentValue) && !isValue(currentValue)) {
         return true;
@@ -3061,8 +3107,8 @@ function resolveFieldEnabled(value, score, force, currentValue, locked) {
     }
 }
 
-function isEnabled(value, score, force, currentValue, locked) {
-    return resolveFieldEnabled(value, score, force, currentValue, locked) ? "" : "disabled";
+function isEnabled(value, score, force, currentValue, locked, sameAsGeni) {
+    return resolveFieldEnabled(value, score, force, currentValue, locked, sameAsGeni) ? "" : "disabled";
 }
 
 function isHidden(value, geo) {
@@ -3149,8 +3195,8 @@ function isSelected(id1, id2) {
 // sync so a field never ends up checked-but-disabled or enabled-but-not
 // submitted.
 // #78: locked forces unchecked, same precedence reasoning as isEnabled().
-function isChecked(value, score, force, currentValue, locked) {
-    return resolveFieldEnabled(value, score, force, currentValue, locked) ? "checked" : "";
+function isChecked(value, score, force, currentValue, locked, sameAsGeni) {
+    return resolveFieldEnabled(value, score, force, currentValue, locked, sameAsGeni) ? "checked" : "";
 }
 
 // #230: an estimated date must never end up pre-checked when Geni already
@@ -3169,7 +3215,11 @@ function isCheckedDateField(dateval, score, currentValue, locked, estimated) {
     if (estimated === true && exists(currentValue) && isValue(currentValue)) {
         return "";
     }
-    return isChecked(dateval, score, false, currentValue, locked);
+    // #304: strips Circa/About before comparing (so "Circa 1890" doesn't
+    // pre-check over Geni's existing "1890"), while Before/After/Between
+    // are never stripped - see datesAreEquivalent()'s ignoreCirca param.
+    var sameAsGeni = isValue(dateval) && isValue(currentValue) && datesAreEquivalent(dateval, currentValue, true);
+    return isChecked(dateval, score, false, currentValue, locked, sameAsGeni);
 }
 
 // (live-reported, DanCornett, #301): isCheckedDateField() above correctly
@@ -3189,7 +3239,9 @@ function isEnabledDateField(dateval, score, currentValue, locked, estimated) {
     if (estimated === true && exists(currentValue) && isValue(currentValue)) {
         return "disabled";
     }
-    return isEnabled(dateval, score, false, currentValue, locked);
+    // #304: see isCheckedDateField() above - must stay in agreement with it.
+    var sameAsGeni = isValue(dateval) && isValue(currentValue) && datesAreEquivalent(dateval, currentValue, true);
+    return isEnabled(dateval, score, false, currentValue, locked, sameAsGeni);
 }
 
 // #208: shared "get the year from a birth array" lookup - scans for the
@@ -5245,7 +5297,30 @@ function syncGeotopcheckState(fs) {
 // side. Only ever ENABLE the input when its checkbox is already checked;
 // an unchecked box always forces disabled, regardless of what isEnabled()
 // computes.
-function applyProtectedDisabledState(input, scrapedValue, currentValue, locked) {
+// #304: per-fieldType equivalence dispatch - date fields get Circa/About-
+// stripped comparison (Before/After/Between stay strict), nicknames get
+// containment (a scraped nickname already present on Geni is nothing new),
+// about_me/photo are additive and never treated as "same" (matches their
+// existing always-pre-select design; About's tail-comparison is a separate,
+// deliberately deferred enhancement), gender/living are excluded because
+// they already have their own comparison-aware path with a different
+// vocabulary (raw API value vs. localized display string) that a generic
+// string compare would misfire against. Everything else gets the generic
+// case/whitespace-insensitive comparator.
+function valuesAreEquivalentForFieldType(scraped, current, fieldType) {
+    if (fieldType === "date") {
+        return datesAreEquivalent(scraped, current, true);
+    }
+    if (fieldType === "nicknames") {
+        return nicknamesAreEquivalent(scraped, current);
+    }
+    if (fieldType === "about_me" || fieldType === "photo" || fieldType === "gender" || fieldType === "living") {
+        return false;
+    }
+    return valuesAreEquivalent(scraped, current);
+}
+
+function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType) {
     var checknext = input.closest('tr').find('.checknext');
     // A family-member field's checked state at initial render is computed
     // with currentValue hardcoded blank (no match resolved yet to read a
@@ -5254,7 +5329,13 @@ function applyProtectedDisabledState(input, scrapedValue, currentValue, locked) 
     // isChecked()/isEnabled() themselves guarantee checked+enabled always
     // agree at render time; this is the one place that can reach a
     // different answer once more is known.
-    var fieldWouldBeDisabled = isEnabled(scrapedValue, true, false, currentValue, locked) === "disabled";
+    // #304: sameAsGeni additionally catches a field that's genuinely
+    // non-blank on both sides but identical (modulo case/whitespace/Circa/
+    // nickname-containment per fieldType) - the field would otherwise stay
+    // pre-checked forever even though there's nothing to actually submit.
+    var sameAsGeni = isValue(scrapedValue) && isValue(currentValue) &&
+        valuesAreEquivalentForFieldType(scrapedValue, currentValue, fieldType);
+    var fieldWouldBeDisabled = isEnabled(scrapedValue, true, false, currentValue, locked, sameAsGeni) === "disabled";
     if (locked || fieldWouldBeDisabled) {
         // A field discovered to be Geni-locked (or missing update
         // permission), OR one that turns out to need protecting (Geni
@@ -5299,7 +5380,14 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue)
         if (scrapedValue === blankValue) { scrapedValue = ""; }
         if (currentValue === blankValue) { currentValue = ""; }
     }
-    applyProtectedDisabledState(input, scrapedValue, currentValue, locked);
+    // #304: fieldName already encodes what kind of comparison this field
+    // needs - see valuesAreEquivalentForFieldType().
+    var fieldType = fieldName.endsWith(":date") ? "date" :
+        (fieldName === "nicknames" ? "nicknames" :
+            (fieldName === "about_me" ? "about_me" :
+                (fieldName === "photo" ? "photo" :
+                    (fieldName === "gender" ? "gender" : "generic"))));
+    applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType);
 }
 
 // #217: Living's <select> only ever holds a real true/false value - never a
@@ -5314,7 +5402,7 @@ function refreshLivingCheckState(id, currentValue, locked) {
         return;
     }
     var scrapedValue = (input.attr("data-scraped") === "true") ? input.val() : "";
-    applyProtectedDisabledState(input, scrapedValue, currentValue, locked);
+    applyProtectedDisabledState(input, scrapedValue, currentValue, locked, "living");
 }
 
 // #230 follow-up: photo submission uses its own separate "add-photo" Geni
@@ -5523,6 +5611,18 @@ function setGeniFamilyData(id, profile) {
     // to a different match (locked -> editable, or vice versa) must not
     // leave a stale lock icon from whatever was previously selected.
     $('#' + id + '_action_lock').css('display', noEditPermission ? 'inline' : 'none');
+    // #304: the resync above may just have un-checked every remaining
+    // field for this member (e.g. a fully-matched candidate whose scraped
+    // data now turns out to be identical to Geni's own) - if the person's
+    // own top-level box was checked (an earlier explicit "select all" or
+    // per-field click) and nothing underneath it is checked anymore, clear
+    // it too, so the collapsed person-bar tick-mark never shows a
+    // commitment that doesn't actually exist. Skipped when noEditPermission
+    // already handled it above.
+    if (!noEditPermission && checkslideEl.length > 0 && checkslideEl.prop("checked") &&
+        memberexpand.find('.checknext:checked').length === 0) {
+        checkslideEl.prop('checked', false);
+    }
 }
 
 function isAlive(alive) {

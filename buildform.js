@@ -5198,22 +5198,27 @@ function applySelectAllState(fs, selectingAll) {
         if ($(ffs[item]).closest('tr').find('.checknext').prop('disabled')) {
             return false;
         }
-        // Same reasoning as isFieldEmptyForCheckAll() (popup.js) - reads
-        // Geni's value straight from this row's .genislideinput companion
-        // rather than the field's own disabled attribute, which this very
-        // filter mutates on every check/uncheck cycle and would otherwise
-        // go stale. #217: also covers Gender/Living's <select> fields, not
-        // just text/textarea - isFieldValueBlank()/isCompanionBlank() know
-        // each field's own blank sentinel (Gender: "unknown"; Living:
-        // data-scraped) rather than assuming "" is the only blank state.
+        // #304 follow-up (live-reported, DanCornett): this used to run its
+        // own inline blank-only check (isFieldValueBlank()/isCompanionBlank()
+        // directly) instead of calling isFieldEmptyForCheckAll() (popup.js)
+        // like the checkbox filter above does - two independent
+        // implementations of "is this field a no-op" that drifted apart the
+        // moment #304 taught isFieldEmptyForCheckAll() about sameAsGeni
+        // (non-blank but identical to Geni) and this copy didn't get the
+        // same update. Symptom: a field whose checkbox correctly un-checked
+        // itself (via the filter above) still showed re-ENABLED/green here
+        // a moment later, because this block only protected genuinely blank
+        // fields, not ones that just happen to already match Geni. Reusing
+        // the one shared function closes the gap and removes the
+        // duplication that let it happen. Reads Geni's value straight from
+        // this row's .genislideinput companion rather than the field's own
+        // disabled attribute, which this very filter mutates on every
+        // check/uncheck cycle and would otherwise go stale.
         if (selectingAll &&
             (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA" ||
              (ffs[item].tagName === "SELECT" && (ffs[item].name === "gender" || ffs[item].name === "is_alive"))) &&
-            isFieldValueBlank(ffs[item])) {
-            var companionVal = $(ffs[item]).closest("tr").find(".genislideinput").val();
-            if (!isCompanionBlank(companionVal, ffs[item])) {
-                return false;
-            }
+            isFieldEmptyForCheckAll($(ffs[item]).closest("tr"))) {
+            return false;
         }
         return true;
     }).attr('disabled', !selectingAll);
@@ -5302,11 +5307,12 @@ function syncGeotopcheckState(fs) {
 // containment (a scraped nickname already present on Geni is nothing new),
 // about_me/photo are additive and never treated as "same" (matches their
 // existing always-pre-select design; About's tail-comparison is a separate,
-// deliberately deferred enhancement), gender/living are excluded because
-// they already have their own comparison-aware path with a different
-// vocabulary (raw API value vs. localized display string) that a generic
-// string compare would misfire against. Everything else gets the generic
-// case/whitespace-insensitive comparator.
+// deliberately deferred enhancement). Everything else - including Gender
+// and Living for family members, whose scraped/current values are both the
+// same raw vocabulary (male/female/unknown; true/false) - gets the generic
+// case/whitespace-insensitive comparator. (The FOCUS profile's Gender/
+// Living never reach this function at all - they have their own, separate
+// bespoke comparison outside this whole mechanism.)
 function valuesAreEquivalentForFieldType(scraped, current, fieldType) {
     if (fieldType === "date") {
         return datesAreEquivalent(scraped, current, true);
@@ -5314,7 +5320,7 @@ function valuesAreEquivalentForFieldType(scraped, current, fieldType) {
     if (fieldType === "nicknames") {
         return nicknamesAreEquivalent(scraped, current);
     }
-    if (fieldType === "about_me" || fieldType === "photo" || fieldType === "gender" || fieldType === "living") {
+    if (fieldType === "about_me" || fieldType === "photo") {
         return false;
     }
     return valuesAreEquivalent(scraped, current);
@@ -5381,12 +5387,20 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue)
         if (currentValue === blankValue) { currentValue = ""; }
     }
     // #304: fieldName already encodes what kind of comparison this field
-    // needs - see valuesAreEquivalentForFieldType().
+    // needs - see valuesAreEquivalentForFieldType(). Gender uses "generic"
+    // like any other field - scraped and Geni's own value are both the
+    // same raw male/female/unknown vocabulary here (blankValue above
+    // already normalized "unknown" to "" on both sides), unlike the FOCUS
+    // profile's gender, which has its own separate bespoke comparison
+    // outside this whole mechanism and never reaches this function at all.
+    // (Live-reported, DanCornett, #304: family Gender was originally
+    // excluded here on the mistaken assumption it already had that same
+    // bespoke path - it doesn't, for family members - which meant it never
+    // un-checked even when identical to Geni.)
     var fieldType = fieldName.endsWith(":date") ? "date" :
         (fieldName === "nicknames" ? "nicknames" :
             (fieldName === "about_me" ? "about_me" :
-                (fieldName === "photo" ? "photo" :
-                    (fieldName === "gender" ? "gender" : "generic"))));
+                (fieldName === "photo" ? "photo" : "generic")));
     applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType);
 }
 
@@ -5402,7 +5416,11 @@ function refreshLivingCheckState(id, currentValue, locked) {
         return;
     }
     var scrapedValue = (input.attr("data-scraped") === "true") ? input.val() : "";
-    applyProtectedDisabledState(input, scrapedValue, currentValue, locked, "living");
+    // #304: "generic" - the select's own value ("true"/"false") and Geni's
+    // raw is_alive value are the same vocabulary (valuesAreEquivalent()'s
+    // String() coercion handles Geni returning an actual boolean rather
+    // than a string), same reasoning as Gender above.
+    applyProtectedDisabledState(input, scrapedValue, currentValue, locked, "generic");
 }
 
 // #230 follow-up: photo submission uses its own separate "add-photo" Geni

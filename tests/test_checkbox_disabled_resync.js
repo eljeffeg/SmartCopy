@@ -181,16 +181,32 @@ function callApplyProtectedDisabledState(input, scrapedValue, currentValue, lock
     assertEqual(row.state.checkboxChecked, true, "A genuinely new nickname among the scraped set still stays checked");
 }
 
-// --- #304: about_me/photo/gender/living fieldTypes are explicitly NEVER affected by the new comparator ---
+// --- #304: about_me/photo fieldTypes are explicitly NEVER affected by the new comparator (additive, never protected) ---
 {
     const row = makeRow(true);
     callApplyProtectedDisabledState(row.input, 'Same text', 'Same text', false, 'about_me');
     assertEqual(row.state.checkboxChecked, true, "Regression: about_me stays checked even when byte-identical to Geni - additive, never protected, tail-comparison deferred");
 }
+
+// --- #304 follow-up (live-reported, DanCornett): family Gender/Living use "generic" just like any other field -
+// initially excluded here on the mistaken assumption they already had their own comparison-aware path (true only
+// for the FOCUS profile, not family members), which meant family Gender/Living never un-checked even when
+// identical to Geni. refreshFieldCheckState()/refreshLivingCheckState() pass fieldType="generic" for these now,
+// same as this scenario. ---
 {
     const row = makeRow(true);
-    callApplyProtectedDisabledState(row.input, 'male', 'male', false, 'gender');
-    assertEqual(row.state.checkboxChecked, true, "Regression: gender fieldType is excluded from the new comparator - already comparison-aware via its own separate bespoke path");
+    callApplyProtectedDisabledState(row.input, 'male', 'male', false, 'generic');
+    assertEqual(row.state.checkboxChecked, false, "#304 follow-up: family Gender identical to Geni's now correctly un-checks (was stuck always-checked before this fix)");
+}
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, 'male', 'female', false, 'generic');
+    assertEqual(row.state.checkboxChecked, true, "Regression: a genuinely different Gender still stays checked");
+}
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, 'true', 'true', false, 'generic');
+    assertEqual(row.state.checkboxChecked, false, "#304 follow-up: family Living identical to Geni's now correctly un-checks, same fix as Gender");
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

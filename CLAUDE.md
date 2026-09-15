@@ -205,10 +205,16 @@ value is non-empty:
   actually different to submit, so it shouldn't light up green. This only
   applies once a real Geni value is knowable (a confirmed match) -
   `valuesAreEquivalentForFieldType()` in `buildform.js` is the per-field-type
-  dispatch (generic/date/nicknames; About/Photo/Gender/Living are excluded -
-  About and Photo are additive so "already has this" isn't a reason to skip,
-  Gender/Living already have their own separate comparison-aware path with a
-  different, non-comparable vocabulary).
+  dispatch (generic/date/nicknames; only About/Photo are excluded - both are
+  additive, so "already has this" is never a reason to skip). Family Gender
+  and Living use the plain generic comparator too, same as any other field -
+  their scraped and Geni values are already the same raw vocabulary
+  (male/female/unknown; true/false). The FOCUS profile's Gender/Living never
+  reach this dispatch at all - they resolve via their own separate bespoke
+  branching instead (live-reported, DanCornett, #304 follow-up: this was
+  originally mis-scoped to exclude family Gender/Living too, on the mistaken
+  assumption they shared that same bespoke path - they don't, so they never
+  un-checked even when identical to Geni until this was corrected).
 
 **Checking a box must only ever be the result of an explicit user action** -
 an individual field checkbox, or a person's "select all" button - never a
@@ -249,6 +255,22 @@ Without this, turning "select all" on for a person would immediately
 re-check every field the new comparison-aware logic had just correctly
 un-checked, the next time a match/action change re-runs the resync
 (`setGeniFamilyData()` -> `applySelectAllState()`).
+
+**`applySelectAllState()` (`buildform.js`) has two separate filters over the
+same row set - one for checkboxes, one for the value fields themselves - and
+both need to agree, or a field's checkbox and its own visible enabled/
+disabled (green/grey) state can disagree.** Live-reported (DanCornett, #304
+follow-up): the value-field filter used to run its own separate inline
+blank-only check instead of calling `isFieldEmptyForCheckAll()` like the
+checkbox filter does - two independent implementations of "is this field a
+no-op" that drifted the moment one of them learned about `sameAsGeni` and
+the other didn't. Symptom: a field's checkbox correctly un-checked itself,
+but the field was then re-enabled (green) a moment later by the other
+filter, because it only knew how to protect a genuinely blank field, not one
+that just happened to already match Geni. Now both filters call the one
+shared `isFieldEmptyForCheckAll()` - if a third place ever needs this same
+"is this field a no-op" question, reuse that function rather than writing
+another copy.
 
 **Category-level "add all parents/siblings/children/partners" and each
 individual member's own auto-select both fire when Geni has zero existing

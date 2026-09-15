@@ -227,6 +227,8 @@ const memberId = '0';
 
     assertEqual($('input[name="occupation"]').closest('tr').find('.checknext').prop('checked'), false,
         "#304: occupation un-checks once the match reveals it's already 'Farmer' on Geni, modulo case - Dan's reported wall-of-green");
+    assertEqual($('input[name="occupation"]').prop('disabled'), true,
+        "#304 follow-up (live-reported, DanCornett): the field itself also stays disabled (grey), not just its checkbox unchecked - applySelectAllState()'s own second filter (separate from the checkbox filter) used to force-re-enable it a moment later since Select All was already on for this person, showing green for a field whose checkbox had correctly unchecked - 'inconsistent visual implications' from Dan's report");
     assertEqual($('.checkslide').prop('checked'), false,
         "#304 person-bar converse: the top-level box (pre-checked as an earlier explicit action) clears too, since nothing underneath ended up checked");
 }

@@ -1505,21 +1505,23 @@ $(function () {
                     ffs[item].name === "action" || ffs[item].name === "profile_id") {
                     return false;
                 }
-                // Same reasoning as isFieldEmptyForCheckAll() below - reads
-                // Geni's value straight from this row's .genislideinput
-                // companion rather than the field's own disabled attribute,
-                // which this very filter mutates on every check/uncheck
-                // cycle and would otherwise go stale. #217: also covers
-                // Gender/Living's <select> fields, matching buildform.js's
-                // applySelectAllState() equivalent.
+                // #304 follow-up (live-reported, DanCornett): this used to
+                // run its own inline blank-only check (isFieldValueBlank()/
+                // isCompanionBlank() directly) instead of calling
+                // isFieldEmptyForCheckAll() below - a THIRD independent
+                // copy of the same "is this field a no-op" question,
+                // alongside buildform.js's per-person applySelectAllState()
+                // (which had - and was fixed for - the exact same gap: a
+                // field non-blank but already identical to Geni never got
+                // excluded here, only genuinely blank ones did). Reuses the
+                // one shared function instead, which also now correctly
+                // treats a blank scraped value as never selectable, full
+                // stop, regardless of Geni's own side.
                 if (selectingAll &&
                     (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA" ||
                      (ffs[item].tagName === "SELECT" && (ffs[item].name === "gender" || ffs[item].name === "is_alive"))) &&
-                    isFieldValueBlank(ffs[item])) {
-                    var companionVal = $(ffs[item]).closest("tr").find(".genislideinput").val();
-                    if (!isCompanionBlank(companionVal, ffs[item])) {
-                        return false;
-                    }
+                    isFieldEmptyForCheckAll($(ffs[item]).closest("tr"))) {
+                    return false;
                 }
                 return true;
             }).attr('disabled', !selectingAll);
@@ -1539,7 +1541,15 @@ function isFieldEmptyForCheckAll(row) {
     var companion = row.find(".genislideinput").val();
     for (var i = 0; i < valueFields.length; i++) {
         if (isFieldValueBlank(valueFields[i])) {
-            continue;
+            // #304 follow-up (live-reported, DanCornett): a blank scraped
+            // value is never select-all'd, full stop - regardless of
+            // whether Geni's own side is also blank. This used to include
+            // a blank-scraped field whenever Geni's companion was ALSO
+            // blank ("nothing to protect"), matching resolveFieldEnabled()'s
+            // old symmetric exception - both were removed together per
+            // Dan's explicit "a blank source field should never be
+            // pre-selected under any circumstance."
+            return true;
         }
         // #304: a field that's non-blank but identical to what Geni
         // already has (case/whitespace/Circa-insensitive, or - for
@@ -1555,20 +1565,7 @@ function isFieldEmptyForCheckAll(row) {
             return false;
         }
     }
-    // Every value field in this row is either blank, or non-blank but
-    // identical to Geni's own value - safe to include (don't exclude) only
-    // if Geni's own value, read directly from this row's .genislideinput
-    // companion, is ALSO blank. Deliberately does NOT look at the field's
-    // disabled attribute - that toggles on every "all" check/uncheck cycle
-    // (see the second filter below and refreshFieldCheckState() in
-    // buildform.js), so a field correctly enabled once (e.g. after the
-    // action dropdown settles on "Add Profile") would otherwise get
-    // disabled again by simply unchecking "all", then wrongly look
-    // "protected" and get excluded the next time "all" is checked. The
-    // .genislideinput companion only changes when setGeniFamilyData()/
-    // render-time genifocusdata actually updates it, which is exactly
-    // when this determination should change too.
-    return !isCompanionBlank(companion, valueFields[0]);
+    return true;
 }
 
 $(function () {

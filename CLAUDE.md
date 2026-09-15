@@ -237,10 +237,29 @@ its own top-level checkbox still shows unchecked with no visible sign
 anything would happen. `refreshFieldCheckState()`/`applySelectAllState()` in
 `buildform.js` only ever toggle `disabled`, never `checked`, for exactly this
 reason - re-syncing field state when the action dropdown or Vital status
-changes is fine, auto-checking as a side effect of that is not. If "select
-all" is already checked for a person, a dropdown/status change re-applies
-`applySelectAllState()` to keep everything in sync (previously the only way
-to force this was manually unchecking then rechecking "select all").
+changes is fine, auto-checking as a side effect of that is not.
+
+**The per-person top-level checkbox (`.checkslide`) has two distinct
+meanings, and the code must not confuse them** (design clarified directly by
+DanCornett on #304): it's an **indicator** the rest of the time (auto-reflects
+whether any field underneath is checked, via a plain `.prop('checked', true)`
+whenever an individual field/location gets checked - never fires
+`.checkslide`'s own click handler, so this never cascades into a real
+select-all), and a **shortcut** only at the moment the user actually clicks
+it (checks/unchecks every eligible field for that person). These must not be
+conflated: `data-select-all-active` on the `.checkslide` element tracks which
+one is currently true - set to `"true"` only inside `.checkslide`'s own click
+handler (an explicit click), and cleared back to `"false"` by any more
+granular action (an individual `.checknext` click, or a location's own
+`.geotopcheck` click) - the moment the user makes a per-field choice, the
+blanket "select everything" intent no longer applies. `setGeniFamilyData()`'s
+resync (replaying `applySelectAllState()` on a match/dropdown change to
+re-widen what's eligible) only fires when this flag reads `"true"`, not
+merely because `.checkslide` happens to be checked right now. (Live-reported,
+DanCornett, #304 follow-up: before this flag existed, checking a single
+field auto-ticked the indicator, and a later match/dropdown change would
+then force-check every OTHER non-blank field for that person too - well
+beyond what the user actually asked for.)
 
 **Read Geni's comparison value from the row's own `.genislideinput` field,
 not from the checkbox/input's current `disabled` attribute** - `disabled`
@@ -266,7 +285,14 @@ also excluded from what "select all" force-checks, using
 Without this, turning "select all" on for a person would immediately
 re-check every field the new comparison-aware logic had just correctly
 un-checked, the next time a match/action change re-runs the resync
-(`setGeniFamilyData()` -> `applySelectAllState()`).
+(`setGeniFamilyData()` -> `applySelectAllState()`). It also now excludes a
+blank scraped field from "select all" unconditionally, matching
+`resolveFieldEnabled()`'s own "never pre-select blank, regardless of Geni's
+side" rule - it used to include a blank-scraped field whenever Geni's own
+companion was ALSO blank ("nothing to protect"), the same symmetric
+exception `resolveFieldEnabled()` had and lost together (DanCornett, #304
+follow-up: "a blank source field should never be pre-selected under any
+circumstance").
 
 **`applySelectAllState()` (`buildform.js`) has two separate filters over the
 same row set - one for checkboxes, one for the value fields themselves - and
@@ -280,9 +306,15 @@ the other didn't. Symptom: a field's checkbox correctly un-checked itself,
 but the field was then re-enabled (green) a moment later by the other
 filter, because it only knew how to protect a genuinely blank field, not one
 that just happened to already match Geni. Now both filters call the one
-shared `isFieldEmptyForCheckAll()` - if a third place ever needs this same
-"is this field a no-op" question, reuse that function rather than writing
-another copy.
+shared `isFieldEmptyForCheckAll()`. **A third, independent copy of this
+exact same duplicated pattern already existed** - the global `.checkall`
+handler (popup.js, a separate "check every field across every person" button,
+distinct from the per-person `.checkslide`) had the identical un-updated
+inline blank-only check. Found while auditing for exactly this risk and
+fixed the same way. If a fourth place ever needs this same "is this field a
+no-op" question, reuse `isFieldEmptyForCheckAll()` rather than writing
+another copy - this codebase has now drifted on this exact duplication
+twice.
 
 **Category-level "add all parents/siblings/children/partners" and each
 individual member's own auto-select both fire when Geni has zero existing

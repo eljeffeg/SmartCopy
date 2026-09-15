@@ -77,6 +77,17 @@ const resolveFieldEnabled = new Function('isValue', 'exists', 'return ' + extrac
 const isChecked = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isChecked'))(resolveFieldEnabled);
 const isEnabled = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isEnabled'))(resolveFieldEnabled);
 
+const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nicknamesAreEquivalent', 'valuesAreEquivalent',
+    'return ' + extractFunction(bfSrc, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, valuesAreEquivalent);
+const isFieldValueBlank = new Function('return ' + extractFunction(bfSrc, 'isFieldValueBlank'))();
+// isFieldEmptyForCheckAll() lives in popup.js, calls back into buildform.js's
+// isFieldValueBlank()/valuesAreEquivalentForFieldType() - same cross-file
+// pattern already established (buildform.js already calls popup.js's
+// datesAreEquivalent()), safe since both are only ever actually invoked
+// later, after every script has loaded.
+const isFieldEmptyForCheckAll = new Function('isFieldValueBlank', 'valuesAreEquivalentForFieldType',
+    'return ' + extractFunction(popupSrc, 'isFieldEmptyForCheckAll'))(isFieldValueBlank, valuesAreEquivalentForFieldType);
+
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {
     if (actual === expected) { pass++; console.log('PASS:', label); }
@@ -119,6 +130,28 @@ assertEqual(resolveFieldEnabled('', true, false, '', false), false,
     "#304 follow-up (live-reported, DanCornett): a blank scraped value NEVER pre-checks/enables, even when Geni's side is also blank - removed the old 'nothing to protect, save a click' branch entirely per Dan's explicit 'a blank source field should never be pre-selected' confirmation");
 assertEqual(resolveFieldEnabled('', true, false, 'Real Geni Value', false), false,
     "Blank scraped + Geni HAS real data - still correctly protected/unchecked (unchanged baseline)");
+
+// ============================================================
+// Unit: isFieldEmptyForCheckAll() (popup.js) - "Select All"'s own
+// independent no-op detection, now aligned with resolveFieldEnabled()'s
+// two #304 rules: blank scraped never selectable (regardless of Geni's
+// side), and non-blank-but-sameAsGeni never selectable either.
+// ============================================================
+function makeCheckAllRow(fieldName, value, companionValue) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td><input type="text" name="' + fieldName + '"></td><td><input type="text" class="genislideinput" disabled></td>';
+    tr.querySelector('input[name="' + fieldName + '"]').value = value;
+    tr.querySelector('.genislideinput').value = companionValue;
+    return $(tr);
+}
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllRow('occupation', '', '')), true,
+    "#304 follow-up: blank scraped + blank Geni companion is now excluded from Select All too, not just included as 'nothing to protect' - matches resolveFieldEnabled()'s same rule");
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllRow('occupation', '', 'Blacksmith')), true,
+    "Blank scraped + Geni HAS real data - still excluded (protected), unchanged baseline");
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllRow('occupation', 'FARMER', 'Farmer')), true,
+    "#304: non-blank but identical to Geni (case-insensitive) - excluded, nothing new to select");
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllRow('occupation', 'Farmer', 'Blacksmith')), false,
+    "A genuinely different, non-blank value is NOT excluded - Select All should still pick it up");
 
 // ============================================================
 // End-to-end: setGeniFamilyData() via a real jsdom window
@@ -194,14 +227,15 @@ function build(genifamilydata) {
     return ctx;
 }
 
-function freshDom(memberId, matchedProfileId, occupationValue, occupationChecked) {
+function freshDom(memberId, matchedProfileId, occupationValue, occupationChecked, selectAllActive, causeOfDeathValue, causeOfDeathChecked) {
     $('body').html(`
-        <div class="membertitle"><input type="checkbox" class="checkslide" checked></div>
+        <div class="membertitle"><input type="checkbox" class="checkslide" checked data-select-all-active="${selectAllActive ? 'true' : 'false'}"></div>
         <div class="memberexpand">
             <table id="familytable_${memberId}">
                 <tr><td><select class="actionselect"><option value="${matchedProfileId}" selected>Update</option><option value="add">Add Profile</option></select></td></tr>
                 <tr><td><select name="is_alive" class="livingselect" update="${memberId}"><option value="false" selected>Deceased</option></select></td></tr>
                 <tr><td><input type="checkbox" class="checknext" ${occupationChecked ? 'checked' : ''}></td><td><input type="text" name="occupation" value="${occupationValue}"></td><td><input id="${memberId}_geni_occupation" type="text" class="genislideinput" disabled></td></tr>
+                <tr><td><input type="checkbox" class="checknext" ${causeOfDeathChecked ? 'checked' : ''}></td><td><input type="text" name="cause_of_death" value="${causeOfDeathValue || ''}"></td><td><input id="${memberId}_geni_cause_of_death" type="text" class="genislideinput" disabled></td></tr>
             </table>
             <select class="privacyselect" update="${memberId}" data-birthyear="1890">
                 <option value="" selected>Auto</option><option value=true>Public</option><option value=false>Private</option>
@@ -223,7 +257,7 @@ const memberId = '0';
         actions: ['update', 'update-basics'], names: {},
         birth: { date: { year: '1890' } }, occupation: 'Farmer'
     });
-    freshDom(memberId, profileId, 'FARMER', true);
+    freshDom(memberId, profileId, 'FARMER', true, true);
     const ctx = build(global.genifamilydata);
     ctx.setGeniFamilyData(memberId, profileId);
 
@@ -244,7 +278,7 @@ const memberId = '0';
         actions: ['update', 'update-basics'], names: {},
         birth: { date: { year: '1890' } }, occupation: 'Blacksmith'
     });
-    freshDom(memberId, profileId, 'Farmer', true);
+    freshDom(memberId, profileId, 'Farmer', true, true);
     const ctx = build(global.genifamilydata);
     ctx.setGeniFamilyData(memberId, profileId);
 
@@ -263,7 +297,7 @@ const memberId = '0';
         actions: [], names: {}, // no update/update-basics - locked
         birth: { date: { year: '1890' } }, occupation: 'Farmer'
     });
-    freshDom(memberId, profileId, 'Farmer', true);
+    freshDom(memberId, profileId, 'Farmer', true, true);
     const ctx = build(global.genifamilydata);
     ctx.setGeniFamilyData(memberId, profileId);
 
@@ -271,6 +305,34 @@ const memberId = '0';
         "Regression (part c): a locked member's occupation stays un-checked regardless of the new comparator");
     assertEqual($('.checkslide').prop('checked'), false,
         "Regression (part c): the person-bar stays un-checked for a locked member too");
+}
+
+// --- Scenario 4 (live-reported, DanCornett): the top-level box checked merely as an INDICATOR (one field was
+// individually checked) must NOT be mistaken for an explicit "Select All" - a match/dropdown change must not
+// force-check other non-blank fields just because the box happens to read checked. ---
+{
+    const profileId = 'geniMatch4';
+    global.genifamilydata = {};
+    global.genifamilydata[profileId] = new GeniPerson({
+        id: profileId, public: true, is_alive: false,
+        actions: ['update', 'update-basics'], names: {},
+        birth: { date: { year: '1890' } }, occupation: 'Farmer', cause_of_death: ''
+    });
+    // occupation matches Geni exactly (would stay unchecked under normal
+    // per-field resolution) and starts UNCHECKED; cause_of_death is
+    // genuinely different and was individually checked by the user,
+    // ticking the top box as a pure indicator (data-select-all-active
+    // left false, unlike scenarios 1-3 above).
+    freshDom(memberId, profileId, 'Farmer', false, false, 'Heart Disease', true);
+    const ctx = build(global.genifamilydata);
+    ctx.setGeniFamilyData(memberId, profileId);
+
+    assertEqual($('input[name="occupation"]').closest('tr').find('.checknext').prop('checked'), false,
+        "#304 follow-up: occupation stays un-checked - the top box being checked as an indicator (from cause_of_death alone) must never force-include an unrelated matching field");
+    assertEqual($('input[name="cause_of_death"]').closest('tr').find('.checknext').prop('checked'), true,
+        "The individually-checked field the user actually touched stays checked, via its own normal per-field resolution");
+    assertEqual($('.checkslide').prop('checked'), true,
+        "The person-bar stays checked too, purely as the indicator it always was (OR of the one real field still checked)");
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

@@ -2613,6 +2613,17 @@ function updateClassResponse() {
     $(function () {
         $('.checknext').on('click', function () {
             $(this).closest('tr').find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
+            // #304 follow-up (live-reported, DanCornett): any individual
+            // field action - check or uncheck - means the user is making a
+            // per-field choice again, not "everything." Clears the explicit
+            // Select All flag (separate from the checkbox's own checked
+            // state, which stays a pure indicator) so a later match/
+            // dropdown change resyncs this person normally instead of
+            // replaying a full select-all the user never asked for. Safe
+            // to always clear regardless of direction - a false flag
+            // staying false is a no-op.
+            var personslide = $(this).closest('.memberexpand').prev('.membertitle');
+            personslide.find('.checkslide').attr('data-select-all-active', 'false');
             if (this.checked) {
                 if ($(this).closest('tr').hasClass("geoloc") || $(this).closest('tr').hasClass("geoplace")) {
                     //This checks the geotopcheck when a child location is checked
@@ -2625,7 +2636,6 @@ function updateClassResponse() {
                         }
                     }
                 }
-                var personslide = $(this).closest('.memberexpand').prev('.membertitle');
                 personslide.find('.checkslide').prop('checked', true);
                 personslide.find('input[type="hidden"]').not(".genislideinput").attr('disabled', false);
                 if($($(this).closest("fieldset")[0].parentElement)[0].id === "profileshadowdiv") {
@@ -2637,6 +2647,11 @@ function updateClassResponse() {
     $('.geotopcheck').off();
     $(function () {
         $('.geotopcheck').on('click', function () {
+            // #304 follow-up: same reasoning as .checknext above - a
+            // location group's own shortcut click is a more granular,
+            // deliberate action than a whole-person Select All, so it
+            // clears that explicit flag too.
+            $(this).closest('.memberexpand').prev('.membertitle').find('.checkslide').attr('data-select-all-active', 'false');
             if (this.checked) {
                 //Check the very top box
                 var personslide = $(this).closest('.memberexpand').prev('.membertitle');
@@ -2673,6 +2688,18 @@ function updateClassResponse() {
     $('.checkslide').off();
     $(function () {
         $('.checkslide').on('click', function () {
+            // #304 follow-up (live-reported, DanCornett): this click is the
+            // one genuine "Select All"/"Clear All" shortcut action -
+            // record it explicitly (separate from the checkbox's own
+            // checked state, which also doubles as a pure indicator when
+            // set programmatically elsewhere) so setGeniFamilyData()'s
+            // resync can tell "the user actually asked for everything"
+            // apart from "this just happens to be checked because some
+            // field is." Starts false for every person; a future match/
+            // dropdown change only replays select-all while this stays
+            // true, and any individual field/location action clears it
+            // again (see .checknext/.geotopcheck above).
+            $(this).attr('data-select-all-active', this.checked ? 'true' : 'false');
             applySelectAllState($("#" + this.name.replace("checkbox", "slide")), this.checked);
         });
     });
@@ -5581,17 +5608,26 @@ function setGeniFamilyData(id, profile) {
         refreshFieldCheckState(id, title + ":location:longitude", geniLongitude, locationLocked);
     }
 
-    // If this person's "select all" checkbox is already checked, the user
-    // has already made the visible, top-level commitment to submit them -
-    // re-sync every field's checked state to match what we just learned
-    // about this specific match/action, the same as manually unchecking
-    // and rechecking "all" would (previously the only way to force this).
-    // Never does this when "all" isn't checked - a dropdown change alone
-    // still never checks anything on its own, matching the "only an
-    // explicit action checks a box" rule refreshFieldCheckState() follows.
+    // If this person's "select all" checkbox was EXPLICITLY clicked (not
+    // just checked as an indicator that some sub-field happens to be
+    // selected - see data-select-all-active, set only by .checkslide's own
+    // click handler and cleared by any individual field/location action),
+    // the user has made a real, visible top-level commitment to submit
+    // them - re-sync every field's checked state to match what we just
+    // learned about this specific match/action, the same as manually
+    // unchecking and rechecking "all" would (previously the only way to
+    // force this). Never does this when "all" isn't checked, OR when it's
+    // only checked as an indicator - a dropdown change alone still never
+    // checks anything on its own, matching the "only an explicit action
+    // checks a box" rule refreshFieldCheckState() follows. (Live-reported,
+    // DanCornett, #304 follow-up: this used to key off the checkbox's own
+    // checked state alone, which conflated the two - checking a single
+    // field auto-ticks this box purely as an indicator, and a later match/
+    // dropdown change would then force-check every OTHER non-blank field
+    // too, well beyond what the user actually asked for.)
     var memberexpand = $("#familytable_" + id).closest(".memberexpand");
     var checkslideEl = memberexpand.prev(".membertitle").find(".checkslide");
-    if (checkslideEl.length > 0 && checkslideEl.prop("checked")) {
+    if (checkslideEl.length > 0 && checkslideEl.prop("checked") && checkslideEl.attr("data-select-all-active") === "true") {
         // Reset-then-reapply, not just reapply: applySelectAllState(...,
         // true) only ever SETS the fields it wants checked - it never
         // explicitly unchecks whatever it filters out, since normally

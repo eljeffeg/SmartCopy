@@ -205,8 +205,15 @@ value is non-empty:
   actually different to submit, so it shouldn't light up green. This only
   applies once a real Geni value is knowable (a confirmed match) -
   `valuesAreEquivalentForFieldType()` in `buildform.js` is the per-field-type
-  dispatch (generic/date/nicknames; only About/Photo are excluded - both are
-  additive, so "already has this" is never a reason to skip). Family Gender
+  dispatch (generic/date/nicknames; Photo is excluded entirely - purely
+  additive, "already has this" is never a reason to skip). About is also
+  additive (submission prepends, never overwrites) so it's never "protected"
+  the way an overwriting field is, but it does stop pre-selecting once the
+  exact scraped text is already present somewhere in Geni's existing About -
+  `isAboutContentPresent()` (popup.js), the same containment check the
+  submit-time merge already uses to dedupe, reused here for the
+  pre-selection decision too. A genuinely new About addition still
+  pre-selects even alongside content it's additive with. Family Gender
   and Living use the plain generic comparator too, same as any other field -
   their scraped and Geni values are already the same raw vocabulary
   (male/female/unknown; true/false). The FOCUS profile's Gender/Living never

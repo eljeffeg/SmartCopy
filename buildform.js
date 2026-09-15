@@ -905,11 +905,20 @@ function buildForm() {
             // there's real content, regardless of what Geni currently has.
             var scoreabout = true;
             var about = alldata["profile"].about;
+            // #304 follow-up (live-reported, DanCornett): "regardless of
+            // what Geni currently has" above still holds for genuinely NEW
+            // content - but if the exact scraped text is already present
+            // somewhere in Geni's existing About, pre-checking it just
+            // invites re-appending a duplicate. isAboutContentPresent()
+            // (popup.js) is the same containment check the actual
+            // submit-time merge already uses to dedupe - reused here for
+            // the pre-selection decision too.
+            var aboutSameAsGeni = isValue(about) && isAboutContentPresent(genifocusdata.get("about_me"), about);
             // #210: escapes `about` before it reaches the textarea's text content.
             membersstring = membersstring + buildAboutFieldRow({
                 value: about,
-                checkedAttr: isChecked(about, scoreabout),
-                enabledAttr: isEnabled(about, scoreabout),
+                checkedAttr: isChecked(about, scoreabout, false, genifocusdata.get("about_me"), false, aboutSameAsGeni),
+                enabledAttr: isEnabled(about, scoreabout, false, genifocusdata.get("about_me"), false, aboutSameAsGeni),
                 icon: "append.png",
                 tdStyle: "padding: 0px;"
             });
@@ -5313,6 +5322,16 @@ function syncGeotopcheckState(fs) {
 // case/whitespace-insensitive comparator. (The FOCUS profile's Gender/
 // Living never reach this function at all - they have their own, separate
 // bespoke comparison outside this whole mechanism.)
+//
+// About is additive (submission prepends, never overwrites), so it's never
+// "protected" the way an overwriting field is - but it should still stop
+// pre-selecting once the scraped text is already present verbatim
+// somewhere in Geni's existing About, to avoid re-appending a duplicate
+// every time the same source is reprocessed (live-reported, DanCornett,
+// #304 follow-up - reuses isAboutContentPresent(), the same containment
+// check popup.js's submit-time merge already uses to dedupe, just applied
+// here to the pre-selection decision instead). A genuinely NEW addition to
+// an existing About - even a long one - still correctly pre-selects.
 function valuesAreEquivalentForFieldType(scraped, current, fieldType) {
     if (fieldType === "date") {
         return datesAreEquivalent(scraped, current, true);
@@ -5320,7 +5339,10 @@ function valuesAreEquivalentForFieldType(scraped, current, fieldType) {
     if (fieldType === "nicknames") {
         return nicknamesAreEquivalent(scraped, current);
     }
-    if (fieldType === "about_me" || fieldType === "photo") {
+    if (fieldType === "about_me") {
+        return isAboutContentPresent(current, scraped);
+    }
+    if (fieldType === "photo") {
         return false;
     }
     return valuesAreEquivalent(scraped, current);

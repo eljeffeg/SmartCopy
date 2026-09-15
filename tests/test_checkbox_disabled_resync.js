@@ -71,8 +71,13 @@ const datesAreEquivalentSrc = extractArrayStatement(popupSrc, 'DATE_PARSE_FORMAT
 const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN', datesAreEquivalentSrc + '\nreturn datesAreEquivalent;')(exists, moment, DATE_QUALIFIER_PATTERN);
 const valuesAreEquivalent = new Function('return ' + extractFunction(src, 'valuesAreEquivalent'))();
 const nicknamesAreEquivalent = new Function('return ' + extractFunction(src, 'nicknamesAreEquivalent'))();
-const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nicknamesAreEquivalent', 'valuesAreEquivalent',
-    'return ' + extractFunction(src, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, valuesAreEquivalent);
+// #304 follow-up: About's fieldType now reuses isAboutContentPresent()
+// (popup.js) - the same containment check the submit-time merge already
+// uses to dedupe - so it also needs extracting here.
+const normalizeAboutForComparisonSrc = extractFunction(popupSrc, 'normalizeAboutForComparison');
+const isAboutContentPresent = new Function('exists', normalizeAboutForComparisonSrc + '\n' + extractFunction(popupSrc, 'isAboutContentPresent') + '\nreturn isAboutContentPresent;')(exists);
+const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nicknamesAreEquivalent', 'valuesAreEquivalent', 'isAboutContentPresent',
+    'return ' + extractFunction(src, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, valuesAreEquivalent, isAboutContentPresent);
 const applyProtectedDisabledStateSrc = extractFunction(src, 'applyProtectedDisabledState');
 
 // Minimal jQuery-shaped stand-in for a single <input> + its row's
@@ -181,11 +186,31 @@ function callApplyProtectedDisabledState(input, scrapedValue, currentValue, lock
     assertEqual(row.state.checkboxChecked, true, "A genuinely new nickname among the scraped set still stays checked");
 }
 
-// --- #304: about_me/photo fieldTypes are explicitly NEVER affected by the new comparator (additive, never protected) ---
+// --- #304: photo fieldType is explicitly NEVER affected by the new comparator (additive, never protected) ---
 {
     const row = makeRow(true);
-    callApplyProtectedDisabledState(row.input, 'Same text', 'Same text', false, 'about_me');
-    assertEqual(row.state.checkboxChecked, true, "Regression: about_me stays checked even when byte-identical to Geni - additive, never protected, tail-comparison deferred");
+    callApplyProtectedDisabledState(row.input, 'images/new.jpg', 'images/new.jpg', false, 'photo');
+    assertEqual(row.state.checkboxChecked, true, "Regression: photo stays checked regardless of Geni's side - additive, never protected");
+}
+
+// --- #304 follow-up (live-reported, DanCornett): About now un-checks once the exact scraped text is already
+// present somewhere in Geni's existing About (avoids re-appending a duplicate), but a genuinely NEW addition -
+// even alongside existing content it's additive with - still correctly pre-selects. Reuses isAboutContentPresent()
+// (popup.js), the same containment check the submit-time merge already uses to dedupe. ---
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, "* '''Residence''': Chicago, Illinois - 1920", "* '''Residence''': Chicago, Illinois - 1920\n* '''Residence''': Detroit, Michigan - 1930", false, 'about_me');
+    assertEqual(row.state.checkboxChecked, false, "#304 follow-up: About un-checks when the exact scraped text is already present in Geni's existing About - avoids a duplicate re-add");
+}
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, "* '''Residence''': Detroit, Michigan - 1930", "* '''Residence''': Chicago, Illinois - 1920", false, 'about_me');
+    assertEqual(row.state.checkboxChecked, true, "A genuinely NEW About addition not already present in Geni's existing text still pre-selects");
+}
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, "* '''Residence''': Chicago, Illinois - 1920", "", false, 'about_me');
+    assertEqual(row.state.checkboxChecked, true, "Geni's About is empty - real scraped content still pre-selects, nothing to dedupe against");
 }
 
 // --- #304 follow-up (live-reported, DanCornett): family Gender/Living use "generic" just like any other field -

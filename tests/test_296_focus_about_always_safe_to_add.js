@@ -58,5 +58,18 @@ assertEqual(isChecked("* '''Residence''': Apr 1 1950 - 1149 N Mayburn, Dearborn,
 assertEqual(isChecked('', scoreabout), '',
     "A genuinely blank About still stays unchecked - nothing to offer");
 
+// --- #304 follow-up (live-reported, DanCornett): "irrespective of Geni's
+// side" above is now refined - real content still pre-checks whenever it's
+// genuinely NEW, but not when the exact text is already present in Geni's
+// existing About (see isAboutContentPresent() in valuesAreEquivalentForFieldType(),
+// tests/test_checkbox_disabled_resync.js has the dedicated coverage for
+// that comparator). This just confirms the focus profile's own render call
+// site actually wires sameAsGeni through, using the real genifocusdata-style
+// currentValue argument position.
+assertEqual(isChecked("Same text", scoreabout, false, "Some text\nSame text", false, true), '',
+    "#304 follow-up: focus profile's About call site suppresses pre-check when the caller determines the content is already present (sameAsGeni=true)");
+assertEqual(isChecked("Genuinely new text", scoreabout, false, "Some other existing text", false, false), 'checked',
+    "Genuinely new About content still pre-checks even with the new sameAsGeni parameter present but false");
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

@@ -3068,17 +3068,6 @@ function buildLocationFieldRow(opts) {
     return '<tr class="' + opts.trClass + '"' + sep + 'style="display: ' + opts.displayVal + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext" ' + lockedAttr + opts.checkedAttr + '>' + opts.label + '</td><td style="' + opts.tdStyle + '"><input type="text" class="formtext" name="' + opts.fieldName + '" value="' + escapeHtml(opts.value) + '" ' + opts.enabledAttr + '></td><td class="genisliderow"><img src="images/' + icon + '" class="genislideimage"><input' + geniInputIdAttr + ' type="text" class="formtext genislideinput" value="' + geniValue + '" disabled></td></tr>';
 }
 
-// currentValue is optional and only changes behavior when explicitly passed
-// as "" (a confirmed-blank comparison, e.g. Geni's own field for this
-// person is genuinely empty, or the person doesn't exist on Geni at all
-// yet). Left undefined at a call site preserves the original behavior
-// exactly (blank scraped value -> disabled), since undefined fails the
-// exists() check below - only call sites that have actually verified what
-// Geni currently holds for this field opt into the relaxed behavior.
-// Distinguishes "leave this alone, Geni already has real data here that a
-// blank scrape shouldn't clobber" (protective, unchanged) from "there's
-// nothing on either side to protect, so let the user type directly instead
-// of requiring an extra click on the checkbox first."
 // #78: locked takes precedence over everything else - a field Geni won't
 // accept an edit for must never render as enabled, regardless of how
 // strongly it scored or how empty both sides are. See buildTextFieldRow()
@@ -3102,14 +3091,23 @@ function buildLocationFieldRow(opts) {
 // pre-checked regardless of whether it was actually different from Geni's
 // side, defeating the point of the highlighting once a person is
 // confidently matched.
+//
+// #304 follow-up (live-reported, DanCornett): a scraped value that's
+// genuinely blank never pre-checks/enables either, full stop - there is no
+// longer a "blank scraped + blank Geni -> start checked, nothing to
+// protect, saves a click before typing" branch. That used to exist
+// specifically to save the user a click when there was nothing on either
+// side to protect, but Dan was explicit that a blank source field should
+// never be pre-selected under any circumstance ("I can't think of any
+// reason for such") - the small convenience cost (an extra click before
+// typing into a genuinely new, blank-on-both-sides field) is intentionally
+// accepted in exchange for never pre-selecting nothing.
 function resolveFieldEnabled(value, score, force, currentValue, locked, sameAsGeni) {
     if (locked) {
         return false;
     } else if (force && score) {
         return true;
     } else if (score && isValue(value) && !sameAsGeni) {
-        return true;
-    } else if (score && !isValue(value) && exists(currentValue) && !isValue(currentValue)) {
         return true;
     } else {
         return false;

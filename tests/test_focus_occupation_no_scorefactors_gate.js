@@ -55,8 +55,8 @@ assertEqual(isChecked('Farmer', scoreoccupation, false, 'Farmer'), 'checked',
     "Still checked when it happens to match Geni's own value exactly - parseForm()'s own no-op filter (not this gate) is what skips a genuine no-op at submit time");
 assertEqual(isChecked('', scoreoccupation, false, 'Blacksmith'), '',
     "Blank scraped + Geni already has a real occupation - still correctly protected, unchanged from before");
-assertEqual(isChecked('', scoreoccupation, false, ''), 'checked',
-    "Blank scraped + Geni also blank - still correctly starts checked, nothing to protect");
+assertEqual(isChecked('', scoreoccupation, false, ''), '',
+    "#304 follow-up: blank scraped + Geni also blank now correctly stays UNCHECKED - a blank source field never pre-selects, per Dan's explicit confirmation (was 'checked, nothing to protect' before this)");
 
 // --- #304: the focus profile's own occSameAsGeni computation (buildform.js's real render call site) ---
 function occSameAsGeni(occupation, geniOccupation) {

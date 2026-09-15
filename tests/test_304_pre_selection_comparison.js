@@ -115,8 +115,10 @@ assertEqual(resolveFieldEnabled('Farmer', true, true, 'Farmer', false, true), tr
     "force still wins over sameAsGeni - an estimated field forced true stays true (isCheckedDateField/isEnabledDateField already special-case estimated dates separately before this would ever be reached in practice)");
 assertEqual(resolveFieldEnabled('Farmer', true, false, 'Farmer', false), true,
     "Omitting the new sameAsGeni argument entirely (undefined, falsy) reproduces every pre-#304 call site's exact behavior - still checks/enables purely on scraped-has-data, unchanged");
-assertEqual(resolveFieldEnabled('', true, false, '', false), true,
-    "Blank scraped + blank Geni - unaffected by sameAsGeni, still checks (nothing to protect), unchanged baseline");
+assertEqual(resolveFieldEnabled('', true, false, '', false), false,
+    "#304 follow-up (live-reported, DanCornett): a blank scraped value NEVER pre-checks/enables, even when Geni's side is also blank - removed the old 'nothing to protect, save a click' branch entirely per Dan's explicit 'a blank source field should never be pre-selected' confirmation");
+assertEqual(resolveFieldEnabled('', true, false, 'Real Geni Value', false), false,
+    "Blank scraped + Geni HAS real data - still correctly protected/unchecked (unchanged baseline)");
 
 // ============================================================
 // End-to-end: setGeniFamilyData() via a real jsdom window

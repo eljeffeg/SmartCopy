@@ -191,11 +191,16 @@ profile" forms should start checked, compare the freshly-scraped value
 against what Geni currently has for that field, not just whether the scraped
 value is non-empty:
 
-- **Scraped blank, Geni has real data:** stays unchecked/disabled - protects
-  existing data from being blanked. Still manually overridable (an explicit,
-  deliberate "clear this field" action), just never pre-checked into it.
-- **Scraped blank, Geni also blank:** starts checked/enabled - nothing to
-  protect, saves a click before typing.
+- **Scraped blank:** stays unchecked/disabled, full stop - regardless of
+  whether Geni has real data there or is also blank. (#304 follow-up,
+  live-reported, DanCornett: there used to be a "scraped blank + Geni also
+  blank -> start checked, nothing to protect, saves a click before typing"
+  exception - explicitly removed on Dan's confirmation that a blank source
+  field should never be pre-selected under any circumstance. The small
+  convenience cost - an extra click before typing into a genuinely new,
+  blank-on-both-sides field - is intentionally accepted in exchange.) Still
+  manually overridable (an explicit, deliberate action), just never
+  pre-checked into it.
 - **Scraped has data, and Geni's real value is known but different:**
   checked/enabled, same as always.
 - **Scraped has data, and it's meaningfully identical to Geni's real value**

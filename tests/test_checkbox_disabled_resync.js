@@ -132,12 +132,14 @@ function callApplyProtectedDisabledState(input, scrapedValue, currentValue, lock
     assertEqual(row.state.checkboxChecked, true, "Its checkbox correctly stays checked, matching the field being enabled");
 }
 
-// --- Regression: blank scraped + blank Geni - correctly stays checked/enabled (nothing to protect) ---
+// --- #304 follow-up (live-reported, DanCornett): blank scraped + blank Geni now stays disabled/unchecked too -
+// the old "nothing to protect, save a click" branch was removed entirely per Dan's explicit confirmation that a
+// blank source field should never be pre-selected under any circumstance. ---
 {
-    const row = makeRow(true);
+    const row = makeRow(true); // was checked at render time under the OLD blank+blank rule
     callApplyProtectedDisabledState(row.input, '', '', false);
-    assertEqual(row.state.inputDisabled, false, "Blank scraped + blank Geni value - correctly stays enabled, nothing to protect");
-    assertEqual(row.state.checkboxChecked, true, "Its checkbox correctly stays checked");
+    assertEqual(row.state.inputDisabled, true, "#304 follow-up: blank scraped + blank Geni value now correctly stays disabled - nothing pre-selects on a blank source, period");
+    assertEqual(row.state.checkboxChecked, false, "Its checkbox correctly un-checks to match");
 }
 
 // --- Regression: a manually-unchecked box never gets silently re-enabled ---

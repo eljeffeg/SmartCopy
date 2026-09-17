@@ -370,5 +370,45 @@ const memberId = '0';
         "Regression: a MATCHED person's Vital still protects Geni's real value from a merely-defaulted (not genuinely scraped) guess - un-checks once the match reveals Geni already has real living data");
 }
 
+// --- Scenario 7 (live-reported, DanCornett): refreshPrivacySelect()'s own "select all means all" override used to
+// key off the checkbox's raw checked state - the same indicator/shortcut conflation setGeniFamilyData()'s resync
+// had - so Privacy stayed force-enabled any time the top box was ticked purely as an indicator from an unrelated
+// field, even though Privacy itself already matched Geni exactly. ---
+{
+    const profileId = 'geniMatch7';
+    global.genifamilydata = {};
+    global.genifamilydata[profileId] = new GeniPerson({
+        id: profileId, public: true, is_alive: false, // already Public on Geni
+        actions: ['update', 'update-basics'], names: {},
+        birth: { date: { year: '1890' } }, occupation: 'Farmer', cause_of_death: ''
+    });
+    // occupation matches Geni exactly; cause_of_death is genuinely different (Geni's side is blank) and starts
+    // individually checked,
+    // ticking the top box as a pure INDICATOR - data-select-all-active stays false (no explicit click).
+    freshDom(memberId, profileId, 'Farmer', false, false, 'Heart Disease', true);
+    const ctx = build(global.genifamilydata);
+    ctx.setGeniFamilyData(memberId, profileId);
+
+    assertEqual($('.checkslide').prop('checked'), true, "Sanity check: the top box IS ticked (indicator, from cause_of_death)");
+    assertEqual($('#' + memberId + '_public_checkbox').prop('checked'), false,
+        "#304 follow-up (live-reported, DanCornett): Privacy stays correctly disabled/unchecked - already Public on Geni, matches exactly - even though the top box reads checked, because that's only an indicator, not a genuine Select All");
+}
+{
+    const profileId = 'geniMatch7b';
+    global.genifamilydata = {};
+    global.genifamilydata[profileId] = new GeniPerson({
+        id: profileId, public: true, is_alive: false,
+        actions: ['update', 'update-basics'], names: {},
+        birth: { date: { year: '1890' } }, occupation: 'Farmer', cause_of_death: 'Heart Disease'
+    });
+    // Same scenario, but this time Select All really was explicitly clicked (selectAllActive=true).
+    freshDom(memberId, profileId, 'Farmer', false, true, 'Heart Disease', true);
+    const ctx = build(global.genifamilydata);
+    ctx.setGeniFamilyData(memberId, profileId);
+
+    assertEqual($('#' + memberId + '_public_checkbox').prop('checked'), true,
+        "Regression: with a GENUINE explicit Select All active, Privacy still stays enabled/checked even though it would otherwise be a no-op - 'Select All means all' still works as designed");
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

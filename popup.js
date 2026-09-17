@@ -1479,6 +1479,15 @@ $(function () {
         // click handler already does for a direct click.
         var ffs = fs.find('[type="checkbox"]').not('.geotopcheck');
         if (!$(ffs[0]).prop("disabled")) {
+            // #304 follow-up (live-reported, DanCornett): a category-wide
+            // click (Parents/Siblings/Partners/Children) is exactly as
+            // deliberate a "select everything" action as clicking one
+            // person's own top-bar box - it needs the same explicit
+            // data-select-all-active flag on each .checkslide it touches,
+            // or a later match/dropdown change for one of those people
+            // wouldn't recognize this as genuine Select All intent (see
+            // setGeniFamilyData()'s resync gate, buildform.js).
+            fs.find('.checkslide').attr('data-select-all-active', selectingAll ? 'true' : 'false');
             var photoon = $('#photoonoffswitch').prop('checked');
             // Individual fields already default to checked/enabled only
             // when they actually have a value (see isChecked()/isEnabled()

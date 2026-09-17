@@ -2504,6 +2504,46 @@ function syncPersonCheckboxWithPreCheckedFields() {
             personslide.find('.checkslide').prop('checked', true);
         }
     });
+    // #304 follow-up (live-reported, DanCornett): the category-level
+    // header checkbox (Parents/Siblings/Partners/Children/Unknown, class
+    // .checkall) never got this same initial sync - stayed at whatever
+    // its own render-time default was, ignoring however many individual
+    // people underneath it ended up pre-checked by the loop above. Run
+    // after that loop so every person's .checkslide is already settled.
+    $('.checkall').each(function () {
+        var groupFieldset = $(this).closest('div').find('fieldset');
+        $(this).prop('checked', groupFieldset.find('.checkslide:checked').length > 0);
+    });
+}
+
+// #304 follow-up (live-reported, DanCornett): syncPersonCheckboxWithPreCheckedFields()
+// above only ever runs once, right after the form is built - nothing
+// reactively recomputed either indicator tier (a person's own .checkslide,
+// or a category's .checkall header) afterward. The existing .checknext/
+// .geotopcheck click handlers only ever cascaded UP on check (never back
+// down on uncheck), so unchecking the last remaining field under a person
+// left that person's box - and the whole category's box above it - stuck
+// showing "something is selected" long after nothing actually was.
+// Recomputes both tiers FROM SCRATCH after every individual field/location
+// click, in whichever direction, based on what's actually checked right
+// now. Also handles the focus profile's own #updateprofile the same way -
+// it has no .memberexpand at all, just its own fieldset directly inside
+// #profileshadowdiv.
+function syncTopLevelIndicators(clickedElement) {
+    var memberexpand = $(clickedElement).closest('.memberexpand');
+    if (memberexpand.length > 0) {
+        var personTitle = memberexpand.prev('.membertitle');
+        personTitle.find('.checkslide').prop('checked', memberexpand.find('.checknext:checked').length > 0);
+        var groupFieldset = personTitle.closest('fieldset');
+        if (groupFieldset.length > 0) {
+            groupFieldset.parent().find('.checkall').first().prop('checked', groupFieldset.find('.checkslide:checked').length > 0);
+        }
+        return;
+    }
+    var focusFieldset = $(clickedElement).closest('fieldset');
+    if (focusFieldset.length > 0 && exists(focusFieldset[0].parentElement) && focusFieldset[0].parentElement.id === "profileshadowdiv") {
+        $('#updateprofile').prop('checked', focusFieldset.find('.checknext:checked').length > 0);
+    }
 }
 
 function updateClassResponse() {
@@ -2636,12 +2676,12 @@ function updateClassResponse() {
                         }
                     }
                 }
-                personslide.find('.checkslide').prop('checked', true);
                 personslide.find('input[type="hidden"]').not(".genislideinput").attr('disabled', false);
-                if($($(this).closest("fieldset")[0].parentElement)[0].id === "profileshadowdiv") {
-                    $("#updateprofile").prop('checked', true);
-                }
             }
+            // #304 follow-up: recomputes the person-level/category-level/
+            // focus-profile top indicators from scratch, in either
+            // direction - see syncTopLevelIndicators() above.
+            syncTopLevelIndicators(this);
         });
     });
     $('.geotopcheck').off();
@@ -2653,13 +2693,7 @@ function updateClassResponse() {
             // clears that explicit flag too.
             $(this).closest('.memberexpand').prev('.membertitle').find('.checkslide').attr('data-select-all-active', 'false');
             if (this.checked) {
-                //Check the very top box
-                var personslide = $(this).closest('.memberexpand').prev('.membertitle');
-                personslide.find('.checkslide').prop('checked', true);
-                personslide.find('input[type="hidden"]').not(".genislideinput").attr('disabled', false);
-                if($($(this).closest("fieldset")[0].parentElement)[0].id === "profileshadowdiv") {
-                    $("#updateprofile").prop('checked', true);
-                }
+                $(this).closest('.memberexpand').prev('.membertitle').find('input[type="hidden"]').not(".genislideinput").attr('disabled', false);
             }
             var row = $(this).closest('tr');
             var icon = $(row.find("img")[0]).attr("src");
@@ -2683,6 +2717,9 @@ function updateClassResponse() {
                     row.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
                 }
             }
+            // #304 follow-up: recomputed AFTER the cascade above so it sees
+            // the final state of every field this click just touched.
+            syncTopLevelIndicators(this);
         });
     });
     $('.checkslide').off();
@@ -5806,12 +5843,23 @@ function refreshPrivacySelect(id) {
     privacySelect.html(refreshedPrivacy.options);
     // "Select all" means all, full stop - it doesn't try to skip fields
     // that happen to be no-ops (that's parseForm()'s job at actual submit
-    // time, not the UI's). So if this person's top-level checkbox is
-    // already checked, Privacy needs to stay checked too even when
+    // time, not the UI's). So if this person's top-level checkbox was
+    // EXPLICITLY clicked as a genuine Select All (not just checked as an
+    // indicator that some other field happens to be checked - see
+    // data-select-all-active, set only by .checkslide's own click
+    // handler), Privacy needs to stay checked too even when
     // buildPrivacySelect() says this particular value would be a no-op -
     // otherwise switching Vital back and forth while "all" is checked
     // left Privacy the one checkbox that mysteriously unchecked itself.
-    var allChecked = $("#familytable_" + id).closest(".memberexpand").prev(".membertitle").find(".checkslide").prop("checked");
+    // (Live-reported, DanCornett, #304 follow-up: this used to key off
+    // the checkbox's own checked state alone - the same conflation the
+    // setGeniFamilyData() resync had - so Privacy incorrectly stayed
+    // enabled/checked any time the top box was ticked purely as an
+    // indicator from an unrelated field, e.g. About or a genuinely
+    // different Birth Date, even though Privacy itself already matched
+    // Geni and buildPrivacySelect() correctly said so.)
+    var checkslideEl = $("#familytable_" + id).closest(".memberexpand").prev(".membertitle").find(".checkslide");
+    var allChecked = checkslideEl.prop("checked") && checkslideEl.attr("data-select-all-active") === "true";
     var enabled = refreshedPrivacy.enabled || allChecked;
     privacySelect.prop('disabled', !enabled);
     $('#' + id + '_public_checkbox').prop('checked', enabled);

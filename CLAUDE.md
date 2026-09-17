@@ -339,14 +339,53 @@ but the field was then re-enabled (green) a moment later by the other
 filter, because it only knew how to protect a genuinely blank field, not one
 that just happened to already match Geni. Now both filters call the one
 shared `isFieldEmptyForCheckAll()`. **A third, independent copy of this
-exact same duplicated pattern already existed** - the global `.checkall`
-handler (popup.js, a separate "check every field across every person" button,
-distinct from the per-person `.checkslide`) had the identical un-updated
-inline blank-only check. Found while auditing for exactly this risk and
-fixed the same way. If a fourth place ever needs this same "is this field a
-no-op" question, reuse `isFieldEmptyForCheckAll()` rather than writing
-another copy - this codebase has now drifted on this exact duplication
-twice.
+exact same duplicated pattern already existed** - the `.checkall` handler
+(popup.js; correction to an earlier note here - this is the per-*category*
+header checkbox, Parents/Siblings/Partners/Children/Unknown, one per
+category, **not** a single whole-form-wide control) had the identical
+un-updated inline blank-only check. Found while auditing for exactly this
+risk and fixed the same way. If a fourth place ever needs this same "is
+this field a no-op" question, reuse `isFieldEmptyForCheckAll()` rather than
+writing another copy - this codebase has now drifted on this exact
+duplication twice.
+
+**The indicator/shortcut duality (see the `.checkslide` entry above)
+actually has THREE tiers, not two, and each needs the same two directions
+kept working: individual field -> person (`.checkslide`) -> category
+(`.checkall` header) -> and separately, the focus profile's own
+`#updateprofile`, which has no person/category tiers above it at all.**
+Live-reported, DanCornett, #304 follow-up: the existing cascade only ever
+pushed a tier to checked reactively (on an individual field's check),
+never recomputed it back down when the user unchecked the last thing still
+selected underneath - so unchecking every field for a person (or manually
+clearing a whole category) left that tier's box stuck showing "something
+is selected" indefinitely. `syncTopLevelIndicators(clickedElement)`
+(`buildform.js`) recomputes the relevant tier(s) **from scratch** after
+every `.checknext`/`.geotopcheck` click, in whichever direction, based on
+what's actually checked right now - not just cascading upward.
+`syncPersonCheckboxWithPreCheckedFields()`'s own one-time initial-render
+pass was extended the same way, so a category header correctly reflects
+pre-checked people at first render too, not just after a later click.
+
+A category-wide `.checkall` click is exactly as deliberate a "select
+everything" action as clicking one person's own top-bar box - it now also
+stamps `data-select-all-active="true"`/`"false"` on every `.checkslide` it
+touches (popup.js), matching the same explicit-click semantics an
+individual person's own click would set. Without this, a match/dropdown
+change for one of those people afterward wouldn't recognize the category
+click as genuine Select All intent (see `setGeniFamilyData()`'s resync gate
+above) and would silently fail to re-widen what's eligible.
+
+**`refreshPrivacySelect()`'s own "Select All means all" override had the
+exact same indicator/shortcut conflation as `setGeniFamilyData()`'s resync
+gate did before that was fixed** - it read `.checkslide`'s raw checked
+state instead of `data-select-all-active`, so Privacy stayed force-enabled
+any time the top box was ticked purely as an indicator from some unrelated
+field (About, a genuinely different Birth Date, ...), even though Privacy
+itself already matched Geni exactly and `buildPrivacySelect()` correctly
+said so. This was the recurring "Privacy keeps pre-selecting" report Dan
+saw across several different profiles - now gated on the same
+`data-select-all-active === "true"` check.
 
 **Category-level "add all parents/siblings/children/partners" and each
 individual member's own auto-select both fire when Geni has zero existing

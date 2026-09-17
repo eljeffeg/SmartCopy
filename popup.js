@@ -1569,7 +1569,20 @@ function isFieldEmptyForCheckAll(row) {
         // this resync (setGeniFamilyData() -> applySelectAllState()).
         var fieldName = valueFields[i].name || "";
         var fieldType = fieldName.endsWith(":date") ? "date" : (fieldName === "nicknames" ? "nicknames" : "generic");
-        if ((fieldName === "about_me" || fieldName === "photo" || fieldName === "gender" || fieldName === "is_alive") ||
+        // #304 follow-up (live-reported, DanCornett, confirmed live across
+        // multiple profiles): Gender/Living used to be excluded here too,
+        // out of caution that this row's .genislideinput companion holds
+        // the LOCALIZED display value (localizedGender()) while the
+        // <select>'s own value is the raw male/female/unknown/true/false -
+        // comparing them directly only works because valuesAreEquivalent()'s
+        // case-insensitivity happens to make "male" equal "Male" in
+        // English. That caution left a real, confirmed bug in place
+        // (Gender pre-checking via Select All even when it already
+        // matched Geni exactly) for a non-English-locale risk nobody had
+        // actually reported - fixed for the confirmed case; a genuinely
+        // translated companion value (a non-English locale) remains a
+        // known, separate limitation if it ever surfaces.
+        if (fieldName === "about_me" || fieldName === "photo" ||
             !valuesAreEquivalentForFieldType(valueFields[i].value, companion, fieldType)) {
             return false;
         }

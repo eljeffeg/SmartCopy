@@ -153,6 +153,29 @@ assertEqual(isFieldEmptyForCheckAll(makeCheckAllRow('occupation', 'FARMER', 'Far
 assertEqual(isFieldEmptyForCheckAll(makeCheckAllRow('occupation', 'Farmer', 'Blacksmith')), false,
     "A genuinely different, non-blank value is NOT excluded - Select All should still pick it up");
 
+function makeCheckAllSelectRow(fieldName, value, companionValue, dataScraped) {
+    var tr = document.createElement('tr');
+    var scrapedAttr = dataScraped ? ' data-scraped="true"' : '';
+    tr.innerHTML = '<td><select name="' + fieldName + '"' + scrapedAttr + '><option value="' + value + '" selected></option></select></td><td><input type="text" class="genislideinput" disabled></td>';
+    tr.querySelector('.genislideinput').value = companionValue;
+    return $(tr);
+}
+// #304 follow-up (live-reported, DanCornett, confirmed live): Gender used to be excluded from this function's
+// comparison entirely (a cautious workaround for the companion column's localized display value), which left
+// Gender pre-checking via Select All even when it already matched Geni exactly.
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('gender', 'male', 'Male')), true,
+    "#304 follow-up: Gender identical to Geni (modulo the display column's capitalization) is now excluded from Select All too, matching the main resolver's own Gender fix");
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('gender', 'male', 'Female')), false,
+    "A genuinely different Gender is still correctly picked up by Select All");
+// Living/is_alive is NOT actually fixed by this change, and this asserts that honestly rather than claiming
+// otherwise: isAlive() displays the companion as localized "Living"/"Deceased" text, while the <select>'s own
+// scraped value is the raw "true"/"false" - those never textually match regardless of case-insensitivity, so
+// removing the exclusion doesn't change its behavior (still always "different", still included by Select All).
+// A real fix would need is_alive's own value->label mapping, same as parseForm()'s no-op check already has
+// (popup.js) - not implemented here since Dan's confirmed report was specifically about Gender.
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('is_alive', 'true', 'Living', true)), false,
+    "Living/is_alive still isn't recognized as matching even when it genuinely does - raw 'true' vs. localized 'Living' never textually compare equal - a known, separate, not-yet-fixed gap");
+
 // ============================================================
 // End-to-end: setGeniFamilyData() via a real jsdom window
 // ============================================================

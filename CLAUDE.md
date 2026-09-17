@@ -215,7 +215,26 @@ value is non-empty:
   (`profile === "add"`) that bypasses the `data-scraped` gate specifically
   for this case, while leaving the MATCHED-person protection unchanged.
 - **Scraped has data, and Geni's real value is known but different:**
-  checked/enabled, same as always.
+  checked/enabled, same as always - **except a date that's genuinely LESS
+  specific than Geni's existing one never pre-selects**, even though it's
+  technically "different." Live-reported directly by the user: a source
+  giving only "November 1963" or "1963" was pre-selecting over Geni's
+  existing full "November 13, 1963", which would have overwritten a more
+  precise date with a vaguer one. `isDateSpecificityDowngrade()` (popup.js)
+  ranks day+month+year > month+year > year-only and suppresses
+  pre-selection only for a strict downgrade - equal or better specificity
+  still pre-selects even when the value differs (confirmed with the user:
+  a genuine conflict at the same granularity, e.g. Geni's year 1963 vs. a
+  scraped 1965, should still surface for review, not be silently hidden).
+  Deliberately kept separate from `datesAreEquivalent()` itself (used by
+  `parseForm()`'s submit-time no-op check, where a specificity downgrade is
+  still a real, submittable difference) - only wired into the two
+  pre-selection call sites, `isCheckedDateField()`/`isEnabledDateField()`.
+  Scoped to dates only for now; the same blind spot technically exists for
+  names/locations too (a shorter/less-complete scraped value can still
+  pre-select over a fuller existing one) but has no clean, unambiguous
+  hierarchy the way day/month/year does - treated as a separate follow-up
+  rather than guessing at a generalized "completeness" heuristic.
 - **Scraped has data, and it's meaningfully identical to Geni's real value**
   (#304 - case-insensitive, whitespace-collapsed; "Circa"/"About" ignored for
   dates, but Before/After/Between kept strict; nicknames use containment,

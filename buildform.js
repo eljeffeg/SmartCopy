@@ -3252,7 +3252,15 @@ function isCheckedDateField(dateval, score, currentValue, locked, estimated) {
     // #304: strips Circa/About before comparing (so "Circa 1890" doesn't
     // pre-check over Geni's existing "1890"), while Before/After/Between
     // are never stripped - see datesAreEquivalent()'s ignoreCirca param.
-    var sameAsGeni = isValue(dateval) && isValue(currentValue) && datesAreEquivalent(dateval, currentValue, true);
+    // #304 follow-up (live-reported by the user): also suppresses
+    // pre-selection when the scraped date is genuinely LESS specific than
+    // Geni's existing one (e.g. "November 1963" scraped over Geni's
+    // "November 13, 1963") - see isDateSpecificityDowngrade() (popup.js).
+    // Equal or better specificity still pre-selects, even when the value
+    // differs, so a genuine conflict at the same granularity still
+    // surfaces for review rather than being silently hidden.
+    var sameAsGeni = isValue(dateval) && isValue(currentValue) &&
+        (datesAreEquivalent(dateval, currentValue, true) || isDateSpecificityDowngrade(dateval, currentValue));
     return isChecked(dateval, score, false, currentValue, locked, sameAsGeni);
 }
 
@@ -3274,7 +3282,8 @@ function isEnabledDateField(dateval, score, currentValue, locked, estimated) {
         return "disabled";
     }
     // #304: see isCheckedDateField() above - must stay in agreement with it.
-    var sameAsGeni = isValue(dateval) && isValue(currentValue) && datesAreEquivalent(dateval, currentValue, true);
+    var sameAsGeni = isValue(dateval) && isValue(currentValue) &&
+        (datesAreEquivalent(dateval, currentValue, true) || isDateSpecificityDowngrade(dateval, currentValue));
     return isEnabled(dateval, score, false, currentValue, locked, sameAsGeni);
 }
 

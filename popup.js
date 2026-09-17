@@ -2880,6 +2880,58 @@ function datesAreEquivalent(a, b, ignoreCirca) {
     return momentA.format("YYYY-MM-DD") === momentB.format("YYYY-MM-DD");
 }
 
+// #304 follow-up (live-reported by the user, not Dan): a date's own
+// day/month/year granularity, used only by the pre-selection decision
+// (isCheckedDateField()/isEnabledDateField(), buildform.js) to stop a
+// LESS specific scraped date from pre-checking over a MORE specific one
+// already on Geni - e.g. a source giving only "November 1963" should
+// never offer to replace Geni's existing "November 13, 1963". Deliberately
+// NOT folded into datesAreEquivalent() itself, which is also used by
+// parseForm()'s submit-time no-op check - a specificity downgrade is
+// still a real, submittable difference there (the user might genuinely
+// want to submit it if they explicitly check it), just not something
+// that should auto-pre-select. Separate from DATE_PARSE_FORMATS above
+// (which intentionally has no month+year entry - that list is strict
+// about full/day-level dates for its own equivalence purpose) since a
+// month+year source date ("November 1963") needs to be recognized here
+// without being treated as equivalent to a full date there.
+var DATE_SPECIFICITY_FORMATS = [
+    { format: "D MMMM YYYY", specificity: 3 },
+    { format: "D MMM YYYY", specificity: 3 },
+    { format: "MMMM D, YYYY", specificity: 3 },
+    { format: "MMM D, YYYY", specificity: 3 },
+    { format: "MMMM D YYYY", specificity: 3 },
+    { format: "MMM D YYYY", specificity: 3 },
+    { format: "YYYY-MM-DD", specificity: 3 },
+    { format: "MMMM YYYY", specificity: 2 },
+    { format: "MMM YYYY", specificity: 2 },
+    { format: "YYYY-MM", specificity: 2 },
+    { format: "YYYY", specificity: 1 }
+];
+function getDateSpecificity(dateStr) {
+    if (!exists(dateStr) || dateStr === "") {
+        return 0;
+    }
+    var rest = dateStr.replace(DATE_QUALIFIER_PATTERN, "").replace(/(\d+)(st|nd|rd|th)\b/i, "$1").trim();
+    for (var i = 0; i < DATE_SPECIFICITY_FORMATS.length; i++) {
+        if (moment(rest, DATE_SPECIFICITY_FORMATS[i].format, true).isValid()) {
+            return DATE_SPECIFICITY_FORMATS[i].specificity;
+        }
+    }
+    return 0; // unparseable - never treated as a downgrade OR an upgrade, matches datesAreEquivalent()'s own "unparseable -> not equivalent" fallback rather than guessing
+}
+// Equal specificity still pre-selects even when the value differs (a real
+// conflict at the same granularity - e.g. Geni has birth year 1963,
+// source scraped 1965 - is worth surfacing for review, not silently
+// hidden) - only a genuine downgrade in specificity suppresses
+// pre-selection. Confirmed with the user directly: "pre-select if equal
+// or better specificity."
+function isDateSpecificityDowngrade(scraped, current) {
+    var scrapedSpecificity = getDateSpecificity(scraped);
+    var currentSpecificity = getDateSpecificity(current);
+    return scrapedSpecificity > 0 && currentSpecificity > 0 && scrapedSpecificity < currentSpecificity;
+}
+
 function parseForm(fs) {
     let name_element = ["title", "first_name", "middle_name", "last_name", "maiden_name", "suffix", "display_name"]
     let name_language = "en-US"

@@ -44,13 +44,20 @@ const DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
 const moment = require(path.join(ROOT, 'moment.js'));
 const datesAreEquivalentSrc = extractArrayStatement(popupSrc, 'DATE_PARSE_FORMATS') + '\n' + extractFunction(popupSrc, 'datesAreEquivalent');
 const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN', datesAreEquivalentSrc + '\nreturn datesAreEquivalent;')(exists, moment, DATE_QUALIFIER_PATTERN);
+// #304 follow-up: isCheckedDateField()/isEnabledDateField() now also call
+// isDateSpecificityDowngrade(), which itself needs getDateSpecificity()/
+// DATE_SPECIFICITY_FORMATS - all extracted verbatim from popup.js.
+const isDateSpecificityDowngradeSrc = extractArrayStatement(popupSrc, 'DATE_SPECIFICITY_FORMATS') + '\n' +
+    extractFunction(popupSrc, 'getDateSpecificity') + '\n' + extractFunction(popupSrc, 'isDateSpecificityDowngrade');
+const isDateSpecificityDowngrade = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN',
+    isDateSpecificityDowngradeSrc + '\nreturn isDateSpecificityDowngrade;')(exists, moment, DATE_QUALIFIER_PATTERN);
 
 const resolveFieldEnabled = new Function('isValue', 'exists', 'return ' + extractFunction(bfSrc, 'resolveFieldEnabled'))(isValue, exists);
 const isChecked = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isChecked'))(resolveFieldEnabled);
 const isEnabled = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isEnabled'))(resolveFieldEnabled);
 
-const isCheckedDateField = new Function('exists', 'isValue', 'isChecked', 'datesAreEquivalent', 'return ' + extractFunction(bfSrc, 'isCheckedDateField'))(exists, isValue, isChecked, datesAreEquivalent);
-const isEnabledDateField = new Function('exists', 'isValue', 'isEnabled', 'datesAreEquivalent', 'return ' + extractFunction(bfSrc, 'isEnabledDateField'))(exists, isValue, isEnabled, datesAreEquivalent);
+const isCheckedDateField = new Function('exists', 'isValue', 'isChecked', 'datesAreEquivalent', 'isDateSpecificityDowngrade', 'return ' + extractFunction(bfSrc, 'isCheckedDateField'))(exists, isValue, isChecked, datesAreEquivalent, isDateSpecificityDowngrade);
+const isEnabledDateField = new Function('exists', 'isValue', 'isEnabled', 'datesAreEquivalent', 'isDateSpecificityDowngrade', 'return ' + extractFunction(bfSrc, 'isEnabledDateField'))(exists, isValue, isEnabled, datesAreEquivalent, isDateSpecificityDowngrade);
 
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {

@@ -227,13 +227,13 @@ function build(genifamilydata) {
     return ctx;
 }
 
-function freshDom(memberId, matchedProfileId, occupationValue, occupationChecked, selectAllActive, causeOfDeathValue, causeOfDeathChecked) {
+function freshDom(memberId, matchedProfileId, occupationValue, occupationChecked, selectAllActive, causeOfDeathValue, causeOfDeathChecked, livingChecked, livingScrapedFlag) {
     $('body').html(`
         <div class="membertitle"><input type="checkbox" class="checkslide" checked data-select-all-active="${selectAllActive ? 'true' : 'false'}"></div>
         <div class="memberexpand">
             <table id="familytable_${memberId}">
                 <tr><td><select class="actionselect"><option value="${matchedProfileId}" selected>Update</option><option value="add">Add Profile</option></select></td></tr>
-                <tr><td><select name="is_alive" class="livingselect" update="${memberId}"><option value="false" selected>Deceased</option></select></td></tr>
+                <tr><td><input type="checkbox" class="checknext" ${livingChecked ? 'checked' : ''}></td><td><select name="is_alive" class="livingselect" data-scraped="${livingScrapedFlag ? 'true' : 'false'}" update="${memberId}"><option value="false" selected>Deceased</option><option value="true">Living</option></select></td><td><input id="${memberId}_geni_is_alive" type="text" class="genislideinput" disabled></td></tr>
                 <tr><td><input type="checkbox" class="checknext" ${occupationChecked ? 'checked' : ''}></td><td><input type="text" name="occupation" value="${occupationValue}"></td><td><input id="${memberId}_geni_occupation" type="text" class="genislideinput" disabled></td></tr>
                 <tr><td><input type="checkbox" class="checknext" ${causeOfDeathChecked ? 'checked' : ''}></td><td><input type="text" name="cause_of_death" value="${causeOfDeathValue || ''}"></td><td><input id="${memberId}_geni_cause_of_death" type="text" class="genislideinput" disabled></td></tr>
             </table>
@@ -333,6 +333,41 @@ const memberId = '0';
         "The individually-checked field the user actually touched stays checked, via its own normal per-field resolution");
     assertEqual($('.checkslide').prop('checked'), true,
         "The person-bar stays checked too, purely as the indicator it always was (OR of the one real field still checked)");
+}
+
+// --- Scenario 5 (live-reported, DanCornett): Vital pre-checks for a brand-new "Add Profile" candidate even
+// when the scraper only defaulted (not genuinely scraped) a Living/Deceased guess - critical because an
+// unsubmitted is_alive can let Geni's own Auto-privacy logic default the new profile to Private. ---
+{
+    global.genifamilydata = {};
+    // livingChecked=true (matches render time, which always checks Vital regardless of data-scraped);
+    // livingScrapedFlag=false (the scraper never determined a real living status - just the render default).
+    freshDom(memberId, 'add', 'Farmer', true, false, '', false, true, false);
+    const ctx = build(global.genifamilydata);
+    ctx.setGeniFamilyData(memberId, 'add');
+
+    assertEqual($('select[name="is_alive"]').closest('tr').find('.checknext').prop('checked'), true,
+        "#304 follow-up (live-reported, DanCornett): Vital stays checked for a brand-new 'Add Profile' candidate even when only defaulted (not genuinely scraped) - there's no existing Geni value to protect, and leaving it unsubmitted risks Geni's own Auto-privacy defaulting the new profile to Private");
+    assertEqual($('select[name="is_alive"]').prop('disabled'), false,
+        "The field itself stays enabled too, so the default value actually submits");
+}
+
+// --- Scenario 6 (regression): Vital still protects a MATCHED person's real Geni value from a merely-defaulted
+// scraped guess - the data-scraped distinction must still apply when NOT a new add. ---
+{
+    const profileId = 'geniMatch6';
+    global.genifamilydata = {};
+    global.genifamilydata[profileId] = new GeniPerson({
+        id: profileId, public: true, is_alive: true, // Geni says this person is actually LIVING
+        actions: ['update', 'update-basics'], names: {},
+        birth: { date: { year: '1990' } }
+    });
+    freshDom(memberId, profileId, 'Farmer', true, false, '', false, true, false);
+    const ctx = build(global.genifamilydata);
+    ctx.setGeniFamilyData(memberId, profileId);
+
+    assertEqual($('select[name="is_alive"]').closest('tr').find('.checknext').prop('checked'), false,
+        "Regression: a MATCHED person's Vital still protects Geni's real value from a merely-defaulted (not genuinely scraped) guess - un-checks once the match reveals Geni already has real living data");
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

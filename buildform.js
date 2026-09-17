@@ -5457,12 +5457,27 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue)
 // renders as a defaulted Deceased/false, see the family-member render loop)
 // apart from "source really said deceased." data-scraped, stamped on the
 // <select> at render time, disambiguates the two.
-function refreshLivingCheckState(id, currentValue, locked) {
+function refreshLivingCheckState(id, currentValue, locked, isNewAdd) {
     var input = $("#familytable_" + id + " select[name='is_alive']").not(".genislideinput");
     if (input.length === 0) {
         return;
     }
-    var scrapedValue = (input.attr("data-scraped") === "true") ? input.val() : "";
+    // #304 follow-up (live-reported, DanCornett): for a brand-new "Add
+    // Profile" candidate there's no existing Geni value to protect from a
+    // merely-defaulted (not genuinely scraped) Living/Deceased guess - the
+    // data-scraped distinction below exists specifically to stop that
+    // synthetic default from silently overriding an already-MATCHED
+    // person's real Geni value, which doesn't apply here. Once "never
+    // pre-select a blank field" shipped, forcing scrapedValue blank in
+    // this case meant Vital could never pre-check at all for a new add,
+    // silently leaving is_alive unsubmitted - and Geni's own server-side
+    // Auto-privacy logic (see buildPrivacySelect()) can default an
+    // unspecified profile to Private, exactly the outcome Dan was trying
+    // to avoid. Vital always holds a real true/false value even when
+    // merely defaulted (there's no third "unknown" state the way Gender
+    // has one), so using it directly here is safe - there's nothing to
+    // protect on a profile that doesn't exist on Geni yet.
+    var scrapedValue = isNewAdd ? input.val() : ((input.attr("data-scraped") === "true") ? input.val() : "");
     // #304: "generic" - the select's own value ("true"/"false") and Geni's
     // raw is_alive value are the same vocabulary (valuesAreEquivalent()'s
     // String() coercion handles Geni returning an actual boolean rather
@@ -5548,7 +5563,7 @@ function setGeniFamilyData(id, profile) {
     refreshFieldCheckState(id, "gender", getGeniData(profile, "gender"), getGeniFieldLocked(profile, "gender"), "unknown");
     $("#" + id + "_geni_is_alive").val(isAlive(getGeniData(profile, "is_alive")));
     $("#" + id + "_geni_is_alive").prev().attr('src', getGeniLock(profile, "living"));
-    refreshLivingCheckState(id, getGeniData(profile, "is_alive"), getGeniFieldLocked(profile, "living"));
+    refreshLivingCheckState(id, getGeniData(profile, "is_alive"), getGeniFieldLocked(profile, "living"), profile === "add");
     $("#" + id + "_geni_public").val(isPublic(getGeniData(profile, "public")));
     $("#" + id + "_geni_public").prev().attr('src', getGeniLock(profile, "public"));
 

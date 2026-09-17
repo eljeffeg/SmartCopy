@@ -200,7 +200,20 @@ value is non-empty:
   convenience cost - an extra click before typing into a genuinely new,
   blank-on-both-sides field - is intentionally accepted in exchange.) Still
   manually overridable (an explicit, deliberate action), just never
-  pre-checked into it.
+  pre-checked into it. **One deliberate exception: family-member Vital
+  (Living/Deceased) for a brand-new "Add Profile" candidate.** Vital always
+  holds a real true/false value even when merely defaulted at render (there's
+  no third "unknown" state the way Gender has one) - `refreshLivingCheckState()`'s
+  `data-scraped` flag exists to stop that synthetic default from silently
+  overriding an already-MATCHED person's real Geni value, but for a new add
+  there's no existing Geni value to protect at all. Blanking it out anyway
+  (once the stricter blank rule shipped) meant `is_alive` could go entirely
+  unsubmitted on a new profile, and Geni's own server-side Auto-privacy logic
+  (see `buildPrivacySelect()`'s own comment) can default an unspecified
+  profile to Private - live-reported by DanCornett as a real, unacceptable
+  risk. `refreshLivingCheckState()` takes an `isNewAdd` argument
+  (`profile === "add"`) that bypasses the `data-scraped` gate specifically
+  for this case, while leaving the MATCHED-person protection unchanged.
 - **Scraped has data, and Geni's real value is known but different:**
   checked/enabled, same as always.
 - **Scraped has data, and it's meaningfully identical to Geni's real value**

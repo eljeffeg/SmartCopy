@@ -162,6 +162,34 @@ function freshSiblingGroup() {
         "Regression: with nobody pre-checked, the category header correctly stays unchecked too");
 }
 
+// --- syncPersonCheckboxWithPreCheckedFields(): also syncs the focus profile's own #updateprofile at initial render ---
+{
+    $('body').html(`
+        <div class="shadoweffect" id="profileshadowdiv">
+            <input type="checkbox" id="updateprofile" class="checkall">
+            <fieldset id="profilefield">
+                <input type="checkbox" class="checknext" id="focusabout" checked>
+            </fieldset>
+        </div>
+    `);
+    ctx.syncPersonCheckboxWithPreCheckedFields();
+    assertEqual($('#updateprofile').prop('checked'), true,
+        "#304 follow-up (live-reported, DanCornett): #updateprofile now reflects a field pre-checked at first render (e.g. About) - previously stayed unchecked with no visible sign anything was pre-selected");
+}
+{
+    $('body').html(`
+        <div class="shadoweffect" id="profileshadowdiv">
+            <input type="checkbox" id="updateprofile" class="checkall">
+            <fieldset id="profilefield">
+                <input type="checkbox" class="checknext" id="focusabout">
+            </fieldset>
+        </div>
+    `);
+    ctx.syncPersonCheckboxWithPreCheckedFields();
+    assertEqual($('#updateprofile').prop('checked'), false,
+        "Regression: with nothing pre-checked on the focus profile, #updateprofile correctly stays unchecked");
+}
+
 // ============================================================
 // Structural: the actual click-handler wiring in buildform.js/popup.js
 // calls into the functions verified above, and the OLD one-directional
@@ -198,6 +226,12 @@ assertEqual((geotopcheckHandler.match(/personslide\.find\('\.checkslide'\)\.prop
 const checkallHandler = extractBetween(popupSrc, "$('.checkall').on('click'", "});\n});");
 assertEqual(checkallHandler.indexOf("fs.find('.checkslide').attr('data-select-all-active'") !== -1, true,
     "#304 follow-up: the category-wide .checkall click handler now sets data-select-all-active on every .checkslide it touches, matching an explicit per-person click");
+
+// --- Structural: the focus profile's Vital row (the "agrees/no Geni conflict" branch) no longer hides behind
+// Hide Empty Fields just because the source never explicitly scraped an alive/deceased signal - live-reported,
+// DanCornett: "Vital is not showing until after clicking Show all fields: it should be showing by default." ---
+assertEqual(bfSrc.indexOf('hiddenRowAttrs(hidden, exists(alldata["profile"].alive))') !== -1, false,
+    "#304 follow-up: the focus profile's Vital row no longer conditions its visibility on whether an alive/deceased signal was actually scraped - it always renders a real value either way, so it's always shown, matching the OTHER Vital branch (a real Geni-vs-scraped conflict) which was already unconditionally visible");
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

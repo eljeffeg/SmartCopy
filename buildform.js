@@ -867,7 +867,18 @@ function buildForm() {
             if (!geniliving && living) {
                 living = geniliving;
             }
-            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, exists(alldata["profile"].alive)) + '><td class="profilediv"><input type="checkbox" class="checknext" ' + (livinglocked ? 'disabled ' : '') + isChecked(living, false, false, undefined, livinglocked) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, false, false, undefined, livinglocked) + '>' +
+            // #304 follow-up (live-reported, DanCornett): this branch used
+            // to hide behind Hide Empty Fields whenever the source never
+            // explicitly scraped an alive/deceased signal
+            // (!exists(alldata["profile"].alive)) - but Vital never has a
+            // genuinely "empty" state the way a blank text field does, it
+            // always renders a real Living/Deceased value either way (see
+            // isChecked(living, ...) just below, which doesn't gate on
+            // this at all). The OTHER branch above (a real Geni-vs-scraped
+            // conflict) was already unconditionally visible with no
+            // hiddenRowAttrs() at all - matching that here instead, so
+            // Vital shows by default in both branches, not just one.
+            membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + (livinglocked ? 'disabled ' : '') + isChecked(living, false, false, undefined, livinglocked) + '>Vital: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="is_alive" ' + isEnabled(living, false, false, undefined, livinglocked) + '>' +
                 '<option value=false ' + setLiving("deceased", living) + '>' + _("Deceased") + '</option><option value=true ' + setLiving("living", living) + '>' + _("Living") + '</option></select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("living") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isAlive(genifocusdata.get("is_alive")) + '" disabled></td></tr>';
         }
         var focusBirthYear = undefined;
@@ -2510,10 +2521,26 @@ function syncPersonCheckboxWithPreCheckedFields() {
     // its own render-time default was, ignoring however many individual
     // people underneath it ended up pre-checked by the loop above. Run
     // after that loop so every person's .checkslide is already settled.
-    $('.checkall').each(function () {
+    // #updateprofile shares the .checkall class (it's really just another
+    // .checkall instance, scoped to the focus profile's own single
+    // fieldset instead of a family category) but has no .checkslide tier
+    // underneath it at all - excluded here and handled explicitly right
+    // below instead, so this loop doesn't wrongly zero it out first.
+    $('.checkall').not('#updateprofile').each(function () {
         var groupFieldset = $(this).closest('div').find('fieldset');
         $(this).prop('checked', groupFieldset.find('.checkslide:checked').length > 0);
     });
+    // #304 follow-up (live-reported, DanCornett): the focus profile's own
+    // #updateprofile checkbox never got this initial sync either - it has
+    // no .memberexpand/.membertitle at all, just its own fieldset directly
+    // inside #profileshadowdiv (same relationship syncTopLevelIndicators()
+    // checks reactively on click) - so a field pre-checked at first render
+    // (e.g. About, whenever it has real content) left #updateprofile
+    // unchecked with no visible sign anything was actually pre-selected.
+    var focusFieldset = $('#profileshadowdiv').children('fieldset');
+    if (focusFieldset.length > 0) {
+        $('#updateprofile').prop('checked', focusFieldset.find('.checknext:checked').length > 0);
+    }
 }
 
 // #304 follow-up (live-reported, DanCornett): syncPersonCheckboxWithPreCheckedFields()

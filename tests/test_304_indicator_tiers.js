@@ -209,13 +209,30 @@ function extractBetween(src, startMarker, endMarker, fromIndex) {
     return src.slice(start, end);
 }
 
-const checknextHandler = extractBetween(bfSrc, "$('.checknext').on('click'", "$('.geotopcheck').off();");
+// #304 follow-up: the .checknext click handler is now a named,
+// directly-callable top-level function (handleChecknextClick()) rather
+// than an anonymous .on('click', function(){...}) closure - specifically
+// so setLocationFieldChecked() (pencil-edit flow) can call it directly
+// with a known-correct checked state instead of going through the
+// fragile .trigger("click") native-toggle-ordering bug (see below).
+assertEqual(bfSrc.indexOf("$('.checknext').on('click', handleChecknextClick);") !== -1, true,
+    "The real .checknext binding wires up the named handleChecknextClick() function");
+const checknextHandler = extractFunction(bfSrc, 'handleChecknextClick');
 assertEqual(checknextHandler.indexOf('syncTopLevelIndicators(this)') !== -1, true,
-    "The real .checknext click handler calls syncTopLevelIndicators(this)");
+    "The real handleChecknextClick() calls syncTopLevelIndicators(this)");
 assertEqual(checknextHandler.indexOf("personslide.find('.checkslide').prop('checked', true);") !== -1, false,
     "The OLD check-only cascade (unconditionally forcing .checkslide true) is gone from .checknext's handler");
 assertEqual(checknextHandler.indexOf('"profileshadowdiv"') !== -1, false,
     "The OLD inline #updateprofile special-case is gone too - now handled uniformly inside syncTopLevelIndicators()");
+
+// --- setLocationFieldChecked() (pencil-edit flow) no longer relies on .trigger("click")'s fragile native-toggle
+// ordering - live-reported, DanCornett: checked-but-disabled (or the reverse) location fields after a pencil
+// edit, which then silently failed to submit, since parseForm() submits based on disabled, never checked. ---
+const setLocationFieldCheckedSrc = extractFunction(bfSrc, 'setLocationFieldChecked');
+assertEqual(setLocationFieldCheckedSrc.indexOf('.trigger("click")') !== -1, false,
+    "#304 follow-up: setLocationFieldChecked() no longer uses .trigger(\"click\") at all - the native click-toggle fires BEFORE jQuery's bound handler runs, so the handler's own side effects (disabled, geotopcheck cascade) were computed from the momentarily-wrong, not the target, checked value");
+assertEqual(setLocationFieldCheckedSrc.indexOf('handleChecknextClick.call(checkbox)') !== -1, true,
+    "setLocationFieldChecked() now calls the real handler directly, with checked already set to its final correct value first - guarantees every side effect the handler computes agrees with the real final state");
 
 const geotopcheckHandler = extractBetween(bfSrc, "$('.geotopcheck').on('click'", "$('.checkslide').off();");
 assertEqual(geotopcheckHandler.indexOf('syncTopLevelIndicators(this)') !== -1, true,

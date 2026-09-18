@@ -245,26 +245,32 @@ function updateGeoLocation() {
         }
         var titlesplit = titleobj[0].nextSibling.nodeValue.split("Location: ");
         titleobj[0].nextSibling.nodeValue = titlesplit[0] + "Location: " + locationdata.query;
-        // (live-reported, DanCornett - #287 follow-up): jQuery's
-        // .trigger("click") on a checkbox invokes the browser's own
-        // native default action for a click on a checkbox - which
-        // TOGGLES it - in addition to firing the bound .checknext
-        // handler this call actually needs (to enable/disable the row's
-        // text input and cascade the top .geotopcheck). That native
-        // toggle silently inverted every single .prop(X).trigger("click")
-        // call below: whatever X was computed as, the checkbox ended up
-        // as !X once the trigger's own default action ran - confirmed
-        // directly via a real jsdom DOM (not just reading the source),
-        // reproducing Dan's exact "Place and Country checked when they
-        // shouldn't be" report byte-for-byte. Re-asserting the intended
-        // state with a second .prop() AFTER the trigger keeps the
-        // handler's necessary side effects (still fired once, during the
-        // trigger) while guaranteeing the checkbox actually ends up where
-        // this function intended - .prop() alone never re-fires the
-        // click handler, so this can't double-cascade the geotopcheck
-        // update either.
+        // (live-reported, DanCornett - #287 follow-up, and a #304
+        // follow-up superseding the fix below): jQuery's .trigger("click")
+        // on a checkbox invokes the browser's own native default action
+        // for a click on a checkbox - which TOGGLES it - in addition to
+        // firing the bound .checknext handler this call actually needs
+        // (to enable/disable the row's text input and cascade the top
+        // .geotopcheck). The ORIGINAL #287 fix re-asserted the intended
+        // checked state with a second .prop() AFTER the trigger, which
+        // correctly fixes the checkbox's own final state - but the native
+        // toggle happens BEFORE the bound handler runs, not after, so the
+        // handler itself (and everything it computes FROM this.checked -
+        // the disabled toggle, the geotopcheck cascade) still ran against
+        // the momentarily-wrong, native-toggled value. Confirmed directly
+        // via a real jQuery/jsdom reproduction: the checkbox's own final
+        // checked state came out correct, but disabled came out inverted.
+        // Live-reported: fields ending up checked-but-disabled (or the
+        // reverse) after a pencil edit, which then silently failed to
+        // submit at all - parseForm() (popup.js) submits based on
+        // disabled, never on checked. Fixed properly by not going through
+        // .trigger("click")/the native toggle at all - calls the real
+        // .checknext handler (handleChecknextClick(), extracted to a named
+        // function for exactly this reason) directly, with checked already
+        // set to its final, correct value first.
         function setLocationFieldChecked(checkbox, checked) {
-            $(checkbox).prop("checked", checked).trigger("click").prop("checked", checked);
+            $(checkbox).prop("checked", checked);
+            handleChecknextClick.call(checkbox);
         }
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.query;
@@ -2573,6 +2579,57 @@ function syncTopLevelIndicators(clickedElement) {
     }
 }
 
+// Extracted to a named, directly-callable function (was an anonymous
+// .on('click', function(){...}) closure) specifically so
+// setLocationFieldChecked() (pencil-edit "Update Location" flow) can
+// invoke it directly with a known-correct checked state instead of
+// going through .trigger("click"). #287's own fix already documented
+// that a real user click's native default action toggles a checkbox's
+// checked property - what wasn't caught until now is that this native
+// toggle happens BEFORE jQuery's bound handler runs, not after, so a
+// programmatic .prop(target).trigger("click") handler body sees the
+// MOMENTARILY WRONG (toggled) this.checked, not the target value -
+// confirmed directly with a real jQuery/jsdom reproduction. #287's
+// trailing .prop(target) re-assert fixes the checkbox's own final
+// checked state back, but never re-runs this handler, so every side
+// effect that reads this.checked here (the disabled toggle, the
+// geotopcheck cascade, the hidden-input enable) was silently computed
+// from the wrong value - live-reported, DanCornett: checked-but-disabled
+// (or the reverse) location fields after a pencil edit, which then
+// silently failed to submit at all, since parseForm() (popup.js) submits
+// based on disabled, never on checked.
+function handleChecknextClick() {
+    $(this).closest('tr').find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
+    // #304 follow-up (live-reported, DanCornett): any individual field
+    // action - check or uncheck - means the user is making a per-field
+    // choice again, not "everything." Clears the explicit Select All flag
+    // (separate from the checkbox's own checked state, which stays a pure
+    // indicator) so a later match/dropdown change resyncs this person
+    // normally instead of replaying a full select-all the user never
+    // asked for. Safe to always clear regardless of direction - a false
+    // flag staying false is a no-op.
+    var personslide = $(this).closest('.memberexpand').prev('.membertitle');
+    personslide.find('.checkslide').attr('data-select-all-active', 'false');
+    if (this.checked) {
+        if ($(this).closest('tr').hasClass("geoloc") || $(this).closest('tr').hasClass("geoplace")) {
+            //This checks the geotopcheck when a child location is checked
+            var ps = $(this).closest('tr')[0].previousElementSibling;
+            while (exists(ps)) {
+                ps = $(ps)[0].previousElementSibling;
+                if (exists(ps) && ps.id !== "") {
+                    $(ps).find('.geotopcheck').prop('checked', true);
+                    break;
+                }
+            }
+        }
+        personslide.find('input[type="hidden"]').not(".genislideinput").attr('disabled', false);
+    }
+    // #304 follow-up: recomputes the person-level/category-level/focus-
+    // profile top indicators from scratch, in either direction - see
+    // syncTopLevelIndicators() above.
+    syncTopLevelIndicators(this);
+}
+
 function updateClassResponse() {
     $('.genderselect').off();
     $(function () {
@@ -2678,38 +2735,7 @@ function updateClassResponse() {
 
     $('.checknext').off();
     $(function () {
-        $('.checknext').on('click', function () {
-            $(this).closest('tr').find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
-            // #304 follow-up (live-reported, DanCornett): any individual
-            // field action - check or uncheck - means the user is making a
-            // per-field choice again, not "everything." Clears the explicit
-            // Select All flag (separate from the checkbox's own checked
-            // state, which stays a pure indicator) so a later match/
-            // dropdown change resyncs this person normally instead of
-            // replaying a full select-all the user never asked for. Safe
-            // to always clear regardless of direction - a false flag
-            // staying false is a no-op.
-            var personslide = $(this).closest('.memberexpand').prev('.membertitle');
-            personslide.find('.checkslide').attr('data-select-all-active', 'false');
-            if (this.checked) {
-                if ($(this).closest('tr').hasClass("geoloc") || $(this).closest('tr').hasClass("geoplace")) {
-                    //This checks the geotopcheck when a child location is checked
-                    var ps = $(this).closest('tr')[0].previousElementSibling;
-                    while (exists(ps)) {
-                        ps = $(ps)[0].previousElementSibling;
-                        if (exists(ps) && ps.id !== "") {
-                            $(ps).find('.geotopcheck').prop('checked', true);
-                            break;
-                        }
-                    }
-                }
-                personslide.find('input[type="hidden"]').not(".genislideinput").attr('disabled', false);
-            }
-            // #304 follow-up: recomputes the person-level/category-level/
-            // focus-profile top indicators from scratch, in either
-            // direction - see syncTopLevelIndicators() above.
-            syncTopLevelIndicators(this);
-        });
+        $('.checknext').on('click', handleChecknextClick);
     });
     $('.geotopcheck').off();
     $(function () {

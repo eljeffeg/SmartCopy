@@ -67,6 +67,10 @@ const DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
 const datesAreEquivalentSrc = extractArrayStatement(popupSrc, 'DATE_PARSE_FORMATS') + '\n' + extractFunction(popupSrc, 'datesAreEquivalent');
 const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN', datesAreEquivalentSrc + '\nreturn datesAreEquivalent;')(exists, moment, DATE_QUALIFIER_PATTERN);
 global.datesAreEquivalent = datesAreEquivalent;
+const dateSpecificitySrc = extractArrayStatement(popupSrc, 'DATE_SPECIFICITY_FORMATS') + '\n' +
+    extractFunction(popupSrc, 'getDateSpecificity') + '\n' + extractFunction(popupSrc, 'isDateSpecificityDowngrade');
+const isDateSpecificityDowngrade = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN',
+    dateSpecificitySrc + '\nreturn isDateSpecificityDowngrade;')(exists, moment, DATE_QUALIFIER_PATTERN);
 
 const valuesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'valuesAreEquivalent'))();
 const nicknamesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'nicknamesAreEquivalent'))();
@@ -77,16 +81,22 @@ const resolveFieldEnabled = new Function('isValue', 'exists', 'return ' + extrac
 const isChecked = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isChecked'))(resolveFieldEnabled);
 const isEnabled = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isEnabled'))(resolveFieldEnabled);
 
-const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nicknamesAreEquivalent', 'valuesAreEquivalent',
-    'return ' + extractFunction(bfSrc, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, valuesAreEquivalent);
+const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nicknamesAreEquivalent', 'valuesAreEquivalent', 'isDateSpecificityDowngrade',
+    'return ' + extractFunction(bfSrc, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, valuesAreEquivalent, isDateSpecificityDowngrade);
+// #304 follow-up (consolidation pass): the single shared "would this field
+// actually contribute something new" answer - both applyProtectedDisabledState()
+// and isFieldEmptyForCheckAll() defer to this now instead of each
+// re-deriving the same blank/equivalence logic independently.
+const isFieldSelectable = new Function('isValue', 'valuesAreEquivalentForFieldType',
+    'return ' + extractFunction(bfSrc, 'isFieldSelectable'))(isValue, valuesAreEquivalentForFieldType);
 const isFieldValueBlank = new Function('return ' + extractFunction(bfSrc, 'isFieldValueBlank'))();
 // isFieldEmptyForCheckAll() lives in popup.js, calls back into buildform.js's
-// isFieldValueBlank()/valuesAreEquivalentForFieldType() - same cross-file
-// pattern already established (buildform.js already calls popup.js's
-// datesAreEquivalent()), safe since both are only ever actually invoked
-// later, after every script has loaded.
-const isFieldEmptyForCheckAll = new Function('isFieldValueBlank', 'valuesAreEquivalentForFieldType',
-    'return ' + extractFunction(popupSrc, 'isFieldEmptyForCheckAll'))(isFieldValueBlank, valuesAreEquivalentForFieldType);
+// isFieldValueBlank()/isFieldSelectable() - same cross-file pattern already
+// established (buildform.js already calls popup.js's datesAreEquivalent()),
+// safe since both are only ever actually invoked later, after every script
+// has loaded.
+const isFieldEmptyForCheckAll = new Function('isFieldValueBlank', 'isFieldSelectable',
+    'return ' + extractFunction(popupSrc, 'isFieldEmptyForCheckAll'))(isFieldValueBlank, isFieldSelectable);
 
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {
@@ -103,6 +113,21 @@ assertEqual(valuesAreEquivalent('  Farmer  ', 'Farmer'), true, "Leading/trailing
 assertEqual(valuesAreEquivalent('Farmer', 'Blacksmith'), false, "Genuinely different values are NOT equivalent");
 assertEqual(valuesAreEquivalent('', ''), true, "Two blanks are equivalent");
 assertEqual(valuesAreEquivalent(undefined, ''), true, "undefined normalizes the same as blank, never throws");
+
+// ============================================================
+// Unit: isFieldSelectable() - the single shared "would this field actually contribute something new"
+// answer, introduced during a consolidation pass to replace duplicated logic in
+// applyProtectedDisabledState() and isFieldEmptyForCheckAll() that had already drifted apart more than once.
+// ============================================================
+assertEqual(isFieldSelectable('', ''), false, "Blank scraped is never selectable, regardless of Geni's side");
+assertEqual(isFieldSelectable('', 'Farmer'), false, "Blank scraped is never selectable even when Geni has real data");
+assertEqual(isFieldSelectable('Farmer', ''), true, "Scraped has data, Geni has nothing to compare against - always selectable");
+assertEqual(isFieldSelectable('Farmer', 'Blacksmith'), true, "Genuinely different values - selectable");
+assertEqual(isFieldSelectable('FARMER', 'Farmer'), false, "Identical modulo case - not selectable, nothing new");
+assertEqual(isFieldSelectable('November 1963', 'November 13, 1963', 'date'), false,
+    "Per-fieldType dispatch works too - a date specificity downgrade is not selectable");
+assertEqual(isFieldSelectable('Johnny', ['Johnny', 'Jack'], 'nicknames'), false,
+    "A nickname already contained in Geni's list is not selectable");
 
 // ============================================================
 // Unit: nicknamesAreEquivalent() - containment, not exact string equality
@@ -195,6 +220,7 @@ const isAppendSrc = extractFunction(bfSrc, 'isAppend');
 const valuesAreEquivalentSrc = extractFunction(bfSrc, 'valuesAreEquivalent');
 const nicknamesAreEquivalentSrc = extractFunction(bfSrc, 'nicknamesAreEquivalent');
 const valuesAreEquivalentForFieldTypeSrc = extractFunction(bfSrc, 'valuesAreEquivalentForFieldType');
+const isFieldSelectableSrc = extractFunction(bfSrc, 'isFieldSelectable');
 const resolveFieldEnabledSrc = extractFunction(bfSrc, 'resolveFieldEnabled');
 const isEnabledSrc = extractFunction(bfSrc, 'isEnabled');
 const isCheckedSrc = extractFunction(bfSrc, 'isChecked');
@@ -223,6 +249,7 @@ function build(genifamilydata) {
         ${valuesAreEquivalentSrc}
         ${nicknamesAreEquivalentSrc}
         ${valuesAreEquivalentForFieldTypeSrc}
+        ${isFieldSelectableSrc}
         ${getGeniLockSrc}
         ${getGeniFieldLockedSrc}
         ${getGeniPhotoLockedSrc}

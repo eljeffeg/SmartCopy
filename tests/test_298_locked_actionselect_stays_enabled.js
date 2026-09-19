@@ -15,6 +15,7 @@ const { JSDOM } = require('jsdom');
 
 const bfSrc = fs.readFileSync('' + ROOT + '/buildform.js', 'utf8');
 const sharedSrc = fs.readFileSync('' + ROOT + '/shared.js', 'utf8');
+const popupSrc = fs.readFileSync('' + ROOT + '/popup.js', 'utf8');
 
 function extractFunction(src, name) {
     const marker = 'function ' + name + '(';
@@ -26,6 +27,13 @@ function extractFunction(src, name) {
         else if (src[i] === '}') { depth--; if (depth === 0) break; }
     }
     return src.slice(start, i + 1);
+}
+function extractArrayStatement(src, name) {
+    const marker = 'var ' + name + ' =';
+    const start = src.indexOf(marker);
+    if (start === -1) throw new Error('not found: ' + name);
+    const semi = src.indexOf(';', start);
+    return src.slice(start, semi + 1);
 }
 
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
@@ -76,11 +84,26 @@ const setGeniFamilyDataSrc = extractFunction(bfSrc, 'setGeniFamilyData');
 const localizedGenderSrc = extractFunction(bfSrc, 'localizedGender');
 const isAliveSrc = extractFunction(bfSrc, 'isAlive');
 const isPublicSrc = extractFunction(bfSrc, 'isPublic');
+// #304 follow-up (consolidation pass): applyProtectedDisabledState() now
+// defers to the shared isFieldSelectable()/valuesAreEquivalentForFieldType()
+// - both, and their own dependencies, extracted here too.
+const DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
+const moment = require(path.join(ROOT, 'moment.js'));
+const datesAreEquivalentSrc = extractArrayStatement(popupSrc, 'DATE_PARSE_FORMATS') + '\n' + extractFunction(popupSrc, 'datesAreEquivalent');
+const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN', datesAreEquivalentSrc + '\nreturn datesAreEquivalent;')(exists, moment, DATE_QUALIFIER_PATTERN);
+const valuesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'valuesAreEquivalent'))();
+const nicknamesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'nicknamesAreEquivalent'))();
+const normalizeAboutForComparisonSrc = extractFunction(popupSrc, 'normalizeAboutForComparison');
+const isAboutContentPresent = new Function('exists', normalizeAboutForComparisonSrc + '\n' + extractFunction(popupSrc, 'isAboutContentPresent') + '\nreturn isAboutContentPresent;')(exists);
+const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nicknamesAreEquivalent', 'valuesAreEquivalent', 'isAboutContentPresent',
+    'return ' + extractFunction(bfSrc, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, valuesAreEquivalent, isAboutContentPresent);
+const isFieldSelectable = new Function('isValue', 'valuesAreEquivalentForFieldType',
+    'return ' + extractFunction(bfSrc, 'isFieldSelectable'))(isValue, valuesAreEquivalentForFieldType);
 
 function build(genifamilydata) {
     const getGeniData = makeGetGeniData(genifamilydata);
     const ctx = new Function(
-        '$', 'exists', 'isValue', 'genifamilydata', 'getGeniData', '_',
+        '$', 'exists', 'isValue', 'genifamilydata', 'getGeniData', '_', 'isFieldSelectable',
         `
         ${getGeniLockSrc}
         ${getGeniFieldLockedSrc}
@@ -99,7 +122,7 @@ function build(genifamilydata) {
         ${setGeniFamilyDataSrc}
         return { setGeniFamilyData };
         `
-    )($, exists, isValue, genifamilydata, getGeniData, function (k) { return k; });
+    )($, exists, isValue, genifamilydata, getGeniData, function (k) { return k; }, isFieldSelectable);
     return ctx;
 }
 

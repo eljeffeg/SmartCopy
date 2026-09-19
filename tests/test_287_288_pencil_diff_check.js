@@ -50,8 +50,37 @@ assertTrue(!gpsEffectivelyMatches("42.6", ""), "Blank Geni value never matches (
 // --- #287/#288 structural checks in updateGeoLocation() ---
 assertTrue(updateGeoLocationBody.indexOf('function updateFieldDiffersFromGeni(row, sourceValue)') !== -1,
     "updateFieldDiffersFromGeni() helper exists");
-assertTrue(updateGeoLocationBody.indexOf('sourceValue !== geniInput.value') !== -1,
-    "Non-GPS fields compare against the row's own rendered Geni value, not just checking non-blank");
+// #304 follow-up (consolidation pass): now compares via valuesAreEquivalent()
+// (case-insensitive, whitespace-collapsed) instead of a plain !==, closing
+// a gap where a pencil-edit correction differing from Geni only by case or
+// spacing still pre-checked as if it were a real change - see
+// tests/test_304_pre_selection_comparison.js for direct valuesAreEquivalent()
+// coverage; this just confirms the real call site actually uses it.
+assertTrue(updateGeoLocationBody.indexOf('!valuesAreEquivalent(sourceValue, geniInput.value)') !== -1,
+    "Non-GPS fields compare against the row's own rendered Geni value using the shared case/whitespace-insensitive comparator, not a plain !== or just a non-blank check");
+
+// --- Behavioral: updateFieldDiffersFromGeni() itself, real jQuery/jsdom, not just reading the source ---
+const { JSDOM } = require('jsdom');
+const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
+global.window = dom.window;
+global.document = dom.window.document;
+const $ = require(path.join(ROOT, 'jquery.js'));
+const valuesAreEquivalent = new Function('return ' + extractFunction(src, 'valuesAreEquivalent'))();
+const updateFieldDiffersFromGeni = new Function('$', 'exists', 'isValue', 'valuesAreEquivalent',
+    'return ' + extractFunction(updateGeoLocationBody, 'updateFieldDiffersFromGeni'))($, exists, isValue, valuesAreEquivalent);
+
+function makeRow(geniValue) {
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td><input type="text" class="genislideinput" disabled></td>';
+    tr.querySelector('.genislideinput').value = geniValue;
+    return $(tr);
+}
+assertTrue(!updateFieldDiffersFromGeni(makeRow('Natrona'), 'NATRONA'),
+    "#304 follow-up: a pencil-edit correction differing from Geni only by case is no longer treated as a real difference");
+assertTrue(!updateFieldDiffersFromGeni(makeRow('Allegheny  County'), 'Allegheny County'),
+    "Same for whitespace - multiple spaces collapse before comparing");
+assertTrue(updateFieldDiffersFromGeni(makeRow('Pittsburgh'), 'Natrona'),
+    "A genuinely different value is still correctly flagged as differing");
 
 const nonGpsFieldChecks = (updateGeoLocationBody.match(/forceAllGeoFields \|\| \w+Differs\)/g) || []).length;
 assertTrue(nonGpsFieldChecks === 5, "All 5 non-GPS fields (Place/City/County/State/Country) use the differs-from-Geni check, got " + nonGpsFieldChecks);

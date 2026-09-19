@@ -1549,41 +1549,35 @@ function isFieldEmptyForCheckAll(row) {
     }
     var companion = row.find(".genislideinput").val();
     for (var i = 0; i < valueFields.length; i++) {
+        // #304 follow-up (live-reported, DanCornett): a blank scraped
+        // value is never select-all'd, full stop - regardless of whether
+        // Geni's own side is also blank. isFieldValueBlank() (not the
+        // generic isValue() inside isFieldSelectable() below) is used
+        // specifically here because it knows each field's own blank
+        // sentinel (Gender's "unknown" option; Living's data-scraped
+        // flag) - a DOM-shape concern isFieldSelectable() itself doesn't
+        // need to know about, since by the time a value reaches it here,
+        // "blank" has already been resolved to this field-aware answer.
         if (isFieldValueBlank(valueFields[i])) {
-            // #304 follow-up (live-reported, DanCornett): a blank scraped
-            // value is never select-all'd, full stop - regardless of
-            // whether Geni's own side is also blank. This used to include
-            // a blank-scraped field whenever Geni's companion was ALSO
-            // blank ("nothing to protect"), matching resolveFieldEnabled()'s
-            // old symmetric exception - both were removed together per
-            // Dan's explicit "a blank source field should never be
-            // pre-selected under any circumstance."
             return true;
         }
-        // #304: a field that's non-blank but identical to what Geni
-        // already has (case/whitespace/Circa-insensitive, or - for
-        // nicknames - already contained in Geni's list) is nothing new to
-        // select either - without this, "Select All" would immediately
-        // re-check a field the new comparison-aware pre-selection just
-        // correctly un-checked, the moment a match/action change re-runs
-        // this resync (setGeniFamilyData() -> applySelectAllState()).
         var fieldName = valueFields[i].name || "";
+        // About/Photo are additive - "already has this" is never a
+        // reason to exclude them from Select All either.
+        if (fieldName === "about_me" || fieldName === "photo") {
+            return false;
+        }
+        // #304 follow-up (consolidation pass): defers to the one shared
+        // isFieldSelectable() (buildform.js) instead of re-deriving the
+        // same equivalence question independently - see its own comment
+        // for why that duplication was worth removing. (Confirmed live,
+        // DanCornett: Gender/Living's companion column holds a LOCALIZED
+        // display value while the <select>'s own value is raw - working
+        // correctly for English via valuesAreEquivalent()'s case-
+        // insensitivity; a genuinely translated companion remains a
+        // known, separate, non-English-locale limitation.)
         var fieldType = fieldName.endsWith(":date") ? "date" : (fieldName === "nicknames" ? "nicknames" : "generic");
-        // #304 follow-up (live-reported, DanCornett, confirmed live across
-        // multiple profiles): Gender/Living used to be excluded here too,
-        // out of caution that this row's .genislideinput companion holds
-        // the LOCALIZED display value (localizedGender()) while the
-        // <select>'s own value is the raw male/female/unknown/true/false -
-        // comparing them directly only works because valuesAreEquivalent()'s
-        // case-insensitivity happens to make "male" equal "Male" in
-        // English. That caution left a real, confirmed bug in place
-        // (Gender pre-checking via Select All even when it already
-        // matched Geni exactly) for a non-English-locale risk nobody had
-        // actually reported - fixed for the confirmed case; a genuinely
-        // translated companion value (a non-English locale) remains a
-        // known, separate limitation if it ever surfaces.
-        if (fieldName === "about_me" || fieldName === "photo" ||
-            !valuesAreEquivalentForFieldType(valueFields[i].value, companion, fieldType)) {
+        if (isFieldSelectable(valueFields[i].value, companion, fieldType)) {
             return false;
         }
     }

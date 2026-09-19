@@ -228,9 +228,15 @@ value is non-empty:
   scraped 1965, should still surface for review, not be silently hidden).
   Deliberately kept separate from `datesAreEquivalent()` itself (used by
   `parseForm()`'s submit-time no-op check, where a specificity downgrade is
-  still a real, submittable difference) - only wired into the two
-  pre-selection call sites, `isCheckedDateField()`/`isEnabledDateField()`.
-  Scoped to dates only for now; the same blind spot technically exists for
+  still a real, submittable difference) - folded into
+  `valuesAreEquivalentForFieldType()`'s own `"date"` branch instead (a
+  consolidation fix: originally only computed inline inside
+  `isCheckedDateField()`/`isEnabledDateField()`, which meant a family
+  member's date field re-resyncing against a *different* match's value
+  after the Action dropdown changed - `applyProtectedDisabledState()`,
+  which also routes through `valuesAreEquivalentForFieldType()` - never
+  got this same protection). Scoped to dates only for now; the same blind
+  spot technically exists for
   names/locations too (a shorter/less-complete scraped value can still
   pre-select over a fuller existing one) but has no clean, unambiguous
   hierarchy the way day/month/year does - treated as a separate follow-up
@@ -309,22 +315,38 @@ already has as 1821, or a Privacy value Geni already has). This is the final
 safety net regardless of anything above - even a field the pre-selection
 logic gets wrong can never actually submit a genuine no-op.
 
+**`isFieldSelectable(scrapedValue, currentValue, fieldType)` (`buildform.js`)
+is the one shared answer to "would this field actually contribute something
+new over what Geni already has"** - added during a consolidation pass after
+the same question got re-derived independently in multiple places and drifted
+out of sync more than once (the two `applySelectAllState()` filters below,
+`refreshPrivacySelect()`, Gender's exclusion from Select All). A blank
+scraped value is never selectable; a blank `currentValue` (nothing to
+compare against) is always selectable if the scraped side has data;
+otherwise only a genuine difference (via `valuesAreEquivalentForFieldType()`)
+is selectable. `applyProtectedDisabledState()` and `isFieldEmptyForCheckAll()`
+(popup.js) both defer to this now instead of each independently computing
+blank-checks and equivalence themselves - if a third place ever needs this
+same question, call `isFieldSelectable()` rather than writing another copy.
+
 `isFieldEmptyForCheckAll()` (popup.js) - "select all"'s own independent
 protection - mirrors the same #304 comparison for exactly this reason: a
 field non-blank but identical to Geni (not just blank-vs-Geni-has-data) is
-also excluded from what "select all" force-checks, using
-`valuesAreEquivalentForFieldType()` the same way the main resolver does.
-Without this, turning "select all" on for a person would immediately
-re-check every field the new comparison-aware logic had just correctly
-un-checked, the next time a match/action change re-runs the resync
-(`setGeniFamilyData()` -> `applySelectAllState()`). It also now excludes a
-blank scraped field from "select all" unconditionally, matching
-`resolveFieldEnabled()`'s own "never pre-select blank, regardless of Geni's
-side" rule - it used to include a blank-scraped field whenever Geni's own
-companion was ALSO blank ("nothing to protect"), the same symmetric
-exception `resolveFieldEnabled()` had and lost together (DanCornett, #304
-follow-up: "a blank source field should never be pre-selected under any
-circumstance").
+also excluded from what "select all" force-checks. Without this, turning
+"select all" on for a person would immediately re-check every field the new
+comparison-aware logic had just correctly un-checked, the next time a
+match/action change re-runs the resync (`setGeniFamilyData()` ->
+`applySelectAllState()`). It also excludes a blank scraped field from
+"select all" unconditionally, matching `resolveFieldEnabled()`'s own "never
+pre-select blank, regardless of Geni's side" rule - it used to include a
+blank-scraped field whenever Geni's own companion was ALSO blank ("nothing
+to protect"), the same symmetric exception `resolveFieldEnabled()` had and
+lost together (DanCornett, #304 follow-up: "a blank source field should
+never be pre-selected under any circumstance"). Note: it still calls
+`isFieldValueBlank()` for this blank-check first (not `isFieldSelectable()`'s
+own generic blank-check) - that function knows each field's own blank
+sentinel (Gender's `"unknown"` option; Living's `data-scraped` flag), a
+DOM-shape concern `isFieldSelectable()` doesn't need to know about.
 
 **`applySelectAllState()` (`buildform.js`) has two separate filters over the
 same row set - one for checkboxes, one for the value fields themselves - and

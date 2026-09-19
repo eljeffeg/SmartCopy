@@ -335,9 +335,16 @@ function updateGeoLocation() {
         // FamilySearch/Geni report different decimal precision, so a
         // naive string-equality check would almost always "differ" even
         // when the location hasn't really changed).
+        // #304 follow-up (consolidation pass): compares via the same
+        // valuesAreEquivalent() the rest of the pre-selection system uses
+        // (case-insensitive, whitespace-collapsed), instead of a plain
+        // `!==`, which was a fourth independent "is this different"
+        // comparator with none of that tolerance - a pencil-edit
+        // correction differing from Geni only by case or spacing used to
+        // still pre-check as if it were a real change.
         function updateFieldDiffersFromGeni(row, sourceValue) {
             var geniInput = $(row).find(".genislideinput")[0];
-            return isValue(sourceValue) && (!exists(geniInput) || sourceValue !== geniInput.value);
+            return isValue(sourceValue) && (!exists(geniInput) || !valuesAreEquivalent(sourceValue, geniInput.value));
         }
         var updateHasGeoFields = isValue(locationdata.city) || isValue(locationdata.county) || isValue(locationdata.state) || isValue(locationdata.country);
         var updatePlaceNameValue = updateHasGeoFields ? computeCombinedPlaceValue(locationdata.query, locationdata) : locationdata.place;
@@ -3339,18 +3346,11 @@ function isCheckedDateField(dateval, score, currentValue, locked, estimated) {
     if (estimated === true && exists(currentValue) && isValue(currentValue)) {
         return "";
     }
-    // #304: strips Circa/About before comparing (so "Circa 1890" doesn't
-    // pre-check over Geni's existing "1890"), while Before/After/Between
-    // are never stripped - see datesAreEquivalent()'s ignoreCirca param.
-    // #304 follow-up (live-reported by the user): also suppresses
-    // pre-selection when the scraped date is genuinely LESS specific than
-    // Geni's existing one (e.g. "November 1963" scraped over Geni's
-    // "November 13, 1963") - see isDateSpecificityDowngrade() (popup.js).
-    // Equal or better specificity still pre-selects, even when the value
-    // differs, so a genuine conflict at the same granularity still
-    // surfaces for review rather than being silently hidden.
-    var sameAsGeni = isValue(dateval) && isValue(currentValue) &&
-        (datesAreEquivalent(dateval, currentValue, true) || isDateSpecificityDowngrade(dateval, currentValue));
+    // #304 follow-up (consolidation pass): sameAsGeni is just
+    // isFieldSelectable() now - strips Circa/About and checks specificity
+    // (see valuesAreEquivalentForFieldType()'s "date" branch) the same way
+    // every other date pre-selection decision does, render or resync.
+    var sameAsGeni = !isFieldSelectable(dateval, currentValue, "date");
     return isChecked(dateval, score, false, currentValue, locked, sameAsGeni);
 }
 
@@ -3372,8 +3372,7 @@ function isEnabledDateField(dateval, score, currentValue, locked, estimated) {
         return "disabled";
     }
     // #304: see isCheckedDateField() above - must stay in agreement with it.
-    var sameAsGeni = isValue(dateval) && isValue(currentValue) &&
-        (datesAreEquivalent(dateval, currentValue, true) || isDateSpecificityDowngrade(dateval, currentValue));
+    var sameAsGeni = !isFieldSelectable(dateval, currentValue, "date");
     return isEnabled(dateval, score, false, currentValue, locked, sameAsGeni);
 }
 
@@ -5458,7 +5457,18 @@ function syncGeotopcheckState(fs) {
 // an existing About - even a long one - still correctly pre-selects.
 function valuesAreEquivalentForFieldType(scraped, current, fieldType) {
     if (fieldType === "date") {
-        return datesAreEquivalent(scraped, current, true);
+        // #304 follow-up (consolidation pass): folds isDateSpecificityDowngrade()
+        // in here too, not just datesAreEquivalent() - this dispatch is the
+        // ONE place every date pre-selection decision routes through
+        // (render, post-match resync, Select All), so specificity-awareness
+        // needs to live here to actually apply everywhere, not just at the
+        // two render wrappers (isCheckedDateField()/isEnabledDateField())
+        // that used to compute it themselves. A family member's date field
+        // re-resyncing against a DIFFERENT match's real value (after the
+        // Action dropdown changes) went through this exact function without
+        // it before - a real, previously-undetected gap this consolidation
+        // surfaced, not just a style cleanup.
+        return datesAreEquivalent(scraped, current, true) || isDateSpecificityDowngrade(scraped, current);
     }
     if (fieldType === "nicknames") {
         return nicknamesAreEquivalent(scraped, current);
@@ -5470,6 +5480,28 @@ function valuesAreEquivalentForFieldType(scraped, current, fieldType) {
         return false;
     }
     return valuesAreEquivalent(scraped, current);
+}
+
+// #304 follow-up (consolidation pass, requested by the user after several
+// rounds of two independent places disagreeing about this exact question -
+// applySelectAllState()'s two filters, refreshPrivacySelect(), Gender in
+// Select All): the single, shared answer to "would this scraped value
+// actually contribute something new over what Geni already has" - a blank
+// scraped value never does; a blank Geni value (nothing to compare
+// against) always does, if the scraped side has data; otherwise only a
+// genuine difference does. applyProtectedDisabledState() (below) and
+// isFieldEmptyForCheckAll() (popup.js, Select All's own eligibility check)
+// both defer to this now instead of each re-deriving the same blank/
+// equivalence logic separately - that duplication is exactly what drifted
+// out of sync repeatedly.
+function isFieldSelectable(scrapedValue, currentValue, fieldType) {
+    if (!isValue(scrapedValue)) {
+        return false;
+    }
+    if (!isValue(currentValue)) {
+        return true;
+    }
+    return !valuesAreEquivalentForFieldType(scrapedValue, currentValue, fieldType);
 }
 
 function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType) {
@@ -5485,8 +5517,7 @@ function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, 
     // non-blank on both sides but identical (modulo case/whitespace/Circa/
     // nickname-containment per fieldType) - the field would otherwise stay
     // pre-checked forever even though there's nothing to actually submit.
-    var sameAsGeni = isValue(scrapedValue) && isValue(currentValue) &&
-        valuesAreEquivalentForFieldType(scrapedValue, currentValue, fieldType);
+    var sameAsGeni = !isFieldSelectable(scrapedValue, currentValue, fieldType);
     var fieldWouldBeDisabled = isEnabled(scrapedValue, true, false, currentValue, locked, sameAsGeni) === "disabled";
     if (locked || fieldWouldBeDisabled) {
         // A field discovered to be Geni-locked (or missing update

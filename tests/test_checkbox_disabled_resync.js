@@ -76,8 +76,17 @@ const nicknamesAreEquivalent = new Function('return ' + extractFunction(src, 'ni
 // uses to dedupe - so it also needs extracting here.
 const normalizeAboutForComparisonSrc = extractFunction(popupSrc, 'normalizeAboutForComparison');
 const isAboutContentPresent = new Function('exists', normalizeAboutForComparisonSrc + '\n' + extractFunction(popupSrc, 'isAboutContentPresent') + '\nreturn isAboutContentPresent;')(exists);
-const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nicknamesAreEquivalent', 'valuesAreEquivalent', 'isAboutContentPresent',
-    'return ' + extractFunction(src, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, valuesAreEquivalent, isAboutContentPresent);
+const dateSpecificitySrc = extractArrayStatement(popupSrc, 'DATE_SPECIFICITY_FORMATS') + '\n' +
+    extractFunction(popupSrc, 'getDateSpecificity') + '\n' + extractFunction(popupSrc, 'isDateSpecificityDowngrade');
+const isDateSpecificityDowngrade = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN',
+    dateSpecificitySrc + '\nreturn isDateSpecificityDowngrade;')(exists, moment, DATE_QUALIFIER_PATTERN);
+const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nicknamesAreEquivalent', 'valuesAreEquivalent', 'isAboutContentPresent', 'isDateSpecificityDowngrade',
+    'return ' + extractFunction(src, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, valuesAreEquivalent, isAboutContentPresent, isDateSpecificityDowngrade);
+// #304 follow-up (consolidation pass): applyProtectedDisabledState() now
+// defers to the shared isFieldSelectable() instead of computing sameAsGeni
+// inline - extracted here too.
+const isFieldSelectable = new Function('isValue', 'valuesAreEquivalentForFieldType',
+    'return ' + extractFunction(src, 'isFieldSelectable'))(isValue, valuesAreEquivalentForFieldType);
 const applyProtectedDisabledStateSrc = extractFunction(src, 'applyProtectedDisabledState');
 
 // Minimal jQuery-shaped stand-in for a single <input> + its row's
@@ -104,7 +113,7 @@ function makeRow(initialChecked) {
 }
 
 function callApplyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType) {
-    return new Function('isEnabled', 'isValue', 'valuesAreEquivalentForFieldType', 'return ' + applyProtectedDisabledStateSrc)(isEnabled, isValue, valuesAreEquivalentForFieldType)(input, scrapedValue, currentValue, locked, fieldType);
+    return new Function('isEnabled', 'isValue', 'valuesAreEquivalentForFieldType', 'isFieldSelectable', 'return ' + applyProtectedDisabledStateSrc)(isEnabled, isValue, valuesAreEquivalentForFieldType, isFieldSelectable)(input, scrapedValue, currentValue, locked, fieldType);
 }
 
 // --- The historical bug scenario: render-time guessed "checked" (blank scraped, blank hardcoded currentValue), but Geni's REAL value turns out to be real/non-blank ---

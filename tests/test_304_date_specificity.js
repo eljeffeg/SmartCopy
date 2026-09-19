@@ -58,10 +58,22 @@ const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATT
 const resolveFieldEnabled = new Function('isValue', 'exists', 'return ' + extractFunction(bfSrc, 'resolveFieldEnabled'))(isValue, exists);
 const isChecked = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isChecked'))(resolveFieldEnabled);
 const isEnabled = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isEnabled'))(resolveFieldEnabled);
-const isCheckedDateField = new Function('exists', 'isValue', 'isChecked', 'datesAreEquivalent', 'isDateSpecificityDowngrade',
-    'return ' + extractFunction(bfSrc, 'isCheckedDateField'))(exists, isValue, isChecked, datesAreEquivalent, isDateSpecificityDowngrade);
-const isEnabledDateField = new Function('exists', 'isValue', 'isEnabled', 'datesAreEquivalent', 'isDateSpecificityDowngrade',
-    'return ' + extractFunction(bfSrc, 'isEnabledDateField'))(exists, isValue, isEnabled, datesAreEquivalent, isDateSpecificityDowngrade);
+// #304 follow-up (consolidation pass): isCheckedDateField()/isEnabledDateField()
+// now defer to the shared isFieldSelectable() -> valuesAreEquivalentForFieldType()
+// (whose "date" branch folds in both datesAreEquivalent() and
+// isDateSpecificityDowngrade()) instead of computing sameAsGeni inline.
+const valuesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'valuesAreEquivalent'))();
+const nicknamesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'nicknamesAreEquivalent'))();
+const normalizeAboutForComparisonSrc = extractFunction(popupSrc, 'normalizeAboutForComparison');
+const isAboutContentPresent = new Function('exists', normalizeAboutForComparisonSrc + '\n' + extractFunction(popupSrc, 'isAboutContentPresent') + '\nreturn isAboutContentPresent;')(exists);
+const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nicknamesAreEquivalent', 'valuesAreEquivalent', 'isAboutContentPresent', 'isDateSpecificityDowngrade',
+    'return ' + extractFunction(bfSrc, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, valuesAreEquivalent, isAboutContentPresent, isDateSpecificityDowngrade);
+const isFieldSelectable = new Function('isValue', 'valuesAreEquivalentForFieldType',
+    'return ' + extractFunction(bfSrc, 'isFieldSelectable'))(isValue, valuesAreEquivalentForFieldType);
+const isCheckedDateField = new Function('exists', 'isValue', 'isChecked', 'isFieldSelectable',
+    'return ' + extractFunction(bfSrc, 'isCheckedDateField'))(exists, isValue, isChecked, isFieldSelectable);
+const isEnabledDateField = new Function('exists', 'isValue', 'isEnabled', 'isFieldSelectable',
+    'return ' + extractFunction(bfSrc, 'isEnabledDateField'))(exists, isValue, isEnabled, isFieldSelectable);
 
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {

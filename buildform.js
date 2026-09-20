@@ -2415,13 +2415,18 @@ function normalizeGermanic(s) {
 
 // #304: generic "is this scraped value meaningfully different from what
 // Geni already has" comparator, used to decide whether a field should
-// pre-select once a real Geni value is known - case-insensitive and
-// whitespace-collapsed (per Geni's own search/compare conventions), for
-// comparison purposes only. Never mutates the actual scraped string that
-// gets submitted.
+// pre-select once a real Geni value is known - case-insensitive,
+// whitespace-collapsed, and period-insensitive (per Geni's own search/
+// compare conventions), for comparison purposes only. Never mutates the
+// actual scraped string that gets submitted.
+// (live-reported, DanCornett, #304 follow-up): periods stripped so an
+// abbreviated form ("M.", "Jr.", "St.") matches its unpunctuated
+// counterpart ("M", "Jr", "St") - a middle initial scraped without a
+// period against a Geni value that has one (or vice versa) previously
+// never matched.
 function valuesAreEquivalent(a, b) {
     var normalize = function (v) {
-        return (v === undefined || v === null ? "" : String(v)).replace(/\s+/g, " ").trim().toLowerCase();
+        return (v === undefined || v === null ? "" : String(v)).replace(/\./g, "").replace(/\s+/g, " ").trim().toLowerCase();
     };
     return normalize(a) === normalize(b);
 }
@@ -5006,7 +5011,21 @@ function cleanDate(dateval) {
     dateval = dateval.replace(/about/i, "Circa");
     dateval = dateval.replace(/before/i, "Before");
     dateval = dateval.replace(/after/i, "After");
-    dateval = dateval.replace(/from/i, "After");
+    // (live-reported, DanCornett, #304 follow-up): a two-sided range
+    // ("From 1810 to 1820", FamilySearch's own phrasing) used to become
+    // "After 1810 to 1820" here, then get a SECOND "Between " prefix
+    // stacked on top of it further down once the " to " is spotted -
+    // ending up "Between After 1810 and 1820", which both reads wrong and
+    // no longer matches a Geni "Between" date at all. A lone "From <date>"
+    // (no matching "to") still means "starting from," so it keeps mapping
+    // to "After" - only a paired "from ... to ..." drops the word entirely
+    // and lets the existing " to " handling build the correct "Between X
+    // and Y" on its own.
+    if (/ to /i.test(dateval)) {
+        dateval = dateval.replace(/from\s*/i, "");
+    } else {
+        dateval = dateval.replace(/from/i, "After");
+    }
     dateval = dateval.replace(/^in /i, "");
     dateval = dateval.replace(/\s+/g, ' ');
     if (dateval.contains(".")) {

@@ -1528,7 +1528,7 @@ $(function () {
                 // stop, regardless of Geni's own side.
                 if (selectingAll &&
                     (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA" ||
-                     (ffs[item].tagName === "SELECT" && (ffs[item].name === "gender" || ffs[item].name === "is_alive"))) &&
+                     (ffs[item].tagName === "SELECT" && (ffs[item].name === "gender" || ffs[item].name === "is_alive" || ffs[item].name === "public"))) &&
                     isFieldEmptyForCheckAll($(ffs[item]).closest("tr"))) {
                     return false;
                 }
@@ -1543,7 +1543,10 @@ function isFieldEmptyForCheckAll(row) {
     // #217: Gender/Living's <select> fields are included here now too -
     // they DO have a real "blank" state (Gender's "unknown" option;
     // Living's data-scraped flag), this just used to assume otherwise.
-    var valueFields = row.find('input[type="text"],textarea,select[name="gender"],select[name="is_alive"]').not(".genislideinput").not(".parentselector");
+    // Privacy's <select name="public"> added the same way (live-reported,
+    // DanCornett, #299/#304) - see its own branch below for why it needs
+    // a different comparison than the generic isFieldSelectable() path.
+    var valueFields = row.find('input[type="text"],textarea,select[name="gender"],select[name="is_alive"],select[name="public"]').not(".genislideinput").not(".parentselector");
     if (valueFields.length === 0) {
         return false;
     }
@@ -1566,6 +1569,22 @@ function isFieldEmptyForCheckAll(row) {
         // reason to exclude them from Select All either.
         if (fieldName === "about_me" || fieldName === "photo") {
             return false;
+        }
+        // Privacy: the select's own value is a raw "true"/"false" (Auto,
+        // value="", is already caught by isFieldValueBlank() above), but
+        // its companion column holds the LOCALIZED "Public"/"Private"
+        // text isPublic() itself renders - a raw string compare between
+        // the two would never match, the same raw-vs-localized gap
+        // already known for Gender/Living, just previously invisible
+        // here since Privacy's <select> wasn't even in this function's
+        // field list at all - so the category-wide "select all
+        // non-matching" click always treated it as differing regardless
+        // of Geni's actual value (live-reported, DanCornett, #299/#304).
+        if (fieldName === "public") {
+            if (!valuesAreEquivalent(isPublic(valueFields[i].value === "true"), companion)) {
+                return false;
+            }
+            continue;
         }
         // #304 follow-up (consolidation pass): defers to the one shared
         // isFieldSelectable() (buildform.js) instead of re-deriving the

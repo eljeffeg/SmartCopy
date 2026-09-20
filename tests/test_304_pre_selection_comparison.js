@@ -74,6 +74,7 @@ const isDateSpecificityDowngrade = new Function('exists', 'moment', 'DATE_QUALIF
 
 const valuesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'valuesAreEquivalent'))();
 const nicknamesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'nicknamesAreEquivalent'))();
+const isPublic = new Function('return ' + extractFunction(bfSrc, 'isPublic'))();
 global.valuesAreEquivalent = valuesAreEquivalent;
 global.nicknamesAreEquivalent = nicknamesAreEquivalent;
 
@@ -95,8 +96,8 @@ const isFieldValueBlank = new Function('return ' + extractFunction(bfSrc, 'isFie
 // established (buildform.js already calls popup.js's datesAreEquivalent()),
 // safe since both are only ever actually invoked later, after every script
 // has loaded.
-const isFieldEmptyForCheckAll = new Function('isFieldValueBlank', 'isFieldSelectable',
-    'return ' + extractFunction(popupSrc, 'isFieldEmptyForCheckAll'))(isFieldValueBlank, isFieldSelectable);
+const isFieldEmptyForCheckAll = new Function('isFieldValueBlank', 'isFieldSelectable', 'valuesAreEquivalent', 'isPublic',
+    'return ' + extractFunction(popupSrc, 'isFieldEmptyForCheckAll'))(isFieldValueBlank, isFieldSelectable, valuesAreEquivalent, isPublic);
 
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {
@@ -113,6 +114,13 @@ assertEqual(valuesAreEquivalent('  Farmer  ', 'Farmer'), true, "Leading/trailing
 assertEqual(valuesAreEquivalent('Farmer', 'Blacksmith'), false, "Genuinely different values are NOT equivalent");
 assertEqual(valuesAreEquivalent('', ''), true, "Two blanks are equivalent");
 assertEqual(valuesAreEquivalent(undefined, ''), true, "undefined normalizes the same as blank, never throws");
+// (live-reported, DanCornett, #304 follow-up): a middle initial scraped
+// without a period against a Geni value that has one (or vice versa)
+// never matched - periods are now stripped before comparing.
+assertEqual(valuesAreEquivalent('M', 'M.'), true, "A middle initial without a period matches its punctuated counterpart");
+assertEqual(valuesAreEquivalent('Jr.', 'Jr'), true, "Same for a suffix abbreviation");
+assertEqual(valuesAreEquivalent('St. Louis', 'St Louis'), true, "Removing the period doesn't introduce a double space");
+assertEqual(valuesAreEquivalent('M', 'N.'), false, "Still correctly NOT equivalent when the letters themselves differ");
 
 // ============================================================
 // Unit: isFieldSelectable() - the single shared "would this field actually contribute something new"
@@ -200,6 +208,20 @@ assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('gender', 'male', 'Fem
 // (popup.js) - not implemented here since Dan's confirmed report was specifically about Gender.
 assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('is_alive', 'true', 'Living', true)), false,
     "Living/is_alive still isn't recognized as matching even when it genuinely does - raw 'true' vs. localized 'Living' never textually compare equal - a known, separate, not-yet-fixed gap");
+
+// (live-reported, DanCornett, #299/#304): Privacy's <select name="public">
+// wasn't in isFieldEmptyForCheckAll()'s field list at all until now, so the
+// category-wide "select all non-matching" click always treated it as
+// differing regardless of Geni's actual value - even though the initial,
+// per-field render (buildPrivacySelect()) already got this right.
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('public', 'true', 'Public')), true,
+    "Privacy matching Geni's own 'Public' value (raw true vs. isPublic()'s localized text) is now excluded from Select All");
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('public', 'false', 'Private')), true,
+    "Same for a matching 'Private' value");
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('public', 'true', 'Private')), false,
+    "A genuinely different Privacy value is still correctly picked up by Select All");
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('public', '', '')), true,
+    "Auto (blank select value) is treated as blank/no-op, same as isFieldValueBlank() already does for every other field");
 
 // ============================================================
 // End-to-end: setGeniFamilyData() via a real jsdom window

@@ -1586,15 +1586,29 @@ function isFieldEmptyForCheckAll(row) {
             }
             continue;
         }
+        // Vital/is_alive: same raw-vs-localized gap as Privacy above - the
+        // select's own value is a raw "true"/"false", but its companion
+        // column holds isAlive()'s localized "Living"/"Deceased" text.
+        // Reuses isAlive() itself (the same function that rendered the
+        // companion in the first place) so this stays correct in any
+        // locale, not just English (live-reported, DanCornett, #313).
+        if (fieldName === "is_alive") {
+            if (!valuesAreEquivalent(isAlive(valueFields[i].value === "true"), companion)) {
+                return false;
+            }
+            continue;
+        }
         // #304 follow-up (consolidation pass): defers to the one shared
         // isFieldSelectable() (buildform.js) instead of re-deriving the
         // same equivalence question independently - see its own comment
         // for why that duplication was worth removing. (Confirmed live,
-        // DanCornett: Gender/Living's companion column holds a LOCALIZED
-        // display value while the <select>'s own value is raw - working
-        // correctly for English via valuesAreEquivalent()'s case-
-        // insensitivity; a genuinely translated companion remains a
-        // known, separate, non-English-locale limitation.)
+        // DanCornett: Gender's companion column holds a LOCALIZED display
+        // value while the <select>'s own value is raw - working correctly
+        // for English via valuesAreEquivalent()'s case-insensitivity; a
+        // genuinely translated companion remains a known, separate,
+        // non-English-locale limitation. Living/is_alive had the same
+        // shape of gap but is fixed above via isAlive(), same as Privacy's
+        // isPublic() fix.)
         var fieldType = fieldName.endsWith(":date") ? "date" : (fieldName === "nicknames" ? "nicknames" : "generic");
         if (isFieldSelectable(valueFields[i].value, companion, fieldType)) {
             return false;

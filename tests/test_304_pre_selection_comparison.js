@@ -75,6 +75,7 @@ const isDateSpecificityDowngrade = new Function('exists', 'moment', 'DATE_QUALIF
 const valuesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'valuesAreEquivalent'))();
 const nicknamesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'nicknamesAreEquivalent'))();
 const isPublic = new Function('return ' + extractFunction(bfSrc, 'isPublic'))();
+const isAlive = new Function('_', 'return ' + extractFunction(bfSrc, 'isAlive'))(function (k) { return k; });
 global.valuesAreEquivalent = valuesAreEquivalent;
 global.nicknamesAreEquivalent = nicknamesAreEquivalent;
 
@@ -96,8 +97,8 @@ const isFieldValueBlank = new Function('return ' + extractFunction(bfSrc, 'isFie
 // established (buildform.js already calls popup.js's datesAreEquivalent()),
 // safe since both are only ever actually invoked later, after every script
 // has loaded.
-const isFieldEmptyForCheckAll = new Function('isFieldValueBlank', 'isFieldSelectable', 'valuesAreEquivalent', 'isPublic',
-    'return ' + extractFunction(popupSrc, 'isFieldEmptyForCheckAll'))(isFieldValueBlank, isFieldSelectable, valuesAreEquivalent, isPublic);
+const isFieldEmptyForCheckAll = new Function('isFieldValueBlank', 'isFieldSelectable', 'valuesAreEquivalent', 'isPublic', 'isAlive',
+    'return ' + extractFunction(popupSrc, 'isFieldEmptyForCheckAll'))(isFieldValueBlank, isFieldSelectable, valuesAreEquivalent, isPublic, isAlive);
 
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {
@@ -200,14 +201,17 @@ assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('gender', 'male', 'Mal
     "#304 follow-up: Gender identical to Geni (modulo the display column's capitalization) is now excluded from Select All too, matching the main resolver's own Gender fix");
 assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('gender', 'male', 'Female')), false,
     "A genuinely different Gender is still correctly picked up by Select All");
-// Living/is_alive is NOT actually fixed by this change, and this asserts that honestly rather than claiming
-// otherwise: isAlive() displays the companion as localized "Living"/"Deceased" text, while the <select>'s own
-// scraped value is the raw "true"/"false" - those never textually match regardless of case-insensitivity, so
-// removing the exclusion doesn't change its behavior (still always "different", still included by Select All).
-// A real fix would need is_alive's own value->label mapping, same as parseForm()'s no-op check already has
-// (popup.js) - not implemented here since Dan's confirmed report was specifically about Gender.
-assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('is_alive', 'true', 'Living', true)), false,
-    "Living/is_alive still isn't recognized as matching even when it genuinely does - raw 'true' vs. localized 'Living' never textually compare equal - a known, separate, not-yet-fixed gap");
+// (live-reported, DanCornett, #313): Living/is_alive had the same raw-vs-
+// localized gap as Privacy - isAlive() displays the companion as localized
+// "Living"/"Deceased" text, while the <select>'s own scraped value is the
+// raw "true"/"false". Fixed the same way Privacy was, by reusing isAlive()
+// itself for the comparison instead of a raw string compare.
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('is_alive', 'true', 'Living', true)), true,
+    "#313: Living matching Geni's own value is now excluded from Select All too");
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('is_alive', 'false', 'Deceased', true)), true,
+    "Same for a matching Deceased value");
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('is_alive', 'true', 'Deceased', true)), false,
+    "A genuinely different Vital value is still correctly picked up by Select All");
 
 // (live-reported, DanCornett, #299/#304): Privacy's <select name="public">
 // wasn't in isFieldEmptyForCheckAll()'s field list at all until now, so the

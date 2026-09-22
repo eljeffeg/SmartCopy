@@ -898,7 +898,17 @@ function loadPage(request) {
             $(accessdialog).text("");
             accessdialog.style.backgroundColor = "#dfe6ed";
 
-            var args = "fields=id,guid,name,names,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,nicknames,gender,deleted,merged_into,birth,baptism,death,burial,cause_of_death,is_alive,public,occupation,photo_urls,marriage,divorce,locked_fields,match_counts&actions=update,update-basics,add,add-photo";
+            // #306 (live-reported, DanCornett): about_me added to this list -
+            // without it, refreshFieldCheckState()'s post-match resync always
+            // saw a blank currentValue for a family member's About (nothing
+            // to compare against), so it could never detect "Geni already
+            // has this text" and stayed pre-checked forever, even for a
+            // byte-identical match. The focus profile never had this problem
+            // since it already has its own dedicated about_me fetch
+            // (loadGeniData() below) - family members only ever had one at
+            // submit time (buildTree()'s own about_me/nicknames re-fetch,
+            // further down in this file), too late for pre-selection.
+            var args = "fields=id,guid,name,names,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,nicknames,gender,deleted,merged_into,birth,baptism,death,burial,cause_of_death,is_alive,public,occupation,photo_urls,marriage,divorce,locked_fields,match_counts,about_me&actions=update,update-basics,add,add-photo";
             var descurl = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;
             chrome.runtime.sendMessage({
                 method: "GET",

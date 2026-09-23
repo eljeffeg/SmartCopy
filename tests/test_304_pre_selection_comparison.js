@@ -306,7 +306,7 @@ function build(genifamilydata) {
 function freshDom(memberId, matchedProfileId, occupationValue, occupationChecked, selectAllActive, causeOfDeathValue, causeOfDeathChecked, livingChecked, livingScrapedFlag) {
     $('body').html(`
         <div class="membertitle"><input type="checkbox" class="checkslide" checked data-select-all-active="${selectAllActive ? 'true' : 'false'}"></div>
-        <div class="memberexpand">
+        <div class="memberexpand" style="display: none;">
             <table id="familytable_${memberId}">
                 <tr><td><select class="actionselect"><option value="${matchedProfileId}" selected>Update</option><option value="add">Add Profile</option></select></td></tr>
                 <tr><td><input type="checkbox" class="checknext" ${livingChecked ? 'checked' : ''}></td><td><select name="is_alive" class="livingselect" data-scraped="${livingScrapedFlag ? 'true' : 'false'}" update="${memberId}"><option value="false" selected>Deceased</option><option value="true">Living</option></select></td><td><input id="${memberId}_geni_is_alive" type="text" class="genislideinput" disabled></td></tr>
@@ -343,6 +343,10 @@ const memberId = '0';
         "#304 follow-up (live-reported, DanCornett): the field itself also stays disabled (grey), not just its checkbox unchecked - applySelectAllState()'s own second filter (separate from the checkbox filter) used to force-re-enable it a moment later since Select All was already on for this person, showing green for a field whose checkbox had correctly unchecked - 'inconsistent visual implications' from Dan's report");
     assertEqual($('.checkslide').prop('checked'), false,
         "#304 person-bar converse: the top-level box (pre-checked as an earlier explicit action) clears too, since nothing underneath ended up checked");
+    // (live-reported, stbodie): nothing ended up checked for this member -
+    // the row stays collapsed, same as it started.
+    assertEqual($('.memberexpand').css('display'), 'none',
+        "A member with nothing genuinely checked stays collapsed - auto-expand only ever expands, never forces a decision either way for an empty row");
 }
 
 // --- Scenario 2: control - a genuinely different occupation stays checked, and so does the person-bar ---
@@ -362,6 +366,14 @@ const memberId = '0';
         "Control: a genuinely different occupation ('Farmer' scraped vs. Geni's 'Blacksmith') stays checked");
     assertEqual($('.checkslide').prop('checked'), true,
         "Control: the person-bar stays checked too, since a real field underneath still is");
+    // (live-reported, stbodie): a member starts collapsed (memberexpand's
+    // default render is display:none) - hiding a genuine, pre-selected
+    // difference behind an extra click per person to even see it. Once
+    // setGeniFamilyData()'s resync settles with at least one field
+    // genuinely checked, the row auto-expands so the difference is visible
+    // without that extra click.
+    assertEqual($('.memberexpand').css('display') !== 'none', true,
+        "#304 follow-up (live-reported, stbodie): a member with a real pre-selected difference auto-expands, instead of staying collapsed and requiring a manual click to review");
 }
 
 // --- Scenario 3 (regression, part (c) of Dan's brief): a locked member never gets checked, even when every field would otherwise now match ---

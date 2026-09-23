@@ -5861,6 +5861,19 @@ function setGeniFamilyData(id, profile) {
         memberexpand.find('.checknext:checked').length === 0) {
         checkslideEl.prop('checked', false);
     }
+    // (live-reported, stbodie): a member with real pre-selected field
+    // differences still started collapsed by default (every .memberexpand
+    // renders with display:none - see buildForm()) - the person-bar tick-
+    // mark showed something was checked, but seeing WHAT required an extra
+    // click per person to expand and look. Auto-expands any member that
+    // ends up with at least one genuinely checked field once this resync
+    // - the authoritative, final word on what's actually checked for both
+    // "Add" and matched members - has settled. Only ever expands, never
+    // collapses - a row the user already had open (whether or not anything
+    // ends up checked) is left alone.
+    if (memberexpand.find('.checknext:checked').length > 0) {
+        memberexpand.show();
+    }
 }
 
 function isAlive(alive) {

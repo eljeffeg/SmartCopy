@@ -824,6 +824,17 @@ function loadPage(request) {
                         ? buildhistory[i].itemIds
                         : (exists(buildhistory[i].itemId) ? [buildhistory[i].itemId] : []);
                     if (historyItemIds.map(normalizeItemId).indexOf(normalizeItemId(focusURLid)) !== -1) {
+                        // #312 (live-reported, DanCornett - "wrong focus
+                        // profile picked"): diagnostic only, no behavior
+                        // change. focusURLid matching a STALE itemId
+                        // accumulated on the wrong history entry (this
+                        // entry's itemIds list can grow across many
+                        // unrelated source pages over time - see
+                        // addHistory()'s own comment on why it accumulates
+                        // rather than overwrites) is the leading suspect for
+                        // this bug - logs exactly what matched so the next
+                        // reproduction shows the real entry, not a guess.
+                        console.log("SmartCopy [history auto-match]: focusURLid=\"" + focusURLid + "\" matched history entry name=\"" + buildhistory[i].name + "\" id=\"" + buildhistory[i].id + "\" itemIds=", historyItemIds);
                         focusid = buildhistory[i].id;
                         profilechanged = true;
                         loadPage(request);
@@ -1074,7 +1085,16 @@ function loadSelectPage(request) {
         if (profilelink === "") {
             var focusselect = $('#focusselect')[0];
             if (exists(focusselect)) {
-                profilelink = "?profile=" + focusselect.options[focusselect.selectedIndex].value;
+                var selectedOption = focusselect.options[focusselect.selectedIndex];
+                // #312 (live-reported, DanCornett - "wrong focus profile
+                // picked"): diagnostic only, no behavior change. Logs the
+                // exact text the user saw next to the id actually used, so
+                // a mismatch between the two (the suspected shape of this
+                // bug) is visible in the console the next time it happens,
+                // instead of only being inferable from a screenshot after
+                // the fact.
+                console.log("SmartCopy [history select]: chose option text=\"" + selectedOption.text + "\" value=\"" + selectedOption.value + "\"");
+                profilelink = "?profile=" + selectedOption.value;
             }
         }
         if (profilelink !== "" || devblocksend) {
@@ -3359,6 +3379,7 @@ function addHistory(id, itemId, name, data, aliasId, skipTouchRecord) {
         var priorOriginalIds = [];
         var priorItemIds = [];
         var priorDate;
+        var priorName;
         buildhistory = buildhistory.filter(function (entry) {
             if (!idSetsOverlap(getAllHistoryIds(entry), incomingNormIds)) {
                 return true;
@@ -3371,8 +3392,23 @@ function addHistory(id, itemId, name, data, aliasId, skipTouchRecord) {
             priorOriginalIds = [entry.id].concat(Array.isArray(entry.aliasIds) ? entry.aliasIds : []);
             priorItemIds = Array.isArray(entry.itemIds) ? entry.itemIds : (exists(entry.itemId) && entry.itemId !== "" ? [entry.itemId] : []);
             priorDate = entry.date;
+            priorName = entry.name;
             return false;
         });
+        // #312 (live-reported, DanCornett - "wrong focus profile picked"):
+        // diagnostic only, no behavior change. This is the exact merge
+        // point where two originally-separate history entries collapse
+        // into one because their id sets were found to overlap - if that
+        // ever happens between two entries that are actually DIFFERENT
+        // people (the suspected shape of this bug), priorName disagreeing
+        // with the incoming name is the smoking gun. Logs on every call,
+        // merge or not, so a normal (non-merging) add is visible too for
+        // contrast.
+        if (priorOriginalIds.length > 0) {
+            console.log("SmartCopy [history merge]: incoming id=\"" + id + "\" itemId=\"" + itemId + "\" name=\"" + name + "\" MERGED WITH prior ids=", priorOriginalIds, "prior itemIds=", priorItemIds, "prior name=\"" + priorName + "\"");
+        } else {
+            console.log("SmartCopy [history add]: id=\"" + id + "\" itemId=\"" + itemId + "\" name=\"" + name + "\" (new entry, no merge)");
+        }
         var submissions = (skipTouchRecord && priorSubmissions.length > 0) ? priorSubmissions :
             [{date: Date.now(), data: exists(data) ? data : ""}].concat(priorSubmissions);
         var entryDate = (skipTouchRecord && exists(priorDate)) ? priorDate : Date.now();

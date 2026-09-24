@@ -194,6 +194,18 @@ function makeCheckAllSelectRow(fieldName, value, companionValue, dataScraped) {
     tr.querySelector('.genislideinput').value = companionValue;
     return $(tr);
 }
+// Same as makeCheckAllSelectRow(), but wrapped in a real <table> alongside
+// an .actionselect row - the DOM shape isFieldEmptyForCheckAll()'s isNewAdd
+// check (row.closest("table").find(".actionselect")) actually needs, since
+// a bare, table-less <tr> (the helper above) has no ancestor table for it
+// to find at all.
+function makeCheckAllSelectRowInTable(fieldName, value, companionValue, dataScraped, actionValue) {
+    var table = document.createElement('table');
+    table.innerHTML = '<tr><td><select class="actionselect"><option value="' + actionValue + '" selected></option></select></td></tr>';
+    var row = makeCheckAllSelectRow(fieldName, value, companionValue, dataScraped);
+    table.appendChild(row[0]);
+    return row;
+}
 // #304 follow-up (live-reported, DanCornett, confirmed live): Gender used to be excluded from this function's
 // comparison entirely (a cautious workaround for the companion column's localized display value), which left
 // Gender pre-checking via Select All even when it already matched Geni exactly.
@@ -212,6 +224,17 @@ assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('is_alive', 'false', '
     "Same for a matching Deceased value");
 assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRow('is_alive', 'true', 'Deceased', true)), false,
     "A genuinely different Vital value is still correctly picked up by Select All");
+
+// (live-reported, DanCornett, #313 follow-up): a brand-new "Add Profile"
+// candidate's Vital is a real, always-populated value even when only
+// defaulted (data-scraped left false/absent) - there's no existing Geni
+// data to protect on a profile that doesn't exist yet. Select All used to
+// exclude it anyway, since isFieldValueBlank()'s data-scraped check had no
+// way to know this row belonged to an "Add" candidate.
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRowInTable('is_alive', 'false', '', false, 'add')), false,
+    "#313 follow-up: a brand-new Add candidate's merely-defaulted Vital is no longer excluded from Select All, even though data-scraped is false");
+assertEqual(isFieldEmptyForCheckAll(makeCheckAllSelectRowInTable('is_alive', 'false', '', false, 'geniMatch9')), true,
+    "Regression: a MATCHED member's merely-defaulted (not genuinely scraped) Vital still stays protected/excluded - the isNewAdd bypass only applies to an actual 'add' action");
 
 // (live-reported, DanCornett, #299/#304): Privacy's <select name="public">
 // wasn't in isFieldEmptyForCheckAll()'s field list at all until now, so the

@@ -1591,7 +1591,20 @@ function isFieldEmptyForCheckAll(row) {
         // flag) - a DOM-shape concern isFieldSelectable() itself doesn't
         // need to know about, since by the time a value reaches it here,
         // "blank" has already been resolved to this field-aware answer.
-        if (isFieldValueBlank(valueFields[i])) {
+        //
+        // (live-reported, DanCornett, #313 follow-up): a brand-new "Add
+        // Profile" candidate's Vital always holds a real true/false value
+        // even when only defaulted (not literally scraped) - there's no
+        // existing Geni data to protect on a profile that doesn't exist
+        // yet, same reasoning refreshLivingCheckState()'s own isNewAdd
+        // bypass already uses (buildform.js). isFieldValueBlank()'s
+        // data-scraped check has no way to know that here, so it always
+        // treated a merely-defaulted Vital as blank and excluded it from
+        // Select All - the one place nothing else pre-checks it for an Add
+        // candidate at all, so this left it stuck unchecked permanently.
+        var isNewAddVital = valueFields[i].name === "is_alive" &&
+            row.closest("table").find(".actionselect").val() === "add";
+        if (!isNewAddVital && isFieldValueBlank(valueFields[i])) {
             return true;
         }
         var fieldName = valueFields[i].name || "";

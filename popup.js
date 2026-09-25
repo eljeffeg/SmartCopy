@@ -2789,11 +2789,13 @@ function footnoteLabel(url, baseRecordtype) {
 // things ever happen to a person's About: (1) real scraped content gets
 // merged in, unless it's already there (mergeAboutText() - unchanged,
 // still the single source of truth for "is this content already present");
-// (2) IF - and only if - that merge actually added something new, a single
-// plain "*" footnote documents the run/source. No nesting, no "is the last
-// line already a footnote from this source" check, no "what changed"
-// history tracking - if nothing new was merged, nothing gets written at
-// all, so there's nothing to dedupe a footnote against in the first place.
+// (2) IF - and only if - something genuinely changed this run (either the
+// merge above added real new content, OR some other field changed - see
+// updatedCategories below), a single plain "*" footnote documents the
+// run/source. No nesting, no "is the last line already a footnote from
+// this source" check, no "what changed" history tracking - if nothing
+// changed at all, nothing gets written, so there's nothing to dedupe a
+// footnote against in the first place.
 // Shared by both the focus profile and family members (previously two
 // divergent implementations - family's own was a hardcoded "*" with no
 // dedup at all, never updated when focus's got nesting logic added).
@@ -2806,10 +2808,21 @@ function buildReferenceAboutMe(newAboutContent, existingAbout, refurl, updatedCa
         about += "\n";
     }
     var mergedAbout = mergeAboutText(existingAbout, about);
-    if (mergedAbout === (existingAbout || "")) {
+    // (live-reported, stbodie - #286 follow-up): "did data change" isn't
+    // only "did About's own free text change" - a marriage/divorce update
+    // genuinely changes this person's data too, even though it has no
+    // free-text home of its own to merge into (it submits through a
+    // separate union endpoint - see the marriage-via-spouse deferred call
+    // below). updatedCategories is trustworthy here specifically because
+    // the #304 pre-selection fix already guarantees a field only reaches
+    // this far (checked/submitted at all) when it's genuinely different
+    // from what Geni already has - a true no-op re-run never gets this
+    // far in the first place, so this can't reopen the original "bare
+    // footnote spam on an unchanged re-run" problem.
+    if (mergedAbout === (existingAbout || "") && updatedCategories.length === 0) {
         return undefined;
     }
-    if (!mergedAbout.endsWith("\n")) {
+    if (mergedAbout !== "" && !mergedAbout.endsWith("\n")) {
         mergedAbout += "\n";
     }
     var updatedSuffix = updatedCategories.length > 0 ? " (this update: " + updatedCategories.join(", ") + ")" : "";

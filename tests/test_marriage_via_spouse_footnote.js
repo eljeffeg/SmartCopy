@@ -79,14 +79,20 @@ function assertTrue(cond, label) {
 }
 
 // --- buildFocusReferenceAboutMe(): the deferred case (no new content, just documenting the marriage change) ---
-// #235/#286 simplified: a marriage-only update never touches About text at
-// all (newAboutContent is ""), so per the new "only write a footnote when
-// real content changed" rule, this now correctly produces NO footnote -
-// the marriage change itself is submitted separately (buildTree() below),
-// About is simply not part of that submission.
+// #235/#286 follow-up (live-reported, stbodie): a marriage-only update never
+// touches About text (newAboutContent is ""), but it IS a genuine data
+// change - updatedCategories reflects that, so a footnote still gets
+// written to document it, even though About's own free text is untouched.
 var buildFocusReferenceAboutMe1 = makeBuildFocusReferenceAboutMe("");
 var result1 = buildFocusReferenceAboutMe1("", "https://example.com/person/1", ["marriage"]);
-assertEqual(result1, undefined, "#286 simplified: a marriage-only update (blank newAboutContent) no longer writes a bare footnote - nothing about-related changed");
+assertTrue(exists(result1), "A marriage-only update (blank newAboutContent) still writes a footnote, since a real category genuinely changed");
+assertTrue(result1.indexOf("(this update: marriage)") !== -1, "The deferred footnote correctly summarizes 'marriage' as the touched category");
+assertTrue(result1.trim().startsWith("*"), "The deferred footnote starts as a plain top-level bullet when About was empty");
+
+// --- buildFocusReferenceAboutMe(): truly nothing changed - no content, no categories - no footnote ---
+var buildFocusReferenceAboutMe1b = makeBuildFocusReferenceAboutMe("");
+var result1b = buildFocusReferenceAboutMe1b("", "https://example.com/person/1", []);
+assertEqual(result1b, undefined, "#286 simplified: blank content AND no changed categories writes nothing at all - the genuine no-op case");
 
 // --- buildFocusReferenceAboutMe(): normal case with new about content ---
 var buildFocusReferenceAboutMe2 = makeBuildFocusReferenceAboutMe("");
@@ -95,11 +101,16 @@ assertTrue(result2.indexOf("Some new scraped bio text") !== -1, "New about conte
 assertTrue(result2.indexOf("(this update: birth, gender)") !== -1, "Multiple touched categories are summarized correctly");
 assertTrue(result2.trim().split("\n").pop().startsWith("*"), "The footnote is a plain top-level bullet");
 
-// --- buildFocusReferenceAboutMe(): content already present - no duplicate footnote ---
+// --- buildFocusReferenceAboutMe(): content already present AND nothing else changed - no duplicate footnote ---
 var alreadyPresentAbout = "Some new scraped bio text\n* '''[https://example.com/person/1 FamilySearch Genealogy]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2026, 12:00:00 UTC''\n";
 var buildFocusReferenceAboutMe3 = makeBuildFocusReferenceAboutMe(alreadyPresentAbout);
-var result3 = buildFocusReferenceAboutMe3("Some new scraped bio text\n", "https://example.com/person/1", ["birth", "gender"]);
-assertEqual(result3, undefined, "Re-submitting the exact same content already present in the About produces no change and no duplicate footnote");
+var result3 = buildFocusReferenceAboutMe3("Some new scraped bio text\n", "https://example.com/person/1", []);
+assertEqual(result3, undefined, "Re-submitting the exact same content already present in the About, with nothing else changed, produces no change and no duplicate footnote");
+
+// --- buildFocusReferenceAboutMe(): content already present BUT another field genuinely changed - footnote still written ---
+var buildFocusReferenceAboutMe3b = makeBuildFocusReferenceAboutMe(alreadyPresentAbout);
+var result3b = buildFocusReferenceAboutMe3b("Some new scraped bio text\n", "https://example.com/person/1", ["gender"]);
+assertTrue(exists(result3b), "(live-reported, stbodie - #286 follow-up) Even though the About content is a repeat, a genuinely changed category (gender) still gets documented with a footnote");
 
 // --- getFocusRefUrl() ---
 const getFocusRefUrlSrc = extractFunction(src, 'getFocusRefUrl');

@@ -77,18 +77,30 @@ function assertTrue(cond, label) {
     assertEqual(footnoteLine.trim().match(/^\*+/)[0], "*", "#286 (live-reported, DanCornett): the new footnote is a plain single '*' even though Geni's existing About ends with an unrelated MyHeritage footnote - nesting is never based on Geni's own side");
 }
 
-// --- Content already present verbatim: no footnote, no change at all ---
+// --- Content already present verbatim AND no other field changed: no footnote at all, nothing to submit ---
 {
     const existingAbout = "* '''Residence''': Chicago, Illinois - 1920\n* '''[https://example.com/record/1 FamilySearch]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC''\n";
-    const result = buildReferenceAboutMe("* '''Residence''': Chicago, Illinois - 1920", existingAbout, "https://example.com/record/1", ["about"]);
-    assertEqual(result, undefined, "#286 (live-reported, DanCornett): nothing genuinely new was merged in - no footnote gets written, about_me isn't touched at all");
+    const result = buildReferenceAboutMe("* '''Residence''': Chicago, Illinois - 1920", existingAbout, "https://example.com/record/1", []);
+    assertEqual(result, undefined, "#286 (live-reported, DanCornett): nothing genuinely new was merged in and no other field changed - no footnote gets written, about_me isn't touched at all");
 }
 
-// --- Nothing scraped this run at all: no footnote, regardless of what Geni's About already ends with ---
+// --- Nothing scraped this run AND no other field changed: no footnote, regardless of what Geni's About already ends with ---
 {
     const existingAbout = "* '''[https://myheritage.com/record/9 MyHeritage Family Tree]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC''\n* '''[https://familysearch.org/record/5 FamilySearch]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 2 2020, 0:00:00 UTC''\n";
-    const result = buildReferenceAboutMe("", existingAbout, "https://familysearch.org/record/6", ["birth"]);
-    assertEqual(result, undefined, "#286 (live-reported, DanCornett): a blank scraped About never gets a bare 'just checking in' footnote, no matter how many unrelated footnotes already sit at the end of Geni's own About - this is the exact case Dan's report was about");
+    const result = buildReferenceAboutMe("", existingAbout, "https://familysearch.org/record/6", []);
+    assertEqual(result, undefined, "#286 (live-reported, DanCornett): a blank scraped About with nothing else changed never gets a bare 'just checking in' footnote, no matter how many unrelated footnotes already sit at the end of Geni's own About");
+}
+
+// --- (live-reported, stbodie - #286 follow-up): a marriage/divorce update genuinely changes this
+// person's data even though it has no About text of its own to merge in - a footnote SHOULD still
+// document it, since updatedCategories reflects a real change, not a no-op re-run (the #304
+// pre-selection fix already guarantees a field only gets this far when it's genuinely different). ---
+{
+    const existingAbout = "* '''[https://myheritage.com/record/9 MyHeritage Family Tree]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC''\n";
+    const result = buildReferenceAboutMe("", existingAbout, "https://familysearch.org/record/6", ["marriage"]);
+    assertTrue(exists(result), "A marriage-only update (blank scraped About, but a real changed category) still writes a footnote");
+    assertTrue(result.indexOf("(this update: marriage)") !== -1, "The footnote correctly documents 'marriage' as the touched category");
+    assertTrue(result.indexOf(existingAbout.trim()) !== -1, "Geni's existing About content is preserved unchanged - only the new footnote is appended");
 }
 
 // --- Blank existing About (a brand-new profile) with real new content still works ---

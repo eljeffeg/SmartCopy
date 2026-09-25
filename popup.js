@@ -883,6 +883,14 @@ function loadPage(request) {
             setMessage(warningmsg, _('This_website_is_not_yet_supported_by_SmartCopy.'));
         }
     } else {
+        // #312 (live-reported, DanCornett - "wrong focus profile picked"):
+        // diagnostic only, no behavior change. focusid is confirmed correct
+        // at both storage and dropdown-selection time (see the [history
+        // select]/[history add]/[history merge] logs) - this narrows
+        // whether it's STILL correct by the time loadPage() actually acts
+        // on it, or whether something between selection and here already
+        // clobbered it.
+        console.log("SmartCopy [loadPage]: profilechanged branch entered, focusid=\"" + focusid + "\" focusname=\"" + focusname + "\"");
         document.getElementById("top-container").style.display = "block";
         if (focusid === "" || focusid === "Select from History") {
             var accessdialog = document.querySelector('#useraccess');
@@ -921,6 +929,14 @@ function loadPage(request) {
             // further down in this file), too late for pre-selection.
             var args = "fields=id,guid,name,names,title,first_name,middle_name,last_name,maiden_name,suffix,display_name,nicknames,gender,deleted,merged_into,birth,baptism,death,burial,cause_of_death,is_alive,public,occupation,photo_urls,marriage,divorce,locked_fields,match_counts,about_me&actions=update,update-basics,add,add-photo";
             var descurl = "https://www.geni.com/api/" + focusid + "/immediate-family?" + args + "&access_token=" + accountinfo.access_token;
+            // #312: diagnostic only, no behavior change. Logs focusid right
+            // at the point it's baked into the actual Geni API request URL -
+            // if this ever disagrees with the [loadPage] log just above, the
+            // corruption happens between those two points; if it agrees but
+            // the WRONG profile still ends up on screen, the bug is in how
+            // the response gets parsed/rendered instead, not in focusid
+            // tracking at all.
+            console.log("SmartCopy [loadPage immediate-family fetch]: focusid=\"" + focusid + "\" descurl=\"" + descurl + "\"");
             chrome.runtime.sendMessage({
                 method: "GET",
                 action: "xhttp",

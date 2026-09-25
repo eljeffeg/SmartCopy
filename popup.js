@@ -64,22 +64,54 @@ function normalizeItemId(itemId) {
 // primary/matching id, while the guid form (nicer, human-recognizable) is
 // preferred for display.
 //
-// Detection is based on normalized digit length (matching getProfile()'s
-// own >16-digit convention in shared.js), not on string prefix, since ids
-// show up with a "profile-g" prefix, a "profile-" prefix, or completely
-// bare (e.g. the alias captured by scraping a Geni page's own source only
-// yields the bare digits).
+// (live-reported, DanCornett, #312 - "wrong focus profile picked"): this
+// USED to detect purely by normalized digit length (matching an old
+// version of getProfile()'s own >16-digit convention in shared.js),
+// discarding whatever prefix the id actually arrived with. That's unsafe -
+// getProfile() itself doesn't just guess by length either (see its own
+// "www.geni.com/people" URL-pattern check) specifically because a real
+// guid can be short (e.g. an old profile assigned one before Geni's guids
+// got longer - confirmed live, Katharina Geiser's guid is only 7 digits).
+// Reinterpreting a short guid's bare digits AS IF they were that same
+// profile's node_number doesn't yield an alternate form of the SAME
+// profile - "profile-g4395669" and "profile-4395669" are two entirely
+// different Geni ids that happen to share a numeric value, and Geni's API
+// resolved them to two different, unrelated people. So: an id that
+// already explicitly carries a "profile-g"/"profile-" prefix keeps that
+// prefix exactly as given, no re-derivation - only a genuinely bare,
+// unprefixed digit string (e.g. a node_number scraped directly off a
+// page, which never carries a prefix at all) falls back to the length
+// guess, and that's safe precisely because it's a real, confirmed
+// alternate id for this specific profile, not a guessed reinterpretation.
 function isNodeNumberId(id) {
+    var s = String(id);
+    if (s.indexOf("profile-g") === 0) {
+        return false;
+    }
+    if (s.indexOf("profile-") === 0) {
+        return true;
+    }
     var normalized = normalizeProfileId(id);
     return /^\d+$/.test(normalized) && normalized.length <= 16;
 }
 
 function isGuidFormatId(id) {
+    var s = String(id);
+    if (s.indexOf("profile-g") === 0) {
+        return true;
+    }
+    if (s.indexOf("profile-") === 0) {
+        return false;
+    }
     var normalized = normalizeProfileId(id);
     return /^\d+$/.test(normalized) && normalized.length > 16;
 }
 
 function toProfileId(id) {
+    var s = String(id);
+    if (s.indexOf("profile-g") === 0 || s.indexOf("profile-") === 0) {
+        return s;
+    }
     var normalized = normalizeProfileId(id);
     if (/^\d+$/.test(normalized)) {
         return (normalized.length > 16 ? "profile-g" : "profile-") + normalized;

@@ -1,13 +1,17 @@
-// Verifies #286: footnoteBulletPrefix() counts however many "*" already
-// lead the About text's own last non-blank line and returns one more than
-// that, instead of the old fixed "*"/"**" binary choice - and reads from
-// the FULLY MERGED About text (including any manually user-added content,
-// "for any source type" per the issue), not just this update's own
-// newly-scraped content.
+// Verifies #286/#235, simplified back to basics per explicit request after
+// the nesting/dedup logic grew too tangled (footnoteBulletPrefix(),
+// isLastLineFromSameSource() - both removed entirely). The rule now: two
+// things ever happen to a person's About - (1) real scraped content gets
+// merged in, unless it's already there (mergeAboutText(), unchanged); (2)
+// IF that merge actually added something new, a single plain "*" footnote
+// documents the run/source. No nesting, no "what changed" history
+// tracking, no bare-footnote-only re-adds when nothing changed. Shared by
+// both the focus profile and family members via one function,
+// buildReferenceAboutMe() - previously two divergent implementations.
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
-const src = fs.readFileSync('' + ROOT + '/popup.js', 'utf8');
+const src = fs.readFileSync(path.join(ROOT, 'popup.js'), 'utf8');
 
 function extractFunction(srcText, name) {
     const marker = 'function ' + name + '(';
@@ -20,41 +24,95 @@ function extractFunction(srcText, name) {
     }
     return srcText.slice(start, i + 1);
 }
+function extractVarStatement(srcText, name) {
+    const marker = 'var ' + name + ' =';
+    const start = srcText.indexOf(marker);
+    if (start === -1) throw new Error('not found: ' + name);
+    const semi = srcText.indexOf(';', start);
+    return srcText.slice(start, semi + 1);
+}
 
 function exists(v) { return typeof v !== "undefined" && v !== null; }
+const moment = require(path.join(ROOT, 'moment.js'));
 
-const footnoteBulletPrefix = new Function('exists', 'return ' + extractFunction(src, 'footnoteBulletPrefix'))(exists);
+const isAboutContentPresent = new Function('exists', extractFunction(src, 'normalizeAboutForComparison') + '\n' + extractFunction(src, 'isAboutContentPresent') + '\nreturn isAboutContentPresent;')(exists);
+const mergeAboutText = new Function('exists', 'isAboutContentPresent', 'return ' + extractFunction(src, 'mergeAboutText'))(exists, isAboutContentPresent);
+// footnoteLabel()/recordtype are read as real globals by buildReferenceAboutMe() -
+// recordtype is a plain module-level var elsewhere in popup.js; stubbed here
+// the same way other tests stub out unrelated global state.
+const footnoteLabel = new Function('exists', 'return ' + extractFunction(src, 'footnoteLabel'))(exists);
+const buildReferenceAboutMe = new Function('exists', 'moment', 'mergeAboutText', 'footnoteLabel', 'recordtype',
+    'return ' + extractFunction(src, 'buildReferenceAboutMe'))(exists, moment, mergeAboutText, footnoteLabel, 'FamilySearch Family Tree');
 
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {
     if (actual === expected) { pass++; console.log('PASS:', label); }
     else { fail++; console.log('FAIL:', label, '- expected', JSON.stringify(expected), 'got', JSON.stringify(actual)); }
 }
+function assertTrue(cond, label) {
+    if (cond) { pass++; console.log('PASS:', label); }
+    else { fail++; console.log('FAIL:', label); }
+}
 
-assertEqual(footnoteBulletPrefix(""), "*", "Empty About starts fresh at a plain top-level bullet");
-assertEqual(footnoteBulletPrefix(undefined), "*", "Undefined About starts fresh at a plain top-level bullet");
-assertEqual(footnoteBulletPrefix("Some plain prose with no bullet at all"), "*",
-    "A last line with no leading '*' at all still gets a plain top-level bullet");
-assertEqual(footnoteBulletPrefix("* First fact scraped this round"), "**",
-    "A single '*' leading bullet nests one level deeper to '**'");
-assertEqual(footnoteBulletPrefix("* First fact\n** An existing nested footnote"), "***",
-    "#286: an existing '**' (already nested once) nests one level deeper to '***', not collapsed back to '**'");
-assertEqual(footnoteBulletPrefix("* First fact\n** Nested once\n*** Nested twice"), "****",
-    "#286: nesting keeps growing by exactly one star each time, however deep it already is");
-assertEqual(footnoteBulletPrefix("* A user manually typed this bullet themselves"), "**",
-    "#286: a manually user-added bulleted line (not from any scrape) is honored the same as a scraped one");
-assertEqual(footnoteBulletPrefix("Some intro text\n\n* Last real line is bulleted\n\n"), "**",
-    "Trailing/interior blank lines are ignored - the check uses the last NON-blank line");
+// ============================================================
+// buildReferenceAboutMe(newAboutContent, existingAbout, refurl, updatedCategories)
+// ============================================================
 
-// The call site must read from the fully merged `about` variable (which
-// includes the existing About plus this update's own content already
-// merged in), not a separate this-update-only snapshot - #286's whole
-// point is picking up content the user themselves added, which a
-// this-update-only snapshot could never see.
-assertEqual(src.indexOf("var newAboutContentThisUpdate"), -1,
-    "#286: the old this-update-only snapshot variable is removed, not left dangling unused");
-assertEqual(/var bulletPrefix = footnoteBulletPrefix\(about\);/.test(src), true,
-    "#286: the call site passes the fully merged `about` text, not a this-update-only snapshot");
+// --- Genuinely new content: merged in, footnote appended (always plain "*") ---
+{
+    const result = buildReferenceAboutMe("* '''Residence''': Chicago, Illinois - 1920", "", "https://example.com/record/1", ["about"]);
+    assertTrue(exists(result), "New content on an otherwise-blank About returns a real value, not undefined");
+    assertTrue(result.indexOf("* '''Residence''': Chicago, Illinois - 1920") !== -1, "The real scraped content is present");
+    assertTrue(/\n\* '''\[https:\/\/example\.com\/record\/1 /.test(result), "The footnote is a plain single '*' - never nested, regardless of what came before it");
+    assertTrue(result.indexOf("(this update: about)") !== -1, "The updatedCategories summary is still included");
+}
+
+// --- Genuinely new content added to a NON-EMPTY existing About - footnote still plain "*", not nested under whatever Geni's own last line is ---
+{
+    const existingAbout = "* '''[https://myheritage.com/record/9 MyHeritage Family Tree]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC''\n";
+    const result = buildReferenceAboutMe("* '''Residence''': Detroit, Michigan - 1930", existingAbout, "https://familysearch.org/record/2", ["about"]);
+    assertTrue(result.indexOf(existingAbout.trim()) !== -1, "Geni's existing About is preserved");
+    assertTrue(result.indexOf("* '''Residence''': Detroit, Michigan - 1930") !== -1, "The new content is merged in");
+    const footnoteLine = result.split("\n").filter(function (l) { return l.trim() !== ""; }).pop();
+    assertEqual(footnoteLine.trim().match(/^\*+/)[0], "*", "#286 (live-reported, DanCornett): the new footnote is a plain single '*' even though Geni's existing About ends with an unrelated MyHeritage footnote - nesting is never based on Geni's own side");
+}
+
+// --- Content already present verbatim: no footnote, no change at all ---
+{
+    const existingAbout = "* '''Residence''': Chicago, Illinois - 1920\n* '''[https://example.com/record/1 FamilySearch]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC''\n";
+    const result = buildReferenceAboutMe("* '''Residence''': Chicago, Illinois - 1920", existingAbout, "https://example.com/record/1", ["about"]);
+    assertEqual(result, undefined, "#286 (live-reported, DanCornett): nothing genuinely new was merged in - no footnote gets written, about_me isn't touched at all");
+}
+
+// --- Nothing scraped this run at all: no footnote, regardless of what Geni's About already ends with ---
+{
+    const existingAbout = "* '''[https://myheritage.com/record/9 MyHeritage Family Tree]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC''\n* '''[https://familysearch.org/record/5 FamilySearch]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 2 2020, 0:00:00 UTC''\n";
+    const result = buildReferenceAboutMe("", existingAbout, "https://familysearch.org/record/6", ["birth"]);
+    assertEqual(result, undefined, "#286 (live-reported, DanCornett): a blank scraped About never gets a bare 'just checking in' footnote, no matter how many unrelated footnotes already sit at the end of Geni's own About - this is the exact case Dan's report was about");
+}
+
+// --- Blank existing About (a brand-new profile) with real new content still works ---
+{
+    const result = buildReferenceAboutMe("* '''Residence''': Chicago, Illinois - 1920", undefined, "https://example.com/record/1", []);
+    assertTrue(exists(result), "A brand-new profile (no existing About at all) with real content still gets one");
+    assertTrue(result.indexOf("(this update:") === -1, "No parenthetical when updatedCategories is empty");
+}
+
+// ============================================================
+// Structural: the old nesting/dedup machinery is gone, and both call sites
+// (focus profile's own submission + the family-member Add/Update paths)
+// route through the one shared function.
+// ============================================================
+assertEqual(src.indexOf("function footnoteBulletPrefix"), -1, "#286 simplified: footnoteBulletPrefix() is removed entirely - no more nesting");
+assertEqual(src.indexOf("function isLastLineFromSameSource"), -1, "#286 simplified: isLastLineFromSameSource() is removed entirely - superseded by 'only write a footnote when content actually changed'");
+assertTrue(src.indexOf("function buildFocusReferenceAboutMe(newAboutContent, refurl, updatedCategories") !== -1,
+    "buildFocusReferenceAboutMe() still exists with its original signature, for its two existing call sites (main focus submission + marriage-via-spouse follow-up)");
+assertTrue(/buildReferenceAboutMe\(newAboutContent, focusabout, refurl, updatedCategories\)/.test(src),
+    "buildFocusReferenceAboutMe() delegates to the shared buildReferenceAboutMe()");
+assertTrue(/buildReferenceAboutMe\(rawAbout, "", fdata\.url, updatedCategories\)/.test(src),
+    "A brand-new family-member 'Add' resolves its about_me immediately via the shared function - existingAbout is blank, nothing to wait for");
+assertTrue(/buildReferenceAboutMe\(rawAbout, geni_return\.about_me, response\.variable\.refurl, response\.variable\.updatedCategories\)/.test(src),
+    "A family-member 'Update' defers to the shared function until Geni's REAL existing About is fetched, then resolves the same way the focus profile always has");
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

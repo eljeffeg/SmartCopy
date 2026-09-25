@@ -32,8 +32,16 @@ assertTrue(!/var scoreabout = false;/.test(src),
     "The old hardcoded-false line is gone entirely, not just shadowed");
 
 // --- The load-bearing assumption: submission actually merges, never overwrites ---
-assertTrue(popupSrc.indexOf('familyout["about_me"] = geni_return.about_me + "\\n" + familyout["about_me"]') !== -1,
-    "Confirms the assumption this fix depends on: Geni's existing about_me is explicitly prepended before resubmission, never discarded");
+// #235/#286 follow-up (live-reported, DanCornett - simplified): the family-
+// member merge path was rewritten to share buildReferenceAboutMe() with
+// the focus profile, but the underlying guarantee this test cares about is
+// unchanged - mergeAboutText() (called by buildReferenceAboutMe()) still
+// puts existing content first and appends new content after it, never
+// discarding Geni's own About.
+assertTrue(popupSrc.indexOf('return existingAbout + "\\n" + newContent;') !== -1,
+    "Confirms the assumption this fix depends on: mergeAboutText() puts Geni's existing about_me first and appends new content after it, never discarding it");
+assertTrue(popupSrc.indexOf('buildReferenceAboutMe(rawAbout, geni_return.about_me, response.variable.refurl, response.variable.updatedCategories)') !== -1,
+    "The family-member Update path resolves its final about_me through the same shared, merge-based function the focus profile uses");
 
 // --- Behavioral: real isChecked()/resolveFieldEnabled(), Dan's exact ask ---
 function exists(v) { return typeof v !== 'undefined' && v !== null; }

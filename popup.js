@@ -1818,20 +1818,18 @@ var submitform = function () {
                 // touched, appended to the same Reference note rather than
                 // a separate formal sources/citations system - see #59.
                 // #255 (live-reported, DanCornett): wording is "this
-                // update:", not "updated:" - a footnote from the same
-                // source touching the SAME category again later gets
-                // suppressed as reference spam (isLastLineFromSameSource(),
-                // inside buildFocusReferenceAboutMe() below), so an older
-                // line's list can't be read as a cumulative history of
-                // every change from that source, only what THAT specific
-                // submission touched. The real per-field change history
-                // lives in Geni's own Revisions tab.
+                // update:", not "updated:" - only describes what THIS
+                // specific submission touched, not a cumulative history.
+                // The real per-field change history lives in Geni's own
+                // Revisions tab.
                 var updatedCategories = summarizeUpdatedCategories(profileout, exists(focusphotoinfo), marriagedates[profileout.profile_id]);
                 // buildFocusReferenceAboutMe() (below) does the actual
-                // merge-existing-About/build-footnote/nest-bullet work -
-                // shared with the marriage-via-spouse follow-up
-                // (submitChildren(), further down) so both paths stay in
-                // sync rather than maintaining this logic twice.
+                // merge-existing-About/build-footnote work - a footnote
+                // only ever gets written when that merge genuinely added
+                // something new (#235/#286, simplified) - shared with the
+                // marriage-via-spouse follow-up (submitChildren(), further
+                // down) so both paths stay in sync rather than maintaining
+                // this logic twice.
                 var builtAboutMe = buildFocusReferenceAboutMe(about, refurl, updatedCategories);
                 if (exists(builtAboutMe)) {
                     profileout["about_me"] = builtAboutMe;
@@ -1895,46 +1893,33 @@ var submitform = function () {
                     var fdata = databyid[familyout.profile_id];
                     if (exists(fdata)) {
                         about = "";
-                        // #209: kept separate from `about` below (which goes
-                        // on to have the "* Reference: ..." line appended)
-                        // so the fetch-and-merge step further down (~line
-                        // 1610) can dedup against just this raw content -
-                        // by the time that step runs, `about` already has
-                        // the reference line glued onto it, which would
-                        // never match twice (fresh timestamp every time)
-                        // even when the About content itself is a repeat.
+                        // #209: kept separate from `about` below so the
+                        // fetch-and-merge step further down (for an
+                        // "Update") can dedup against just this raw content,
+                        // not a copy that already has a footnote glued on.
                         var rawAbout = "";
                         if (exists(familyout["about_me"])) {
                             about = familyout["about_me"];
-                            // Unconditional, matching the focus-profile path
-                            // above (~line 1328) - without this, a plain
-                            // about note with no existing bullet lines (e.g.
-                            // straight from a collection's own note text,
-                            // not a prior SmartCopy run) skipped straight to
-                            // the "* Reference: ..." append below with no
-                            // separator, breaking the bullet formatting.
                             if (!about.endsWith("\n")) {
                                 about += "\n";
                             }
                             rawAbout = about;
                         }
-                        if (sourcecheck) {
-                            var focusprofileurl = "";
-                            if (focusid.startsWith("profile-g")) {
-                                focusprofileurl = "https://www.geni.com/profile/index/" + focusid.replace("profile-g", "");
-                            } else {
-                                focusprofileurl = "https://www.geni.com/" + focusid;
-                            }
+                        // #235/#286 (live-reported, DanCornett - simplified):
+                        // a brand-new "Add" has no existing Geni About to
+                        // merge against at all, so buildReferenceAboutMe()
+                        // can resolve the final about_me right here -
+                        // existingAbout="". An "Update" needs the REAL
+                        // existing About first, which isn't known yet at
+                        // this point - deferred to the fetch-and-merge step
+                        // further down, same shared function, once Geni's
+                        // actual about_me has been fetched.
+                        if (sourcecheck && rawAbout !== "" && familyout.action === "add") {
                             var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]), marriagedates[familyout.profile_id]);
-                            var updatedSuffix = updatedCategories.length > 0 ? " (this update: " + updatedCategories.join(", ") + ")" : "";
-                            // #236: see footnoteLabel()'s own comment.
-                            var familyFootnoteRecordtype = footnoteLabel(fdata.url, recordtype);
-                            if (exists(fdata.url)) {
-                                about = about + "* '''[" + encodeURI(fdata.url) + " " + familyFootnoteRecordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
-                            } else {
-                                about = about + "* '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+                            var builtFamilyAboutMe = buildReferenceAboutMe(rawAbout, "", fdata.url, updatedCategories);
+                            if (exists(builtFamilyAboutMe)) {
+                                about = builtFamilyAboutMe;
                             }
-                            
                         }
                         if (about !== "") {
                             familyout["about_me"] = about;
@@ -1994,12 +1979,20 @@ var submitform = function () {
                         }
                         if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "")) {
                             var abouturl = "https://www.geni.com/api/" + pid + "?fields=about_me,nicknames&access_token=" + accountinfo.access_token;
+                            // #235/#286: computed here (rather than inside
+                            // the callback below) since fdata/marriagedates
+                            // are var-scoped in the outer loop and would
+                            // read whatever the LAST iteration left them as
+                            // by the time this async callback actually
+                            // fires - same reason rawAbout/familyout are
+                            // already threaded through `variable` below.
+                            var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]), marriagedates[familyout.profile_id]);
                             submitstatus.push(updatetotal);
                             chrome.runtime.sendMessage({
                                 method: "GET",
                                 action: "xhttp",
                                 url: abouturl,
-                                variable: {pid: pid, familyout: familyout, rawAbout: rawAbout}
+                                variable: {pid: pid, familyout: familyout, rawAbout: rawAbout, refurl: fdata.url, updatedCategories: updatedCategories}
                             }, function (response) {
                                 // A malformed/non-JSON response here used to
                                 // throw uncaught, skipping submitstatus.pop()
@@ -2019,20 +2012,28 @@ var submitform = function () {
                                 var rawAbout = response.variable.rawAbout;
                                 if (!$.isEmptyObject(geni_return)) {
                                     if (exists(familyout["about_me"]) && exists(geni_return.about_me)) {
-                                        // #209: dedup against rawAbout (the
-                                        // About content alone, before the
-                                        // "* Reference: ..." line got
-                                        // appended above) rather than the
-                                        // whole familyout["about_me"] - that
-                                        // already has the reference line
-                                        // glued on, which carries a fresh
-                                        // timestamp every time and so would
-                                        // never match twice even when the
-                                        // About content itself is a repeat.
-                                        if (rawAbout !== "" && isAboutContentPresent(geni_return.about_me, rawAbout)) {
-                                            familyout["about_me"] = geni_return.about_me + "\n" + familyout["about_me"].substring(rawAbout.length);
+                                        // #235/#286 (live-reported, DanCornett -
+                                        // simplified): now that Geni's REAL
+                                        // existing About is known, resolve the
+                                        // final about_me the same way the focus
+                                        // profile does - merge rawAbout in
+                                        // (skipping it if it's already present,
+                                        // same #209 dedup as before, just via
+                                        // the shared helper now), and only add a
+                                        // footnote if that merge genuinely added
+                                        // something new. If nothing changed,
+                                        // about_me is removed from the
+                                        // submission entirely - familyout still
+                                        // held just rawAbout (no footnote, and
+                                        // not Geni's own existing text), so
+                                        // submitting it as-is would have
+                                        // overwritten Geni's real About with
+                                        // only this run's raw snippet.
+                                        var builtFamilyAboutMe = buildReferenceAboutMe(rawAbout, geni_return.about_me, response.variable.refurl, response.variable.updatedCategories);
+                                        if (exists(builtFamilyAboutMe)) {
+                                            familyout["about_me"] = builtFamilyAboutMe;
                                         } else {
-                                            familyout["about_me"] = geni_return.about_me + "\n" + familyout["about_me"];
+                                            delete familyout["about_me"];
                                         }
                                     }
                                     if (exists(familyout["nicknames"]) && exists(geni_return.nicknames)) {
@@ -2783,83 +2784,52 @@ function footnoteLabel(url, baseRecordtype) {
     return baseRecordtype;
 }
 
-// #235: whether the LAST non-blank line of the given About text is itself
-// a footnote from this exact source (matching just the stable
-// "[url recordtype]" token, same as everywhere else this is checked) -
-// the only case a new footnote line should be skipped as reference spam.
-// Deliberately only looks at the single most recent line, not the whole
-// history - see the #235 comment at this function's call site for why a
-// broader per-category history check (the previous approach here) ended
-// up silently under-documenting genuinely new updates.
-function isLastLineFromSameSource(text, token) {
-    if (!exists(text) || text === "") {
-        return false;
-    }
-    var lines = text.split("\n").filter(function (line) { return line.trim() !== ""; });
-    if (lines.length === 0) {
-        return false;
-    }
-    return lines[lines.length - 1].contains(token);
-}
-
-// #235/#286 (live-reported, DanCornett): counts however many "*" the About
-// text's own last non-blank line already starts with and returns one more
-// than that - "*" becomes "**", "**" becomes "***", and so on - rather
-// than the old fixed "*"/"**" choice, which collapsed any already-nested
-// line back down to "**" instead of continuing to nest deeper. No bullet
-// at all on the last line still just starts fresh at "*".
-function footnoteBulletPrefix(existingAbout) {
-    if (!exists(existingAbout) || existingAbout === "") {
-        return "*";
-    }
-    var lines = existingAbout.split("\n").filter(function (line) { return line.trim() !== ""; });
-    if (lines.length === 0) {
-        return "*";
-    }
-    var leadingBullets = lines[lines.length - 1].trim().match(/^(\*+)/);
-    return exists(leadingBullets) ? leadingBullets[1] + "*" : "*";
-}
-
-// Extracted from the focus profile's own submission block (below) so the
-// marriage-via-spouse follow-up (submitChildren(), further down) can build
-// the exact same footnote for the focus person's about_me without
-// duplicating this logic a second time - marriage/divorce data submits
-// through a shared union endpoint, not either person's own profile
-// endpoint (see parseForm()'s own comment on marentry/marriagedates), so
-// updating a spouse's marriage record genuinely changes the focus
-// person's own marriage data too, even when nothing on the focus
-// person's own form was checked this run - previously that meant the
-// focus person's about_me never got a footnote documenting it at all.
-// newAboutContent is whatever new about_me text (if any) is being
-// submitted for the focus person this round - "" for the deferred
-// marriage-only case, since nothing else is being submitted alongside it.
-// Returns the about_me string to submit, or undefined when there's
-// genuinely nothing to write (matches the original inline behavior:
-// already referenced by the same source with no other new content).
-function buildFocusReferenceAboutMe(newAboutContent, refurl, updatedCategories) {
+// #235/#286 (live-reported, DanCornett - simplified per explicit request
+// after #286's nesting/dedup logic grew too tangled): back to basics. Two
+// things ever happen to a person's About: (1) real scraped content gets
+// merged in, unless it's already there (mergeAboutText() - unchanged,
+// still the single source of truth for "is this content already present");
+// (2) IF - and only if - that merge actually added something new, a single
+// plain "*" footnote documents the run/source. No nesting, no "is the last
+// line already a footnote from this source" check, no "what changed"
+// history tracking - if nothing new was merged, nothing gets written at
+// all, so there's nothing to dedupe a footnote against in the first place.
+// Shared by both the focus profile and family members (previously two
+// divergent implementations - family's own was a hardcoded "*" with no
+// dedup at all, never updated when focus's got nesting logic added).
+// Returns the about_me string to submit, or undefined when nothing
+// genuinely changed (about_me shouldn't be part of this submission at
+// all).
+function buildReferenceAboutMe(newAboutContent, existingAbout, refurl, updatedCategories) {
     var about = exists(newAboutContent) ? newAboutContent : "";
     if (about !== "" && !about.endsWith("\n")) {
         about += "\n";
     }
-    about = mergeAboutText(focusabout, about);
-    if (about !== "" && !about.endsWith("\n")) {
-        about += "\n";
+    var mergedAbout = mergeAboutText(existingAbout, about);
+    if (mergedAbout === (existingAbout || "")) {
+        return undefined;
+    }
+    if (!mergedAbout.endsWith("\n")) {
+        mergedAbout += "\n";
     }
     var updatedSuffix = updatedCategories.length > 0 ? " (this update: " + updatedCategories.join(", ") + ")" : "";
     var footnoteRecordtype = footnoteLabel(refurl, recordtype);
-    var token = "[" + encodeURI(refurl) + " " + footnoteRecordtype + "]";
-    var alreadyReferenced = isLastLineFromSameSource(about, token);
-    var bulletPrefix = footnoteBulletPrefix(about);
-    if (!alreadyReferenced) {
-        if (exists(refurl)) {
-            return about + bulletPrefix + " '''[" + encodeURI(refurl) + " " + footnoteRecordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
-        } else {
-            return about + bulletPrefix + " '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
-        }
-    } else if (about !== "") {
-        return about;
+    if (exists(refurl)) {
+        return mergedAbout + "* '''[" + encodeURI(refurl) + " " + footnoteRecordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
     }
-    return undefined;
+    return mergedAbout + "* '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+}
+
+// Thin wrapper keeping the focus profile's own call sites (the main
+// submission block below, and the marriage-via-spouse follow-up in
+// submitChildren() further down) unchanged - both already pass exactly
+// these three arguments, just needed focusabout threaded through as the
+// "existing About" now that buildReferenceAboutMe() is shared with family
+// members too. newAboutContent is whatever new about_me text (if any) is
+// being submitted for the focus person this round - "" for the deferred
+// marriage-only case, since nothing else is being submitted alongside it.
+function buildFocusReferenceAboutMe(newAboutContent, refurl, updatedCategories) {
+    return buildReferenceAboutMe(newAboutContent, focusabout, refurl, updatedCategories);
 }
 
 // Focus person's own reference URL, same fallback both the normal

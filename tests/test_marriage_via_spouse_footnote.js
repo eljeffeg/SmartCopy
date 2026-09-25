@@ -11,6 +11,11 @@
 // normal path and this new deferred path share identical footnote logic -
 // this file both verifies the extraction didn't change behavior AND
 // verifies the new deferred call site is wired correctly.
+//
+// #235/#286 follow-up (live-reported, DanCornett - simplified): the actual
+// footnote-building logic now lives in the shared buildReferenceAboutMe()
+// (focus AND family members both use it); buildFocusReferenceAboutMe() is
+// a thin wrapper threading the focus profile's own `focusabout` through.
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
@@ -30,8 +35,7 @@ function extractFunction(srcText, name) {
 
 function exists(v) { return typeof v !== "undefined" && v !== null; }
 
-// --- Minimal fakes for buildFocusReferenceAboutMe()'s outer-scope deps ---
-var focusabout = "";
+// --- Minimal fakes for buildReferenceAboutMe()'s outer-scope deps ---
 var recordtype = "FamilySearch Genealogy";
 var moment = function () {
     return { format: function () { return "Jan 1 2026, 12:00:00"; } };
@@ -45,28 +49,24 @@ function mergeAboutText(existingAbout, newContent) {
     if (!exists(existingAbout) || existingAbout === "") {
         return newContent;
     }
+    if ((existingAbout || "").indexOf(newContent.trim()) !== -1) {
+        return existingAbout;
+    }
     return existingAbout + "\n" + newContent;
 }
 function footnoteLabel(url, baseRecordtype) { return baseRecordtype; }
-function isLastLineFromSameSource(text, token) {
-    if (!exists(text) || text === "") { return false; }
-    var lines = text.split("\n").filter(function (l) { return l.trim() !== ""; });
-    return lines.length > 0 && lines[lines.length - 1].indexOf(token) !== -1;
+
+const buildReferenceAboutMeSrc = extractFunction(src, 'buildReferenceAboutMe');
+function makeBuildReferenceAboutMe() {
+    return new Function('exists', 'moment', 'mergeAboutText', 'footnoteLabel', 'recordtype',
+        'return ' + buildReferenceAboutMeSrc)(exists, moment, mergeAboutText, footnoteLabel, recordtype);
 }
-function footnoteBulletPrefix(existingAbout) {
-    if (!exists(existingAbout) || existingAbout === "") { return "*"; }
-    var lines = existingAbout.split("\n").filter(function (l) { return l.trim() !== ""; });
-    if (lines.length === 0) { return "*"; }
-    var m = lines[lines.length - 1].trim().match(/^(\*+)/);
-    return exists(m) ? m[1] + "*" : "*";
-}
+const buildReferenceAboutMe = makeBuildReferenceAboutMe();
 
 const buildFocusReferenceAboutMeSrc = extractFunction(src, 'buildFocusReferenceAboutMe');
-const buildFocusReferenceAboutMe = new Function(
-    'exists', 'mergeAboutText', 'footnoteLabel', 'isLastLineFromSameSource', 'footnoteBulletPrefix',
-    'moment', 'recordtype', 'focusabout',
-    'return ' + buildFocusReferenceAboutMeSrc
-)(exists, mergeAboutText, footnoteLabel, isLastLineFromSameSource, footnoteBulletPrefix, moment, recordtype, focusabout);
+function makeBuildFocusReferenceAboutMe(focusabout) {
+    return new Function('buildReferenceAboutMe', 'focusabout', 'return ' + buildFocusReferenceAboutMeSrc)(buildReferenceAboutMe, focusabout);
+}
 
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {
@@ -78,29 +78,28 @@ function assertTrue(cond, label) {
     else { fail++; console.log('FAIL:', label); }
 }
 
-// --- buildFocusReferenceAboutMe(): the deferred case (no new content, just a footnote) ---
-var result1 = buildFocusReferenceAboutMe("", "https://example.com/person/1", ["marriage"]);
-assertTrue(exists(result1), "Deferred case (blank newAboutContent) still produces a footnote to write");
-assertTrue(result1.indexOf("(this update: marriage)") !== -1, "The deferred footnote correctly summarizes 'marriage' as the touched category");
-assertTrue(result1.trim().startsWith("*"), "The deferred footnote starts as a plain top-level bullet when About was empty");
+// --- buildFocusReferenceAboutMe(): the deferred case (no new content, just documenting the marriage change) ---
+// #235/#286 simplified: a marriage-only update never touches About text at
+// all (newAboutContent is ""), so per the new "only write a footnote when
+// real content changed" rule, this now correctly produces NO footnote -
+// the marriage change itself is submitted separately (buildTree() below),
+// About is simply not part of that submission.
+var buildFocusReferenceAboutMe1 = makeBuildFocusReferenceAboutMe("");
+var result1 = buildFocusReferenceAboutMe1("", "https://example.com/person/1", ["marriage"]);
+assertEqual(result1, undefined, "#286 simplified: a marriage-only update (blank newAboutContent) no longer writes a bare footnote - nothing about-related changed");
 
 // --- buildFocusReferenceAboutMe(): normal case with new about content ---
-var result2 = buildFocusReferenceAboutMe("Some new scraped bio text\n", "https://example.com/person/1", ["birth", "gender"]);
+var buildFocusReferenceAboutMe2 = makeBuildFocusReferenceAboutMe("");
+var result2 = buildFocusReferenceAboutMe2("Some new scraped bio text\n", "https://example.com/person/1", ["birth", "gender"]);
 assertTrue(result2.indexOf("Some new scraped bio text") !== -1, "New about content is preserved in the merged result");
 assertTrue(result2.indexOf("(this update: birth, gender)") !== -1, "Multiple touched categories are summarized correctly");
+assertTrue(result2.trim().split("\n").pop().startsWith("*"), "The footnote is a plain top-level bullet");
 
-// --- buildFocusReferenceAboutMe(): already-referenced (reference spam suppression) ---
-var alreadyReferencedAbout = "* '''[https://example.com/person/1 FamilySearch Genealogy]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2026, 12:00:00 UTC''\n";
-var result3 = buildFocusReferenceAboutMe("", "https://example.com/person/1", ["marriage"]);
-// (Re-run against a focusabout that already ends with this exact source's footnote line - simulated by
-// passing it as newAboutContent merged onto nothing, since focusabout is fixed at "" in this harness.)
-var buildFocusReferenceAboutMeWithHistory = new Function(
-    'exists', 'mergeAboutText', 'footnoteLabel', 'isLastLineFromSameSource', 'footnoteBulletPrefix',
-    'moment', 'recordtype', 'focusabout',
-    'return ' + buildFocusReferenceAboutMeSrc
-)(exists, mergeAboutText, footnoteLabel, isLastLineFromSameSource, footnoteBulletPrefix, moment, recordtype, alreadyReferencedAbout);
-var result4 = buildFocusReferenceAboutMeWithHistory("", "https://example.com/person/1", ["marriage"]);
-assertEqual(result4, alreadyReferencedAbout, "Back-to-back reference from the same source with nothing new is suppressed (no duplicate footnote)");
+// --- buildFocusReferenceAboutMe(): content already present - no duplicate footnote ---
+var alreadyPresentAbout = "Some new scraped bio text\n* '''[https://example.com/person/1 FamilySearch Genealogy]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2026, 12:00:00 UTC''\n";
+var buildFocusReferenceAboutMe3 = makeBuildFocusReferenceAboutMe(alreadyPresentAbout);
+var result3 = buildFocusReferenceAboutMe3("Some new scraped bio text\n", "https://example.com/person/1", ["birth", "gender"]);
+assertEqual(result3, undefined, "Re-submitting the exact same content already present in the About produces no change and no duplicate footnote");
 
 // --- getFocusRefUrl() ---
 const getFocusRefUrlSrc = extractFunction(src, 'getFocusRefUrl');

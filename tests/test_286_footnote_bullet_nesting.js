@@ -1,13 +1,18 @@
 // Verifies #286/#235, simplified back to basics per explicit request after
-// the nesting/dedup logic grew too tangled (footnoteBulletPrefix(),
-// isLastLineFromSameSource() - both removed entirely). The rule now: two
-// things ever happen to a person's About - (1) real scraped content gets
-// merged in, unless it's already there (mergeAboutText(), unchanged); (2)
-// IF that merge actually added something new, a single plain "*" footnote
-// documents the run/source. No nesting, no "what changed" history
-// tracking, no bare-footnote-only re-adds when nothing changed. Shared by
-// both the focus profile and family members via one function,
-// buildReferenceAboutMe() - previously two divergent implementations.
+// the nesting/dedup logic grew too tangled (footnoteBulletPrefix() removed
+// entirely). The rule now: two things ever happen to a person's About -
+// (1) real scraped content gets merged in, unless it's already there
+// (mergeAboutText(), unchanged); (2) IF something genuinely changed this
+// run, a single plain "*" citation documents the run/source. No nesting,
+// no "what changed" history tracking. Shared by both the focus profile
+// and family members via one function, buildReferenceAboutMe() -
+// previously two divergent implementations.
+//
+// #286 follow-up (live-reported, DanCornett): isLastLineFromSameSource()
+// was narrowly reintroduced for one specific case - a BARE citation (no
+// new content alongside it) should never duplicate if the last thing in
+// the About is already a citation from that same source. Real new content
+// is never subject to this check.
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
@@ -41,8 +46,9 @@ const mergeAboutText = new Function('exists', 'isAboutContentPresent', 'return '
 // recordtype is a plain module-level var elsewhere in popup.js; stubbed here
 // the same way other tests stub out unrelated global state.
 const footnoteLabel = new Function('exists', 'return ' + extractFunction(src, 'footnoteLabel'))(exists);
-const buildReferenceAboutMe = new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'recordtype',
-    'return ' + extractFunction(src, 'buildReferenceAboutMe'))(exists, moment, isAboutContentPresent, footnoteLabel, 'FamilySearch Family Tree');
+const isLastLineFromSameSource = new Function('exists', 'return ' + extractFunction(src, 'isLastLineFromSameSource'))(exists);
+const buildReferenceAboutMe = new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'isLastLineFromSameSource', 'recordtype',
+    'return ' + extractFunction(src, 'buildReferenceAboutMe'))(exists, moment, isAboutContentPresent, footnoteLabel, isLastLineFromSameSource, 'FamilySearch Family Tree');
 
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {
@@ -139,12 +145,38 @@ function assertTrue(cond, label) {
 }
 
 // ============================================================
-// Structural: the old nesting/dedup machinery is gone, and both call sites
+// (live-reported, DanCornett - #286 follow-up): a bare citation (no new
+// content) should never duplicate a citation from the same source that's
+// already the last thing in the About - e.g. deliberately forcing a
+// "reviewed against this source" note onto an already-matching profile,
+// repeated more than once.
+// ============================================================
+{
+    const existingAbout = "* '''Residence''': Chicago, Illinois - 1920\n* '''[https://example.com/record/1 FamilySearch Family Tree]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC'' (this update: gender)\n";
+    const result = buildReferenceAboutMe("", existingAbout, "https://example.com/record/1", ["gender"]);
+    assertEqual(result, undefined, "#286 follow-up: a bare citation from the SAME source, with nothing new to add, is skipped - the last thing already there is already this exact citation");
+}
+{
+    // Different source this time - still gets its own bare citation, no false suppression.
+    const existingAbout = "* '''Residence''': Chicago, Illinois - 1920\n* '''[https://example.com/record/1 FamilySearch Family Tree]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC'' (this update: gender)\n";
+    const result = buildReferenceAboutMe("", existingAbout, "https://myheritage.com/record/9", ["birth"]);
+    assertTrue(exists(result), "A bare citation from a DIFFERENT source than the last one is still correctly written, not suppressed");
+    assertTrue(result.indexOf("myheritage.com/record/9") !== -1, "The new citation is present");
+}
+{
+    // Real new content from the SAME source as the last citation still gets its own citation - the dedup check never applies when content is genuinely new.
+    const existingAbout = "* '''[https://example.com/record/1 FamilySearch Family Tree]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC''\n";
+    const result = buildReferenceAboutMe("* '''Residence''': Detroit, Michigan - 1930", existingAbout, "https://example.com/record/1", ["about"]);
+    assertTrue(exists(result), "Regression: real new content from the same source as the last citation still gets written and cited - the same-source dedup only ever applies to BARE citations");
+    assertTrue(result.indexOf("Detroit") !== -1, "The new content itself is present");
+}
+
+// ============================================================
+// Structural: the old nesting machinery is gone, and both call sites
 // (focus profile's own submission + the family-member Add/Update paths)
 // route through the one shared function.
 // ============================================================
 assertEqual(src.indexOf("function footnoteBulletPrefix"), -1, "#286 simplified: footnoteBulletPrefix() is removed entirely - no more nesting");
-assertEqual(src.indexOf("function isLastLineFromSameSource"), -1, "#286 simplified: isLastLineFromSameSource() is removed entirely - superseded by 'only write a footnote when content actually changed'");
 assertTrue(src.indexOf("function buildFocusReferenceAboutMe(newAboutContent, refurl, updatedCategories") !== -1,
     "buildFocusReferenceAboutMe() still exists with its original signature, for its two existing call sites (main focus submission + marriage-via-spouse follow-up)");
 assertTrue(/buildReferenceAboutMe\(newAboutContent, focusabout, refurl, updatedCategories\)/.test(src),

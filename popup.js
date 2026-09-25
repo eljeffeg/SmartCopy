@@ -2816,6 +2816,27 @@ function footnoteLabel(url, baseRecordtype) {
     return baseRecordtype;
 }
 
+// (live-reported, DanCornett - #286 follow-up): whether the LAST non-blank
+// line of the given About text is itself a citation from this exact
+// source - narrowly reintroduced for one specific case (see its own call
+// site in buildReferenceAboutMe() below): a BARE citation with no new
+// content alongside it (a marriage-only update, or deliberately forcing a
+// "reviewed against this source" note onto an already-matching profile)
+// should never pile up duplicates if repeated. Deliberately NOT used for
+// the normal case (real new content always gets its own citation
+// regardless of source repetition) - this only prevents "I added nothing
+// except this source's citation" from being written twice in a row.
+function isLastLineFromSameSource(text, token) {
+    if (!exists(text) || text === "") {
+        return false;
+    }
+    var lines = text.split("\n").filter(function (line) { return line.trim() !== "" && line.trim() !== "----"; });
+    if (lines.length === 0) {
+        return false;
+    }
+    return lines[lines.length - 1].indexOf(token) !== -1;
+}
+
 // #235/#286 (live-reported, DanCornett - simplified per explicit request
 // after #286's nesting/dedup logic grew too tangled): back to basics. Two
 // things ever happen to a person's About: (1) real scraped content gets
@@ -2824,10 +2845,10 @@ function footnoteLabel(url, baseRecordtype) {
 // (2) IF - and only if - something genuinely changed this run (either the
 // merge above added real new content, OR some other field changed - see
 // updatedCategories below), a single plain "*" footnote documents the
-// run/source. No nesting, no "is the last line already a footnote from
-// this source" check, no "what changed" history tracking - if nothing
-// changed at all, nothing gets written, so there's nothing to dedupe a
-// footnote against in the first place.
+// run/source. No nesting, no "what changed" history tracking - a bare
+// citation with no accompanying new content is the one case still checked
+// against a repeat (isLastLineFromSameSource() above); everything else
+// just writes or doesn't, no history to track.
 // Shared by both the focus profile and family members (previously two
 // divergent implementations - family's own was a hardcoded "*" with no
 // dedup at all, never updated when focus's got nesting logic added).
@@ -2855,8 +2876,21 @@ function buildReferenceAboutMe(newAboutContent, existingAbout, refurl, updatedCa
     if (!contentIsNew && updatedCategories.length === 0) {
         return undefined;
     }
-    var updatedSuffix = updatedCategories.length > 0 ? " (this update: " + updatedCategories.join(", ") + ")" : "";
     var footnoteRecordtype = footnoteLabel(refurl, recordtype);
+    // (live-reported, DanCornett - #286 follow-up): a bare citation (no
+    // new About content this run - e.g. a marriage-only update, or
+    // deliberately forcing a "reviewed against this source, nothing to
+    // change" note onto an already-matching profile) should never pile up
+    // duplicates - if the very last thing already in the About is already
+    // a citation from this exact same source, with no new content added
+    // since, skip it. Real new content is NEVER subject to this check -
+    // it always gets its own citation regardless of which source added
+    // the previous one, same as before.
+    var sameSourceToken = exists(refurl) ? ("[" + encodeURI(refurl) + " " + footnoteRecordtype + "]") : recordtype;
+    if (!contentIsNew && isLastLineFromSameSource(base, sameSourceToken)) {
+        return undefined;
+    }
+    var updatedSuffix = updatedCategories.length > 0 ? " (this update: " + updatedCategories.join(", ") + ")" : "";
     var footnoteLine = exists(refurl)
         ? "* '''[" + encodeURI(refurl) + " " + footnoteRecordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n"
         : "* '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";

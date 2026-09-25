@@ -49,11 +49,16 @@ function isAboutContentPresent(existingAbout, content) {
     return normalized !== "" && (existingAbout || "").replace(/\s+/g, " ").trim().indexOf(normalized) !== -1;
 }
 function footnoteLabel(url, baseRecordtype) { return baseRecordtype; }
+function isLastLineFromSameSource(text, token) {
+    if (!exists(text) || text === "") { return false; }
+    var lines = text.split("\n").filter(function (l) { return l.trim() !== "" && l.trim() !== "----"; });
+    return lines.length > 0 && lines[lines.length - 1].indexOf(token) !== -1;
+}
 
 const buildReferenceAboutMeSrc = extractFunction(src, 'buildReferenceAboutMe');
 function makeBuildReferenceAboutMe() {
-    return new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'recordtype',
-        'return ' + buildReferenceAboutMeSrc)(exists, moment, isAboutContentPresent, footnoteLabel, recordtype);
+    return new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'isLastLineFromSameSource', 'recordtype',
+        'return ' + buildReferenceAboutMeSrc)(exists, moment, isAboutContentPresent, footnoteLabel, isLastLineFromSameSource, recordtype);
 }
 const buildReferenceAboutMe = makeBuildReferenceAboutMe();
 
@@ -101,10 +106,18 @@ var buildFocusReferenceAboutMe3 = makeBuildFocusReferenceAboutMe(alreadyPresentA
 var result3 = buildFocusReferenceAboutMe3("Some new scraped bio text\n", "https://example.com/person/1", []);
 assertEqual(result3, undefined, "Re-submitting the exact same content already present in the About, with nothing else changed, produces no change and no duplicate footnote");
 
-// --- buildFocusReferenceAboutMe(): content already present BUT another field genuinely changed - footnote still written ---
+// --- buildFocusReferenceAboutMe(): content already present, another field changed, but the SAME source is
+// already the last citation there - (live-reported, DanCornett - #286 follow-up) no duplicate citation, even
+// though a category changed. Per-field change history is Geni's own Revisions tab's job, not About's - a
+// second bare citation from a source already cited last isn't adding new provenance information. ---
 var buildFocusReferenceAboutMe3b = makeBuildFocusReferenceAboutMe(alreadyPresentAbout);
 var result3b = buildFocusReferenceAboutMe3b("Some new scraped bio text\n", "https://example.com/person/1", ["gender"]);
-assertTrue(exists(result3b), "(live-reported, stbodie - #286 follow-up) Even though the About content is a repeat, a genuinely changed category (gender) still gets documented with a footnote");
+assertEqual(result3b, undefined, "#286 follow-up: About content is a repeat AND the same source is already the last citation - no duplicate, even with a changed category");
+
+// --- buildFocusReferenceAboutMe(): content already present, but a DIFFERENT source than the last citation - still writes ---
+var buildFocusReferenceAboutMe3c = makeBuildFocusReferenceAboutMe(alreadyPresentAbout);
+var result3c = buildFocusReferenceAboutMe3c("Some new scraped bio text\n", "https://myheritage.com/record/9", ["gender"]);
+assertTrue(exists(result3c), "A genuinely different source touching this profile still gets its own citation, even though the About content itself is a repeat");
 
 // --- getFocusRefUrl() ---
 const getFocusRefUrlSrc = extractFunction(src, 'getFocusRefUrl');

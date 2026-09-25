@@ -151,12 +151,27 @@ function callApplyProtectedDisabledState(input, scrapedValue, currentValue, lock
     assertEqual(row.state.checkboxChecked, false, "Its checkbox correctly un-checks to match");
 }
 
-// --- Regression: a manually-unchecked box never gets silently re-enabled ---
+// --- #304 follow-up (live-reported, DanCornett, confirmed): this function can now PROMOTE a field to
+// checked, not just protect one down to unchecked - it resolves to whatever a fully-informed render would
+// have produced, every time it's called. This is a deliberate behavior change, not a bug: it's what makes
+// a brand-new "Add" candidate (nothing became scored-eligible at render) and a just-now-manually-picked
+// match (the Action dropdown resolving after render) both correctly pre-select once the real Geni value is
+// known. One accepted tradeoff, same shape as the pre-existing risk in the OTHER direction (a manual CHECK
+// could already get silently un-checked by this same function before this fix) - if a field is manually
+// unchecked and this same resync is re-triggered (e.g. re-selecting the same match again), it will get
+// re-checked if the value still genuinely differs. ---
 {
     const row = makeRow(false); // user already manually unchecked this
     callApplyProtectedDisabledState(row.input, 'Real Scraped Value', 'Geni Value', false);
-    assertEqual(row.state.inputDisabled, true, "A manually-unchecked box's field stays disabled - never silently re-enabled just because the value comparison would otherwise allow it");
-    assertEqual(row.state.checkboxChecked, false, "The checkbox itself is never auto-CHECKED by this function - only ever un-checked, matching the documented rule");
+    assertEqual(row.state.inputDisabled, false, "#304 follow-up: a genuinely different value is promoted to enabled, even though the checkbox started unchecked - the core of Dan's confirmed report");
+    assertEqual(row.state.checkboxChecked, true, "The checkbox itself is promoted to checked too - this function is no longer one-directional");
+}
+// --- Regression: a manually-unchecked box that genuinely matches Geni is correctly NOT promoted ---
+{
+    const row = makeRow(false);
+    callApplyProtectedDisabledState(row.input, 'FARMER', 'Farmer', false, 'generic');
+    assertEqual(row.state.inputDisabled, true, "A field identical to Geni's value (modulo case) stays disabled - nothing to promote, still nothing new to submit");
+    assertEqual(row.state.checkboxChecked, false, "Its checkbox correctly stays unchecked");
 }
 
 // --- #304: generic fieldType - case/whitespace-only difference now un-checks too ---

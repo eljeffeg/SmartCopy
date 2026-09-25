@@ -5523,6 +5523,24 @@ function isFieldSelectable(scrapedValue, currentValue, fieldType) {
     return !valuesAreEquivalentForFieldType(scrapedValue, currentValue, fieldType);
 }
 
+// #304 follow-up (live-reported, DanCornett, confirmed): this used to only
+// ever be allowed to UNCHECK a field, never check one - deliberately, so
+// that picking a match from the Action dropdown could never silently
+// select something with no visible sign of it happening. That protection
+// predates auto-expand (any member row with a genuinely checked field now
+// opens on its own), which already covers the exact scenario this was
+// guarding against - so the one-directional restriction was just left
+// stricter than it needed to be, and quietly explained two symptoms at
+// once: a brand-new, unmatched "Add" candidate has nothing to protect
+// against at all (there's no existing Geni data to conflict with), so
+// every field SHOULD pre-select, but if it never became scored-eligible at
+// render time, nothing could ever promote it afterward; and manually
+// picking the correct match from the dropdown hit the same wall - the
+// resync could tell a field was genuinely different from Geni's real data,
+// it just wasn't allowed to act on it. Now resolves BOTH directions,
+// matching how refreshPrivacySelect() (below) already has all along -
+// Privacy never had this restriction, which is why it was the one field
+// type that already pre-selected consistently once a match resolved.
 function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType) {
     var checknext = input.closest('tr').find('.checknext');
     // A family-member field's checked state at initial render is computed
@@ -5538,27 +5556,16 @@ function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, 
     // pre-checked forever even though there's nothing to actually submit.
     var sameAsGeni = !isFieldSelectable(scrapedValue, currentValue, fieldType);
     var fieldWouldBeDisabled = isEnabled(scrapedValue, true, false, currentValue, locked, sameAsGeni) === "disabled";
-    if (locked || fieldWouldBeDisabled) {
-        // A field discovered to be Geni-locked (or missing update
-        // permission), OR one that turns out to need protecting (Geni
-        // already has real data the render-time guess would otherwise
-        // blank), only becomes knowable once this member is matched to a
-        // real Geni profile - after initial render, which may have
-        // already checked this box (safely, with the information
-        // available at the time). Un-checking here is always the safe
-        // direction (removing eligibility to submit), unlike auto-
-        // CHECKING, which this function deliberately never does (see the
-        // comment above) - without this, a field checked at render time
-        // stayed checked-but-disabled forever after: not destructive on
-        // its own (parseForm() gates on disabled, not checked), but
-        // exactly the "checkbox and reality disagree" state this whole
-        // rule exists to prevent, just reached from the checked side
-        // instead of the disabled side. Live-reported (locked case): this
-        // is what let a locked family member's estimated marriage date
-        // stay checked (and get submitted, rejected by Geni for
-        // permissions) after the lock was discovered.
-        checknext.prop('checked', false);
-    }
+    // locked always wins (never checked, regardless of anything else);
+    // otherwise resolves to exactly what a fully-informed render would
+    // have produced - checked when the field would be enabled, unchecked
+    // when it wouldn't, promoting AND protecting as needed rather than
+    // only ever narrowing toward unchecked. Live-reported (locked case):
+    // this is what let a locked family member's estimated marriage date
+    // stay checked (and get submitted, rejected by Geni for permissions)
+    // after the lock was discovered - still correctly handled here, since
+    // locked still forces false unconditionally.
+    checknext.prop('checked', !locked && !fieldWouldBeDisabled);
     var enabled = checknext.prop('checked') && !fieldWouldBeDisabled;
     input.prop("disabled", !enabled);
     checknext.prop('disabled', !!locked);
@@ -5849,17 +5856,17 @@ function setGeniFamilyData(id, profile) {
     // to a different match (locked -> editable, or vice versa) must not
     // leave a stale lock icon from whatever was previously selected.
     $('#' + id + '_action_lock').css('display', noEditPermission ? 'inline' : 'none');
-    // #304: the resync above may just have un-checked every remaining
-    // field for this member (e.g. a fully-matched candidate whose scraped
-    // data now turns out to be identical to Geni's own) - if the person's
-    // own top-level box was checked (an earlier explicit "select all" or
-    // per-field click) and nothing underneath it is checked anymore, clear
-    // it too, so the collapsed person-bar tick-mark never shows a
-    // commitment that doesn't actually exist. Skipped when noEditPermission
-    // already handled it above.
-    if (!noEditPermission && checkslideEl.length > 0 && checkslideEl.prop("checked") &&
-        memberexpand.find('.checknext:checked').length === 0) {
-        checkslideEl.prop('checked', false);
+    // #304 follow-up: the resync above can now both check AND uncheck
+    // fields (previously only ever unchecked them), so the person-bar/
+    // category indicators need to track both directions too - not just
+    // "clear it if nothing's left checked," which is all this needed to
+    // handle before. Reuses syncTopLevelIndicators() (the same recompute-
+    // from-scratch logic the .checknext/.geotopcheck click handlers
+    // already use) rather than a second, narrower copy of the same
+    // question. Skipped when noEditPermission already forced everything
+    // off above.
+    if (!noEditPermission && memberexpand.length > 0) {
+        syncTopLevelIndicators(memberexpand[0]);
     }
     // (live-reported, stbodie): a member with real pre-selected field
     // differences still started collapsed by default (every .memberexpand

@@ -277,6 +277,7 @@ const applyProtectedDisabledStateSrc = extractFunction(bfSrc, 'applyProtectedDis
 const refreshFieldCheckStateSrc = extractFunction(bfSrc, 'refreshFieldCheckState');
 const refreshLivingCheckStateSrc = extractFunction(bfSrc, 'refreshLivingCheckState');
 const setGeniFamilyDataSrc = extractFunction(bfSrc, 'setGeniFamilyData');
+const syncTopLevelIndicatorsSrc = extractFunction(bfSrc, 'syncTopLevelIndicators');
 const localizedGenderSrc = extractFunction(bfSrc, 'localizedGender');
 const isAliveSrc = extractFunction(bfSrc, 'isAlive');
 const isPublicSrc = extractFunction(bfSrc, 'isPublic');
@@ -319,6 +320,7 @@ function build(genifamilydata) {
         ${isFieldEmptyForCheckAllSrc}
         ${applySelectAllStateSrc}
         ${syncGeotopcheckStateSrc}
+        ${syncTopLevelIndicatorsSrc}
         ${setGeniFamilyDataSrc}
         return { setGeniFamilyData };
         `
@@ -397,6 +399,53 @@ const memberId = '0';
     // without that extra click.
     assertEqual($('.memberexpand').css('display') !== 'none', true,
         "#304 follow-up (live-reported, stbodie): a member with a real pre-selected difference auto-expands, instead of staying collapsed and requiring a manual click to review");
+}
+
+// --- Scenario 2b (live-reported, DanCornett, confirmed): applyProtectedDisabledState() can now PROMOTE a
+// field to checked, not just protect one down to unchecked - covers both of Dan's reports: an unmatched
+// "Add" candidate whose fields never became scored-eligible at render, and manually picking the correct
+// match from the Action dropdown after the fact. Either way, the field started unchecked at render (no
+// match known yet) - the resync itself is what has to newly check it once it learns the real Geni value
+// genuinely differs.
+{
+    const profileId = 'geniMatch2b';
+    global.genifamilydata = {};
+    global.genifamilydata[profileId] = new GeniPerson({
+        id: profileId, public: true, is_alive: false,
+        actions: ['update', 'update-basics'], names: {},
+        birth: { date: { year: '1890' } }, occupation: 'Blacksmith'
+    });
+    // occupationChecked=false: this field never became scored-eligible at
+    // its initial render (unlike every scenario above, which all start
+    // checked=true) - the exact shape of an unmatched "Add" candidate or a
+    // just-now-manually-picked match.
+    freshDom(memberId, profileId, 'Farmer', false, false);
+    const ctx = build(global.genifamilydata);
+    ctx.setGeniFamilyData(memberId, profileId);
+
+    assertEqual($('input[name="occupation"]').closest('tr').find('.checknext').prop('checked'), true,
+        "#304 follow-up: a genuinely different occupation gets PROMOTED to checked, even though it started unchecked at render - the core of Dan's confirmed report");
+    assertEqual($('input[name="occupation"]').prop('disabled'), false,
+        "The field itself is promoted to enabled too, so the newly-checked value can actually submit");
+    assertEqual($('.checkslide').prop('checked'), true,
+        "The person-bar indicator picks up the promotion too, via syncTopLevelIndicators() - not just left stale from before the resync ran");
+}
+
+// --- Scenario 2c: regression - a field that started unchecked and genuinely matches Geni stays unchecked (no false promotion) ---
+{
+    const profileId = 'geniMatch2c';
+    global.genifamilydata = {};
+    global.genifamilydata[profileId] = new GeniPerson({
+        id: profileId, public: true, is_alive: false,
+        actions: ['update', 'update-basics'], names: {},
+        birth: { date: { year: '1890' } }, occupation: 'Farmer'
+    });
+    freshDom(memberId, profileId, 'FARMER', false, false);
+    const ctx = build(global.genifamilydata);
+    ctx.setGeniFamilyData(memberId, profileId);
+
+    assertEqual($('input[name="occupation"]').closest('tr').find('.checknext').prop('checked'), false,
+        "Regression: a field identical to Geni's value (modulo case) is correctly NOT promoted just because the resync can now check things - still nothing new to submit");
 }
 
 // --- Scenario 3 (regression, part (c) of Dan's brief): a locked member never gets checked, even when every field would otherwise now match ---

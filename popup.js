@@ -2807,7 +2807,8 @@ function buildReferenceAboutMe(newAboutContent, existingAbout, refurl, updatedCa
     if (about !== "" && !about.endsWith("\n")) {
         about += "\n";
     }
-    var mergedAbout = mergeAboutText(existingAbout, about);
+    var base = existingAbout || "";
+    var contentIsNew = about !== "" && !isAboutContentPresent(base, about);
     // (live-reported, stbodie - #286 follow-up): "did data change" isn't
     // only "did About's own free text change" - a marriage/divorce update
     // genuinely changes this person's data too, even though it has no
@@ -2819,18 +2820,24 @@ function buildReferenceAboutMe(newAboutContent, existingAbout, refurl, updatedCa
     // from what Geni already has - a true no-op re-run never gets this
     // far in the first place, so this can't reopen the original "bare
     // footnote spam on an unchanged re-run" problem.
-    if (mergedAbout === (existingAbout || "") && updatedCategories.length === 0) {
+    if (!contentIsNew && updatedCategories.length === 0) {
         return undefined;
-    }
-    if (mergedAbout !== "" && !mergedAbout.endsWith("\n")) {
-        mergedAbout += "\n";
     }
     var updatedSuffix = updatedCategories.length > 0 ? " (this update: " + updatedCategories.join(", ") + ")" : "";
     var footnoteRecordtype = footnoteLabel(refurl, recordtype);
-    if (exists(refurl)) {
-        return mergedAbout + "* '''[" + encodeURI(refurl) + " " + footnoteRecordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+    var footnoteLine = exists(refurl)
+        ? "* '''[" + encodeURI(refurl) + " " + footnoteRecordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n"
+        : "* '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+    // (live-reported, stbodie - #286 follow-up): real content and its own
+    // footnote stick together as one block (just a blank line between
+    // them, no rule) - the separator only goes BETWEEN separate runs, not
+    // inside one, so a run's data and the citation for it never get
+    // visually split apart from each other.
+    var newBlock = contentIsNew ? about + footnoteLine : footnoteLine;
+    if (base === "") {
+        return newBlock;
     }
-    return mergedAbout + "* '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
+    return base + (base.endsWith("\n") ? "" : "\n") + "\n----\n\n" + newBlock;
 }
 
 // Thin wrapper keeping the focus profile's own call sites (the main

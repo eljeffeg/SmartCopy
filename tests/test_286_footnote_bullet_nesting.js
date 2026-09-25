@@ -41,8 +41,8 @@ const mergeAboutText = new Function('exists', 'isAboutContentPresent', 'return '
 // recordtype is a plain module-level var elsewhere in popup.js; stubbed here
 // the same way other tests stub out unrelated global state.
 const footnoteLabel = new Function('exists', 'return ' + extractFunction(src, 'footnoteLabel'))(exists);
-const buildReferenceAboutMe = new Function('exists', 'moment', 'mergeAboutText', 'footnoteLabel', 'recordtype',
-    'return ' + extractFunction(src, 'buildReferenceAboutMe'))(exists, moment, mergeAboutText, footnoteLabel, 'FamilySearch Family Tree');
+const buildReferenceAboutMe = new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'recordtype',
+    'return ' + extractFunction(src, 'buildReferenceAboutMe'))(exists, moment, isAboutContentPresent, footnoteLabel, 'FamilySearch Family Tree');
 
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {
@@ -75,6 +75,34 @@ function assertTrue(cond, label) {
     assertTrue(result.indexOf("* '''Residence''': Detroit, Michigan - 1930") !== -1, "The new content is merged in");
     const footnoteLine = result.split("\n").filter(function (l) { return l.trim() !== ""; }).pop();
     assertEqual(footnoteLine.trim().match(/^\*+/)[0], "*", "#286 (live-reported, DanCornett): the new footnote is a plain single '*' even though Geni's existing About ends with an unrelated MyHeritage footnote - nesting is never based on Geni's own side");
+}
+
+// --- (live-reported, stbodie): a "----" separator goes BETWEEN separate runs, never inside one -
+// a run's own content and its own footnote stick together as a single block, only a blank line
+// between them, no rule. ---
+{
+    const existingAbout = "* '''Residence''': Rapids City, Illinois - 1880\n* '''[https://familysearch.org/record/1 FamilySearch]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Sep 13 2026, 12:40:07 UTC''\n";
+    const result = buildReferenceAboutMe("* '''Residence''': 1920 - La Salle, Illinois", existingAbout, "https://myheritage.com/record/2", ["about"]);
+    const dashIndex = result.indexOf("----");
+    assertTrue(dashIndex !== -1, "A '----' separator is present when appending onto a non-empty existing About");
+    assertTrue(result.substring(0, dashIndex).indexOf("Rapids City") !== -1 && result.substring(0, dashIndex).indexOf("FamilySearch]") !== -1,
+        "The separator comes AFTER the entire prior run (its content AND its own footnote both stay before the '----')");
+    assertTrue(result.substring(dashIndex).indexOf("1920 - La Salle") !== -1 && result.substring(dashIndex).indexOf("myheritage.com/record/2") !== -1,
+        "The separator comes BEFORE the entire new run (its content AND its own footnote both stay after the '----')");
+    const newRunSection = result.substring(result.indexOf("1920 - La Salle"));
+    assertTrue(newRunSection.indexOf("----") === -1,
+        "No second '----' appears between this run's own content and its own footnote - they stick together as one block");
+}
+{
+    // No existing About at all - nothing to separate from, no stray leading "----".
+    const result = buildReferenceAboutMe("* '''Residence''': Chicago, Illinois - 1920", "", "https://example.com/record/1", []);
+    assertTrue(result.indexOf("----") === -1, "No separator at all when there's no prior About content to separate from");
+}
+{
+    // Marriage-only style update (blank content, just a footnote) onto a non-empty About still gets separated from what came before.
+    const existingAbout = "* '''[https://myheritage.com/record/9 MyHeritage]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC''\n";
+    const result = buildReferenceAboutMe("", existingAbout, "https://example.com/record/2", ["marriage"]);
+    assertTrue(result.indexOf("----") !== -1, "A bare footnote-only addition (e.g. marriage-only) still gets separated from whatever About already had");
 }
 
 // --- Content already present verbatim AND no other field changed: no footnote at all, nothing to submit ---

@@ -42,24 +42,18 @@ var moment = function () {
 };
 moment.utc = moment;
 
-function mergeAboutText(existingAbout, newContent) {
-    if (!exists(newContent) || newContent === "") {
-        return existingAbout || "";
-    }
-    if (!exists(existingAbout) || existingAbout === "") {
-        return newContent;
-    }
-    if ((existingAbout || "").indexOf(newContent.trim()) !== -1) {
-        return existingAbout;
-    }
-    return existingAbout + "\n" + newContent;
+function isAboutContentPresent(existingAbout, content) {
+    if (!exists(content) || content === "") { return true; }
+    if (!exists(existingAbout) || existingAbout === "") { return false; }
+    var normalized = content.replace(/\s+/g, " ").trim();
+    return normalized !== "" && (existingAbout || "").replace(/\s+/g, " ").trim().indexOf(normalized) !== -1;
 }
 function footnoteLabel(url, baseRecordtype) { return baseRecordtype; }
 
 const buildReferenceAboutMeSrc = extractFunction(src, 'buildReferenceAboutMe');
 function makeBuildReferenceAboutMe() {
-    return new Function('exists', 'moment', 'mergeAboutText', 'footnoteLabel', 'recordtype',
-        'return ' + buildReferenceAboutMeSrc)(exists, moment, mergeAboutText, footnoteLabel, recordtype);
+    return new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'recordtype',
+        'return ' + buildReferenceAboutMeSrc)(exists, moment, isAboutContentPresent, footnoteLabel, recordtype);
 }
 const buildReferenceAboutMe = makeBuildReferenceAboutMe();
 

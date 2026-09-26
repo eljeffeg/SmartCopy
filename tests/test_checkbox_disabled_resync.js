@@ -112,8 +112,8 @@ function makeRow(initialChecked) {
     return { input: input, state: state };
 }
 
-function callApplyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType) {
-    return new Function('isEnabled', 'isValue', 'valuesAreEquivalentForFieldType', 'isFieldSelectable', 'return ' + applyProtectedDisabledStateSrc)(isEnabled, isValue, valuesAreEquivalentForFieldType, isFieldSelectable)(input, scrapedValue, currentValue, locked, fieldType);
+function callApplyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType, eligible) {
+    return new Function('isEnabled', 'isValue', 'valuesAreEquivalentForFieldType', 'isFieldSelectable', 'return ' + applyProtectedDisabledStateSrc)(isEnabled, isValue, valuesAreEquivalentForFieldType, isFieldSelectable)(input, scrapedValue, currentValue, locked, fieldType, eligible);
 }
 
 // --- The historical bug scenario: render-time guessed "checked" (blank scraped, blank hardcoded currentValue), but Geni's REAL value turns out to be real/non-blank ---
@@ -217,6 +217,27 @@ function callApplyProtectedDisabledState(input, scrapedValue, currentValue, lock
     const row = makeRow(true);
     callApplyProtectedDisabledState(row.input, 'images/new.jpg', 'images/new.jpg', false, 'photo');
     assertEqual(row.state.checkboxChecked, true, "Regression: photo stays checked regardless of Geni's side - additive, never protected");
+}
+
+// --- (live-reported, DanCornett - #304 follow-up): the "Enable photo checkbox auto-selection" config
+// toggle must be respected during resync too, not just at initial render - the bidirectional-promotion
+// fix could otherwise silently check a photo the user has configured to never auto-select. ---
+{
+    const row = makeRow(false); // started unchecked at render, matching the config being off there too
+    callApplyProtectedDisabledState(row.input, 'images/new.jpg', undefined, false, 'photo', false);
+    assertEqual(row.state.checkboxChecked, false, "#304 follow-up: a real, non-blank photo is NOT promoted to checked when eligible=false (auto-select config off)");
+    assertEqual(row.state.inputDisabled, true, "The field stays disabled to match - not auto-submitted");
+    assertEqual(row.state.checkboxDisabled, false, "The checkbox itself stays enabled/clickable - the user can still manually opt in despite the config being off");
+}
+{
+    const row = makeRow(false);
+    callApplyProtectedDisabledState(row.input, 'images/new.jpg', undefined, false, 'photo', true);
+    assertEqual(row.state.checkboxChecked, true, "Regression: with eligible=true (auto-select config on, the default), a real photo is still correctly promoted to checked");
+}
+{
+    const row = makeRow(true);
+    callApplyProtectedDisabledState(row.input, 'Real Scraped Value', 'Geni Value', false, 'generic');
+    assertEqual(row.state.checkboxChecked, true, "Regression: omitting eligible entirely (every non-photo call site) behaves exactly as before - defaults to eligible");
 }
 
 // --- #304 follow-up (live-reported, DanCornett): About now un-checks once the exact scraped text is already

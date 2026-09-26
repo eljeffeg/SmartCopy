@@ -5541,7 +5541,20 @@ function isFieldSelectable(scrapedValue, currentValue, fieldType) {
 // matching how refreshPrivacySelect() (below) already has all along -
 // Privacy never had this restriction, which is why it was the one field
 // type that already pre-selected consistently once a match resolved.
-function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType) {
+// (live-reported, DanCornett - #304 follow-up): eligible defaults to true
+// (every existing call site that doesn't pass it keeps its exact prior
+// behavior) - it exists specifically for fields whose eligibility depends
+// on more than just "does the value differ from Geni," like Photo's own
+// "Enable photo checkbox auto-selection" config toggle. Initial render
+// already gates Photo on (scored && photoscore) - this resync used to
+// hardcode score=true unconditionally for every field type, which was
+// harmless while the function could only ever uncheck (nothing to
+// protect against a config toggle when the answer was always "don't
+// check"), but became a real bug once the function was made bidirectional
+// (#304): a family member's photo could get silently PROMOTED to checked
+// on resync even with the auto-select config OFF, since nothing here knew
+// that gate existed.
+function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType, eligible) {
     var checknext = input.closest('tr').find('.checknext');
     // A family-member field's checked state at initial render is computed
     // with currentValue hardcoded blank (no match resolved yet to read a
@@ -5554,8 +5567,9 @@ function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, 
     // non-blank on both sides but identical (modulo case/whitespace/Circa/
     // nickname-containment per fieldType) - the field would otherwise stay
     // pre-checked forever even though there's nothing to actually submit.
+    var score = eligible !== false;
     var sameAsGeni = !isFieldSelectable(scrapedValue, currentValue, fieldType);
-    var fieldWouldBeDisabled = isEnabled(scrapedValue, true, false, currentValue, locked, sameAsGeni) === "disabled";
+    var fieldWouldBeDisabled = isEnabled(scrapedValue, score, false, currentValue, locked, sameAsGeni) === "disabled";
     // locked always wins (never checked, regardless of anything else);
     // otherwise resolves to exactly what a fully-informed render would
     // have produced - checked when the field would be enabled, unchecked
@@ -5604,7 +5618,13 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue)
         (fieldName === "nicknames" ? "nicknames" :
             (fieldName === "about_me" ? "about_me" :
                 (fieldName === "photo" ? "photo" : "generic")));
-    applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType);
+    // (live-reported, DanCornett - #304 follow-up): Photo's own "Enable
+    // photo checkbox auto-selection" config toggle - matches the same
+    // (scored && photoscore) gate initial render already applies (see
+    // buildForm()'s own photo row), so the resync can't silently promote
+    // a photo to checked when the user has auto-select turned off.
+    var eligible = fieldType !== "photo" || $('#photoonoffswitch').prop('checked');
+    applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType, eligible);
 }
 
 // #217: Living's <select> only ever holds a real true/false value - never a

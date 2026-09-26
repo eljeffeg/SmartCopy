@@ -388,7 +388,10 @@ function isBroadPlaceType(place) {
 // discipline "fort" was removed over (a bare "memorial" is a real,
 // ordinary part of many unrelated place/monument names, e.g. "Dignity
 // Memorial").
-var PLACE_NAME_KEYWORD_PATTERN = /\b(cemetery|cem\.?|cemetary|mausoleum|memorial gardens?|mem\.? gardens?|memorial park|mem\.? park|burial grounds?|graveyard|church|chapel|synagogue|temple|hospital|clinic|camp|prison|plantation|plot|lot|grave|section|block|row|space|apt|apartment|suite|room|building|street|st\.?|avenue|ave\.?|road|rd\.?|lane|ln\.?|drive|dr\.?|boulevard|blvd\.?|highway|hwy\.?|route|rt\.?|farm|ranch|friedhof|kirchhof|kirche|kapelle|synagoge|kloster|krankenhaus|gefängnis|gefangnis)\b/i;
+// #282 (live-reported, DanCornett): "memory garden(s)" added alongside
+// "memorial garden(s)" - a distinct, real burial-venue naming convention
+// (e.g. "Sunset Memory Gardens"), not a typo of it.
+var PLACE_NAME_KEYWORD_PATTERN = /\b(cemetery|cem\.?|cemetary|mausoleum|memorial gardens?|memory gardens?|mem\.? gardens?|memorial park|mem\.? park|burial grounds?|graveyard|church|chapel|synagogue|temple|hospital|clinic|camp|prison|plantation|plot|lot|grave|section|block|row|space|apt|apartment|suite|room|building|street|st\.?|avenue|ave\.?|road|rd\.?|lane|ln\.?|drive|dr\.?|boulevard|blvd\.?|highway|hwy\.?|route|rt\.?|farm|ranch|friedhof|kirchhof|kirche|kapelle|synagoge|kloster|krankenhaus|gefängnis|gefangnis)\b/i;
 // A segment that's essentially just a number (a house/plot/lot number,
 // with an optional trailing letter like "15191a"), starts with one
 // followed by more text (the US street-address convention, "123 Main"),
@@ -425,7 +428,10 @@ function isPlaceNameSegment(segment) {
 // resolve as City. A keyword with nothing following (the original #244
 // case, "XYZ Cem" alone) needs no comma at all - the trailing \S
 // requirement here only matches when there's real text to separate from.
-var BURIAL_VENUE_KEYWORD_TRAILING_TEXT_PATTERN = /\b(cemetery|mausoleum|memorial gardens?|memorial park|burial grounds?|graveyard)(\s+\S)/i;
+// #282 follow-up (live-reported, DanCornett): "memory garden(s)" added -
+// same treatment as "memorial garden(s)", a distinct real naming
+// convention rather than a typo of it.
+var BURIAL_VENUE_KEYWORD_TRAILING_TEXT_PATTERN = /\b(cemetery|mausoleum|memorial gardens?|memory gardens?|memorial park|burial grounds?|graveyard)(\s+\S)/i;
 function normalizeCemeteryAbbreviation(text) {
     if (!exists(text) || text.trim() === "") {
         return text;

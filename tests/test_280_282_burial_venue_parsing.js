@@ -80,10 +80,16 @@ assertEqual(normalizeCemeteryAbbreviation("Mount Vernon Cemetery Sharon"), "Moun
 assertEqual(normalizeCemeteryAbbreviation("Mem. Park Dresden"), "Memorial Park, Dresden", "#280: 'Mem. Park' expands and gets comma-separated from the city that follows");
 assertEqual(normalizeCemeteryAbbreviation("Liberty Cem, Dresden"), "Liberty Cem, Dresden".replace("Cem", "Cemetery"), "A source that already separates with a comma is expanded but not double-commaed");
 assertEqual(normalizeCemeteryAbbreviation("Liberty Graveyard"), "Liberty Graveyard", "A keyword with nothing following needs no comma inserted");
+// #282 follow-up (live-reported, DanCornett): "Memory Garden(s)" - a distinct, real burial-venue naming
+// convention from "Memorial Garden(s)", not a typo of it - needs the exact same comma treatment.
+assertEqual(normalizeCemeteryAbbreviation("Sunset Memory Garden Springfield"), "Sunset Memory Garden, Springfield",
+    "#282 follow-up: 'Memory Garden' (singular) glued to more text gets comma-separated");
+assertEqual(normalizeCemeteryAbbreviation("Sunset Memory Gardens Springfield"), "Sunset Memory Gardens, Springfield",
+    "#282 follow-up: 'Memory Gardens' (plural) glued to more text gets comma-separated");
 
 // --- PLACE_NAME_KEYWORD_PATTERN / isPlaceNameSegment(): new #280 keywords recognized ---
 ["Oak Hill Memorial Park", "Oak Hill Memorial Gardens", "Oak Hill Mem. Park", "Oak Hill Burial Ground",
-    "Oak Hill Burial Grounds", "Oak Hill Graveyard"].forEach(function (segment) {
+    "Oak Hill Burial Grounds", "Oak Hill Graveyard", "Oak Hill Memory Garden", "Oak Hill Memory Gardens"].forEach(function (segment) {
     assertTrue(isPlaceNameSegment(segment), "'" + segment + "' is recognized as a burial-venue segment");
 });
 assertTrue(!isPlaceNameSegment("Dignity Memorial"), "A bare 'memorial' is NOT recognized alone (avoids the 'Dignity Memorial'-style false positive DanCornett flagged)");

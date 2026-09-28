@@ -998,26 +998,23 @@ function buildForm() {
                 for (var item in obj) if (obj.hasOwnProperty(item)) {
 
                     if (exists(obj[item].date)) {
-                        var scored = false;
-                        if (scorefactors.contains(title + " date")) {
-                            scored = true;
-                            //div.find("input:checkbox").prop('checked', true);
-                            ck++;
-                        }
-                        // #208: an injected estimate (birth/baptism/marriage/
-                        // death/burial via #208)
-                        // was never actually scraped, so scorefactors will
-                        // never contain "<title> date" for it - without this,
-                        // isChecked()/isEnabled() would render it
-                        // disabled+unchecked (both require score truthy
-                        // before their blank-both-sides branch can fire),
-                        // contradicting the "starts checked+enabled"
-                        // requirement every other genuinely-blank-both-sides
-                        // field already gets. Scoped to just this one field,
-                        // not the whole row.
-                        if (exists(obj[item].estimated) && obj[item].estimated === true) {
-                            scored = true;
-                        }
+                        // #304 (tracking issue #316, case A): this used to
+                        // require scorefactors.contains(title + " date") -
+                        // MyHeritage's own SmartMatch relevance signal,
+                        // populated only when parsing an actual MyHeritage
+                        // SmartMatch comparison page (collections/
+                        // smartmatch.js) - empty for every other source,
+                        // including FamilySearch. isCheckedDateField()/
+                        // isEnabledDateField() already compare dateval
+                        // against genifocusdata's real Geni value (sameAsGeni
+                        // via isFieldSelectable()) below - same reasoning as
+                        // Occupation's own gate removal above: the gate only
+                        // ever made this MISS real, safe pre-selection
+                        // opportunities (a genuinely different FamilySearch
+                        // date never pre-selected at all), it never protected
+                        // anything the value comparison doesn't already.
+                        var scored = true;
+                        ck++;
 
                         var dateval = obj[item].date;
                         var dateambig = "";
@@ -1046,12 +1043,16 @@ function buildForm() {
 
                     }
                     if (exists(obj[item].location)) {
-                        var scored = false;
-                        if (scorefactors.contains(title + " place")) {
-                            scored = true;
-                            //div.find("input:checkbox").prop('checked', true);
-                            ck++;
-                        }
+                        // #304 (tracking issue #316, case A): same removal as
+                        // the date gate just above - every downstream
+                        // isChecked()/isEnabled() call for this location's
+                        // sub-fields already computes its own sameAsGeni via
+                        // valuesAreEquivalent() against genifocusdata's real
+                        // value, so the scorefactors gate only ever
+                        // suppressed safe pre-selection, never protected
+                        // anything the comparison doesn't already.
+                        var scored = true;
+                        ck++;
                         var place = obj[item].location;
                         var geovar1 = geolocation[obj[item].id];
                         var pincolor = "clear";
@@ -1625,6 +1626,29 @@ function buildForm() {
                     earlyBirthYear = moment(members[member]["birth"][0]["date"], getDateFormat(members[member]["birth"][0]["date"])).get('year');
                 }
                 if (findExistingFamilyMatch(relationship, gender, nameval.firstName, nameval.middleName, (nameval.lastName || nameval.birthName), earlyBirthYear)) {
+                    scored = true;
+                } else if (!halfsibling) {
+                    // #304 (tracking issue #316, case B): a genuinely new,
+                    // unmatched candidate - findExistingFamilyMatch()
+                    // returning null here means the Action dropdown will
+                    // default to "Add Profile" one render step later (same
+                    // check, see getMatchedGeniFamilyCandidate()'s own
+                    // comment) - has nothing on Geni to conflict with,
+                    // exactly like an empty category already gets
+                    // auto-selected for above (sibcheck/childck/partnerck).
+                    // Left ungated behind scorefactors/sibcheck-and-friends
+                    // before, a brand-new sibling/child/partner candidate in
+                    // a category Geni already has SOME of (so the category-
+                    // wide checks above don't fire) stayed entirely
+                    // unchecked/disabled on any non-MyHeritage-SmartMatch
+                    // source, requiring full manual entry for data that's
+                    // provably safe to pre-select. Deliberately excluded
+                    // when halfsibling - that's a genuine relationship-
+                    // confidence caution (is this really a relative at all),
+                    // distinct from match confidence (does this profile
+                    // already exist on Geni) - it should stay opt-in unless
+                    // an actual confirmed Geni match independently backs it
+                    // up, same as the branch above already does.
                     scored = true;
                 }
             }

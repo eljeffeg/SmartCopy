@@ -40,6 +40,14 @@ var parentmarriageid = "";
 var geounique = [];
 var geocleanup = [];
 var datelimit = 1600;
+// #229: place_name_geo, city, county, state, country, latitude, longitude -
+// the fixed count of "structured" location rows following the flat "Place"
+// row for any single location. Shared by the .geoicon click handler and
+// updateGeoLocation() (both buildform.js) - a local copy of this same
+// number has already drifted out of sync twice before (.geotopcheck,
+// .geoicon itself - see the #229 follow-up comments at each), so this is
+// the one place it's defined now.
+var GEO_BREAKDOWN_ROW_COUNT = 7;
 
 function updateGeo() {
     if (familystatus.length > 0) {
@@ -211,7 +219,14 @@ function updateGeoLocation() {
         } else if (locationdata.count === 0) {
             pincolor = "red";
         }
-        var geoon = $($(eventrow.closest("tr")[0]).find("img")[0]).attr("src") === "images/geoon.png";
+        // #277 (live-reported, DanCornett - "corrected it, didn't make any
+        // difference"): geoiconImg is captured here, before eventrow gets
+        // reassigned walking down through the location's own rows below, so
+        // it can be updated once the freshly re-resolved data is known -
+        // see updateHasGeoFields' own comment further down for why this
+        // matters beyond just what's visible.
+        var geoiconImg = $($(eventrow.closest("tr")[0]).find("img")[0]);
+        var geoon = geoiconImg.attr("src") === "images/geoon.png";
         var titleobj = $($(eventrow.closest("tr")[0]).find("img")[2]);
         titleobj.attr("src", "images/" + pincolor + "pin.png");
         var ptable = eventrow.closest("table");
@@ -273,6 +288,11 @@ function updateGeoLocation() {
             handleChecknextClick.call(checkbox);
         }
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
+        // #277: a stable handle to the flat "Place" row, captured before
+        // eventrow gets walked further down through City/County/etc. below -
+        // needed once updateHasGeoFields is known, to sync which view is
+        // actually showing/submittable with the freshly re-resolved result.
+        var geoplaceRow = eventrow;
         $(eventrow).find("input[type=text]")[0].value = locationdata.query;
         setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], geoon);
         // #278 (live-reported, DanCornett): Place/City/County/State/
@@ -347,6 +367,34 @@ function updateGeoLocation() {
             return isValue(sourceValue) && (!exists(geniInput) || !valuesAreEquivalent(sourceValue, geniInput.value));
         }
         var updateHasGeoFields = isValue(locationdata.city) || isValue(locationdata.county) || isValue(locationdata.state) || isValue(locationdata.country);
+        // #277 (live-reported, DanCornett - a red-pin location corrected via
+        // this modal "didn't make any difference"): every field below
+        // already gets the freshly re-resolved VALUE and correct
+        // checked/disabled state, regardless of updateHasGeoFields - but
+        // until now, nothing ever synced which ROW was actually visible, or
+        // (more seriously) which row was actually SUBMITTABLE, with that
+        // fresh result. The flat/structured choice was decided once, at the
+        // very first render, and never revisited - so a location that
+        // originally failed to resolve (flat view, detailed rows still
+        // carrying "geohidden") stayed in flat view forever, even after a
+        // correction made it resolve with real City/County/State/Country
+        // data. Worse than just a display glitch: parseForm() (popup.js)
+        // excludes any row still carrying "geohidden" from submission
+        // entirely - so those correctly-valued, correctly-checked detailed
+        // fields would never actually reach Geni, only the flat row would.
+        // Mirrors the .geoicon click handler's own row-walk exactly (same
+        // GEO_BREAKDOWN_ROW_COUNT, same display/geohidden convention) rather
+        // than inventing a second way to express the same flat-vs-
+        // structured state.
+        geoiconImg.attr("src", "images/" + (updateHasGeoFields ? "geoon.png" : "geooff.png"));
+        geoplaceRow.style.display = updateHasGeoFields ? "none" : "table-row";
+        $(geoplaceRow).toggleClass("geohidden", updateHasGeoFields);
+        var geoDetailRow = geoplaceRow;
+        for (var geoRowIndex = 0; geoRowIndex < GEO_BREAKDOWN_ROW_COUNT; geoRowIndex++) {
+            geoDetailRow = $(geoDetailRow).closest("tr")[0].nextElementSibling;
+            geoDetailRow.style.display = updateHasGeoFields ? "table-row" : "none";
+            $(geoDetailRow).toggleClass("geohidden", !updateHasGeoFields);
+        }
         var updatePlaceNameValue = updateHasGeoFields ? computeCombinedPlaceValue(locationdata.query, locationdata) : locationdata.place;
         var anyNonGpsFieldDiffers = false;
         $(eventrow).find("input[type=text]")[0].value = updatePlaceNameValue;
@@ -2813,10 +2861,11 @@ function updateClassResponse() {
                 // bug surfaced from exactly this shape: adding the
                 // Latitude/Longitude rows never updated this cascade, so
                 // clicking the top "select all" checkbox for a location
-                // silently skipped them. GEO_BREAKDOWN_ROW_COUNT is the one
-                // number to update if a future row gets added here, instead
-                // of remembering to copy-paste another block.
-                var GEO_BREAKDOWN_ROW_COUNT = 7; // place_name_geo, city, county, state, country, latitude, longitude
+                // silently skipped them. GEO_BREAKDOWN_ROW_COUNT (now a
+                // single shared module-level constant, also used by the
+                // .geoicon handler and updateGeoLocation() below) is the
+                // one number to update if a future row gets added here,
+                // instead of remembering to copy-paste another block.
                 for (var r = 0; r < GEO_BREAKDOWN_ROW_COUNT; r++) {
                     row = $(row[0].nextElementSibling);
                     row.find('input[type="checkbox"]').prop('checked', this.checked);
@@ -2859,8 +2908,10 @@ function updateClassResponse() {
             // toggling this icon stranded Latitude/Longitude visible (and
             // still submittable) regardless of which view - flat or
             // structured - was actually showing. Reuses the same constant/
-            // loop shape as that earlier fix.
-            var GEO_BREAKDOWN_ROW_COUNT = 7; // place_name_geo, city, county, state, country, latitude, longitude
+            // loop shape as that earlier fix - now GEO_BREAKDOWN_ROW_COUNT
+            // itself is a single shared module-level constant (also used by
+            // updateGeoLocation()'s own equivalent walk), not a second local
+            // copy that can drift out of sync a third time.
             var showingStructured = (fs.attr("src") === "images/geoon.png");
             fs.attr("src", showingStructured ? "images/geooff.png" : "images/geoon.png");
             var tb = $(this).closest('tr').next(); // the raw "Place" row

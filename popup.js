@@ -1863,9 +1863,7 @@ var submitform = function () {
                 // down) so both paths stay in sync rather than maintaining
                 // this logic twice.
                 var builtAboutMe = buildFocusReferenceAboutMe(about, refurl, updatedCategories);
-                if (exists(builtAboutMe)) {
-                    profileout["about_me"] = builtAboutMe;
-                }
+                applyBuiltAboutMe(profileout, builtAboutMe);
             } else if (about !== "" && focusabout !== "") {
                 profileout["about_me"] = focusabout + "\n" + about;
             }
@@ -1949,11 +1947,14 @@ var submitform = function () {
                         if (sourcecheck && rawAbout !== "" && familyout.action === "add") {
                             var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]), marriagedates[familyout.profile_id]);
                             var builtFamilyAboutMe = buildReferenceAboutMe(rawAbout, "", fdata.url, updatedCategories);
-                            if (exists(builtFamilyAboutMe)) {
-                                about = builtFamilyAboutMe;
-                            }
-                        }
-                        if (about !== "") {
+                            // #286: routes through the same applyBuiltAboutMe()
+                            // contract as the focus profile and the Update
+                            // path below - existingAbout is always "" for a
+                            // brand-new Add, so builtFamilyAboutMe can never
+                            // actually be undefined here today, but this keeps
+                            // it safe rather than relying on that staying true.
+                            applyBuiltAboutMe(familyout, builtFamilyAboutMe);
+                        } else if (about !== "") {
                             familyout["about_me"] = about;
                         }
                     }
@@ -2062,11 +2063,7 @@ var submitform = function () {
                                         // overwritten Geni's real About with
                                         // only this run's raw snippet.
                                         var builtFamilyAboutMe = buildReferenceAboutMe(rawAbout, geni_return.about_me, response.variable.refurl, response.variable.updatedCategories);
-                                        if (exists(builtFamilyAboutMe)) {
-                                            familyout["about_me"] = builtFamilyAboutMe;
-                                        } else {
-                                            delete familyout["about_me"];
-                                        }
+                                        applyBuiltAboutMe(familyout, builtFamilyAboutMe);
                                     }
                                     if (exists(familyout["nicknames"]) && exists(geni_return.nicknames)) {
                                         if (geni_return instanceof Array) {
@@ -2904,6 +2901,26 @@ function buildReferenceAboutMe(newAboutContent, existingAbout, refurl, updatedCa
         return newBlock;
     }
     return base + (base.endsWith("\n") ? "" : "\n") + "\n----\n\n" + newBlock;
+}
+
+// #286 (live-reported, DanCornett - toggle bug): buildReferenceAboutMe()
+// returning undefined means "nothing genuinely changed - about_me
+// shouldn't be part of this submission at all." A caller that already has
+// a raw, un-merged, un-footnoted about_me sitting on its submission object
+// (from parseForm()/the scraped source) MUST delete that key on undefined,
+// not merely skip overwriting it - leaving the stale raw value in place
+// means it gets submitted as a full replacement of Geni's real About text,
+// silently stripping whatever citation was already there. The family
+// Update path had this right; the focus profile's own call site didn't,
+// which is exactly what produced the observed "citation toggles on/off
+// every other submission" symptom - one contract, enforced in one place,
+// so a future call site can't drift the same way a second time.
+function applyBuiltAboutMe(target, builtAboutMe) {
+    if (exists(builtAboutMe)) {
+        target["about_me"] = builtAboutMe;
+    } else {
+        delete target["about_me"];
+    }
 }
 
 // Thin wrapper keeping the focus profile's own call sites (the main

@@ -1006,8 +1006,41 @@ function familySearchPlaceToGeoLocation(places, query, placeName, ambiguous, dat
     // continent), landing "United States" in City with every real field
     // left blank.
     var FS_MATCH_ADMIN_LEVEL = { "County": "county", "State": "state", "Province": "state", "Colony": "state", "Country": "country" };
+    // #277 follow-up (live-reported, DanCornett - "Cornwall, England, United
+    // Kingdom" put Cornwall in City instead of County): live-confirmed via
+    // direct API query that FamilySearch's own display.type for English/
+    // Welsh counties (Cornwall, Yorkshire, Kent all confirmed live) is the
+    // qualified "County (Top level)", not the plain "County" a US county
+    // (e.g. Accomack, Virginia - #237's own original case) actually uses -
+    // an exact-string lookup against FS_MATCH_ADMIN_LEVEL silently missed
+    // it and fell all the way through to the settlement/city branch below.
+    // Stripping any trailing " (...)" qualifier before the lookup fixes
+    // this generically - any future qualified variant FamilySearch might
+    // use the same way is handled automatically, not just this one case.
+    function stripDisplayTypeQualifier(displayType) {
+        return (displayType || "").replace(/\s*\([^)]*\)\s*$/, "");
+    }
     var matchedAdminLevel = (exists(places[0]) && exists(places[0].display)) ?
-        FS_MATCH_ADMIN_LEVEL[places[0].display.type] : undefined;
+        FS_MATCH_ADMIN_LEVEL[stripDisplayTypeQualifier(places[0].display.type)] : undefined;
+
+    // #277 follow-up (live-reported, DanCornett - "England, United Kingdom"
+    // put England in Country and left "United Kingdom" as stray leftover
+    // Place text): live-confirmed via direct API query that England/
+    // Scotland/Wales/Northern Ireland all resolve with display.type
+    // "Country" - the SAME type a genuine sovereign country like Germany or
+    // the United States gets - but, unlike a real sovereign country (which
+    // has NO ancestor at all, live-confirmed for both), each one has a real
+    // ancestor of its own: "United Kingdom", itself also FamilySearch type
+    // 580 (Country). A Country-typed match whose own immediate parent is
+    // ALSO Country-typed is FamilySearch's only signal that this is really
+    // a constituent country, not a top-level one - detected generically
+    // here, by type, rather than hardcoding a name list of UK constituent
+    // countries (which would need updating if FamilySearch ever modeled
+    // another country's subdivisions the same way).
+    var FS_COUNTRY_TYPE_ID = "580";
+    if (matchedAdminLevel === "country" && places.length >= 2 && typeId(places[1]) === FS_COUNTRY_TYPE_ID) {
+        matchedAdminLevel = "state";
+    }
 
     var ancestors = places.slice(1);
     if (matchedAdminLevel !== "country" && ancestors.length >= 1) {

@@ -145,5 +145,74 @@ function assertEqual(actual, expected, label) {
     assertEqual(loc.state, '', "");
 }
 
+// --- #277 follow-up (live-reported, DanCornett; live-confirmed via direct
+// API query): "Cornwall, England, United Kingdom" put Cornwall in City
+// instead of County. FamilySearch's real display.type for English/Welsh
+// counties (Cornwall, Yorkshire, and Kent all confirmed live) is the
+// qualified "County (Top level)", not the plain "County" a US county
+// actually uses - an exact-string match against FS_MATCH_ADMIN_LEVEL
+// missed it entirely. ---
+{
+    const places = [matched('Cornwall', 'County (Top level)'), settlement('England', '580'), settlement('United Kingdom', '580')];
+    const loc = familySearchPlaceToGeoLocation(places, 'q', '', false, false);
+    assertEqual(loc.county, 'Cornwall', "#277: a qualified 'County (Top level)' display.type is still recognized as County, not City");
+    assertEqual(loc.state, 'England', "State correctly resolves from the immediate ancestor");
+    assertEqual(loc.country, 'United Kingdom', "Country correctly resolves from the trailing ancestor");
+    assertEqual(loc.city, '', "City correctly stays blank - this was the actual reported bug (Cornwall landing here instead)");
+}
+
+// Yorkshire and Kent - same live-confirmed qualified type, confirming this
+// isn't a Cornwall-specific fix.
+{
+    const places = [matched('Yorkshire', 'County (Top level)'), settlement('England', '580'), settlement('United Kingdom', '580')];
+    const loc = familySearchPlaceToGeoLocation(places, 'q', '', false, false);
+    assertEqual(loc.county, 'Yorkshire', "#277: Yorkshire (also 'County (Top level)' live) resolves to County too, not just Cornwall specifically");
+}
+
+// A plain, unqualified "County" (the ordinary US case, e.g. #237's own
+// Accomack, Virginia) must still work exactly as before - the fix only
+// ADDS recognition of the qualified form, it doesn't change the plain one.
+{
+    const places = [matched('Accomack', 'County'), settlement('Virginia', '362')];
+    const loc = familySearchPlaceToGeoLocation(places, 'q', '', false, false);
+    assertEqual(loc.county, 'Accomack', "Regression control: a plain, unqualified 'County' still resolves to County exactly as before");
+}
+
+// --- #277 follow-up (live-reported, DanCornett; live-confirmed via direct
+// API query): "England, United Kingdom" put England in Country and left
+// "United Kingdom" as stray leftover Place text. England/Scotland/Wales/
+// Northern Ireland all resolve with display.type "Country" - the same
+// type a genuine sovereign country gets - but each has a real ancestor
+// ("United Kingdom", itself also FamilySearch type 580/Country) where a
+// true sovereign country (Germany, the United States - both live-
+// confirmed) has none at all. Detected generically by ancestor type, not
+// a hardcoded UK country-name list. ---
+{
+    const places = [matched('England', 'Country'), settlement('United Kingdom', '580')];
+    const loc = familySearchPlaceToGeoLocation(places, 'q', '', false, false);
+    assertEqual(loc.state, 'England', "#277: England (Country-typed, but with a Country-typed ancestor) is treated as State, not Country");
+    assertEqual(loc.country, 'United Kingdom', "#277: the real country (United Kingdom) is correctly picked up from the ancestor - this was the actual reported bug (United Kingdom being lost/misplaced)");
+    assertEqual(loc.city, '', "City stays blank - nothing more specific than England itself was matched");
+    assertEqual(loc.county, '', "County stays blank too");
+}
+
+// Scotland/Wales/Northern Ireland - confirming this isn't England-specific.
+['Scotland', 'Wales', 'Northern Ireland'].forEach(function (country) {
+    const places = [matched(country, 'Country'), settlement('United Kingdom', '580')];
+    const loc = familySearchPlaceToGeoLocation(places, 'q', '', false, false);
+    assertEqual(loc.state, country, "#277: " + country + " (same UK-constituent-country shape) also resolves to State, not just England specifically");
+    assertEqual(loc.country, 'United Kingdom', "#277: " + country + "'s real country (United Kingdom) is correctly recovered too");
+});
+
+// A genuine sovereign country (no ancestor at all) must still resolve to
+// Country exactly as before - the fix only downgrades a Country match that
+// itself has a Country-typed ancestor, never a country with none.
+{
+    const places = [matched('Germany', 'Country')];
+    const loc = familySearchPlaceToGeoLocation(places, 'q', '', false, false);
+    assertEqual(loc.country, 'Germany', "Regression control: a genuine sovereign country with no ancestor at all still resolves to Country, unaffected by the UK fix");
+    assertEqual(loc.state, '', "State correctly stays blank for a real bare-country match");
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

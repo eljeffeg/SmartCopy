@@ -184,6 +184,37 @@ already factored out as `isSubdomainOf()` in `background.js` - reuse it (or
 its logic if working in a file that can't reach it) rather than writing a new
 inline check.
 
+## Don't add a field/row the user can't act on
+
+Before adding a UI element to show information (a field row, a warning, a
+summary line), ask "what can the user actually DO with this once it's
+visible" - not "does this look like the same shape of bug as one that
+needed fixing." Two fields can look structurally identical (a row that's
+entirely skipped when the source has no data for it) while having
+completely different fixes, because one is editable and the other isn't.
+
+Concrete example (#305, live-reported, DanCornett): Occupation's own "no
+data scraped" fallback row was hardcoded to always stay collapsed under
+Hide Empty Fields, even when Geni already had a real value there - a real
+bug, fixed by computing its visibility from Geni's actual value like every
+other secondary field already does. Photo has the exact same "row is
+entirely skipped when nothing was scraped" shape, and the first pass at
+this fix proposed giving it the identical treatment. That would have been
+wrong: Photo has no manual-entry path (a hidden input, populated only by a
+scrape, with no text box to type into) and is purely additive (Geni never
+overwrites an existing photo, so there's nothing to protect either). A
+Photo row with nothing scraped would be a checkbox with nothing to check
+next to a field with nothing to type into - permanent decoration, not a
+feature. Symmetry with a genuinely-fixed field is not itself a reason to
+add the same visibility to a field where showing it buys the user nothing.
+
+This matters more here than in most codebases: SmartCopy has one
+maintainer and no design-review layer to catch feature creep before it
+ships. Every option, row, or toggle added without a real action behind it
+is something a future edit has to preserve, explain, and test forever -
+keeping the surface area small IS the thing that keeps this codebase
+manageable long-term, not a shortcut taken to save effort now.
+
 ## Family-member checkbox pre-selection rules
 
 When deciding whether a field/checkbox in the "add family member" or "update

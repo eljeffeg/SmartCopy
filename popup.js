@@ -2823,7 +2823,21 @@ function footnoteLabel(url, baseRecordtype) {
 // the normal case (real new content always gets its own citation
 // regardless of source repetition) - this only prevents "I added nothing
 // except this source's citation" from being written twice in a row.
-function isLastLineFromSameSource(text, token) {
+//
+// #286 further follow-up (live-reported, DanCornett): matching on the
+// source token ALONE genuinely lost real updates - submitting an About
+// change (citation ends "(this update: about)"), then separately
+// submitting a genuinely different Also Known As change from the SAME
+// source, silently wrote nothing at all for the second one, because the
+// first citation was still the last line and came from the same source.
+// updatedCategories is now also checked: a bare citation is only ever
+// treated as a redundant repeat when EVERY category this run wants to
+// report is already named in that last citation's own "(this update:
+// ...)" text - a genuinely different category (even from the identical
+// source) always still gets its own citation. No categories to check at
+// all (a plain "nothing new, just marking this as reviewed" case) keeps
+// the original source-only behavior.
+function isLastLineFromSameSource(text, token, updatedCategories) {
     if (!exists(text) || text === "") {
         return false;
     }
@@ -2831,7 +2845,14 @@ function isLastLineFromSameSource(text, token) {
     if (lines.length === 0) {
         return false;
     }
-    return lines[lines.length - 1].indexOf(token) !== -1;
+    var lastLine = lines[lines.length - 1];
+    if (lastLine.indexOf(token) === -1) {
+        return false;
+    }
+    if (!exists(updatedCategories) || updatedCategories.length === 0) {
+        return true;
+    }
+    return updatedCategories.every(function (category) { return lastLine.indexOf(category) !== -1; });
 }
 
 // #235/#286 (live-reported, DanCornett - simplified per explicit request
@@ -2884,7 +2905,7 @@ function buildReferenceAboutMe(newAboutContent, existingAbout, refurl, updatedCa
     // it always gets its own citation regardless of which source added
     // the previous one, same as before.
     var sameSourceToken = exists(refurl) ? ("[" + encodeURI(refurl) + " " + footnoteRecordtype + "]") : recordtype;
-    if (!contentIsNew && isLastLineFromSameSource(base, sameSourceToken)) {
+    if (!contentIsNew && isLastLineFromSameSource(base, sameSourceToken, updatedCategories)) {
         return undefined;
     }
     var updatedSuffix = updatedCategories.length > 0 ? " (this update: " + updatedCategories.join(", ") + ")" : "";

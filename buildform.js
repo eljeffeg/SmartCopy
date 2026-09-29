@@ -716,8 +716,14 @@ function buildForm() {
             $(div[0]).html(membersstring);
         } else {
             membersstring = $(div[0]).html();
+            // #305 (live-reported, DanCornett): this row already shows
+            // Geni's real occupation in the disabled genislideinput below -
+            // hiddenRowAttrs' hasValue was hardcoded false regardless,
+            // meaning a real Geni-only occupation started collapsed under
+            // Hide Empty Fields for no reason. Same fix already applied to
+            // Title/Middle Name/Birth Name/Suffix/Display Name/Nicknames.
             membersstring = membersstring +
-                '<tr ' + hiddenRowAttrs(hidden, false) + ' id="occupation"><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("occupation") ? ' disabled' : '') + '>Occupation: </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
+                '<tr ' + hiddenRowAttrs(hidden, isValue(genifocusdata.get("occupation"))) + ' id="occupation"><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("occupation") ? ' disabled' : '') + '>Occupation: </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         }
         var genderlocked = focusFieldLocked("gender"); // #78
@@ -1962,6 +1968,11 @@ function buildForm() {
                 var memberGeniSuffixHasValue = memberHasGeniName && isValue(String(matchedCandidateForEstimate.get("names", matchedMemberNameLang + ".suffix") || ""));
                 var memberGeniDisplayNameHasValue = memberHasGeniName && isValue(String(matchedCandidateForEstimate.get("names", matchedMemberNameLang + ".display_name") || ""));
                 var memberGeniNicknamesHasValue = exists(matchedCandidateForEstimate) && isValue(String(matchedCandidateForEstimate.get("nicknames") || ""));
+                // #305: same deterministic pre-match lookup the name fields
+                // above already use for their own hasValue - available at
+                // render time, not just after the Action dropdown resolves
+                // a match.
+                var memberGeniOccupationHasValue = exists(matchedCandidateForEstimate) && isValue(String(matchedCandidateForEstimate.get("occupation") || ""));
                 membersstring +=
                     buildTextFieldRow("Title:", "title", nameval.prefix, isChecked(nameval.prefix, scored, false, ""), isEnabled(nameval.prefix, scored, false, ""), i + "_geni_title", null, undefined, undefined, ' ' + hiddenRowAttrs(hidden, isValue(nameval.prefix) || memberGeniTitleHasValue)) +
                     buildTextFieldRow("First Name:", "first_name", nameval.firstName, isChecked(nameval.firstName, scored, false, ""), isEnabled(nameval.firstName, scored, false, ""), i + "_geni_first_name") +
@@ -1975,7 +1986,13 @@ function buildForm() {
                     var occupation = members[member]["occupation"].trim();
                     membersstring = membersstring + buildTextFieldRow("Occupation: ", "occupation", occupation, isChecked(occupation, scored, false, ""), isEnabled(occupation, scored, false, ""), i + "_geni_occupation");
                 } else {
-                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + ' id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                    // #305 (live-reported, DanCornett): same fix as the
+                    // focus profile's own occupation fallback above -
+                    // hasValue was hardcoded false regardless of whether a
+                    // deterministically-matched Geni candidate already has a
+                    // real occupation, so it started collapsed under Hide
+                    // Empty Fields for no reason.
+                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, memberGeniOccupationHasValue) + ' id="occupation"><td class="profilediv"><input type="checkbox" class="checknext">Occupation: </td><td style="float:right; padding: 0px;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_occupation" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 }
                 membersstring = membersstring + '<tr><td class="profilediv"><input type="checkbox" class="checknext" ' + isChecked(gender, scored) + '>Gender: </td><td style="float:right; padding-bottom: 2px; padding-top: 0px; padding-right: 0px;"><select class="formselect genderselect" update="'+ i + '" relationship="' + relationship + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="gender" ' + isEnabled(gender, scored) + '>' +
                     '<option value="male" ' + setGender("male", gender) + '>' + _("Male") + '</option><option value="female" ' + setGender("female", gender) + '>' + _("Female") + '</option><option value="unknown" ' + setGender("unknown", gender) + '>' + _("Unknown") + '</option></select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_gender" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +

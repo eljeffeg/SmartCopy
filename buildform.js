@@ -2713,8 +2713,24 @@ function handleChecknextClick() {
     personslide.find('.checkslide').attr('data-select-all-active', 'false');
     if (this.checked) {
         if ($(this).closest('tr').hasClass("geoloc") || $(this).closest('tr').hasClass("geoplace")) {
-            //This checks the geotopcheck when a child location is checked
-            var ps = $(this).closest('tr')[0].previousElementSibling;
+            // This checks the geotopcheck when a child location field is
+            // checked - walking backward through this location's own rows
+            // to find its title row (the nearest previous <tr> with a real
+            // id - the geoplace/geoloc rows themselves never have one).
+            //
+            // #304 (live-reported, DanCornett): checking a Burial field
+            // was checking the DEATH location's top-box instead of
+            // Burial's own - an off-by-one. ps started ALREADY one step
+            // back (this row's immediate previous sibling - which, for the
+            // very first field in a block, IS that block's own title row),
+            // but the loop's first action stepped back AGAIN before ever
+            // checking it - skipping straight past the correct title row
+            // into the PRECEDING location block, whose own id-less rows
+            // then walked all the way up to THAT block's title row
+            // instead. Fixed by starting ps at this row itself, so the
+            // loop's first backward step lands on - and correctly checks -
+            // the immediate previous sibling first.
+            var ps = $(this).closest('tr')[0];
             while (exists(ps)) {
                 ps = $(ps)[0].previousElementSibling;
                 if (exists(ps) && ps.id !== "") {

@@ -42,14 +42,25 @@ function extractFunction(srcText, name) {
     return srcText.slice(start, i + 1);
 }
 
+function extractVarStatement(srcText, name) {
+    const marker = 'var ' + name + ' =';
+    const start = srcText.indexOf(marker);
+    if (start === -1) throw new Error('not found: ' + name);
+    const semi = srcText.indexOf(';', start);
+    return srcText.slice(start, semi + 1);
+}
+
 function exists(v) { return typeof v !== "undefined" && v !== null; }
 const moment = require(path.join(ROOT, 'moment.js'));
 
 const isAboutContentPresent = new Function('exists', extractFunction(src, 'normalizeAboutForComparison') + '\n' + extractFunction(src, 'isAboutContentPresent') + '\nreturn isAboutContentPresent;')(exists);
 const footnoteLabel = new Function('exists', 'return ' + extractFunction(src, 'footnoteLabel'))(exists);
+const getLastAboutBlock = new Function('exists', 'return ' + extractFunction(src, 'getLastAboutBlock'))(exists);
 const isLastLineFromSameSource = new Function('exists', 'return ' + extractFunction(src, 'isLastLineFromSameSource'))(exists);
-const buildReferenceAboutMe = new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'isLastLineFromSameSource', 'recordtype',
-    'return ' + extractFunction(src, 'buildReferenceAboutMe'))(exists, moment, isAboutContentPresent, footnoteLabel, isLastLineFromSameSource, 'FamilySearch Family Tree');
+const refreshLastCitationTimestamp = new Function('exists', 'moment',
+    extractVarStatement(src, 'ABOUT_CITATION_TIMESTAMP_PATTERN') + '\nreturn ' + extractFunction(src, 'refreshLastCitationTimestamp') + ';')(exists, moment);
+const buildReferenceAboutMe = new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'getLastAboutBlock', 'isLastLineFromSameSource', 'refreshLastCitationTimestamp', 'recordtype',
+    'return ' + extractFunction(src, 'buildReferenceAboutMe'))(exists, moment, isAboutContentPresent, footnoteLabel, getLastAboutBlock, isLastLineFromSameSource, refreshLastCitationTimestamp, 'FamilySearch Family Tree');
 const applyBuiltAboutMe = new Function('exists', 'return ' + extractFunction(src, 'applyBuiltAboutMe'))(exists);
 
 let pass = 0, fail = 0;
@@ -86,22 +97,34 @@ function simulateFocusSubmission(currentAbout, refurl, updatedCategories) {
     return exists(profileout.about_me) ? profileout.about_me : currentAbout;
 }
 
+// #286 further follow-up (live-reported, DanCornett - "most recent," not
+// "first"): a repeat no longer leaves About byte-for-byte unchanged - the
+// existing citation's timestamp refreshes in place each time (see
+// test_286_citation_freshness_and_source_scope.js for that specific
+// behavior). What this test still verifies is the ORIGINAL toggle bug
+// itself: the citation count/structure must stay stable across repeats -
+// never duplicating into a second line, and never disappearing outright.
+function countCitationLines(text) {
+    return (text.match(/\* '''\[/g) || []).length;
+}
+
 var refurl = "https://www.familysearch.org/tree/person/details/ABCD-123";
 var about1 = simulateFocusSubmission("", refurl, ["about"]);
 assertTrue(about1.indexOf("Test") !== -1 && about1.indexOf(encodeURI(refurl)) !== -1,
     "Run 1: identical to before the fix - real new content gets text + citation");
+assertEqual(countCitationLines(about1), 1, "Run 1: exactly one citation line");
 
 var about2 = simulateFocusSubmission(about1, refurl, ["about"]);
-assertEqual(about2, about1,
-    "#286 fix: run 2 (same text resubmitted) now leaves About COMPLETELY UNCHANGED, instead of stripping the citation");
+assertTrue(about2.indexOf("Test") !== -1, "#286 fix: run 2 (same text resubmitted) - the content is still there, not stripped");
+assertEqual(countCitationLines(about2), 1, "#286 fix: still exactly one citation - not duplicated, not removed");
 
 var about3 = simulateFocusSubmission(about2, refurl, ["about"]);
-assertEqual(about3, about2,
-    "#286 fix: run 3 stays stable too - no citation re-added, no separator, nothing toggles");
+assertTrue(about3.indexOf("Test") !== -1, "#286 fix: run 3 - content still present");
+assertEqual(countCitationLines(about3), 1, "#286 fix: run 3 stays stable too - no citation re-added, no separator, nothing toggles");
 
 var about4 = simulateFocusSubmission(about3, refurl, ["about"]);
-assertEqual(about4, about3,
-    "#286 fix: run 4 (and by extension, forever) stays stable - the toggle is gone");
+assertTrue(about4.indexOf("Test") !== -1, "#286 fix: run 4 - content still present");
+assertEqual(countCitationLines(about4), 1, "#286 fix: run 4 (and by extension, forever) stays stable - the toggle is gone");
 
 // A GENUINE change (different text) still correctly gets its own new
 // citation - the fix doesn't make About inert, just idempotent on repeats.

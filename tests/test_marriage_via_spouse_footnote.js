@@ -54,11 +54,38 @@ function isLastLineFromSameSource(text, token) {
     var lines = text.split("\n").filter(function (l) { return l.trim() !== "" && l.trim() !== "----"; });
     return lines.length > 0 && lines[lines.length - 1].indexOf(token) !== -1;
 }
+// #286 further follow-up: minimal fakes matching the real functions'
+// contracts, same "hand-rolled, not extracted" style already used above
+// for this file's other deps - this file isn't testing these two
+// functions' own logic (that's test_286_citation_freshness_and_source_
+// scope.js's job), just that buildReferenceAboutMe() still wires
+// everything together correctly for the deferred marriage-via-spouse path.
+function getLastAboutBlock(text) {
+    if (!exists(text) || text === "") { return { content: "", citationLine: "" }; }
+    var lines = text.split("\n").filter(function (l) { return l.trim() !== ""; });
+    var lastSeparator = -1;
+    for (var i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].trim() === "----") { lastSeparator = i; break; }
+    }
+    var blockLines = lines.slice(lastSeparator + 1);
+    if (blockLines.length === 0) { return { content: "", citationLine: "" }; }
+    return { content: blockLines.slice(0, blockLines.length - 1).join("\n"), citationLine: blockLines[blockLines.length - 1] };
+}
+function refreshLastCitationTimestamp(text) {
+    var lines = text.split("\n");
+    for (var i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].trim() !== "" && lines[i].trim() !== "----") {
+            lines[i] = lines[i].replace(/''[^']*UTC''/, "''Jan 2 2026, 12:00:00 UTC''");
+            break;
+        }
+    }
+    return lines.join("\n");
+}
 
 const buildReferenceAboutMeSrc = extractFunction(src, 'buildReferenceAboutMe');
 function makeBuildReferenceAboutMe() {
-    return new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'isLastLineFromSameSource', 'recordtype',
-        'return ' + buildReferenceAboutMeSrc)(exists, moment, isAboutContentPresent, footnoteLabel, isLastLineFromSameSource, recordtype);
+    return new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'getLastAboutBlock', 'isLastLineFromSameSource', 'refreshLastCitationTimestamp', 'recordtype',
+        'return ' + buildReferenceAboutMeSrc)(exists, moment, isAboutContentPresent, footnoteLabel, getLastAboutBlock, isLastLineFromSameSource, refreshLastCitationTimestamp, recordtype);
 }
 const buildReferenceAboutMe = makeBuildReferenceAboutMe();
 
@@ -109,10 +136,14 @@ assertEqual(result3, undefined, "Re-submitting the exact same content already pr
 // --- buildFocusReferenceAboutMe(): content already present, another field changed, but the SAME source is
 // already the last citation there - (live-reported, DanCornett - #286 follow-up) no duplicate citation, even
 // though a category changed. Per-field change history is Geni's own Revisions tab's job, not About's - a
-// second bare citation from a source already cited last isn't adding new provenance information. ---
+// second bare citation from a source already cited last isn't adding new provenance information. #286 further
+// follow-up (live-reported, DanCornett - "most recent," not "first"): the existing citation's timestamp
+// refreshes in place instead of being left untouched - still exactly one citation, never a duplicate. ---
 var buildFocusReferenceAboutMe3b = makeBuildFocusReferenceAboutMe(alreadyPresentAbout);
 var result3b = buildFocusReferenceAboutMe3b("Some new scraped bio text\n", "https://example.com/person/1", ["gender"]);
-assertEqual(result3b, undefined, "#286 follow-up: About content is a repeat AND the same source is already the last citation - no duplicate, even with a changed category");
+assertTrue(exists(result3b), "#286 follow-up: About content is a repeat AND the same source is already the last citation - still produces a result (a refreshed timestamp), not a duplicate");
+assertEqual((result3b.match(/\* '''\[/g) || []).length, 1,
+    "#286 follow-up: still exactly one citation line, even with a changed category - the repeat refreshes it rather than duplicating it");
 
 // --- buildFocusReferenceAboutMe(): content already present, but a DIFFERENT source than the last citation - still writes ---
 var buildFocusReferenceAboutMe3c = makeBuildFocusReferenceAboutMe(alreadyPresentAbout);

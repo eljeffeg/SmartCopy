@@ -46,9 +46,12 @@ const mergeAboutText = new Function('exists', 'isAboutContentPresent', 'return '
 // recordtype is a plain module-level var elsewhere in popup.js; stubbed here
 // the same way other tests stub out unrelated global state.
 const footnoteLabel = new Function('exists', 'return ' + extractFunction(src, 'footnoteLabel'))(exists);
+const getLastAboutBlock = new Function('exists', 'return ' + extractFunction(src, 'getLastAboutBlock'))(exists);
 const isLastLineFromSameSource = new Function('exists', 'return ' + extractFunction(src, 'isLastLineFromSameSource'))(exists);
-const buildReferenceAboutMe = new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'isLastLineFromSameSource', 'recordtype',
-    'return ' + extractFunction(src, 'buildReferenceAboutMe'))(exists, moment, isAboutContentPresent, footnoteLabel, isLastLineFromSameSource, 'FamilySearch Family Tree');
+const refreshLastCitationTimestamp = new Function('exists', 'moment',
+    extractVarStatement(src, 'ABOUT_CITATION_TIMESTAMP_PATTERN') + '\nreturn ' + extractFunction(src, 'refreshLastCitationTimestamp') + ';')(exists, moment);
+const buildReferenceAboutMe = new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'getLastAboutBlock', 'isLastLineFromSameSource', 'refreshLastCitationTimestamp', 'recordtype',
+    'return ' + extractFunction(src, 'buildReferenceAboutMe'))(exists, moment, isAboutContentPresent, footnoteLabel, getLastAboutBlock, isLastLineFromSameSource, refreshLastCitationTimestamp, 'FamilySearch Family Tree');
 
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {
@@ -113,7 +116,12 @@ function assertTrue(cond, label) {
 
 // --- Content already present verbatim AND no other field changed: no footnote at all, nothing to submit ---
 {
-    const existingAbout = "* '''Residence''': Chicago, Illinois - 1920\n* '''[https://example.com/record/1 FamilySearch]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC''\n";
+    // Label matches this file's own recordtype stub ("FamilySearch Family
+    // Tree") - the #286 further follow-up's same-source scoping compares
+    // against the MOST RECENT block's own citation label, so a fixture
+    // using a mismatched label here would be (correctly) treated as a
+    // different source, not a fixture-internal-consistency concern.
+    const existingAbout = "* '''Residence''': Chicago, Illinois - 1920\n* '''[https://example.com/record/1 FamilySearch Family Tree]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC''\n";
     const result = buildReferenceAboutMe("* '''Residence''': Chicago, Illinois - 1920", existingAbout, "https://example.com/record/1", []);
     assertEqual(result, undefined, "#286 (live-reported, DanCornett): nothing genuinely new was merged in and no other field changed - no footnote gets written, about_me isn't touched at all");
 }
@@ -149,12 +157,23 @@ function assertTrue(cond, label) {
 // content) should never duplicate a citation from the same source that's
 // already the last thing in the About - e.g. deliberately forcing a
 // "reviewed against this source" note onto an already-matching profile,
-// repeated more than once.
+// repeated more than once. #286 further follow-up (live-reported,
+// DanCornett: "I'm inclined to desire the 'most recent' citation, not the
+// first") - a suppressed repeat now refreshes that existing citation's
+// own timestamp in place instead of leaving it untouched (still exactly
+// one line, never a duplicate) - see test_286_about_me_toggle_bug.js and
+// test_286_citation_freshness_and_source_scope.js for full coverage of
+// that behavior; this file keeps its own original "no duplicate line
+// gets written" framing.
 // ============================================================
 {
     const existingAbout = "* '''Residence''': Chicago, Illinois - 1920\n* '''[https://example.com/record/1 FamilySearch Family Tree]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''Jan 1 2020, 0:00:00 UTC'' (this update: gender)\n";
     const result = buildReferenceAboutMe("", existingAbout, "https://example.com/record/1", ["gender"]);
-    assertEqual(result, undefined, "#286 follow-up: a bare citation from the SAME source, with nothing new to add, is skipped - the last thing already there is already this exact citation");
+    assertTrue(exists(result), "#286 follow-up: a bare citation repeat from the SAME source still produces a result (a refreshed timestamp), not nothing");
+    assertEqual((result.match(/\* '''\[https:\/\/example\.com\/record\/1/g) || []).length, 1,
+        "#286 further follow-up: still exactly ONE citation line for this source - the repeat refreshes it in place rather than duplicating it");
+    assertTrue(result.indexOf("Jan 1 2020, 0:00:00 UTC") === -1,
+        "#286 further follow-up: the stale original timestamp is gone - replaced with a fresh one, not left as 'first added'");
 }
 {
     // Different source this time - still gets its own bare citation, no false suppression.

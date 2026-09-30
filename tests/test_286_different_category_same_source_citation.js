@@ -36,14 +36,25 @@ function extractFunction(srcText, name) {
     return srcText.slice(start, i + 1);
 }
 
+function extractVarStatement(srcText, name) {
+    const marker = 'var ' + name + ' =';
+    const start = srcText.indexOf(marker);
+    if (start === -1) throw new Error('not found: ' + name);
+    const semi = srcText.indexOf(';', start);
+    return srcText.slice(start, semi + 1);
+}
+
 function exists(v) { return typeof v !== "undefined" && v !== null; }
 const moment = require(path.join(ROOT, 'moment.js'));
 
 const isAboutContentPresent = new Function('exists', extractFunction(src, 'normalizeAboutForComparison') + '\n' + extractFunction(src, 'isAboutContentPresent') + '\nreturn isAboutContentPresent;')(exists);
 const footnoteLabel = new Function('exists', 'return ' + extractFunction(src, 'footnoteLabel'))(exists);
+const getLastAboutBlock = new Function('exists', 'return ' + extractFunction(src, 'getLastAboutBlock'))(exists);
 const isLastLineFromSameSource = new Function('exists', 'return ' + extractFunction(src, 'isLastLineFromSameSource'))(exists);
-const buildReferenceAboutMe = new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'isLastLineFromSameSource', 'recordtype',
-    'return ' + extractFunction(src, 'buildReferenceAboutMe'))(exists, moment, isAboutContentPresent, footnoteLabel, isLastLineFromSameSource, 'FamilySearch Family Tree');
+const refreshLastCitationTimestamp = new Function('exists', 'moment',
+    extractVarStatement(src, 'ABOUT_CITATION_TIMESTAMP_PATTERN') + '\nreturn ' + extractFunction(src, 'refreshLastCitationTimestamp') + ';')(exists, moment);
+const buildReferenceAboutMe = new Function('exists', 'moment', 'isAboutContentPresent', 'footnoteLabel', 'getLastAboutBlock', 'isLastLineFromSameSource', 'refreshLastCitationTimestamp', 'recordtype',
+    'return ' + extractFunction(src, 'buildReferenceAboutMe'))(exists, moment, isAboutContentPresent, footnoteLabel, getLastAboutBlock, isLastLineFromSameSource, refreshLastCitationTimestamp, 'FamilySearch Family Tree');
 const applyBuiltAboutMe = new Function('exists', 'return ' + extractFunction(src, 'applyBuiltAboutMe'))(exists);
 
 let pass = 0, fail = 0;
@@ -92,10 +103,14 @@ assertTrue(exists(builtAfterAka) && builtAfterAka.indexOf("this update: alias") 
 assertTrue(exists(builtAfterAka) && builtAfterAka.indexOf(aboutContent.trim()) !== -1,
     "The original About content (residence list) from run 1 is still preserved, not lost");
 
-// A true repeat (identical categories, nothing new) still correctly suppressed - the original protection is unaffected.
+// A true repeat (identical categories, nothing new) still never adds a
+// SECOND citation line - it refreshes the existing one's timestamp in
+// place instead (the #286 further follow-up "most recent" behavior - see
+// test_286_citation_freshness_and_source_scope.js for dedicated coverage).
 var builtRepeatAbout = buildReferenceAboutMe("", builtAfterAka, refurl, ["alias"]);
-assertEqual(builtRepeatAbout, undefined,
-    "Regression control: resubmitting the SAME 'alias' category again with nothing new still correctly suppresses a duplicate bare citation");
+assertTrue(exists(builtRepeatAbout), "Regression control: resubmitting the SAME 'alias' category again still produces a result (a refreshed timestamp), not a second citation");
+assertEqual((builtRepeatAbout.match(/\(this update: alias\)/g) || []).length, 1,
+    "Regression control: still exactly ONE 'alias' citation - the repeat refreshes it rather than duplicating it");
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

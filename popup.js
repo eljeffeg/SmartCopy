@@ -2855,6 +2855,64 @@ function isLastLineFromSameSource(text, token, updatedCategories) {
     return updatedCategories.every(function (category) { return lastLine.indexOf(category) !== -1; });
 }
 
+// #286 further follow-up (live-reported, DanCornett, with test evidence):
+// "is this scraped content already present" used to search the ENTIRE
+// About history - confirmed live to cause a real false positive:
+// submitting genuinely new content from Filae was silently dropped
+// because the SAME word had already been added to the About by an
+// earlier, unrelated FamilySearch run. Content shouldn't count as
+// "already documented" just because it coincidentally matches text some
+// OTHER source contributed. Every block this system ever writes pairs
+// real content (if any) with its own citation, or is a bare citation
+// alone - never content with no citation of its own - so the last
+// non-blank line of the most recent block (after the last "----"
+// separator, if any) is always that block's citation; everything above
+// it, within that same block, is its content.
+function getLastAboutBlock(text) {
+    if (!exists(text) || text === "") {
+        return { content: "", citationLine: "" };
+    }
+    var lines = text.split("\n").filter(function (line) { return line.trim() !== ""; });
+    var lastSeparatorIndex = -1;
+    for (var i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].trim() === "----") {
+            lastSeparatorIndex = i;
+            break;
+        }
+    }
+    var blockLines = lines.slice(lastSeparatorIndex + 1);
+    if (blockLines.length === 0) {
+        return { content: "", citationLine: "" };
+    }
+    return {
+        content: blockLines.slice(0, blockLines.length - 1).join("\n"),
+        citationLine: blockLines[blockLines.length - 1]
+    };
+}
+
+// #286 further follow-up (live-reported, DanCornett): "I'm inclined to
+// desire the 'most recent' citation, not the first" - when a bare-citation
+// repeat is suppressed (see its own call site in buildReferenceAboutMe()
+// below), the EXISTING citation used to be left completely untouched,
+// carrying whichever timestamp it happened to get the first time this
+// source/category was ever documented. Refreshing just the timestamp span
+// in place keeps the single citation line current on every genuine
+// re-verification, without writing a second, cluttering duplicate line -
+// still exactly one citation per source, it just now reads as "last
+// confirmed," not "first added" (Geni's own Revisions tab already records
+// the first time, if that's ever needed).
+var ABOUT_CITATION_TIMESTAMP_PATTERN = /''[A-Za-z]+ \d{1,2} \d{4}, \d{1,2}:\d{2}:\d{2} UTC''/;
+function refreshLastCitationTimestamp(text) {
+    var lines = text.split("\n");
+    for (var i = lines.length - 1; i >= 0; i--) {
+        if (lines[i].trim() !== "" && lines[i].trim() !== "----") {
+            lines[i] = lines[i].replace(ABOUT_CITATION_TIMESTAMP_PATTERN, "''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''");
+            break;
+        }
+    }
+    return lines.join("\n");
+}
+
 // #235/#286 (live-reported, DanCornett - simplified per explicit request
 // after #286's nesting/dedup logic grew too tangled): back to basics. Two
 // things ever happen to a person's About: (1) real scraped content gets
@@ -2879,7 +2937,17 @@ function buildReferenceAboutMe(newAboutContent, existingAbout, refurl, updatedCa
         about += "\n";
     }
     var base = existingAbout || "";
-    var contentIsNew = about !== "" && !isAboutContentPresent(base, about);
+    var footnoteRecordtype = footnoteLabel(refurl, recordtype);
+    var sameSourceToken = exists(refurl) ? ("[" + encodeURI(refurl) + " " + footnoteRecordtype + "]") : recordtype;
+    // #286 further follow-up (live-reported, DanCornett, with test
+    // evidence - see getLastAboutBlock()'s own comment): only the most
+    // recent block counts as "already documented," and only when that
+    // block's own citation is from THIS source - a different source's
+    // last block might coincidentally contain the same text, which isn't
+    // the same thing as OUR source having already added it.
+    var lastBlock = getLastAboutBlock(base);
+    var lastBlockIsSameSource = lastBlock.citationLine !== "" && lastBlock.citationLine.indexOf(sameSourceToken) !== -1;
+    var contentIsNew = about !== "" && (!lastBlockIsSameSource || !isAboutContentPresent(lastBlock.content, about));
     // (live-reported, stbodie - #286 follow-up): "did data change" isn't
     // only "did About's own free text change" - a marriage/divorce update
     // genuinely changes this person's data too, even though it has no
@@ -2894,19 +2962,20 @@ function buildReferenceAboutMe(newAboutContent, existingAbout, refurl, updatedCa
     if (!contentIsNew && updatedCategories.length === 0) {
         return undefined;
     }
-    var footnoteRecordtype = footnoteLabel(refurl, recordtype);
     // (live-reported, DanCornett - #286 follow-up): a bare citation (no
     // new About content this run - e.g. a marriage-only update, or
     // deliberately forcing a "reviewed against this source, nothing to
     // change" note onto an already-matching profile) should never pile up
     // duplicates - if the very last thing already in the About is already
     // a citation from this exact same source, with no new content added
-    // since, skip it. Real new content is NEVER subject to this check -
-    // it always gets its own citation regardless of which source added
-    // the previous one, same as before.
-    var sameSourceToken = exists(refurl) ? ("[" + encodeURI(refurl) + " " + footnoteRecordtype + "]") : recordtype;
+    // since, refresh its timestamp in place (see
+    // refreshLastCitationTimestamp()'s own comment - Dan wants "most
+    // recent," not "first") instead of writing a second one. Real new
+    // content is NEVER subject to this check - it always gets its own
+    // citation regardless of which source added the previous one, same as
+    // before.
     if (!contentIsNew && isLastLineFromSameSource(base, sameSourceToken, updatedCategories)) {
-        return undefined;
+        return refreshLastCitationTimestamp(base);
     }
     var updatedSuffix = updatedCategories.length > 0 ? " (this update: " + updatedCategories.join(", ") + ")" : "";
     var footnoteLine = exists(refurl)

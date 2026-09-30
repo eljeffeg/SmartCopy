@@ -1864,8 +1864,24 @@ var submitform = function () {
                 // this logic twice.
                 var builtAboutMe = buildFocusReferenceAboutMe(about, refurl, updatedCategories);
                 applyBuiltAboutMe(profileout, builtAboutMe);
+                // #286 (live-reported, DanCornett): focusabout was only
+                // ever set once, from the initial Geni fetch when the
+                // popup opened, and never updated after a successful
+                // submission - a second About-related submission later in
+                // the SAME session (e.g. resubmitting an empty About)
+                // still saw the stale pre-submission value as "existing,"
+                // so the same-source dedup never recognized the citation
+                // this session had already written moments earlier, and
+                // wrote a genuine duplicate instead of refreshing it in
+                // place. Keeping this in sync with whatever was actually
+                // just built closes that gap for any later action in the
+                // same session, not just an immediate repeat.
+                if (exists(builtAboutMe)) {
+                    focusabout = builtAboutMe;
+                }
             } else if (about !== "" && focusabout !== "") {
                 profileout["about_me"] = focusabout + "\n" + about;
+                focusabout = profileout["about_me"];
             }
             if (exists(profileout["nicknames"]) && focusnicknames !== "") {
                 if (focusnicknames instanceof Array) {
@@ -2575,6 +2591,9 @@ function submitChildren() {
                     if (exists(focusMarriageAboutMe)) {
                         updatetotal += 1;
                         buildTree({about_me: focusMarriageAboutMe}, "update", focusid);
+                        // #286: keep focusabout in sync here too - see the
+                        // main submission block's own comment for why.
+                        focusabout = focusMarriageAboutMe;
                     }
                 }
                 if (!$.isEmptyObject(marriageupdate) && !devblocksend) {
@@ -3163,6 +3182,26 @@ function datesAreEquivalent(a, b, ignoreCirca) {
     }
     if (!exists(a) || !exists(b) || a === "" || b === "") {
         return false;
+    }
+    // #304 (live-reported, DanCornett): "Between X and Y" / "between X and
+    // Y" - and, to a lesser extent, "After"/"after" - compared as
+    // genuinely different purely over word case. "between" was never
+    // added to DATE_QUALIFIER_PATTERN below (only circa/about/after/
+    // before are), so a Between-qualified date never gets its qualifier
+    // recognized/normalized at all - it falls straight through to
+    // moment-parsing the whole "X and Y" phrase as a single date, which
+    // always fails, and a pure case difference then reads as a real
+    // mismatch. Rather than teaching the qualifier/single-date parsing
+    // below to also understand two-ended ranges (a bigger, riskier
+    // change for a case-only formatting difference), a plain case-
+    // insensitive exact match up front catches "identical date text,
+    // different letter case" for ANY qualifier - safe by construction,
+    // since two strings differing only in case can never be genuinely
+    // different dates, so this can only ever recognize MORE real matches,
+    // never loosen the "Before/After/Between must still match" rule for
+    // anything that's actually different.
+    if (a.toLowerCase() === b.toLowerCase()) {
+        return true;
     }
     var qualifierMatchA = a.match(DATE_QUALIFIER_PATTERN);
     var qualifierMatchB = b.match(DATE_QUALIFIER_PATTERN);

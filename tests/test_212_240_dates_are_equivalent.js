@@ -92,5 +92,21 @@ assertEqual(datesAreEquivalent('Before 1890', 'After 1890', true), false,
 assertEqual(datesAreEquivalent('Circa 1890', '1890'), false,
     "#304: omitting the 3rd argument (or passing false) reproduces the EXISTING default behavior unchanged - parseForm()'s submit-time no-op skip, the only real caller today, never passes ignoreCirca and must not be affected by this change");
 
+// --- #304 further follow-up (live-reported, DanCornett): "Between"/"After" compared as genuinely
+// different purely over word case, not an actual date difference. "between" was never added to
+// DATE_QUALIFIER_PATTERN at all (only circa/about/after/before are), so it never even reaches the
+// qualifier-normalization step - a plain case-insensitive exact match up front catches this for any
+// qualifier without touching the stricter Before/After/Between-must-genuinely-match logic at all. ---
+assertEqual(datesAreEquivalent('Between 1890 and 1900', 'between 1890 and 1900'), true,
+    "#304: 'Between'/'between' differing only in word case are now correctly recognized as the identical date range - 'between' was never in DATE_QUALIFIER_PATTERN, so this used to fall through to an unparseable moment() call and report as different");
+assertEqual(datesAreEquivalent('After 1890', 'after 1890'), true,
+    "#304: 'After'/'after' differing only in word case - already worked via normalizeQualifier's own lowercasing, still correct after this fix");
+assertEqual(datesAreEquivalent('BEFORE 1890', 'before 1890'), true,
+    "#304: works regardless of which qualifier or how extreme the case difference is (all-caps included)");
+assertEqual(datesAreEquivalent('Between 1890 and 1900', 'Between 1891 and 1900', true),
+    false, "Regression control: a GENUINELY different 'Between' range (not just case) still correctly reports as different - this fix only catches pure case differences, never loosens real date comparisons");
+assertEqual(datesAreEquivalent('Between 1890 and 1900', 'After 1890', true), false,
+    "Regression control: different qualifier types entirely are still never conflated by the case-insensitive check (the strings aren't case-insensitively equal either)");
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

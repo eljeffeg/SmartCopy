@@ -2120,6 +2120,35 @@ function serializeGeniUpdate(data) {
     return $.param(withData);
 }
 
+// #309 (live-reported, DanCornett): adding several family members at once
+// (e.g. a batch of siblings) occasionally produced a spurious/ambiguous
+// "error" even though the data had genuinely already gone through -
+// Dan's own question ("what about the batch size of API calls?") turned
+// out to be right on target: buildTree()'s callers (submitChildren() and
+// the main family-member submission loop) fire every member's request in
+// a tight, synchronous loop with zero spacing between them - a burst of
+// fully concurrent requests to Geni's API, not a throttled batch. This
+// doesn't fix a specific confirmed root cause (that would need Geni's own
+// side to diagnose) - it's a defensive stagger, cheap enough to not
+// matter for a single request and unobtrusive enough not to meaningfully
+// slow down a real batch, that reduces how concurrent that burst actually
+// is. lastGeniSendTime is a plain timestamp, not a queue - each call
+// computes its own delay from whenever the PREVIOUS call was scheduled to
+// fire, so a long burst naturally spreads out at a steady minimum
+// spacing rather than just delaying everything by one fixed amount.
+var lastGeniSendTime = 0;
+var GENI_SEND_MIN_SPACING_MS = 150;
+function scheduleGeniSend(sendFn) {
+    var now = Date.now();
+    var delay = Math.max(0, (lastGeniSendTime + GENI_SEND_MIN_SPACING_MS) - now);
+    lastGeniSendTime = now + delay;
+    if (delay > 0) {
+        setTimeout(sendFn, delay);
+    } else {
+        sendFn();
+    }
+}
+
 var noerror = true;
 function buildTree(data, action, sendid) {
     if (!$.isEmptyObject(data) && exists(sendid) && !devblocksend) {
@@ -2196,6 +2225,7 @@ function buildTree(data, action, sendid) {
             console.log("Post Data: " + JSON.stringify(data));
         }
         if (action !== "add-photo") {
+            scheduleGeniSend(function () {
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -2304,7 +2334,9 @@ function buildTree(data, action, sendid) {
                 }
                 submitstatus.pop();
             });
+            });
         } else {
+            scheduleGeniSend(function () {
             chrome.runtime.sendMessage({
                 method: "POST",
                 action: "xhttp",
@@ -2363,6 +2395,13 @@ function buildTree(data, action, sendid) {
                     console.error(e);
                 }
             });
+            });
+                // #309: submitstatus.pop() stays synchronous/immediate here,
+                // outside scheduleGeniSend()'s defensive delay - unchanged
+                // from before (see this branch's own comment above: it never
+                // waited on the response either), so staggering the actual
+                // network dispatch doesn't also delay the "all submissions
+                // done" flow downstream callers are polling for.
                 submitstatus.pop();
         }
         

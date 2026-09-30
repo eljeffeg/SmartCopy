@@ -5979,6 +5979,24 @@ function setGeniFamilyData(id, profile) {
         // route itself.
         memberexpand.find('input, select, textarea').not('.genislideinput, .actionselect').prop('disabled', true);
         checkslideEl.prop('checked', false).prop('disabled', true);
+    } else {
+        // #298 (live-reported, DanCornett - "it is not a cosmetic issue...
+        // being able to select the parent when there are multiple spouses
+        // of the focus profile"): the parent-selector dropdown (picking
+        // which spouse/union a new child belongs to - the only way to
+        // specify that correctly whenever the focus profile has more than
+        // one spouse) and the person-level tick-box are the two controls
+        // the blanket sweep above disables that nothing else in this
+        // function ever re-enables - every other field type gets its own
+        // refreshFieldCheckState()/applySelectAllState() pass earlier that
+        // already handles the writable case correctly, but these two are
+        // ONLY ever touched by this sweep. Without this, switching a
+        // previously-locked child to "Add Profile" left the parent-
+        // selector permanently stuck disabled from the earlier lock - not
+        // a missing convenience, a missing function: there was no way to
+        // specify the correct other-parent at all in a multi-spouse family.
+        memberexpand.find('.parentselector').prop('disabled', false);
+        checkslideEl.prop('disabled', false);
     }
     // Toggled both ways (not just shown) - switching the Action: dropdown
     // to a different match (locked -> editable, or vice versa) must not

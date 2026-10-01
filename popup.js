@@ -1336,6 +1336,22 @@ function updateMessage(color, messagetext) {
         // if moving from warning to error then clear message
         $(message).empty()
     }
+    // (live-reported, DanCornett - "errors flashed quickly on the screen"):
+    // noerror only ever got set to false from an actual Geni API error
+    // response (buildTree()'s own sendMessage callback) - every client-side
+    // skip (no name selected on a new "Add," no update/add/photo
+    // permission) called updateMessage(errormsg, ...) correctly, showing
+    // the red message for a moment, but never flipped this flag. submitWait()
+    // hides the whole message banner once everything settles whenever
+    // noerror is still true - so a real, substantive skip got shown
+    // briefly and then silently hidden at the final "Geni Tree Updated"
+    // screen, with no way to read it afterward. Centralized here instead
+    // of at each individual call site, so no future error path can forget
+    // it either - any call with the error color means something genuinely
+    // didn't happen as expected, full stop.
+    if (color === errormsg) {
+        noerror = false;
+    }
     message.style.display = "block";
     messagehtml = $(message).html();
     if (messagehtml.length > 0) {

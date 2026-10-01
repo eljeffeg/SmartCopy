@@ -2239,7 +2239,19 @@ function buildTree(data, action, sendid) {
                 });
             });
             if (!hasRealName) {
-                updateMessage(errormsg, "Skipped creating a new profile with no name selected - check at least First or Last Name before adding: " + sendid);
+                // (live-reported, DanCornett): sendid here is always the
+                // shared focus/union id, never the specific person - two
+                // skipped siblings in the same run showed the exact same
+                // message twice, with no way to tell them apart. databyid[id]
+                // still has the original scraped name even though no Name
+                // field was ever checked (that's the whole reason this
+                // guard fired) - using it instead gives each skip its own
+                // identifiable text. Also names the most common real-world
+                // cause directly (a step/half-sibling Geni hasn't
+                // surfaced yet - see #322) rather than leaving the user to
+                // guess why nothing was selected for this person at all.
+                var skippedName = (exists(databyid[id]) && exists(databyid[id].name)) ? getProfileName(databyid[id].name) : sendid;
+                updateMessage(errormsg, skippedName + ": skipped, no name selected. Step/half-sibling? Sync the shared parent's other spouse first, then retry.");
                 console.warn("Skipping empty-name 'add' submission - see #300", data);
                 submitstatus.pop();
                 return;

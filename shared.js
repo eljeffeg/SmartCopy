@@ -804,11 +804,28 @@ function isMale(title) {
 // own #284 comment) separately infers halfsibling=true from this same
 // "half" wording, so recognizing the label here is what lets that
 // member be included as a sibling in the first place.
+//
+// #304 follow-up (live-reported, DanCornett - a tree copy with "some
+// siblings and step siblings" silently failed to create a few of them,
+// with a flashed "no first/last name" error): familysearchjson.js infers
+// half/step-siblings purely from whether a child shares the focus
+// person's own coupleId (FamilySearch's data has no separate literal
+// "step" concept here - a different second parent reads as "half" either
+// way) and uses that AS the relationship/grouping key itself - the single
+// concatenated word "halfsibling", never with a space or hyphen. That
+// never matched any of the strings above, so every FamilySearch half- (or
+// step-, by this same inference) sibling fell through to the "Unknown"
+// relationship bucket, where the top-level checkbox is disabled by design
+// pending a manual relationship pick (buildform.js) - which a bulk
+// "add everything" action doesn't stop to do, so it reached buildTree()
+// with no relationship or name ever resolved, correctly tripping the
+// existing #300 guard rather than creating a blank profile.
 function isSibling(relationship) {
     if (!exists(relationship)) { return false; }
     relationship = relationship.toLowerCase().replace(" (implied)", "").replace("half-", "half ");
     return (relationship === "siblings" || relationship === "sibling" || relationship === "brother" || relationship === "sister" || relationship === "bro" || relationship === "sis" ||
-        relationship === "half brother" || relationship === "half sister" || relationship === "half sibling" || relationship === "half siblings");
+        relationship === "half brother" || relationship === "half sister" || relationship === "half sibling" || relationship === "half siblings" ||
+        relationship === "halfsibling" || relationship === "halfsiblings");
 }
 
 function isChild(relationship) {

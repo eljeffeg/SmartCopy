@@ -41,6 +41,22 @@ assertTrue(isSibling("Half-Sister"), "Hyphenated 'Half-Sister' is also recognize
 assertTrue(isSibling("half sibling"), "Lowercase 'half sibling' is recognized");
 assertTrue(isSibling("Half Siblings"), "Plural 'Half Siblings' is recognized");
 
+// #304 follow-up (live-reported, DanCornett - a tree copy with "some
+// siblings and step siblings" silently failed to create a few of them,
+// with a flashed "no first/last name" error): familysearchjson.js and
+// ancestrynew.js both use the single concatenated word "halfsibling" (no
+// space or hyphen at all) as the relationship/grouping key itself -
+// confirmed directly in both files - which never matched any of the
+// spaced/hyphenated forms above, so every FamilySearch or Ancestry
+// half-sibling (or step-sibling - FamilySearch's own data has no
+// separate "step" concept here, a different second parent reads as
+// "half" either way) fell through to the "Unknown" relationship bucket
+// instead, where the top-level checkbox is disabled pending a manual
+// relationship pick that a bulk "add everything" action never performs.
+assertTrue(isSibling("halfsibling"), "#304: the literal concatenated 'halfsibling' (no space/hyphen) - familysearchjson.js's and ancestrynew.js's own internal relationship key - is now recognized too");
+assertTrue(isSibling("HalfSibling"), "#304: works regardless of case, matching ancestrynew.js's own 'halfsibling' title casing");
+assertTrue(isSibling("halfsiblings"), "#304: plural concatenated form is recognized too");
+
 // Regression: every existing label this function already matched still works.
 ["Brother", "Sister", "Sibling", "Siblings", "Bro", "Sis"].forEach(function (label) {
     assertTrue(isSibling(label), "Regression: '" + label + "' still recognized");

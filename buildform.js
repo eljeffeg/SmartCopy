@@ -2074,7 +2074,30 @@ function buildForm() {
                 // undefined for every member in that case). Always
                 // visible now, matching that there's always a real
                 // decision to show regardless of whether a match exists.
-                membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, true) + '><td class="profilediv"><input id="' + i + '_public_checkbox" type="checkbox" class="checknext" ' + (memberPrivacy.enabled ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect privacyselect" update="'+ i + '" data-birthyear="' + (exists(memberBirthYear) ? memberBirthYear : "") + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacy.enabled ? "" : "disabled") + '>' +
+                //
+                // (live-reported, DanCornett): buildPrivacySelect() has
+                // never known about scored/the half-sibling caution at
+                // all - it's a wholly separate system from the generic
+                // isChecked()/isEnabled() every other field goes through,
+                // so an unmatched half-sibling (scored forced false since
+                // 2014 - see isSibling() comment) still got Privacy
+                // checked and enabled on its own >150-years-old rule,
+                // while Name/Dates/everything else correctly stayed
+                // untouched. That's exactly backwards from the caution's
+                // whole point: it made the person-bar indicator light up
+                // as if this sibling would be copied, when the submission
+                // silently failed because no name was ever selected.
+                // Privacy now only ever checks/enables when scored is
+                // also true, same gate as every other field.
+                var memberPrivacyEditable = scored && memberPrivacy.enabled;
+                // data-scored carries this render's caution decision
+                // forward to refreshPrivacySelect() - setGeniFamilyData()
+                // runs automatically for every member right after initial
+                // render (to resolve each one's real Geni comparison
+                // values), which would otherwise immediately re-enable
+                // Privacy again via its own scored-blind >150-years-old
+                // rule, undoing this the moment the page finishes loading.
+                membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, true) + '><td class="profilediv"><input id="' + i + '_public_checkbox" type="checkbox" class="checknext" ' + (memberPrivacyEditable ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect privacyselect" update="'+ i + '" data-birthyear="' + (exists(memberBirthYear) ? memberBirthYear : "") + '" data-scored="' + scored + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacyEditable ? "" : "disabled") + '>' +
                     memberPrivacy.options + '</select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 // The genislideinput below (missing until now) is what lets
                 // refreshFieldCheckState()/parseForm()'s no-op skip see
@@ -6129,7 +6152,21 @@ function refreshPrivacySelect(id) {
     // Geni and buildPrivacySelect() correctly said so.)
     var checkslideEl = $("#familytable_" + id).closest(".memberexpand").prev(".membertitle").find(".checkslide");
     var allChecked = checkslideEl.prop("checked") && checkslideEl.attr("data-select-all-active") === "true";
-    var enabled = refreshedPrivacy.enabled || allChecked;
+    // (live-reported, DanCornett): this function runs automatically for
+    // every member right after initial render (setGeniFamilyData(), to
+    // resolve real Geni comparison values) - without this check, it would
+    // immediately re-enable Privacy for an unmatched half-sibling via its
+    // own scored-blind >150-years-old rule, undoing the render-time
+    // caution the instant the page finished loading. data-scored carries
+    // that render-time decision forward - but only while still unmatched
+    // ("Add Profile"); once the Action dropdown settles on a REAL Geni
+    // profile (picked by the user, or auto-resolved), the caution lifts
+    // here exactly like it already does for every other field once a
+    // match is confirmed, regardless of this stale render-time snapshot.
+    // An explicit Select All click still overrides either way, same as it
+    // already does for every other no-op-looking field here.
+    var renderScored = profile !== "add" || privacySelect.attr('data-scored') !== "false";
+    var enabled = (renderScored && refreshedPrivacy.enabled) || allChecked;
     privacySelect.prop('disabled', !enabled);
     $('#' + id + '_public_checkbox').prop('checked', enabled);
 }

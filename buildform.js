@@ -642,7 +642,20 @@ function buildForm() {
         // than this gate itself, but the missing value check is real and
         // worth closing regardless.
         var middleNameChecked = (namescore && mnameonoff && isValue(nameval.middleName)) ? "checked" : "";
-        var middleNameEnabled = (namescore && mnameonoff && isValue(nameval.middleName)) ? "" : "disabled";
+        // (Dan's #304 follow-up proposal): editability no longer tracks
+        // this pre-selection decision - Middle Name (like every other
+        // focus-profile name field below) is editable whenever simply not
+        // locked, matching nameFocusEnabledAttr's own reasoning.
+        var middleNameEnabled = namelocked ? "disabled" : "";
+        // (Dan's #304 follow-up proposal): the focus profile's own Name
+        // fields used to hardcode the value input's disabled attribute to
+        // a literal "disabled" string, relying entirely on the (now
+        // removed) .checknext click handler to flip it to editable the
+        // moment the user manually checked the box - editing the
+        // confirmed profile's own name is still manual-only (never pre-
+        // checked), but the field itself must stay typeable the same way
+        // every other field now does, unless genuinely locked.
+        var nameFocusEnabledAttr = namelocked ? "disabled" : "";
         // #210: each row now goes through buildTextFieldRow(), which
         // escapes the scraped value before it reaches the value="..."
         // attribute - previously none of these did (the same fix
@@ -662,14 +675,14 @@ function buildForm() {
         // convention. Never changes pre-selection/checked state - purely
         // about whether the row starts visible.
         membersstring +=
-            buildTextFieldRow("Title:", "title", nameval.prefix, "", "disabled", "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.prefix) || isValue(String(genifocusdata.get("names", namelang + ".title") || ""))), namelocked) +
-            buildTextFieldRow("First Name:", "first_name", nameval.firstName, "", "disabled", "focus_geni_first_name", null, genifocusdata.get("names", namelang + ".first_name"), nameimage, undefined, namelocked) +
+            buildTextFieldRow("Title:", "title", nameval.prefix, "", nameFocusEnabledAttr, "focus_geni_title", null, genifocusdata.get("names", namelang + ".title"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.prefix) || isValue(String(genifocusdata.get("names", namelang + ".title") || ""))), namelocked) +
+            buildTextFieldRow("First Name:", "first_name", nameval.firstName, "", nameFocusEnabledAttr, "focus_geni_first_name", null, genifocusdata.get("names", namelang + ".first_name"), nameimage, undefined, namelocked) +
             buildTextFieldRow("Middle Name:", "middle_name", nameval.middleName, middleNameChecked, middleNameEnabled, "focus_geni_middle_name", null, genifocusdata.get("names", namelang + ".middle_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.middleName) || isValue(String(genifocusdata.get("names", namelang + ".middle_name") || ""))), namelocked) +
-            buildTextFieldRow("Last Name:", "last_name", nameval.lastName, "", "disabled", "focus_geni_last_name", null, genifocusdata.get("names", namelang + ".last_name"), nameimage, undefined, namelocked) +
-            buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", "disabled", "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.birthName) || isValue(String(genifocusdata.get("names", namelang + ".maiden_name") || ""))), namelocked) +
-            buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", "disabled", "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.suffix) || isValue(String(genifocusdata.get("names", namelang + ".suffix") || ""))), namelocked) +
-            buildTextFieldRow("Display Name: ", "display_name", displayname, "", "disabled", "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(displayname) || isValue(String(genifocusdata.get("names", namelang + ".display_name") || ""))), namelocked) +
-            buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", "disabled", "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png", ' ' + hiddenRowAttrs(hidden, isValue(nameval.nickName) || isValue(String(genifocusdata.get("nicknames") || ""))));
+            buildTextFieldRow("Last Name:", "last_name", nameval.lastName, "", nameFocusEnabledAttr, "focus_geni_last_name", null, genifocusdata.get("names", namelang + ".last_name"), nameimage, undefined, namelocked) +
+            buildTextFieldRow("Birth Name:", "maiden_name", nameval.birthName, "", nameFocusEnabledAttr, "focus_geni_maiden_name", null, genifocusdata.get("names", namelang + ".maiden_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.birthName) || isValue(String(genifocusdata.get("names", namelang + ".maiden_name") || ""))), namelocked) +
+            buildTextFieldRow("Suffix: ", "suffix", nameval.suffix, "", nameFocusEnabledAttr, "focus_geni_suffix", null, genifocusdata.get("names", namelang + ".suffix"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(nameval.suffix) || isValue(String(genifocusdata.get("names", namelang + ".suffix") || ""))), namelocked) +
+            buildTextFieldRow("Display Name: ", "display_name", displayname, "", nameFocusEnabledAttr, "focus_geni_display_name", null, genifocusdata.get("names", namelang + ".display_name"), nameimage, ' ' + hiddenRowAttrs(hidden, isValue(displayname) || isValue(String(genifocusdata.get("names", namelang + ".display_name") || ""))), namelocked) +
+            buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", nameFocusEnabledAttr, "focus_geni_nicknames", null, genifocusdata.get("nicknames"), "append.png", ' ' + hiddenRowAttrs(hidden, isValue(nameval.nickName) || isValue(String(genifocusdata.get("nicknames") || ""))));
         if (hasNameData) {
             x += 1;
         }
@@ -770,8 +783,15 @@ function buildForm() {
             // meaning a real Geni-only occupation started collapsed under
             // Hide Empty Fields for no reason. Same fix already applied to
             // Title/Middle Name/Birth Name/Suffix/Display Name/Nicknames.
+            // (Dan's #304 follow-up proposal): the value input's disabled
+            // attribute used to be hardcoded, relying on the (now removed)
+            // .checknext click handler to flip it to editable once the
+            // user manually checked the box - now computed directly from
+            // the same focusFieldLocked() check already used for the
+            // checkbox on this exact line, so there's nothing else left to
+            // flip it.
             membersstring = membersstring +
-                '<tr ' + hiddenRowAttrs(hidden, isValue(genifocusdata.get("occupation"))) + ' id="occupation"><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("occupation") ? ' disabled' : '') + '>Occupation: </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="occupation" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
+                '<tr ' + hiddenRowAttrs(hidden, isValue(genifocusdata.get("occupation"))) + ' id="occupation"><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("occupation") ? ' disabled' : '') + '>Occupation: </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="occupation" ' + (focusFieldLocked("occupation") ? "disabled" : "") + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
             $(div[0]).html(membersstring);
         }
         var genderlocked = focusFieldLocked("gender"); // #78
@@ -1283,7 +1303,12 @@ function buildForm() {
                         '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (datelocked ? ' disabled' : '') + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "date.formatted_date")).replace(/&quot;/g, '"')) + '" disabled></td></tr>';
                 }
                 if (title === "death") {
-                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
+                    // (Dan's #304 follow-up proposal): value input's
+                    // disabled attribute now driven by the same
+                    // focusFieldLocked() check already used for the
+                    // checkbox on this line, not hardcoded - see
+                    // Occupation's own identical fix above.
+                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" ' + (focusFieldLocked("cause_of_death") ? "disabled" : "") + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
                 }
                 if (!locationadded) {
                     // #35 follow-up (live-reported): every <tr> in this
@@ -1325,7 +1350,12 @@ function buildForm() {
                 membersstring = membersstring +
                     '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (datelocked ? ' disabled' : '') + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date" disabled></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "date.formatted_date")).replace(/&quot;/g, '"')) + '" disabled></td></tr>';
                 if (title === "death") {
-                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" disabled></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
+                    // (Dan's #304 follow-up proposal): value input's
+                    // disabled attribute now driven by the same
+                    // focusFieldLocked() check already used for the
+                    // checkbox on this line, not hardcoded - see
+                    // Occupation's own identical fix above.
+                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" ' + (focusFieldLocked("cause_of_death") ? "disabled" : "") + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
                 }
                 // #35 follow-up: same missing data-hasvalue + missing
                 // Latitude/Longitude bug as the !locationadded fallback

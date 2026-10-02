@@ -26,11 +26,17 @@ function assertEqual(actual, expected, label) {
     else { fail++; console.log('FAIL:', label, '- expected', JSON.stringify(expected), 'got', JSON.stringify(actual)); }
 }
 
-// --- Structural: the value check is now part of the gate ---
+// --- Structural: the value check is part of the CHECKED gate ---
 assertTrue(src.indexOf('var middleNameChecked = (namescore && mnameonoff && isValue(nameval.middleName)) ? "checked" : "";') !== -1,
     "middleNameChecked now also requires isValue(nameval.middleName)");
-assertTrue(src.indexOf('var middleNameEnabled = (namescore && mnameonoff && isValue(nameval.middleName)) ? "" : "disabled";') !== -1,
-    "middleNameEnabled matches the same gate, so a disabled field is never shown checked");
+// (Dan's #304 follow-up proposal, applied later): middleNameEnabled no
+// longer needs to match middleNameChecked's gate - editability now
+// depends only on lock state (same as every other field), not on whether
+// Middle Name happens to be worth pre-selecting. A field can be
+// unchecked-but-editable now; that's the intended behavior, not the bug
+// this file was originally written to catch.
+assertTrue(src.indexOf('var middleNameEnabled = namelocked ? "disabled" : "";') !== -1,
+    "middleNameEnabled now depends only on namelocked, matching every other focus-profile name field");
 
 // --- Behavioral: mirror the real gate directly ---
 function isValue(v) { return v !== ''; }

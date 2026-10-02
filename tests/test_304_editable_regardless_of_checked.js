@@ -217,5 +217,36 @@ assertEqual(computeFieldIsSelectedFor(document.getElementById('uncheckedField'))
 assertEqual(computeFieldIsSelectedFor(document.getElementById('profileIdField')), true,
     "A row with no .checknext at all (profile_id's own shape) is always included - structurally never a protect/select field in the first place");
 
+// ============================================================
+// Part 4: live-reported regression (DanCornett, same session) - the FOCUS
+// profile's own Name fields (Title/First/Last/Birth Name/Suffix/Display
+// Name/Nicknames), plus Occupation and Death Cause, used to hardcode the
+// value input's disabled attribute to a literal "disabled" string - never
+// going through isEnabled() at all. The ONLY thing that ever flipped them
+// to editable was the (now removed) .checknext click handler's blanket
+// disable-toggle. The rest of this file's Part 1 fix (isEnabled() itself)
+// never touched these, since they never called isEnabled() in the first
+// place - confirmed live: these fields stayed stuck disabled even after
+// checking their box, exactly the two-click problem this whole proposal
+// was meant to remove, now reintroduced a different way. Family-member
+// equivalents are NOT affected the same way - they're hardcoded disabled
+// too, but get corrected automatically by setGeniFamilyData()'s post-
+// render resync (applyProtectedDisabledState(), covered by
+// test_checkbox_disabled_resync.js) before the user ever sees them; the
+// focus profile has no equivalent resync pass at all.
+// ============================================================
+assertTrue(bfSrc.indexOf('var nameFocusEnabledAttr = namelocked ? "disabled" : "";') !== -1,
+    "The focus profile's Name fields now compute their disabled attribute from namelocked, not a hardcoded literal");
+assertTrue(bfSrc.indexOf('buildTextFieldRow("Title:", "title", nameval.prefix, "", nameFocusEnabledAttr,') !== -1,
+    "Title uses the computed attribute, not a hardcoded \"disabled\" string");
+assertTrue(bfSrc.indexOf('buildTextFieldRow("Also Known As: ", "nicknames", nameval.nickName, "", nameFocusEnabledAttr,') !== -1,
+    "Nicknames (the last of the seven name fields) uses it too");
+assertTrue(bfSrc.indexOf('var middleNameEnabled = namelocked ? "disabled" : "";') !== -1,
+    "Middle Name's own enabled computation is lock-only too, not tied to namescore/mnameonoff/isValue anymore");
+assertTrue(bfSrc.indexOf('name="occupation" \' + (focusFieldLocked("occupation") ? "disabled" : "") + \'>') !== -1,
+    "Focus Occupation's blank-value branch computes disabled from focusFieldLocked(), not a hardcoded literal");
+assertTrue(bfSrc.indexOf('name="cause_of_death" \' + (focusFieldLocked("cause_of_death") ? "disabled" : "") + \'>') !== -1,
+    "Focus Death Cause computes disabled from focusFieldLocked(), not a hardcoded literal (both branches - this file's own extractBetween would need updating if a third branch is ever added)");
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

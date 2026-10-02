@@ -6000,7 +6000,18 @@ function setGeniFamilyData(id, profile) {
         // whenever the newly-picked profile also can't be written to is
         // already handled - this only needs to stop blocking the escape
         // route itself.
-        memberexpand.find('input, select, textarea').not('.genislideinput, .actionselect').prop('disabled', true);
+        // (Live-reported, DanCornett, #298 follow-up: this blanket sweep
+        // also disabled the row's hidden profile_id input - a structural
+        // lookup key, never user-editable and never something locking is
+        // meant to protect, same category as .genislideinput/.actionselect
+        // just above. Nothing else re-enables it afterward (it isn't a real
+        // field, so it has no refreshFieldCheckState() call of its own), and
+        // parseForm() silently skips any disabled input's value entirely -
+        // so switching a locked match to "Add Profile" produced a
+        // submission with no profile_id at all, tripping the #216 guard
+        // and silently skipping the whole person. Excluded here instead of
+        // patched on the way back in, so there's no re-enable to forget.)
+        memberexpand.find('input, select, textarea').not('.genislideinput, .actionselect, [name="profile_id"]').prop('disabled', true);
         checkslideEl.prop('checked', false).prop('disabled', true);
     } else {
         // #298 (live-reported, DanCornett - "it is not a cosmetic issue...

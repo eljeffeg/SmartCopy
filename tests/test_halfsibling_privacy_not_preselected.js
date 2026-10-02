@@ -16,13 +16,21 @@
 // regardless of whether the person was otherwise confidently identified.
 //
 // Fixed in two places: (1) the initial render now gates Privacy's
-// checked/enabled state on `scored`, same as every other field; (2)
+// checked state on `scored`, same as every other field; (2)
 // refreshPrivacySelect() - which runs automatically for every member
 // right after initial render - now respects the SAME decision (carried
 // forward via a data-scored attribute) while still unmatched, so it can't
 // immediately undo fix (1) the moment the page finishes loading. The
 // caution still correctly lifts once a real Geni match is picked, exactly
 // like every other field.
+//
+// (Dan's #304 follow-up proposal, applied later): "enabled"/"disabled"
+// no longer track this caution at all - editability depends only on lock
+// state everywhere now, so an unmatched half-sibling's Privacy dropdown
+// stays editable (just unchecked) the same as any other field would.
+// Only the CHECKED assertions below are still about this caution; the
+// one remaining disabled-state assertion confirms the field is simply
+// never locked by being unmatched, not that it's protected from editing.
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
@@ -52,9 +60,9 @@ function assertEqual(actual, expected, label) {
     else { fail++; console.log('FAIL:', label, '- expected', JSON.stringify(expected), 'got', JSON.stringify(actual)); }
 }
 
-// --- Structural: the initial render gates Privacy on scored, and records it for later ---
-assertTrue(bfSrc.indexOf('var memberPrivacyEditable = scored && memberPrivacy.enabled;') !== -1,
-    "Initial render: Privacy's checked/enabled state is now gated on scored, same as every other field");
+// --- Structural: the initial render gates Privacy's checked state on scored, and records it for later ---
+assertTrue(bfSrc.indexOf('var memberPrivacyChecked = scored && memberPrivacy.enabled;') !== -1,
+    "Initial render: Privacy's checked state is now gated on scored, same as every other field (editability is a separate, lock-only question per Dan's #304 follow-up proposal)");
 assertTrue(bfSrc.indexOf('data-scored="\' + scored + \'"') !== -1,
     "Initial render: scored is recorded as a data attribute for refreshPrivacySelect() to read later");
 
@@ -105,9 +113,14 @@ function freshDom(scoredAttr, actionValue) {
 freshDom("false");
 refreshPrivacySelect(memberId);
 assertEqual($('#' + memberId + '_public_checkbox').prop('checked'), false,
-    "#304: an unmatched half-sibling (scored=false) does NOT get Privacy re-enabled by the automatic post-render resync, even though buildPrivacySelect()'s own >150-years-old rule would otherwise say Public");
-assertEqual($('.privacyselect').prop('disabled'), true,
-    "The Privacy dropdown itself also stays disabled, not just unchecked");
+    "#304: an unmatched half-sibling (scored=false) does NOT get Privacy re-checked by the automatic post-render resync, even though buildPrivacySelect()'s own >150-years-old rule would otherwise say Public");
+// (Dan's #304 follow-up proposal): refreshPrivacySelect() no longer ties
+// the dropdown's disabled state to the caution at all - "unmatched" isn't
+// "locked," so the field stays editable; only a GENUINE lock (enforced by
+// setGeniFamilyData()'s later blanket sweep, which this isolated call to
+// refreshPrivacySelect() alone doesn't exercise) would disable it.
+assertEqual($('.privacyselect').prop('disabled'), false,
+    "The Privacy dropdown itself stays editable - not checked, but not locked either");
 
 // --- Case 2: unmatched, scored=true (a normal new sibling, e.g. empty category or scorefactors) - Privacy behaves normally ---
 freshDom("true");

@@ -5,9 +5,28 @@
 // checkbox and the field's own disabled state were computed by two
 // different functions that disagreed - isCheckedDateField() had an
 // estimated-aware override, plain isEnabled() did not. parseForm()
-// (popup.js) decides what to submit purely from whether the FIELD is
-// disabled, never from whether its checkbox is checked - so an enabled-
-// but-visually-unchecked field was silently included every time.
+// (popup.js), at the time, decided what to submit purely from whether
+// the FIELD is disabled, never from whether its checkbox is checked - so
+// an enabled-but-visually-unchecked field was silently included every
+// time.
+//
+// (Dan's #304 follow-up proposal, applied later): isEnabled() now only
+// ever answers "is this locked" - editability no longer tracks the
+// checked/no-op computation anywhere, including for ordinary (non-
+// estimated) date fields, which now stay editable even while unchecked
+// (the whole point of the broader change). isEnabledDateField() keeps
+// its OWN estimated-aware early return UNCHANGED though (hardcoded
+// "disabled" when estimated && Geni already has a real value) -
+// deliberately kept as the one narrow exception to "always editable
+// unless locked," given this exact mechanism has a real, previously-
+// shipped production bug behind it. parseForm() (popup.js) also now
+// independently gates on the field's own checkbox being checked, not
+// just disabled - so this exact danger is now caught two independent
+// ways, not one. The assertions below only require full checked/enabled
+// agreement for the genuinely DANGEROUS case (estimated + Geni already
+// has real data) - a blank estimated value with nothing to protect is
+// now allowed to be unchecked-but-editable, same as any other blank
+// field, which is intentional, not a regression.
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
@@ -94,17 +113,32 @@ assertEqual(isCheckedDateField(dateval, scored, geniValue, undefined, estimated)
 assertEqual(isEnabledDateField(dateval, scored, geniValue, undefined, estimated), "disabled",
     "#301: the field itself now ALSO renders disabled - previously this returned \"\" (enabled), disagreeing with the unchecked checkbox");
 
-// --- The two must never disagree, for any input combination ---
+// --- The two must never disagree for the DANGEROUS case - estimated with
+// Geni already holding real data, where isEnabledDateField()'s own
+// hardcoded early return is the one deliberate exception to "editable
+// unless locked." Everywhere else, disagreement (unchecked-but-editable)
+// is now expected and safe - parseForm()'s own checkbox-based gate (see
+// its own assertion below) independently keeps it from submitting. ---
 function bothAgree(dateval, score, currentValue, locked, estimated) {
     var checkedResult = isCheckedDateField(dateval, score, currentValue, locked, estimated) === "checked";
     var enabledResult = isEnabledDateField(dateval, score, currentValue, locked, estimated) === "";
     return checkedResult === enabledResult;
 }
-assertTrue(bothAgree("After May 18 2010", true, "May 26, 2010", undefined, true), "Agree: estimated + real Geni value (Dan's case)");
-assertTrue(bothAgree("Circa 1937", true, "", undefined, true), "Agree: estimated + blank Geni value (should both be checked/enabled)");
+assertTrue(bothAgree("After May 18 2010", true, "May 26, 2010", undefined, true), "Agree: estimated + real Geni value (Dan's case) - the one case that must still fully agree");
+assertTrue(bothAgree("Circa 1937", true, "", undefined, true), "Agree: estimated + blank Geni value (nothing to protect, so both land on checked/enabled anyway)");
 assertTrue(bothAgree("November 6, 1936", true, "June 5, 1942", undefined, false), "Agree: a genuinely scraped (non-estimated) date always checks/enables regardless of Geni's side");
-assertTrue(bothAgree("", true, "", undefined, true), "Agree: blank estimated value (degenerate case)");
-assertTrue(bothAgree("Circa 1900", false, "May 26, 2010", undefined, true), "Agree: unscored field stays unchecked/disabled regardless of estimated flag");
+assertTrue(bothAgree("Circa 1900", false, "May 26, 2010", undefined, true), "Agree: unscored + estimated + real Geni value still agrees - isEnabledDateField()'s hardcoded branch fires on estimated+currentValue alone, before score is even consulted");
+
+// --- (Dan's #304 follow-up proposal): a BLANK estimated value is the one
+// combination that now intentionally diverges - nothing to protect (no
+// value to submit either way), so the field stays editable even though
+// its checkbox correctly stays unchecked, same as any other blank field.
+// Not a regression: there's nothing dangerous about this disagreement,
+// since an unchecked checkbox excludes it from submission either way. ---
+assertEqual(isCheckedDateField("", true, "", undefined, true), "",
+    "A blank estimated value's checkbox stays unchecked - nothing to pre-select");
+assertEqual(isEnabledDateField("", true, "", undefined, true), "",
+    "(Dan's #304 follow-up): but the field itself stays editable (not locked) - the user can type a real date in with no extra click first");
 
 // --- Both focus and family-member call sites now use the matched pair ---
 assertTrue(bfSrc.indexOf('enabledAttr: isEnabledDateField(dateval, scored, genifocusdata.get(title, "date.formatted_date"), datelocked, exists(obj[item].estimated) && obj[item].estimated === true),') !== -1,
@@ -112,9 +146,13 @@ assertTrue(bfSrc.indexOf('enabledAttr: isEnabledDateField(dateval, scored, genif
 assertTrue(bfSrc.indexOf('enabledAttr: isEnabledDateField(dateval, fieldScored, geniFieldValue, undefined, exists(memberobj[item].estimated) && memberobj[item].estimated === true),') !== -1,
     "Family-member date row now uses isEnabledDateField(), matching its checkedAttr's own estimated-awareness");
 
-// --- parseForm() genuinely decides submission from disabled, confirming why this mismatch was reachable at all ---
-assertTrue(popupSrc.indexOf('if (exists(fsinput[item].value) && !fsinput[item].disabled && getProfileName(fsinput[item].name) !== "") {') !== -1,
-    "parseForm() submission gate is driven purely by the field's own disabled state, never by its checkbox - confirms why the enabled/checked mismatch let an unchecked estimate reach Geni");
+// --- (Dan's #304 follow-up proposal): parseForm() now ALSO gates on the
+// field's own checkbox being checked, independent of disabled - this is
+// the second, independent safety net that makes the estimated-date danger
+// doubly protected rather than resting on isEnabledDateField()'s one
+// hardcoded branch alone. ---
+assertTrue(popupSrc.indexOf('var fieldIsSelected = checknextForSelection.length === 0 || checknextForSelection.prop(\'checked\');') !== -1,
+    "parseForm() now independently gates submission on the field's own checkbox too, not disabled alone - a second, independent safety net alongside isEnabledDateField()'s hardcoded estimated-date exception");
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

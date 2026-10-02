@@ -965,7 +965,7 @@ function buildForm() {
         // whether Geni happens to already have an explicit value hid the
         // row entirely whenever nothing was matched yet - always visible
         // now, matching that there's always a real decision to show.
-        membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, true) + '><td class="profilediv"><input type="checkbox" class="checknext" ' + (publiclocked ? 'disabled ' : '') + (focusPrivacy.enabled && !publiclocked ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (focusPrivacy.enabled && !publiclocked ? "" : "disabled") + '>' +
+        membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, true) + '><td class="profilediv"><input type="checkbox" class="checknext" ' + (publiclocked ? 'disabled ' : '') + (focusPrivacy.enabled && !publiclocked ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (publiclocked ? "disabled" : "") + '>' +
         focusPrivacy.options + '</select></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("public") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + isPublic(genifocusdata.get("public")) + '" disabled></td></tr>';
         $(div[0]).html(membersstring);
         if (exists(alldata["profile"].about)) {
@@ -2087,17 +2087,27 @@ function buildForm() {
                 // whole point: it made the person-bar indicator light up
                 // as if this sibling would be copied, when the submission
                 // silently failed because no name was ever selected.
-                // Privacy now only ever checks/enables when scored is
-                // also true, same gate as every other field.
-                var memberPrivacyEditable = scored && memberPrivacy.enabled;
+                // Privacy now only ever checks when scored is also true,
+                // same gate as every other field.
+                // (Dan's #304 follow-up proposal): this used to also gate
+                // the select's disabled attribute - editability is decided
+                // purely by lock state now, and nothing here is locked yet
+                // (no match has been resolved at this point in rendering, so
+                // there is no lock concept for a not-yet-matched candidate -
+                // same reasoning every other family field already renders
+                // on). refreshPrivacySelect() (below) runs the same way
+                // immediately after and is the one place that stays
+                // authoritative once a real match - and its real lock
+                // state - is known.
+                var memberPrivacyChecked = scored && memberPrivacy.enabled;
                 // data-scored carries this render's caution decision
                 // forward to refreshPrivacySelect() - setGeniFamilyData()
                 // runs automatically for every member right after initial
                 // render (to resolve each one's real Geni comparison
-                // values), which would otherwise immediately re-enable
+                // values), which would otherwise immediately re-check
                 // Privacy again via its own scored-blind >150-years-old
                 // rule, undoing this the moment the page finishes loading.
-                membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, true) + '><td class="profilediv"><input id="' + i + '_public_checkbox" type="checkbox" class="checknext" ' + (memberPrivacyEditable ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect privacyselect" update="'+ i + '" data-birthyear="' + (exists(memberBirthYear) ? memberBirthYear : "") + '" data-scored="' + scored + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public" ' + (memberPrivacyEditable ? "" : "disabled") + '>' +
+                membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, true) + '><td class="profilediv"><input id="' + i + '_public_checkbox" type="checkbox" class="checknext" ' + (memberPrivacyChecked ? "checked" : "") + '>Privacy: </td><td style="float:right; padding: 0;"><select class="formselect privacyselect" update="'+ i + '" data-birthyear="' + (exists(memberBirthYear) ? memberBirthYear : "") + '" data-scored="' + scored + '" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;" name="public">' +
                     memberPrivacy.options + '</select></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_public" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                 // The genislideinput below (missing until now) is what lets
                 // refreshFieldCheckState()/parseForm()'s no-op skip see
@@ -2722,8 +2732,16 @@ function syncTopLevelIndicators(clickedElement) {
 // (or the reverse) location fields after a pencil edit, which then
 // silently failed to submit at all, since parseForm() (popup.js) submits
 // based on disabled, never on checked.
+// (Dan's #304 follow-up proposal): used to also toggle every sibling
+// field's disabled attribute here (enabled when checked, disabled when
+// unchecked) - that's gone now that editability depends only on lock
+// state, computed once at render/resync time (isEnabled()/
+// applyProtectedDisabledState()/refreshPrivacySelect()), not on this
+// click. This handler is only ever reachable via a real user click in the
+// first place when the row isn't locked (a locked checkbox is itself
+// disabled), so every sibling field here is already correctly editable
+// before this handler ever runs - nothing left for it to toggle.
 function handleChecknextClick() {
-    $(this).closest('tr').find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
     // #304 follow-up (live-reported, DanCornett): any individual field
     // action - check or uncheck - means the user is making a per-field
     // choice again, not "everything." Clears the explicit Select All flag
@@ -2762,7 +2780,6 @@ function handleChecknextClick() {
                 }
             }
         }
-        personslide.find('input[type="hidden"]').not(".genislideinput").attr('disabled', false);
     }
     // #304 follow-up: recomputes the person-level/category-level/focus-
     // profile top indicators from scratch, in either direction - see
@@ -2877,23 +2894,48 @@ function updateClassResponse() {
     $(function () {
         $('.checknext').on('click', handleChecknextClick);
     });
+    // (Dan's #304 follow-up proposal): "editable" and "selected for
+    // update" are different questions (see isEnabled()'s own comment) -
+    // every field now stays editable regardless of its checkbox, so the
+    // checkbox needs a different way to reflect a genuine edit. The
+    // moment the user actually types into (or picks a different option
+    // in) a field whose own checkbox isn't checked yet, this checks it
+    // for them - delegated from the two stable top-level containers
+    // rather than bound per-field, so it never needs rebinding on
+    // re-render the way the handlers above do (.off() here is just
+    // defensive symmetry with them, not strictly required).
+    // Deliberately re-clicks the checkbox (via .trigger('click')) rather
+    // than duplicating handleChecknextClick()'s own body (the geotopcheck
+    // cascade, clearing data-select-all-active, syncTopLevelIndicators) -
+    // one shared implementation, and it reuses the exact timing #287
+    // already established is safe: a real or simulated click toggles
+    // `checked` before the bound handler runs, so the handler sees the
+    // correct, already-updated state.
+    $('#familydata, #profiledata').off('input change', 'input[type="text"],select,textarea');
+    $('#familydata, #profiledata').on('input change', 'input[type="text"],select,textarea', function () {
+        var checknext = $(this).closest('tr').find('.checknext');
+        if (checknext.length > 0 && !checknext.prop('checked') && !checknext.prop('disabled')) {
+            checknext.trigger('click');
+        }
+    });
     $('.geotopcheck').off();
     $(function () {
         $('.geotopcheck').on('click', function () {
+            // (Dan's #304 follow-up proposal): no longer toggles the
+            // cascaded rows' disabled attribute here either - same
+            // reasoning as handleChecknextClick() above, this click is
+            // only reachable when the group isn't locked, so every field
+            // it touches is already editable.
             // #304 follow-up: same reasoning as .checknext above - a
             // location group's own shortcut click is a more granular,
             // deliberate action than a whole-person Select All, so it
             // clears that explicit flag too.
             $(this).closest('.memberexpand').prev('.membertitle').find('.checkslide').attr('data-select-all-active', 'false');
-            if (this.checked) {
-                $(this).closest('.memberexpand').prev('.membertitle').find('input[type="hidden"]').not(".genislideinput").attr('disabled', false);
-            }
             var row = $(this).closest('tr');
             var icon = $(row.find("img")[0]).attr("src");
             row = $(row[0].nextElementSibling);
             if (icon === "images/geooff.png") {
                 row.find('input[type="checkbox"]').prop('checked', this.checked);
-                row.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
             } else {
                 // #229 follow-up: was 5 manually unrolled copies of this
                 // same block (Place-geo/City/County/State/Country) - a real
@@ -2908,7 +2950,6 @@ function updateClassResponse() {
                 for (var r = 0; r < GEO_BREAKDOWN_ROW_COUNT; r++) {
                     row = $(row[0].nextElementSibling);
                     row.find('input[type="checkbox"]').prop('checked', this.checked);
-                    row.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector").attr("disabled", !this.checked);
                 }
             }
             // #304 follow-up: recomputed AFTER the cascade above so it sees
@@ -3374,8 +3415,18 @@ function resolveFieldEnabled(value, score, force, currentValue, locked, sameAsGe
     }
 }
 
+// (Dan's #304 follow-up proposal): editable and "pre-selected for update"
+// are two different questions - whether a field can be typed into at all
+// should depend only on whether it's genuinely locked (no write permission),
+// never on whether SmartCopy happens to recommend updating it right now.
+// isChecked()/resolveFieldEnabled() below are UNCHANGED - they still decide
+// the pre-selection recommendation exactly as before. This function alone
+// now answers a narrower question: can the user interact with this field at
+// all. The moment they actually do (see the delegated input/change listener
+// in updateClassResponse()), the field's own checkbox is clicked for them,
+// which is the one and only thing that still means "selected."
 function isEnabled(value, score, force, currentValue, locked, sameAsGeni) {
-    return resolveFieldEnabled(value, score, force, currentValue, locked, sameAsGeni) ? "" : "disabled";
+    return locked ? "disabled" : "";
 }
 
 function isHidden(value, geo) {
@@ -5467,43 +5518,11 @@ function applySelectAllState(fs, selectingAll) {
         }
         return true;
     }).prop('checked', selectingAll);
-    ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector");
-    ffs.filter(function (item) {
-        if ((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") ||
-            (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) ||
-            ffs[item].name === "action" || ffs[item].name === "profile_id") {
-            return false;
-        }
-        // #78: same reasoning as the checkbox filter above - a locked
-        // field's own .checknext is disabled at render time; never let
-        // "select all" re-enable its paired input regardless of direction.
-        if ($(ffs[item]).closest('tr').find('.checknext').prop('disabled')) {
-            return false;
-        }
-        // #304 follow-up (live-reported, DanCornett): this used to run its
-        // own inline blank-only check (isFieldValueBlank()/isCompanionBlank()
-        // directly) instead of calling isFieldEmptyForCheckAll() (popup.js)
-        // like the checkbox filter above does - two independent
-        // implementations of "is this field a no-op" that drifted apart the
-        // moment #304 taught isFieldEmptyForCheckAll() about sameAsGeni
-        // (non-blank but identical to Geni) and this copy didn't get the
-        // same update. Symptom: a field whose checkbox correctly un-checked
-        // itself (via the filter above) still showed re-ENABLED/green here
-        // a moment later, because this block only protected genuinely blank
-        // fields, not ones that just happen to already match Geni. Reusing
-        // the one shared function closes the gap and removes the
-        // duplication that let it happen. Reads Geni's value straight from
-        // this row's .genislideinput companion rather than the field's own
-        // disabled attribute, which this very filter mutates on every
-        // check/uncheck cycle and would otherwise go stale.
-        if (selectingAll &&
-            (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA" ||
-             (ffs[item].tagName === "SELECT" && (ffs[item].name === "gender" || ffs[item].name === "is_alive"))) &&
-            isFieldEmptyForCheckAll($(ffs[item]).closest("tr"))) {
-            return false;
-        }
-        return true;
-    }).attr('disabled', !selectingAll);
+    // (Dan's #304 follow-up proposal): used to also walk every value field
+    // here and toggle its disabled attribute to match selectingAll - gone
+    // now that editability depends only on lock state, not on whether
+    // Select All happens to be on. The checkbox filter above is Select
+    // All's entire remaining job.
     syncGeotopcheckState(fs);
 }
 
@@ -5700,19 +5719,21 @@ function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, 
     // pre-checked forever even though there's nothing to actually submit.
     var score = eligible !== false;
     var sameAsGeni = !isFieldSelectable(scrapedValue, currentValue, fieldType);
-    var fieldWouldBeDisabled = isEnabled(scrapedValue, score, false, currentValue, locked, sameAsGeni) === "disabled";
-    // locked always wins (never checked, regardless of anything else);
-    // otherwise resolves to exactly what a fully-informed render would
-    // have produced - checked when the field would be enabled, unchecked
-    // when it wouldn't, promoting AND protecting as needed rather than
-    // only ever narrowing toward unchecked. Live-reported (locked case):
-    // this is what let a locked family member's estimated marriage date
-    // stay checked (and get submitted, rejected by Geni for permissions)
-    // after the lock was discovered - still correctly handled here, since
-    // locked still forces false unconditionally.
-    checknext.prop('checked', !locked && !fieldWouldBeDisabled);
-    var enabled = checknext.prop('checked') && !fieldWouldBeDisabled;
-    input.prop("disabled", !enabled);
+    // (Dan's #304 follow-up proposal): this used to go through isEnabled(),
+    // back when "enabled" and "checked" were the same question - isEnabled()
+    // now answers a narrower one (purely: is this locked), so the checked
+    // decision has to call resolveFieldEnabled() directly to get the real,
+    // fully-informed pre-selection answer. locked always wins (never
+    // checked, regardless of anything else); otherwise resolves to exactly
+    // what a fully-informed render would have produced. Live-reported
+    // (locked case): this is what let a locked family member's estimated
+    // marriage date stay checked (and get submitted, rejected by Geni for
+    // permissions) after the lock was discovered - still correctly handled
+    // here, since locked still forces false unconditionally.
+    checknext.prop('checked', !locked && resolveFieldEnabled(scrapedValue, score, false, currentValue, locked, sameAsGeni));
+    // Editability now depends only on lock state - never on whether this
+    // field happens to be worth pre-selecting.
+    input.prop("disabled", !!locked);
     checknext.prop('disabled', !!locked);
 }
 
@@ -6178,7 +6199,18 @@ function refreshPrivacySelect(id) {
     // already does for every other no-op-looking field here.
     var renderScored = profile !== "add" || privacySelect.attr('data-scored') !== "false";
     var enabled = (renderScored && refreshedPrivacy.enabled) || allChecked;
-    privacySelect.prop('disabled', !enabled);
+    // (Dan's #304 follow-up proposal): disabled no longer follows `enabled`
+    // (that's the pre-selection recommendation, still used for `checked`
+    // below) - it's always left editable here. This function has exactly
+    // two callers: setGeniFamilyData(), where this runs BEFORE that
+    // function's own blanket lock sweep further down, which has final say
+    // and will force this back to disabled if the member turns out to be
+    // genuinely locked (already the established pattern there - see its own
+    // comment on Privacy having "no lock awareness at all"); and the
+    // .livingselect change handler, which can only ever fire on an already-
+    // unlocked member, since a locked member's Living select is itself
+    // disabled and unreachable by a real user click.
+    privacySelect.prop('disabled', false);
     $('#' + id + '_public_checkbox').prop('checked', enabled);
 }
 

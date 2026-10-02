@@ -7,10 +7,10 @@
 // "scraped blank + Geni blank") needs correcting once Geni's real,
 // non-blank value is known.
 //
-// This was NOT data-destructive - parseForm() gates submission on the
-// field's own `disabled` attribute, not the checkbox's checked state,
-// and applyProtectedDisabledState() already correctly disabled the
-// field. But the checkbox itself was never un-checked to match, so a
+// This was NOT data-destructive even at the time - parseForm() (popup.js)
+// independently gated submission on the field's own `disabled` attribute
+// back then, and applyProtectedDisabledState() already correctly disabled
+// the field. But the checkbox itself was never un-checked to match, so a
 // user could see a field showing checked, believe it would submit, and
 // be wrong - the same "checkbox and reality disagree" failure mode
 // CLAUDE.md's family-member checkbox rule exists to prevent, just from
@@ -20,6 +20,16 @@
 // (isFieldEmptyForCheckAll() in popup.js already reads the real
 // .genislideinput value directly, not the disabled attribute, so it
 // won't re-check a field this correction just protected).
+//
+// (Dan's #304 follow-up proposal, applied later): applyProtectedDisabledState()'s
+// `input.prop("disabled", ...)` now depends ONLY on `locked` - editability
+// no longer tracks the checked/no-op computation at all, so parseForm()'s
+// submission gate now ALSO reads the field's own checkbox directly (see
+// its own comment) rather than relying on disabled alone. Every assertion
+// below about `checkboxChecked` is UNCHANGED by this - the pre-selection
+// decision itself never moved. Only the `inputDisabled` assertions that
+// assumed "unchecked implies disabled" were updated to the new, intentional
+// behavior: a field stays editable whenever simply not locked.
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
@@ -113,14 +123,14 @@ function makeRow(initialChecked) {
 }
 
 function callApplyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType, eligible) {
-    return new Function('isEnabled', 'isValue', 'valuesAreEquivalentForFieldType', 'isFieldSelectable', 'return ' + applyProtectedDisabledStateSrc)(isEnabled, isValue, valuesAreEquivalentForFieldType, isFieldSelectable)(input, scrapedValue, currentValue, locked, fieldType, eligible);
+    return new Function('isEnabled', 'resolveFieldEnabled', 'isValue', 'valuesAreEquivalentForFieldType', 'isFieldSelectable', 'return ' + applyProtectedDisabledStateSrc)(isEnabled, resolveFieldEnabled, isValue, valuesAreEquivalentForFieldType, isFieldSelectable)(input, scrapedValue, currentValue, locked, fieldType, eligible);
 }
 
 // --- The historical bug scenario: render-time guessed "checked" (blank scraped, blank hardcoded currentValue), but Geni's REAL value turns out to be real/non-blank ---
 {
     const row = makeRow(true); // checked at render time, per the old blank/blank guess
     callApplyProtectedDisabledState(row.input, '', 'Jr.', false); // real Geni suffix is "Jr." - genuinely not blank
-    assertEqual(row.state.inputDisabled, true, "The field itself is correctly disabled once Geni's real value is known (unchanged - this part already worked)");
+    assertEqual(row.state.inputDisabled, false, "(Dan's #304 follow-up): the field itself stays editable - not locked - even though it's correctly un-checked below");
     assertEqual(row.state.checkboxChecked, false, "FIX: the checkbox is now also un-checked to match - no longer shows checked for a field that won't actually submit");
 }
 
@@ -147,7 +157,7 @@ function callApplyProtectedDisabledState(input, scrapedValue, currentValue, lock
 {
     const row = makeRow(true); // was checked at render time under the OLD blank+blank rule
     callApplyProtectedDisabledState(row.input, '', '', false);
-    assertEqual(row.state.inputDisabled, true, "#304 follow-up: blank scraped + blank Geni value now correctly stays disabled - nothing pre-selects on a blank source, period");
+    assertEqual(row.state.inputDisabled, false, "(Dan's #304 follow-up): blank scraped + blank Geni value is never pre-checked (below), but the field itself stays editable so the user can type into it with no extra click");
     assertEqual(row.state.checkboxChecked, false, "Its checkbox correctly un-checks to match");
 }
 
@@ -170,7 +180,7 @@ function callApplyProtectedDisabledState(input, scrapedValue, currentValue, lock
 {
     const row = makeRow(false);
     callApplyProtectedDisabledState(row.input, 'FARMER', 'Farmer', false, 'generic');
-    assertEqual(row.state.inputDisabled, true, "A field identical to Geni's value (modulo case) stays disabled - nothing to promote, still nothing new to submit");
+    assertEqual(row.state.inputDisabled, false, "(Dan's #304 follow-up): the field stays editable even though nothing to promote - unchanged by lock state");
     assertEqual(row.state.checkboxChecked, false, "Its checkbox correctly stays unchecked");
 }
 
@@ -178,7 +188,7 @@ function callApplyProtectedDisabledState(input, scrapedValue, currentValue, lock
 {
     const row = makeRow(true);
     callApplyProtectedDisabledState(row.input, 'FARMER', 'farmer', false, 'generic');
-    assertEqual(row.state.inputDisabled, true, "#304: a field identical to Geni's value except for case now correctly un-checks - no more wall-of-green on fields that already match");
+    assertEqual(row.state.inputDisabled, false, "(Dan's #304 follow-up): the field stays editable regardless - un-checking (below) is what removes the wall-of-green, not disabling");
     assertEqual(row.state.checkboxChecked, false, "Its checkbox un-checks to match");
 }
 {
@@ -226,7 +236,7 @@ function callApplyProtectedDisabledState(input, scrapedValue, currentValue, lock
     const row = makeRow(false); // started unchecked at render, matching the config being off there too
     callApplyProtectedDisabledState(row.input, 'images/new.jpg', undefined, false, 'photo', false);
     assertEqual(row.state.checkboxChecked, false, "#304 follow-up: a real, non-blank photo is NOT promoted to checked when eligible=false (auto-select config off)");
-    assertEqual(row.state.inputDisabled, true, "The field stays disabled to match - not auto-submitted");
+    assertEqual(row.state.inputDisabled, false, "(Dan's #304 follow-up): the field itself still stays editable (not locked) - not auto-submitted because its checkbox stays unchecked, not because it's disabled");
     assertEqual(row.state.checkboxDisabled, false, "The checkbox itself stays enabled/clickable - the user can still manually opt in despite the config being off");
 }
 {

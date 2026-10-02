@@ -126,8 +126,8 @@ function freshLocationRow() {
     row.field.disabled = false;
     ctx.setLocationFieldChecked(row.checkbox, false);
     assertEqual(row.checkbox.checked, false, "Behavioral: unchecking via setLocationFieldChecked() leaves the checkbox unchecked");
-    assertEqual(row.field.disabled, true,
-        "#304 follow-up: the field itself is ALSO correctly disabled - the other direction of the same bug (unchecked-but-enabled, exactly what Dan's GPS fields showed)");
+    assertEqual(row.field.disabled, false,
+        "(Dan's #304 follow-up proposal): the field stays editable even after unchecking - handleChecknextClick() no longer toggles disabled at all, since editability depends only on lock state now, not on this checkbox");
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

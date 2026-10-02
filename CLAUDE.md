@@ -222,15 +222,16 @@ profile" forms should start checked, compare the freshly-scraped value
 against what Geni currently has for that field, not just whether the scraped
 value is non-empty:
 
-- **Scraped blank:** stays unchecked/disabled, full stop - regardless of
-  whether Geni has real data there or is also blank. (#304 follow-up,
-  live-reported, DanCornett: there used to be a "scraped blank + Geni also
-  blank -> start checked, nothing to protect, saves a click before typing"
-  exception - explicitly removed on Dan's confirmation that a blank source
-  field should never be pre-selected under any circumstance. The small
-  convenience cost - an extra click before typing into a genuinely new,
-  blank-on-both-sides field - is intentionally accepted in exchange.) Still
-  manually overridable (an explicit, deliberate action), just never
+- **Scraped blank:** stays unchecked, full stop - regardless of whether
+  Geni has real data there or is also blank. (#304 follow-up, live-reported,
+  DanCornett: there used to be a "scraped blank + Geni also blank -> start
+  checked, nothing to protect, saves a click before typing" exception -
+  explicitly removed on Dan's confirmation that a blank source field should
+  never be pre-selected under any circumstance.) Still manually overridable
+  (an explicit, deliberate action - including simply typing into it, see
+  "Field editability vs. pre-selection are different questions" below, which
+  is what eventually closed the convenience gap this removal opened up,
+  without reopening the pre-selection question itself) - just never
   pre-checked into it. **One deliberate exception: family-member Vital
   (Living/Deceased) for a brand-new "Add Profile" candidate.** Vital always
   holds a real true/false value even when merely defaulted at render (there's
@@ -448,6 +449,72 @@ deterministic signal, since there's nothing on Geni to conflict with. The
 per-member SmartMatch signal still separately drives auto-select when Geni
 already has *some* (but not all) of a category - e.g. one parent present,
 the other missing.
+
+## Field editability vs. pre-selection are different questions
+
+(Dan's #304 follow-up proposal, discussed at length and implemented): a
+field's checkbox being unchecked used to also mean the field itself was
+`disabled` (grayed out, un-typeable) - `isEnabled()`/`isChecked()` were two
+different string-renderings of the exact same `resolveFieldEnabled()`
+boolean, everywhere. That meant editing a genuinely blank, not-pre-selected
+field always cost two clicks: check the box, *then* click into the now-
+enabled field to type. Dan's framing: "the only reason a field should not
+be editable is if it is 'not allowed' (locked or no write permission) - the
+tick-box should only be associated with 'this field is selected for
+updating,' not with whether the field is editable. If the user types into
+an editable field, the associated tick-box should auto-select to reflect
+that - not act as a gateway to being editable."
+
+**The split, as implemented:**
+
+- `isEnabled()` (buildform.js) now answers one question only - "is this
+  locked" - and ignores every other argument (`score`/`value`/`currentValue`/
+  `sameAsGeni` are still accepted, for call-site compatibility, but no longer
+  consulted). A field is editable whenever it isn't locked, full stop,
+  regardless of whether it's worth pre-selecting.
+- `isChecked()`/`resolveFieldEnabled()` are **completely unchanged** - they
+  still decide the pre-selection recommendation exactly as before. Nothing
+  about *what* pre-selects moved; only *what editability means* did.
+- A new delegated `input`/`change` listener (`updateClassResponse()`,
+  buildform.js) checks a field's own `.checknext` for the user the moment
+  they actually type into it (or pick a different `<select>` option) while
+  it's still unchecked - implemented as `checknext.trigger('click')`, not a
+  duplicate of `handleChecknextClick()`'s own body, so the geotopcheck
+  cascade / `data-select-all-active` clearing / `syncTopLevelIndicators()`
+  call all stay the single, one-copy implementation they already were. This
+  deliberately reuses the exact click-then-handler timing #287 already
+  established is safe (a real or simulated click toggles `checked` before
+  the bound handler runs).
+- `parseForm()` (popup.js) now independently gates submission on the
+  field's own `.checknext` being checked, not merely on whether it's
+  `disabled` - since disabled no longer implies "not selected." A row with
+  no `.checknext` in it at all (`profile_id`, the Action dropdown, the
+  parent-selector - structural fields, never protect/select candidates in
+  the first place) is always included, matched structurally (no `.checknext`
+  found at all) rather than by hardcoding each field's name.
+- `handleChecknextClick()` and the `.geotopcheck` click handler no longer
+  toggle any sibling field's `disabled` attribute on check/uncheck -
+  editability is decided once, at render/resync time
+  (`isEnabled()`/`applyProtectedDisabledState()`/`refreshPrivacySelect()`),
+  not reactively here. `applySelectAllState()`'s own second filter (the one
+  that used to walk every value field and toggle `disabled` to match
+  Select All) is gone entirely for the same reason - Select All's only
+  remaining job is setting `checked`.
+- **One deliberate, narrow exception, kept on purpose:** `isEnabledDateField()`
+  still hardcodes `"disabled"` for an estimated date when Geni already has
+  a real value, exactly as before - this is the one mechanism with a real,
+  previously-shipped production bug behind it (#301: an unchecked estimated
+  date still reaching Geni because `isEnabled()`/`isChecked()` disagreed),
+  and `parseForm()`'s new checkbox-based gate now protects it a *second*,
+  independent way rather than resting on this hardcoded branch alone - but
+  the branch itself wasn't removed. Everywhere else, "editable but
+  unchecked" is the normal, intentional state for any blank or not-yet-
+  reviewed field, not a bug to guard against.
+- Any function that used to derive a field's "would this submit" status
+  from its `disabled` attribute now needs the field's own `.checknext`
+  checked state instead - `disabled` only ever means "locked" now, nothing
+  else. If a future change needs to know "is this field actually going to
+  be submitted," check `.checknext`, not `disabled`.
 
 ## Background service worker centralization
 

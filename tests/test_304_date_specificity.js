@@ -112,8 +112,8 @@ assertEqual(isDateSpecificityDowngrade('Between 1960 and 1965', 'November 13, 19
 // --- End-to-end: isCheckedDateField()/isEnabledDateField(), the real pre-selection call sites ---
 assertEqual(isCheckedDateField('November 1963', true, 'November 13, 1963', false), '',
     "#304 follow-up (live-reported by the user): the exact reported scenario - a partial scraped date no longer pre-checks over Geni's more precise existing date");
-assertEqual(isEnabledDateField('November 1963', true, 'November 13, 1963', false), 'disabled',
-    "The field itself also stays disabled, matching the unchecked checkbox (same #301 agreement requirement)");
+assertEqual(isEnabledDateField('November 1963', true, 'November 13, 1963', false), '',
+    "(Dan's #304 follow-up): the field itself stays editable (not locked, not the estimated-with-real-data exception) even though its checkbox correctly stays unchecked - the user can still manually fill in the full date");
 assertEqual(isCheckedDateField('1963', true, 'November 1963', false), '',
     "Partial (year-only) over a less-bare-but-still-partial existing (month+year) - still a downgrade, still suppressed");
 assertEqual(isCheckedDateField('November 13, 1963', true, 'November 1963', false), 'checked',

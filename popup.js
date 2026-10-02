@@ -3357,7 +3357,22 @@ function parseForm(fs) {
             name_language = fsinput[item].value;
             fsinput[item].name = ""
         }
-        if (exists(fsinput[item].value) && !fsinput[item].disabled && getProfileName(fsinput[item].name) !== "") {
+        // (Dan's #304 follow-up proposal): a field being editable no longer
+        // means it's selected for submission - every field stays editable
+        // regardless of its checkbox (see isEnabled()/applyProtectedDisabledState()/
+        // refreshPrivacySelect(), buildform.js), and typing into one now
+        // checks its own checkbox for the user (see the delegated input/
+        // change listener in updateClassResponse(), buildform.js). So
+        // submission eligibility now has to be read from the checkbox
+        // directly, not inferred from disabled. A row with no .checknext at
+        // all (profile_id, action, the parent-selector) was never a
+        // protect/select field in the first place - always included,
+        // same as before. !fsinput[item].disabled stays too, as a second,
+        // independent guard - a genuinely locked field is still excluded
+        // even if something upstream left its checkbox checked.
+        var checknextForSelection = $(fsinput[item]).closest('tr').find('.checknext');
+        var fieldIsSelected = checknextForSelection.length === 0 || checknextForSelection.prop('checked');
+        if (fieldIsSelected && exists(fsinput[item].value) && !fsinput[item].disabled && getProfileName(fsinput[item].name) !== "") {
             // A checked+enabled field can still be a genuine no-op: "select
             // all" now always checks every safe field regardless of
             // whether it happens to already match Geni (e.g. Privacy

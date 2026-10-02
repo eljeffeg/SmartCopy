@@ -2833,7 +2833,26 @@ function summarizeUpdatedCategories(fields, includesPhoto, marriageEntry) {
     }
     if (exists(fields)) {
         for (var key in fields) {
-            if (fields.hasOwnProperty(key) && key !== "profile_id" && key !== "action") {
+            // #286 (live-reported, DanCornett): about_me is "always
+            // pre-selected" (it's additive, never overwrites - see
+            // buildReferenceAboutMe()'s own comment) and stays checked even
+            // when the scraped source has no bio text at all, as long as
+            // Geni's own About is also blank (lets the user type something
+            // in manually without an extra click). A present-but-blank
+            // about_me key was still counted as a real "about" category on
+            // every such submission, even though nothing about-related
+            // actually changed - which made buildReferenceAboutMe() think
+            // something always happened (writing a citation purely because
+            // the key existed) and, on repeats, polluted the "is this
+            // citation already covering everything this run touched" check
+            // isLastLineFromSameSource() does against real categories.
+            // Excluding a blank about_me here is the one place both of
+            // those symptoms share - an empty About never counts as an
+            // update, matching Dan's own diagnosis ("an empty 'scraped'
+            // About should be looked at first - if it is empty, treat it as
+            // already accounted for").
+            var aboutIsBlank = key === "about_me" && (!exists(fields[key]) || fields[key] === "");
+            if (fields.hasOwnProperty(key) && key !== "profile_id" && key !== "action" && !aboutIsBlank) {
                 var category;
                 if (categoryMap.hasOwnProperty(key)) {
                     category = categoryMap[key];

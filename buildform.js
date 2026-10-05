@@ -1023,7 +1023,19 @@ function buildForm() {
             $(div[0]).html(membersstring);
         } else {
             membersstring = $(div[0]).html();
-            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + ' id="about"><td colspan="3" style="padding: 0px;"><div class="profilediv" style="width: 100%;"><input type="checkbox" class="checknext">About:<img class="genisliderow" src="images/append.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
+            // #286 (live-reported, DanCornett): this branch renders when the
+            // source page had no About/bio text at all (e.g. a FindAGrave
+            // memorial with no obituary - collections/findagrave.js only
+            // sets profiledata["about"] when it finds non-blank text, so
+            // "nothing scraped" leaves the property undefined rather than
+            // ""). The textarea used to hardcode `disabled` here - a
+            // leftover from before the #304 editability/pre-selection split
+            // - so even checking the About tick-box could never make it
+            // typeable. About is never genuinely locked for the focus
+            // profile (the if-branch above always calls isEnabled() with
+            // locked literally false), so this branch must stay editable
+            // too, for the same reason.
+            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + ' id="about"><td colspan="3" style="padding: 0px;"><div class="profilediv" style="width: 100%;"><input type="checkbox" class="checknext">About:<img class="genisliderow" src="images/append.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ></textarea></div></td></tr>';
             $(div[0]).html(membersstring);
         }
         if (sepx === 0) {
@@ -2159,7 +2171,14 @@ function buildForm() {
                         geniInputId: i + "_geni_about"
                     });
                 } else {
-                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + ' id="about"><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext">About:<img class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"><input id="' + i + '_geni_about" type="text" class="formtext genislideinput" value="" disabled style="display:none;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;"  disabled></textarea></div></td></tr>';
+                    // #286 (live-reported, DanCornett): same leftover bug as
+                    // the focus profile's own else-branch above - this
+                    // textarea hardcoded `disabled` from before the #304
+                    // editability/pre-selection split, even though the
+                    // if-branch's isEnabled() call (no locked arg passed,
+                    // so always falsy) never locks a family member's About
+                    // either. "Nothing scraped" must still be editable.
+                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + ' id="about"><td colspan="3"><div class="profilediv" style="width: 100%; font-size: 80%;"><input type="checkbox" class="checknext">About:<img class="genisliderow" src="images/right.png" align="right" style="width: 12px; margin-right: 3px; margin-top: 5px;"><input id="' + i + '_geni_about" type="text" class="formtext genislideinput" value="" disabled style="display:none;"></div><div style="padding-top: 2px; padding-left:4px; padding-right:6px;"><textarea rows="4" name="about_me" style="width:100%;" ></textarea></div></td></tr>';
                 }
                 for (var list in listvalues) if (listvalues.hasOwnProperty(list)) {
                     var title = listvalues[list];

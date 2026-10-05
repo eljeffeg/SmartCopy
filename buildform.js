@@ -2737,6 +2737,22 @@ function syncTopLevelIndicators(clickedElement) {
         }
         return;
     }
+    // #325 (live-reported, DanCornett): a person's own top-level .checkslide
+    // click (checking or unchecking them directly, not via a field
+    // underneath) never recomputed the category .checkall header above it -
+    // only a field/location click inside .memberexpand did, via the branch
+    // above. Left the Children/Siblings/Partners header stuck showing
+    // "something is selected" after clearing the last checked person, or
+    // stuck unchecked after manually checking one. .checkslide itself sits
+    // in .membertitle, a sibling of .memberexpand rather than inside it, so
+    // it falls through to here instead of matching that branch.
+    if ($(clickedElement).hasClass('checkslide')) {
+        var checkslideFieldset = $(clickedElement).closest('fieldset');
+        if (checkslideFieldset.length > 0) {
+            checkslideFieldset.parent().find('.checkall').first().prop('checked', checkslideFieldset.find('.checkslide:checked').length > 0);
+        }
+        return;
+    }
     var focusFieldset = $(clickedElement).closest('fieldset');
     if (focusFieldset.length > 0 && exists(focusFieldset[0].parentElement) && focusFieldset[0].parentElement.id === "profileshadowdiv") {
         $('#updateprofile').prop('checked', focusFieldset.find('.checknext:checked').length > 0);
@@ -3003,6 +3019,11 @@ function updateClassResponse() {
             // again (see .checknext/.geotopcheck above).
             $(this).attr('data-select-all-active', this.checked ? 'true' : 'false');
             applySelectAllState($("#" + this.name.replace("checkbox", "slide")), this.checked);
+            // #325 (live-reported, DanCornett): recompute the category
+            // .checkall header now that this person's own checked state
+            // just changed - see syncTopLevelIndicators()'s .checkslide
+            // branch above.
+            syncTopLevelIndicators(this);
         });
     });
     $('.geoicon').off();

@@ -1601,33 +1601,23 @@ $(function () {
                 }
                 return true;
             }).prop('checked', selectingAll);
-            var ffs = fs.find('input[type="text"],select,input[type="hidden"],textarea').not(".genislideinput").not(".parentselector");
-            ffs.filter(function (item) {
-                if ((ffs[item].type === "checkbox") || ($(ffs[item]).closest('tr').css("display") === "none") ||
-                    (!photoon && $(ffs[item]).hasClass("photocheck") && !this.checked) ||
-                    ffs[item].name === "action" || ffs[item].name === "profile_id") {
-                    return false;
-                }
-                // #304 follow-up (live-reported, DanCornett): this used to
-                // run its own inline blank-only check (isFieldValueBlank()/
-                // isCompanionBlank() directly) instead of calling
-                // isFieldEmptyForCheckAll() below - a THIRD independent
-                // copy of the same "is this field a no-op" question,
-                // alongside buildform.js's per-person applySelectAllState()
-                // (which had - and was fixed for - the exact same gap: a
-                // field non-blank but already identical to Geni never got
-                // excluded here, only genuinely blank ones did). Reuses the
-                // one shared function instead, which also now correctly
-                // treats a blank scraped value as never selectable, full
-                // stop, regardless of Geni's own side.
-                if (selectingAll &&
-                    (ffs[item].type === "text" || ffs[item].tagName === "TEXTAREA" ||
-                     (ffs[item].tagName === "SELECT" && (ffs[item].name === "gender" || ffs[item].name === "is_alive" || ffs[item].name === "public"))) &&
-                    isFieldEmptyForCheckAll($(ffs[item]).closest("tr"))) {
-                    return false;
-                }
-                return true;
-            }).attr('disabled', !selectingAll);
+            // (live-reported, DanCornett): this used to also walk every
+            // value field here and toggle its disabled attribute to match
+            // selectingAll - the exact same leftover this codebase already
+            // removed from the per-person path (applySelectAllState(),
+            // buildform.js) during the #304 editability/pre-selection
+            // split, but never removed from this separate category-level
+            // handler. Unchecking a whole category (Parents/Siblings/
+            // Partners/Children, or the focus profile's own
+            // #updateprofile, which shares this .checkall class) disabled
+            // every field underneath it; re-checking only re-enabled the
+            // subset that happened to be pre-selected, leaving every
+            // blank/matching field stuck disabled with no way back in
+            // short of switching a person's Action to "Add profile" and
+            // back (which doesn't exist at all for the focus profile).
+            // Editability depends only on lock state now, decided once at
+            // render/resync time, never reactively here - the checkbox
+            // filter above is this handler's entire remaining job.
             syncGeotopcheckState(fs);
         }
     });

@@ -1599,6 +1599,21 @@ $(function () {
                 if (selectingAll && isFieldEmptyForCheckAll($(ffs[item]).closest('tr'))) {
                     return false;
                 }
+                // #330 (live-reported, DanCornett): a half-sibling's own
+                // top-level checkbox must never be force-checked by the
+                // category-wide "select all" - initial render already
+                // keeps a half-sibling unscored/unchecked on purpose (see
+                // buildform.js's own halfsibling handling), but re-checking
+                // the whole category afterward ignored that caution and
+                // selected every half-sibling right along with full
+                // siblings. The user can still check one individually -
+                // this only excludes it from the BULK action. Deselecting
+                // the category is unaffected (Dan confirmed that direction
+                // already clears everyone, half-siblings included, as
+                // intended).
+                if (selectingAll && $(ffs[item]).hasClass('checkslide') && $(ffs[item]).attr('data-halfsibling') === 'true') {
+                    return false;
+                }
                 return true;
             }).prop('checked', selectingAll);
             // (live-reported, DanCornett): this used to also walk every

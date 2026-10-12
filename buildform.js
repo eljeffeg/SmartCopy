@@ -1932,7 +1932,7 @@ function buildForm() {
 
             var membersstring = $(entry).html();
             membersstring += '<div class="membertitle" style="background-color: ' + bgcolor + '"><table style="border-spacing: 0px; border-collapse: separate; width: 100%;"><tr>' +
-                '<td><input type="checkbox" class="checkslide" name="checkbox' + i + '-' + relationship + '" ' + isChecked(fullname, scored) + checkunknown + '></td>';
+                '<td><input type="checkbox" class="checkslide" data-halfsibling="' + halfsibling + '" name="checkbox' + i + '-' + relationship + '" ' + isChecked(fullname, scored) + checkunknown + '></td>';
             if (expand) {
                 membersstring += '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;">';
             } else {

@@ -1846,7 +1846,19 @@ var submitform = function () {
             $("#updatestatus").text("Update: " + getProfileName(focusname));
             if (exists(profileout["about_me"])) {
                 about = profileout["about_me"];
-                if (!about.endsWith("\n")) {
+                // #286 (live-reported, DanCornett): this used to pad a
+                // genuinely blank about_me with a bare "\n" unconditionally -
+                // buildReferenceAboutMe()'s own identical padding (below)
+                // already guards this with `about !== ""` for exactly this
+                // reason, but this call site's copy never got the same
+                // guard. A padded "\n" is itself non-blank, so every check
+                // downstream that exists specifically to treat blank About
+                // as "nothing new" (the updatedCategories-only bare-citation
+                // path, and the same-source refresh-in-place check) never
+                // fired - a blank About on an already-cited profile kept
+                // writing a fresh duplicate citation on every single run
+                // instead of refreshing the existing one in place.
+                if (about !== "" && !about.endsWith("\n")) {
                     about += "\n";
                 }
             }
@@ -1952,7 +1964,12 @@ var submitform = function () {
                         var rawAbout = "";
                         if (exists(familyout["about_me"])) {
                             about = familyout["about_me"];
-                            if (!about.endsWith("\n")) {
+                            // #286 (live-reported, DanCornett): same
+                            // unguarded padding bug as the focus profile's
+                            // identical call site above - fixed the same
+                            // way, matching buildReferenceAboutMe()'s own
+                            // already-guarded padding.
+                            if (about !== "" && !about.endsWith("\n")) {
                                 about += "\n";
                             }
                             rawAbout = about;

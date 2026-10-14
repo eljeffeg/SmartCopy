@@ -2010,6 +2010,29 @@ var submitform = function () {
                             applyBuiltAboutMe(familyout, builtFamilyAboutMe);
                         } else if (about !== "") {
                             familyout["about_me"] = about;
+                        } else {
+                            // #286 (live-reported, DanCornett - DATA LOSS):
+                            // familyout["about_me"] already holds the raw
+                            // scraped value from parseForm() at this point
+                            // (set whenever the About checkbox was checked at
+                            // all, even blank - see isChecked()/isFieldSelectable()'s
+                            // own blank-scraped/blank-Geni pre-selection
+                            // exception). Neither branch above ever used to
+                            // touch it when about was genuinely blank, so
+                            // that raw "" was submitted as-is - Geni's API
+                            // treats an empty about_me as a real value,
+                            // wiping the family member's existing About
+                            // entirely. The focus profile never had this gap
+                            // (buildFocusReferenceAboutMe()/applyBuiltAboutMe()
+                            // run unconditionally there, always either
+                            // setting a real built value or deleting the key)
+                            // - deleting it here closes the same gap for a
+                            // family member. Still correctly leaves a
+                            // genuinely blank About untouched rather than
+                            // writing a bare citation for it - that's
+                            // proposal A from this issue, a deliberate
+                            // separate follow-up, not addressed here.
+                            delete familyout["about_me"];
                         }
                     }
                     if (exists(familyout.photo) && exists(fdata.url)) {

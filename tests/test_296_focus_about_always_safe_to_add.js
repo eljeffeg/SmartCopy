@@ -40,7 +40,11 @@ assertTrue(!/var scoreabout = false;/.test(src),
 // discarding Geni's own About.
 assertTrue(popupSrc.indexOf('return existingAbout + "\\n" + newContent;') !== -1,
     "Confirms the assumption this fix depends on: mergeAboutText() puts Geni's existing about_me first and appends new content after it, never discarding it");
-assertTrue(popupSrc.indexOf('buildReferenceAboutMe(rawAbout, geni_return.about_me, response.variable.refurl, response.variable.updatedCategories)') !== -1,
+// #286 follow-up (live-reported, DanCornett): geni_return.about_me is now
+// normalized through geniRealAbout first (a missing field means blank, not
+// "nothing to merge") - see test_286_footnote_bullet_nesting.js for the
+// full reasoning.
+assertTrue(popupSrc.indexOf('buildReferenceAboutMe(rawAbout, geniRealAbout, response.variable.refurl, response.variable.updatedCategories)') !== -1,
     "The family-member Update path resolves its final about_me through the same shared, merge-based function the focus profile uses");
 
 // --- Behavioral: real isChecked()/resolveFieldEnabled(), Dan's exact ask ---

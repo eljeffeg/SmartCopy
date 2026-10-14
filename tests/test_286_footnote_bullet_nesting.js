@@ -202,7 +202,16 @@ assertTrue(/buildReferenceAboutMe\(newAboutContent, focusabout, refurl, updatedC
     "buildFocusReferenceAboutMe() delegates to the shared buildReferenceAboutMe()");
 assertTrue(/buildReferenceAboutMe\(rawAbout, "", fdata\.url, updatedCategories\)/.test(src),
     "A brand-new family-member 'Add' resolves its about_me immediately via the shared function - existingAbout is blank, nothing to wait for");
-assertTrue(/buildReferenceAboutMe\(rawAbout, geni_return\.about_me, response\.variable\.refurl, response\.variable\.updatedCategories\)/.test(src),
+// #286 follow-up (live-reported, DanCornett): used to pass
+// `geni_return.about_me` directly - but Geni's API appears to omit
+// about_me entirely from its JSON response when a profile's About is
+// genuinely empty, rather than returning "" - which silently skipped the
+// citation step for genuinely new content. geniRealAbout now normalizes a
+// missing field to "", same convention GeniPerson.get() uses everywhere
+// else in this codebase.
+assertTrue(/var geniRealAbout = exists\(geni_return\.about_me\) \? geni_return\.about_me : "";/.test(src),
+    "A missing geni_return.about_me is normalized to blank, not treated as 'nothing to merge'");
+assertTrue(/buildReferenceAboutMe\(rawAbout, geniRealAbout, response\.variable\.refurl, response\.variable\.updatedCategories\)/.test(src),
     "A family-member 'Update' defers to the shared function until Geni's REAL existing About is fetched, then resolves the same way the focus profile always has");
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

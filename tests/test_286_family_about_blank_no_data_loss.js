@@ -114,12 +114,18 @@ function assertTrue(cond, label) {
 var fdata = { url: 'https://www.familysearch.org/tree/person/details/ABCD-123' };
 
 // --- #286 DATA LOSS: blank about_me on an "Add" family member must never
-// be submitted as a destructive blank overwrite. ---
+// be submitted as a destructive blank overwrite - whether that means
+// deleting it entirely, or (per a later #286 follow-up fix, which
+// intentionally gives a brand-new Add a bare citation here instead,
+// matching the focus profile's own behavior) a real, non-blank citation
+// value. Either is safe; a literal "" is the one thing that must never
+// reach this point, since Geni's API treats a submitted empty about_me as
+// a real value and wipes the profile's existing About with it. ---
 {
     var familyout = { profile_id: '42', action: 'add', about_me: '', last_name: 'Smith' };
     var result = runRealFamilyAboutBlock(familyout, { fdata: fdata, sourcecheck: true });
-    assertTrue(!exists(result['about_me']),
-        "#286 DATA LOSS fix: a blank about_me on a new 'Add' family member is deleted from the submission, never sent as a destructive empty string");
+    assertTrue(!exists(result['about_me']) || result['about_me'] !== '',
+        "#286 DATA LOSS fix: a blank about_me on a new 'Add' family member is never submitted as a literal empty string - either omitted entirely, or (intentionally, per a later fix) a real bare citation");
 }
 
 // --- #286 DATA LOSS: same scenario for a matched 'Update' family member. ---

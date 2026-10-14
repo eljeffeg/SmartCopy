@@ -1998,7 +1998,16 @@ var submitform = function () {
                         // this point - deferred to the fetch-and-merge step
                         // further down, same shared function, once Geni's
                         // actual about_me has been fetched.
-                        if (sourcecheck && rawAbout !== "" && familyout.action === "add") {
+                        // (live-reported, DanCornett, #286 follow-up): no
+                        // longer requires rawAbout !== "" - a brand-new
+                        // profile should get at least a bare citation
+                        // ("checked against this source") even with a
+                        // blank scraped About, same as the focus profile
+                        // already does unconditionally. buildReferenceAboutMe()
+                        // itself already handles a blank `about` correctly
+                        // (no content, bare citation only) - this gate was
+                        // the only thing stopping it from ever being asked.
+                        if (sourcecheck && familyout.action === "add") {
                             var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]), marriagedates[familyout.profile_id]);
                             var builtFamilyAboutMe = buildReferenceAboutMe(rawAbout, "", fdata.url, updatedCategories);
                             // #286: routes through the same applyBuiltAboutMe()
@@ -2121,7 +2130,7 @@ var submitform = function () {
                                 var familyout = response.variable.familyout;
                                 var rawAbout = response.variable.rawAbout;
                                 if (!$.isEmptyObject(geni_return)) {
-                                    if (exists(familyout["about_me"]) && exists(geni_return.about_me)) {
+                                    if (exists(familyout["about_me"])) {
                                         // #235/#286 (live-reported, DanCornett -
                                         // simplified): now that Geni's REAL
                                         // existing About is known, resolve the
@@ -2139,7 +2148,24 @@ var submitform = function () {
                                         // submitting it as-is would have
                                         // overwritten Geni's real About with
                                         // only this run's raw snippet.
-                                        var builtFamilyAboutMe = buildReferenceAboutMe(rawAbout, geni_return.about_me, response.variable.refurl, response.variable.updatedCategories);
+                                        // (live-reported, DanCornett, #286
+                                        // follow-up): used to also require
+                                        // exists(geni_return.about_me) before
+                                        // ever running this merge - but Geni's
+                                        // API appears to omit the about_me
+                                        // field entirely from its JSON
+                                        // response when a profile's About is
+                                        // genuinely empty, rather than
+                                        // returning "". That silently skipped
+                                        // the whole merge/citation step, so
+                                        // genuinely new content reached Geni
+                                        // as the bare raw scraped text with no
+                                        // citation at all. A missing field
+                                        // now means the same thing it means
+                                        // everywhere else in this codebase
+                                        // (GeniPerson.get()) - blank.
+                                        var geniRealAbout = exists(geni_return.about_me) ? geni_return.about_me : "";
+                                        var builtFamilyAboutMe = buildReferenceAboutMe(rawAbout, geniRealAbout, response.variable.refurl, response.variable.updatedCategories);
                                         applyBuiltAboutMe(familyout, builtFamilyAboutMe);
                                     }
                                     if (exists(familyout["nicknames"]) && exists(geni_return.nicknames)) {

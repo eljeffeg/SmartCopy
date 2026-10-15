@@ -431,26 +431,11 @@ function updateGeoLocation() {
         // coordinates back - leaving the ORIGINAL (possibly wrong -
         // correcting a bad/ambiguous match is exactly why someone uses
         // this modal) latitude/longitude silently stuck in the form.
-        // #288 (live-reported, DanCornett): FamilySearch and Geni report
-        // GPS coordinates at different decimal precision (FS has 4 or
-        // fewer digits after the decimal), so a naive string-equality
-        // check would almost always flag them as "different" even when
-        // they describe the same point - only really meaningful once
-        // truncated both to the SHORTER value's own length minus one
-        // digit. Also never pre-selects GPS at all when any OTHER
-        // location field differs (Geni may hold a more precise point the
-        // user manually placed - a cemetery plot, for instance - that a
-        // broader source match shouldn't casually override).
-        function gpsEffectivelyMatches(sourceValue, geniValue) {
-            if (!isValue(sourceValue) || !isValue(geniValue)) {
-                return false;
-            }
-            var compareLength = Math.min(String(sourceValue).length, String(geniValue).length) - 1;
-            if (compareLength <= 0) {
-                return String(sourceValue) === String(geniValue);
-            }
-            return String(sourceValue).slice(0, compareLength) === String(geniValue).slice(0, compareLength);
-        }
+        // #288/#333 (live-reported, DanCornett): gpsEffectivelyMatches()
+        // itself is now a shared, top-level function (see its own comment
+        // there) - this flow just calls it. gpsFieldDiffersFromGeni() stays
+        // local; it also needs the anyNonGpsFieldDiffers closure variable,
+        // which is specific to this pencil-edit flow.
         function gpsFieldDiffersFromGeni(row, sourceValue) {
             if (anyNonGpsFieldDiffers || !isValue(sourceValue)) {
                 return false;
@@ -1292,16 +1277,28 @@ function buildForm() {
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked, isValue(String(latitude)) && isValue(genifocusdata.get(title, "location.latitude")) && valuesAreEquivalent(latitude, genifocusdata.get(title, "location.latitude"))),
-                                enabledAttr: isEnabled(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked, isValue(String(latitude)) && isValue(genifocusdata.get(title, "location.latitude")) && valuesAreEquivalent(latitude, genifocusdata.get(title, "location.latitude"))),
+                                // #333 (live-reported, DanCornett): GPS
+                                // needs the same precision-tolerant
+                                // gpsEffectivelyMatches() comparison used
+                                // everywhere else now, not the generic
+                                // valuesAreEquivalent() - otherwise a pure
+                                // decimal-precision difference between
+                                // FamilySearch and Geni reads as "different"
+                                // here at render time, even though a
+                                // pencil-edit recompute (which already used
+                                // the tolerant comparator) correctly
+                                // wouldn't pre-select it.
+                                checkedAttr: isChecked(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked, gpsEffectivelyMatches(latitude, genifocusdata.get(title, "location.latitude"))),
+                                enabledAttr: isEnabled(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked, gpsEffectivelyMatches(latitude, genifocusdata.get(title, "location.latitude"))),
                                 label: "Latitude: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:latitude", value: String(latitude), icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.latitude"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked, isValue(String(longitude)) && isValue(genifocusdata.get(title, "location.longitude")) && valuesAreEquivalent(longitude, genifocusdata.get(title, "location.longitude"))),
-                                enabledAttr: isEnabled(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked, isValue(String(longitude)) && isValue(genifocusdata.get(title, "location.longitude")) && valuesAreEquivalent(longitude, genifocusdata.get(title, "location.longitude"))),
+                                // #333: see Latitude's own comment just above.
+                                checkedAttr: isChecked(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked, gpsEffectivelyMatches(longitude, genifocusdata.get(title, "location.longitude"))),
+                                enabledAttr: isEnabled(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked, gpsEffectivelyMatches(longitude, genifocusdata.get(title, "location.longitude"))),
                                 label: "Longitude: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:longitude", value: String(longitude), icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.longitude"), locked: locationlocked
@@ -5726,7 +5723,38 @@ function syncGeotopcheckState(fs) {
 // check popup.js's submit-time merge already uses to dedupe, just applied
 // here to the pre-selection decision instead). A genuinely NEW addition to
 // an existing About - even a long one - still correctly pre-selects.
+//
+// #288/#333 (live-reported, DanCornett): FamilySearch and Geni report GPS
+// coordinates at different decimal precision (FS has 4 or fewer digits
+// after the decimal), so a naive string-equality check would almost
+// always flag them as "different" even when they describe the same
+// point - only really meaningful once truncated both to the SHORTER
+// value's own length minus one digit. This used to live only inside the
+// pencil "Edit Location" flow's own closure - a family member's GPS
+// resync (refreshFieldCheckState()) and the focus profile's own initial
+// render both still compared GPS through the generic, precision-blind
+// valuesAreEquivalent(), so GPS could show pre-selected the FIRST time
+// (precision noise alone reading as "different") and then correctly
+// stop being pre-selected only after a pencil-edit recomputed it through
+// this tolerant comparator - exactly the "first-time pre-selection
+// differs from the pre-selection process after an Edit Location" Dan
+// described. Promoted to a shared, top-level function so every GPS
+// comparison in this codebase uses the same tolerant logic.
+function gpsEffectivelyMatches(sourceValue, geniValue) {
+    if (!isValue(sourceValue) || !isValue(geniValue)) {
+        return false;
+    }
+    var compareLength = Math.min(String(sourceValue).length, String(geniValue).length) - 1;
+    if (compareLength <= 0) {
+        return String(sourceValue) === String(geniValue);
+    }
+    return String(sourceValue).slice(0, compareLength) === String(geniValue).slice(0, compareLength);
+}
+
 function valuesAreEquivalentForFieldType(scraped, current, fieldType) {
+    if (fieldType === "gps") {
+        return gpsEffectivelyMatches(scraped, current);
+    }
     if (fieldType === "date") {
         // #304 follow-up (consolidation pass): folds isDateSpecificityDowngrade()
         // in here too, not just datesAreEquivalent() - this dispatch is the
@@ -5869,9 +5897,10 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue)
     // bespoke path - it doesn't, for family members - which meant it never
     // un-checked even when identical to Geni.)
     var fieldType = fieldName.endsWith(":date") ? "date" :
-        (fieldName === "nicknames" ? "nicknames" :
-            (fieldName === "about_me" ? "about_me" :
-                (fieldName === "photo" ? "photo" : "generic")));
+        ((fieldName.endsWith(":location:latitude") || fieldName.endsWith(":location:longitude")) ? "gps" :
+            (fieldName === "nicknames" ? "nicknames" :
+                (fieldName === "about_me" ? "about_me" :
+                    (fieldName === "photo" ? "photo" : "generic"))));
     // (live-reported, DanCornett - #304 follow-up): Photo's own "Enable
     // photo checkbox auto-selection" config toggle - matches the same
     // (scored && photoscore) gate initial render already applies (see

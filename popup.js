@@ -1721,7 +1721,15 @@ function isFieldEmptyForCheckAll(row) {
         // non-English-locale limitation. Living/is_alive had the same
         // shape of gap but is fixed above via isAlive(), same as Privacy's
         // isPublic() fix.)
-        var fieldType = fieldName.endsWith(":date") ? "date" : (fieldName === "nicknames" ? "nicknames" : "generic");
+        // #333 (live-reported, DanCornett): GPS fields need the same
+        // precision-tolerant comparison (gpsEffectivelyMatches(), via the
+        // shared "gps" fieldType) everywhere else in this codebase now
+        // uses - otherwise Select All could force-check a GPS field here
+        // purely over decimal-precision noise, the same false positive
+        // #288/#333 already fixed for initial render and resync.
+        var fieldType = fieldName.endsWith(":date") ? "date" :
+            ((fieldName.endsWith(":location:latitude") || fieldName.endsWith(":location:longitude")) ? "gps" :
+                (fieldName === "nicknames" ? "nicknames" : "generic"));
         if (isFieldSelectable(valueFields[i].value, companion, fieldType)) {
             return false;
         }

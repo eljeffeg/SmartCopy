@@ -23,7 +23,13 @@ function exists(v) { return v !== undefined && v !== null && v !== ""; }
 function isValue(v) { return v !== ""; }
 
 const updateGeoLocationBody = extractFunction(src, 'updateGeoLocation');
-const gpsEffectivelyMatches = new Function('exists', 'isValue', 'return ' + extractFunction(updateGeoLocationBody, 'gpsEffectivelyMatches'))(exists, isValue);
+// #333 (live-reported, DanCornett): gpsEffectivelyMatches() is now a
+// shared, top-level function (promoted out of updateGeoLocation()'s own
+// closure so the focus profile's initial render, a family member's GPS
+// resync, and Select All can all use the same precision-tolerant
+// comparison) - extracted directly from the full source now, not from
+// inside updateGeoLocation()'s own body.
+const gpsEffectivelyMatches = new Function('exists', 'isValue', 'return ' + extractFunction(src, 'gpsEffectivelyMatches'))(exists, isValue);
 
 let pass = 0, fail = 0;
 function assertTrue(cond, label) {

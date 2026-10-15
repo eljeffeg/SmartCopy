@@ -93,19 +93,30 @@ function resolveAncestryUrl(url) {
 // plus a separate `researchData = {...}` blob, so fall back to that if the
 // new block isn't found.
 function extractNewPersonData(htmlstring) {
-    var marker = '<script id="person-data" type="application/json">';
-    var start = htmlstring.indexOf(marker);
-    if (start === -1) {
-        return null;
-    }
-    start += marker.length;
-    var end = htmlstring.indexOf("</script>", start);
-    if (end === -1) {
+    // #335 (live-reported via Geni discussion board - "#person-data block
+    // not found"): this used to match the script tag via an exact literal
+    // string (`<script id="person-data" type="application/json">`) -
+    // brittle against anything that changes the tag's OTHER attributes
+    // (a CSP nonce, a data-* attribute, reordered attributes, even a
+    // single extra space), none of which mean the block itself is
+    // actually gone. Ancestry's own blog confirms person pages are
+    // currently in an active, partial rollout of layout changes ("buttons
+    // have moved, new banners are popping up"), which matches Dan's own
+    // observation that this reproduces on some profiles but not others -
+    // exactly the signature of an A/B-tested or gradually-rolled-out page
+    // template, not a one-time breaking change. Selecting by id (via the
+    // same jQuery-on-a-raw-HTML-string pattern extractLegacyPersonData()
+    // already uses below) tolerates any attribute changes to the tag
+    // itself, as long as the id - a stable, semantic identifier far less
+    // likely to change than presentational attributes - still reads
+    // "person-data".
+    var personDataScript = $('script#person-data', htmlstring).first();
+    if (personDataScript.length === 0) {
         return null;
     }
     var pageData;
     try {
-        pageData = JSON.parse(htmlstring.substring(start, end));
+        pageData = JSON.parse(personDataScript.text());
     } catch (err) {
         console.warn("Ancestry: failed to parse #person-data JSON", err);
         return null;

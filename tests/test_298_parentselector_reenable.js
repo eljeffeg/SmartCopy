@@ -93,6 +93,7 @@ const applyProtectedDisabledStateSrc = extractFunction(bfSrc, 'applyProtectedDis
 const refreshFieldCheckStateSrc = extractFunction(bfSrc, 'refreshFieldCheckState');
 const refreshLivingCheckStateSrc = extractFunction(bfSrc, 'refreshLivingCheckState');
 const setGeniFamilyDataSrc = extractFunction(bfSrc, 'setGeniFamilyData');
+const hasVisibleCheckedFieldSrc = extractFunction(bfSrc, 'hasVisibleCheckedField');
 const syncTopLevelIndicatorsSrc = extractFunction(bfSrc, 'syncTopLevelIndicators');
 const localizedGenderSrc = extractFunction(bfSrc, 'localizedGender');
 const isAliveSrc = extractFunction(bfSrc, 'isAlive');
@@ -129,6 +130,7 @@ function build(genifamilydata) {
         ${isPublicSrc}
         ${buildPrivacySelectSrc}
         ${refreshPrivacySelectSrc}
+        ${hasVisibleCheckedFieldSrc}
         ${syncTopLevelIndicatorsSrc}
         ${setGeniFamilyDataSrc}
         return { setGeniFamilyData };

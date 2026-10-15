@@ -2728,7 +2728,10 @@ function syncPersonCheckboxWithPreCheckedFields() {
     // unchecked with no visible sign anything was actually pre-selected.
     var focusFieldset = $('#profileshadowdiv').children('fieldset');
     if (focusFieldset.length > 0) {
-        $('#updateprofile').prop('checked', focusFieldset.find('.checknext:checked').length > 0);
+        // #325: see hasVisibleCheckedField()'s own comment - a hidden
+        // location row (flat vs. structured view) can be checked
+        // underneath without anything visible actually being selected.
+        $('#updateprofile').prop('checked', hasVisibleCheckedField(focusFieldset));
     }
 }
 
@@ -2745,11 +2748,30 @@ function syncPersonCheckboxWithPreCheckedFields() {
 // now. Also handles the focus profile's own #updateprofile the same way -
 // it has no .memberexpand at all, just its own fieldset directly inside
 // #profileshadowdiv.
+// #325 (live-reported, DanCornett): a location's flat/structured rows both
+// get their checked state set at pencil-edit time regardless of which view
+// is actually visible (setLocationFieldChecked(), the "Update Location"
+// flow) - whichever view ISN'T active carries class "geohidden" and is
+// excluded from submission entirely (parseForm()), but its checkbox can
+// still be checked underneath. Counting a hidden row's checked state
+// toward "does this person/category have anything selected" produced
+// exactly the "reversed toggle" Dan reported: a top-level box stuck
+// checked with nothing visibly selected, because a hidden sibling row
+// was still checked. Matches the same hidden-row exclusion every bulk
+// checkbox operation in this codebase already applies (the .checkall
+// handler, applySelectAllState(), isFieldEmptyForCheckAll()) - this was
+// the one place that counted checked state without it.
+function hasVisibleCheckedField(container) {
+    return container.find('.checknext:checked').filter(function () {
+        return $(this).closest('tr').css('display') !== 'none';
+    }).length > 0;
+}
+
 function syncTopLevelIndicators(clickedElement) {
     var memberexpand = $(clickedElement).closest('.memberexpand');
     if (memberexpand.length > 0) {
         var personTitle = memberexpand.prev('.membertitle');
-        personTitle.find('.checkslide').prop('checked', memberexpand.find('.checknext:checked').length > 0);
+        personTitle.find('.checkslide').prop('checked', hasVisibleCheckedField(memberexpand));
         var groupFieldset = personTitle.closest('fieldset');
         if (groupFieldset.length > 0) {
             groupFieldset.parent().find('.checkall').first().prop('checked', groupFieldset.find('.checkslide:checked').length > 0);
@@ -2774,7 +2796,7 @@ function syncTopLevelIndicators(clickedElement) {
     }
     var focusFieldset = $(clickedElement).closest('fieldset');
     if (focusFieldset.length > 0 && exists(focusFieldset[0].parentElement) && focusFieldset[0].parentElement.id === "profileshadowdiv") {
-        $('#updateprofile').prop('checked', focusFieldset.find('.checknext:checked').length > 0);
+        $('#updateprofile').prop('checked', hasVisibleCheckedField(focusFieldset));
     }
 }
 
@@ -5615,7 +5637,17 @@ function syncGeotopcheckState(fs) {
         var anyChildChecked = false;
         var sib = headerRow.nextElementSibling;
         while (exists(sib) && (!sib.id || sib.id === "")) {
-            if ($(sib).find('[type="checkbox"]').is(':checked')) {
+            // #325 (live-reported, DanCornett): same hidden-row exclusion
+            // as hasVisibleCheckedField() - a flat/structured location row
+            // that isn't the currently-active view is checked="none" and
+            // excluded from submission entirely, but its checkbox can
+            // still be checked underneath (setLocationFieldChecked() sets
+            // every row's checked state regardless of which view is
+            // visible). Counting it here caused the location's own top
+            // checkbox to snap back checked immediately after a bulk
+            // "uncheck everything" pass (which correctly skips hidden
+            // rows) left that hidden checkbox untouched.
+            if ($(sib).css('display') !== 'none' && $(sib).find('[type="checkbox"]').is(':checked')) {
                 anyChildChecked = true;
             }
             sib = sib.nextElementSibling;

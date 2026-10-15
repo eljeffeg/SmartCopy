@@ -44,6 +44,7 @@ function exists(v) { return typeof v !== 'undefined' && v !== null; }
 global.exists = exists;
 
 const ctx = new Function('$', 'exists', `
+    ${extractFunction(bfSrc, 'hasVisibleCheckedField')}
     ${extractFunction(bfSrc, 'syncPersonCheckboxWithPreCheckedFields')}
     ${extractFunction(bfSrc, 'syncTopLevelIndicators')}
     return { syncPersonCheckboxWithPreCheckedFields, syncTopLevelIndicators };

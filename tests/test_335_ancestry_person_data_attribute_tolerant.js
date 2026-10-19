@@ -10,36 +10,33 @@
 // `$(selector, htmlString)` instead of an exact literal string, reasoning
 // it would tolerate attribute changes (a CSP nonce, reordered attributes).
 // It did NOT fix the real bug. Testing directly against GaryKoven's actual
-// saved page source (not reproducible from a small fragment - see below)
-// proved the real cause: jQuery's raw-HTML-string parsing of a FULL
-// document (one starting with <html>/<head>/<body>) does not preserve
-// that nesting - it silently flattens everything into a list of top-level
-// siblings, the same way a browser's innerHTML fragment parser would.
-// `$(htmlString).find('script#person-data')` (and the equivalent
-// `$(selector, htmlString)` form) searches DESCENDANTS of that already-
-// flattened top-level set - and the tag, originally nested deep inside
-// <head> or <body>, has no ancestor left within the parsed result to be a
-// descendant OF. `.find()` returns empty even though the tag is genuinely
-// present, confirmed by querying the SAME parsed jQuery object with
-// `.filter()` instead (which checks the flattened top-level set directly)
-// and finding it there. The identical bug existed in
-// extractLegacyPersonData()'s `$("script:contains('var PersonCard')",
-// htmlString)` call too.
+// saved page source made it provable, and the exact trigger was then
+// isolated with a minimal synthetic reproduction (see CLAUDE.md's own
+// "Parsing a raw HTML string from a source page" guardrail for the full
+// writeup): jQuery's HTML-string parsing flattens any element that is a
+// DIRECT CHILD of `<head>` or `<body>` out to the top level of the parsed
+// result, instead of keeping it nested where it actually is in the
+// document. `.find(selector)` searches descendants and never reaches it;
+// `.filter(selector)` against that same parsed result finds it
+// immediately, because it's sitting right there at the top level. An
+// element nested inside anything else first (a <div>, any other real
+// container) parses and queries normally - which is exactly why this
+// matters: a real page's main content script is routinely a direct child
+// of <body> or <head> (it was, for Ancestry's #person-data block), so
+// this isn't an edge case, it's the common case. The identical bug
+// existed in extractLegacyPersonData()'s
+// `$("script:contains('var PersonCard')", htmlString)` call too.
 //
 // Fixed by using DOMParser instead - it parses a full HTML document
 // properly (it isn't building an innerHTML fragment, so there's nothing
 // to flatten) and is available here (popup.html, not the background
 // service worker), same as every other DOM-dependent helper in this file.
 //
-// This test reproduces the REAL failure mode with a realistic full-
-// document fixture (doctype + head with other scripts/meta + body with
-// substantial surrounding content before and after the target script) -
-// a small, loosely-nested fragment (as an earlier version of this test
-// used) does not actually trigger jQuery's flattening behavior and would
-// have let the original, broken fix pass. The fix itself (DOMParser) was
-// also verified directly against GaryKoven's real saved page source
-// during development (not committed here - it's a large, real person's
-// family tree data) before writing this fixture.
+// The fixture below places the target script as a direct child of <body>
+// (deliberately NOT wrapped in a div) specifically to exercise this exact
+// shape - an earlier version of this test wrapped it in a div "to look
+// more realistic" and, without realizing it, tested a shape that can
+// never actually fail, letting the original broken fix pass clean.
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
@@ -94,10 +91,11 @@ function samplePersonDataJson() {
 }
 
 // A realistic full-document shape - doctype, a real <head> with other
-// scripts/meta tags, a <body> with substantial unrelated content before
-// AND after the target script - close enough to a real Ancestry page to
-// actually exercise jQuery's flattening behavior (the bug a smaller
-// fragment-style fixture would have hidden).
+// scripts/meta tags, a <body> with unrelated surrounding content - with
+// the target script placed as a direct child of <body>, the one specific
+// shape that actually triggers jQuery's flattening bug (see the file
+// header comment). The surrounding bulk isn't what matters here; the
+// script's own direct-child placement is.
 function realisticPage(scriptTagOpen) {
     return '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
         '<title>Person Page</title>' +

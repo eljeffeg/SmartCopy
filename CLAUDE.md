@@ -165,6 +165,21 @@ function(s) rather than reimplementing them, and cover both the reported
 case and at least one adjacent case that should NOT trigger the same
 behavior (the "safety" side, not just the "it works" side).
 
+**When a change alters what gets submitted to Geni, test the worst case
+your change could cause, not just the symptom you're fixing.** A real
+incident (#286): removing an unconditional `"\n"` padding on a blank
+`about_me` correctly fixed the duplicate-citation bug it targeted - the
+existing test suite was green, but nothing in it asserted the actual
+invariant that mattered. The padding had been *accidentally* the only
+thing routing a blank value through the logic that deletes it before
+submission; removing it let a literal empty string reach Geni's API,
+which wiped the profile's real existing About. The fix shipped, and the
+live incident is what caught it, not the test suite. Before trusting a
+change to submission-building code as done, ask "what's the worst thing
+this change could cause reaching Geni" and write a test for that
+specifically - a green suite that never asked the right question isn't
+safety, it's a blind spot with a passing grade.
+
 This suite is intentionally excluded from the release zip
 (`.gitattributes` `export-ignore`, alongside `scripts/`) - it's dev-only,
 never loaded by the extension at runtime.
@@ -183,6 +198,44 @@ or a proper dot-delimited subdomain, never a raw suffix. This exact pattern is
 already factored out as `isSubdomainOf()` in `background.js` - reuse it (or
 its logic if working in a file that can't reach it) rather than writing a new
 inline check.
+
+## Parsing a raw HTML string from a source page
+
+Never use jQuery to locate an element inside a raw HTML **document**
+string fetched from a source site - neither `$(selector, htmlString)` nor
+`$(htmlString).find(selector)`. Both can silently return nothing for an
+element that is genuinely present and correctly formed. Root cause,
+fully isolated against a real, live-reported Ancestry page (#335) and
+then confirmed with a minimal synthetic reproduction: jQuery's HTML-
+string parsing flattens any element that is a **direct child of `<head>`
+or `<body>`** out to the top level of the parsed result, instead of
+keeping it nested - `.find(selector)` searches descendants and never
+reaches it, even though `.filter(selector)` against that same parsed
+result finds it immediately (it's sitting right there at the top level).
+An element nested inside anything else first (a `<div>`, any other real
+container) parses and queries normally - this is exactly why a "realistic-
+looking" test fixture can pass while still being wrong: wrapping the
+target element in a div, even for an otherwise-faithful fixture, quietly
+avoids the one structural shape that actually breaks. A real page's main
+content is routinely a direct child of `<body>` (or a `<script>` a direct
+child of `<head>`, as it was for Ancestry's `#person-data` block), so this
+isn't an edge case - it's the common case. The *first* attempted fix for
+#335 (switching from an exact literal string match to a jQuery selector)
+still had this exact gap - it fixed nothing, because it used the same
+broken parsing underneath, and its own test fixture happened to nest the
+target in a div. Use `new DOMParser().parseFromString(htmlstring,
+'text/html')` and `.querySelector()`/`.querySelectorAll()` instead - it
+parses a full document properly, with nothing to flatten.
+
+This same `$(source).find(...)` pattern already exists in other
+collection parsers (`findagrave.js` at minimum) that have never been
+specifically reported broken - confirmed via direct testing that the
+underlying parsing problem is NOT Ancestry-specific, so those are a
+latent, unconfirmed risk rather than a proven bug. A test for this needs
+the target element to be a direct child of `<head>` or `<body>` (not
+wrapped in a div) to actually exercise the failure - any work that
+touches this kind of parsing in another collection should move it to
+`DOMParser` too, and should be tested against that specific shape.
 
 ## Don't add a field/row the user can't act on
 

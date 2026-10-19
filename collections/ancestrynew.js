@@ -93,30 +93,35 @@ function resolveAncestryUrl(url) {
 // plus a separate `researchData = {...}` blob, so fall back to that if the
 // new block isn't found.
 function extractNewPersonData(htmlstring) {
-    // #335 (live-reported via Geni discussion board - "#person-data block
-    // not found"): this used to match the script tag via an exact literal
-    // string (`<script id="person-data" type="application/json">`) -
-    // brittle against anything that changes the tag's OTHER attributes
-    // (a CSP nonce, a data-* attribute, reordered attributes, even a
-    // single extra space), none of which mean the block itself is
-    // actually gone. Ancestry's own blog confirms person pages are
-    // currently in an active, partial rollout of layout changes ("buttons
-    // have moved, new banners are popping up"), which matches Dan's own
-    // observation that this reproduces on some profiles but not others -
-    // exactly the signature of an A/B-tested or gradually-rolled-out page
-    // template, not a one-time breaking change. Selecting by id (via the
-    // same jQuery-on-a-raw-HTML-string pattern extractLegacyPersonData()
-    // already uses below) tolerates any attribute changes to the tag
-    // itself, as long as the id - a stable, semantic identifier far less
-    // likely to change than presentational attributes - still reads
-    // "person-data".
-    var personDataScript = $('script#person-data', htmlstring).first();
-    if (personDataScript.length === 0) {
+    // #335 (live-reported via the Geni discussion board, then independently
+    // by GaryKoven with saved page source that made this provable): this
+    // originally matched the script tag via an exact literal string, then
+    // (still wrong) via jQuery's `$(selector, htmlString)` - both failed on
+    // a real Ancestry page. The real cause, confirmed against GaryKoven's
+    // actual saved source: jQuery's raw-HTML-string parsing of a FULL
+    // document (starting with <html>/<head>/<body>) does not preserve that
+    // nesting - it silently flattens everything to a list of top-level
+    // siblings, the same way the browser's own innerHTML parsing would for
+    // a fragment. `$(htmlString).find('script#person-data')` searches
+    // DESCENDANTS of that flattened top-level set, and the tag - originally
+    // nested deep in <head> or <body> - no longer has any ancestor left to
+    // be a descendant OF, so `.find()` always returns empty on a real page
+    // even though the tag is genuinely present (confirmed live: it exists,
+    // unmodified, in GaryKoven's saved source). `.filter()` against the
+    // flattened top-level set itself DOES find it, which is what proved
+    // this - but relying on "hope the tag happens to still be nestable" is
+    // exactly backwards. DOMParser parses the FULL document properly (no
+    // flattening, since it's not building an innerHTML fragment) and is
+    // available here (popup.html, not the background service worker),
+    // same as this file's other DOM-dependent helpers.
+    var personDataDoc = new DOMParser().parseFromString(htmlstring, 'text/html');
+    var personDataScript = personDataDoc.querySelector('script#person-data');
+    if (!exists(personDataScript)) {
         return null;
     }
     var pageData;
     try {
-        pageData = JSON.parse(personDataScript.text());
+        pageData = JSON.parse(personDataScript.textContent);
     } catch (err) {
         console.warn("Ancestry: failed to parse #person-data JSON", err);
         return null;
@@ -146,7 +151,16 @@ function extractNewPersonData(htmlstring) {
 async function extractLegacyPersonData(htmlstring) {
     var personCard = {};
     try {
-        var foundScript = $("script:contains('var PersonCard')", htmlstring).text();
+        // #335: same jQuery raw-HTML-string flattening bug as
+        // extractNewPersonData() above (see its own comment for the full
+        // explanation) - `$(selector, htmlString)` can't find a tag that
+        // was nested inside <html>/<head>/<body> on a real, full page.
+        // DOMParser doesn't have that problem.
+        var legacyDoc = new DOMParser().parseFromString(htmlstring, 'text/html');
+        var personCardScript = Array.prototype.find.call(legacyDoc.querySelectorAll('script'), function (s) {
+            return s.textContent.indexOf('var PersonCard') !== -1;
+        });
+        var foundScript = exists(personCardScript) ? personCardScript.textContent : '';
         if (foundScript) {
             foundScript = foundScript.substring(0, foundScript.indexOf("};") + 2) + "PersonCard;";
             personCard = await chrome.runtime.sendMessage({

@@ -477,10 +477,30 @@ function get_tab() {
 // pre-selects a value in a form the user still explicitly reviews and
 // submits, a wrong guess is immediately visible via the focus-name display,
 // and manual "Set Geni Destination Profile" correction remains available.
+// #337 (live-reported, DanCornett - "wrong focus profile picked", one
+// report persisting through a full History clear and only resolved by
+// reloading the whole extension): lastResearchFocus had no expiry and no
+// single-use consumption - once research.js wrote it for a specific
+// tabId, it stayed in chrome.storage.local indefinitely, keyed on nothing
+// but that numeric tab id. Chrome tab ids are NOT permanently unique -
+// they get reused once a tab closes and enough tabs/time pass. A LATER,
+// completely unrelated tab that happened to be assigned the same
+// now-recycled id would silently inherit a stale research focus from a
+// prior, unrelated session - with no prompt, since this fallback only
+// runs when nothing else already resolved a focus profile. Consuming
+// (clearing) it the moment it's actually used closes this: the exact tab
+// it was written for gets to use it once, and after that there's nothing
+// left for a reused id to coincidentally match.
+function consumeLastResearchFocus(resolvedId) {
+    lastResearchFocus = null;
+    chrome.storage.local.remove('lastResearchFocus');
+    return resolvedId;
+}
+
 var MAX_OPENER_CHAIN_DEPTH = 5;
 function resolveResearchChainMatch(currentTabId, openerTabId, depth, callback) {
     if (exists(lastResearchFocus) && exists(lastResearchFocus.tabId) && currentTabId === lastResearchFocus.tabId) {
-        callback(lastResearchFocus.id);
+        callback(consumeLastResearchFocus(lastResearchFocus.id));
         return;
     }
     if (!exists(openerTabId) || depth >= MAX_OPENER_CHAIN_DEPTH) {
@@ -495,7 +515,7 @@ function resolveResearchChainMatch(currentTabId, openerTabId, depth, callback) {
             return;
         }
         if (exists(lastResearchFocus) && exists(lastResearchFocus.tabId) && openerTabId === lastResearchFocus.tabId) {
-            callback(lastResearchFocus.id);
+            callback(consumeLastResearchFocus(lastResearchFocus.id));
             return;
         }
         if (exists(openerTab.url) && isGeni(openerTab.url)) {

@@ -2879,7 +2879,31 @@ function updateClassResponse() {
             if (exists(genselect[0].attributes.relationship)) {
                 //Only run it on family members
                 var gender = genselect[0].options[genselect[0].selectedIndex].value;
-                $('#action'+genselect[0].attributes.update.value).html(buildAction(genselect[0].attributes.relationship.value, gender));
+                var actionCell = $('#action'+genselect[0].attributes.update.value);
+                actionCell.html(buildAction(genselect[0].attributes.relationship.value, gender));
+                // #332 (live-reported, DanCornett): buildAction() can
+                // auto-select a DIFFERENT match than before (gendered
+                // "son"/"daughter" vs. the generic "child" category search
+                // candidateOptionLabel()/categoryMatches() use), but this
+                // .html() replace is a full DOM swap - the fresh <select>
+                // has no 'change' handler bound (that only happens once, at
+                // buildForm() time, via a direct, non-delegated
+                // $('.actionselect').on('change', ...)), and nothing here
+                // ever called actionUpdate() for it either. So the row's
+                // match-dependent state (lock icons, lock sweep,
+                // genislideinput comparison values via setGeniFamilyData())
+                // never resynced to whatever buildAction() just selected -
+                // the dropdown could visibly show a real match while the
+                // rest of the row still reflected whichever match (or lack
+                // of one) was active before the gender change. Re-binding
+                // and immediately invoking actionUpdate() here closes that
+                // gap, matching exactly what happens when a user changes
+                // the Action dropdown by hand.
+                var newActionSelect = actionCell.find('select.actionselect');
+                newActionSelect.on('change', function () { actionUpdate(this); });
+                if (newActionSelect.length > 0) {
+                    actionUpdate(newActionSelect[0]);
+                }
                 iconUpdate();
                 var gendercolor = genderColor(gender);
                 genselect.closest('.memberexpand').prev('.membertitle').css('background-color', gendercolor);

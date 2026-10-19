@@ -220,7 +220,20 @@ async function extractAncestryPersonData(htmlstring) {
     if (data) {
         return data;
     }
-    console.warn("Ancestry: #person-data block not found, falling back to legacy page format");
+    // #335 follow-up (live-reported, GaryKoven: v4.17.3.60's verified
+    // DOMParser fix still failed identically to the broken v...57 on his
+    // real profiles) - diagnostic only, no behavior change. The DOMParser
+    // fix was directly confirmed against his earlier saved page source, so
+    // this logs enough about what extractAncestryPersonData actually
+    // received this time to tell apart the live candidates: a genuinely
+    // short/empty response (wrong URL, auth/interstitial page, bot-
+    // protection variant from the background fetch - see getPageCode()'s
+    // own new diagnostic log) vs. a full page that still somehow lacks
+    // (or no longer uses) the #person-data block.
+    var hasPersonDataSubstring = typeof htmlstring === 'string' && htmlstring.indexOf('person-data') !== -1;
+    console.warn("Ancestry: #person-data block not found, falling back to legacy page format. htmlstring.length=" +
+        (typeof htmlstring === 'string' ? htmlstring.length : typeof htmlstring) +
+        " contains literal \"person-data\" substring=" + hasPersonDataSubstring);
     return await extractLegacyPersonData(htmlstring);
 }
 

@@ -1429,6 +1429,18 @@ async function getPageCode() {
         $('#skipdeepresearch').text(_('Skip_Deep_Research_for_this_run'));
         updateSkipDeepResearchVisibility();
 
+        // #335 follow-up (live-reported, GaryKoven: v4.17.3.60's verified
+        // DOMParser fix still failed on his real profiles, identically to
+        // the broken v...57) - diagnostic only, no behavior change. Not yet
+        // reproduced directly, so this isn't guessing at a second fix on
+        // top of an unconfirmed theory - it logs which fetch path is taken
+        // (the background `xhttp` GET below vs. capturePage()'s live-tab
+        // DOM capture) and the exact URL used, so the next real report can
+        // confirm or rule out whether the background fetch is ever getting
+        // different page content than what's actually rendered in the tab
+        // (e.g. a bot-protection/interstitial variant) rather than the
+        // parsing logic itself being wrong again.
+        console.log("SmartCopy [getPageCode]: reload=" + collection.reload + " tablink=\"" + tablink + "\"");
         if (collection.reload) {
             chrome.runtime.sendMessage({
                 method: "GET",

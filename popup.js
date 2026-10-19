@@ -2162,14 +2162,45 @@ var submitform = function () {
                                 // merge (familyout keeps whatever Stage 1
                                 // already set) and still submit the person.
                                 var geni_return = {};
+                                var geniResponseParsed = true;
                                 try {
                                     geni_return = JSON.parse(response.source);
                                 } catch (e) {
                                     console.error("SmartCopy: failed to parse Geni about_me/nicknames response for " + response.variable.pid, e);
+                                    geniResponseParsed = false;
                                 }
                                 var familyout = response.variable.familyout;
                                 var rawAbout = response.variable.rawAbout;
-                                if (!$.isEmptyObject(geni_return)) {
+                                // #286 further follow-up (live-reported,
+                                // DanCornett, 2026-10-19 - reconfirmed on
+                                // v...60 after the "missing about_me field"
+                                // gap above was fixed): a matched family
+                                // member whose About AND nicknames are BOTH
+                                // genuinely blank got raw content with no
+                                // citation on the first submission, then got
+                                // a citation correctly on every later resubmit.
+                                // This guard used to be `!$.isEmptyObject(geni_return)`
+                                // - meant to skip the merge only when the
+                                // response failed to parse (geni_return stays
+                                // {} from the catch above) - but a Geni API
+                                // response with every REQUESTED field blank
+                                // is indistinguishable from that: this
+                                // endpoint only ever requests about_me and
+                                // nicknames (see abouturl above), and Geni
+                                // appears to omit a field entirely when it's
+                                // blank rather than returning "" (already
+                                // established for about_me alone, in the
+                                // comment below) - so a legitimately
+                                // successful {} response (both blank) tripped
+                                // the same guard as a genuine parse failure,
+                                // silently skipping the merge/citation step
+                                // exactly the same way the single-field gap
+                                // did. Gate on whether parsing actually
+                                // failed instead - the only thing this guard
+                                // was ever meant to protect against - not on
+                                // whether the parsed result happens to have
+                                // no keys.
+                                if (geniResponseParsed) {
                                     if (exists(familyout["about_me"])) {
                                         // #235/#286 (live-reported, DanCornett -
                                         // simplified): now that Geni's REAL

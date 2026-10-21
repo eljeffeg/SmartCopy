@@ -9,6 +9,7 @@ registerCollection({
                 setMessage(warningmsg, 'SmartCopy was unable to identify the Ancestry focus profile.  Please select a focus profile in the tree.');
                 return;
             } else {
+                var urlBeforeFactsConversion = url;
                 url = url.replace("family/familyview", "family")
                 url = url.replace("/family-tree/tree/", "/family-tree/person/tree/")
                 url = url.replace("/family/", "/");
@@ -18,7 +19,7 @@ registerCollection({
                 url = url.replace("pedigree?cfpid=", "person/");
                 url = url.split("&")[0];
                 url = url.replace("trees.ancestry.", "person.ancestry.");
-                
+
                 url = url.replace("/community/potential", "");
                 if (isNaN(url.slice(-1))) {
                     url = url.substring(0, url.lastIndexOf('/'));
@@ -26,7 +27,29 @@ registerCollection({
                 if (!url.endsWith("/facts")) {
                     url += "/facts";
                 }
-                this.reload = true;
+                // #335 further follow-up (live-reported, GaryKoven - v...62
+                // still failed identically to v...57 on all three of his
+                // profiles): this used to set reload UNCONDITIONALLY here,
+                // even when every replace() above was a no-op because the
+                // URL already was the final /facts form (exactly Gary's
+                // case - his own diagnostic log showed
+                // "[getPageCode]: reload=true" against a URL already ending
+                // in /facts). That forced EVERY Ancestry load through the
+                // background xhttp fetch path instead of capturePage()'s
+                // live-tab DOM read - see isPageReady's own comment below
+                // for why that matters: the raw fetch gets back a ~5KB
+                // client-rendered shell with no person data in it at all
+                // (confirmed directly via that same diagnostic log - 5448
+                // bytes, zero occurrences of "person-data"), while the
+                // already-open tab (what capturePage() reads) has the real
+                // content, same as Gary's own saved page source that
+                // verified the DOMParser fix in the first place. Only set
+                // reload when a genuine transformation actually happened -
+                // matches the branch below's own, already-correctly-guarded
+                // pattern (`if (!url.contains("/facts"))`).
+                if (url !== urlBeforeFactsConversion) {
+                    this.reload = true;
+                }
             }
         } else if (startsWithHTTP(url, "http://person.ancestry.") || url.contains("/family-tree/person/")) {
             if (!url.contains("/facts")) {
@@ -77,6 +100,26 @@ registerCollection({
         var data = await extractAncestryPersonData(request.source);
         focusname = data.name;
         focusrange = data.daterange;
+    },
+    // #335 further follow-up (live-reported, GaryKoven): the /facts page's
+    // person content is rendered client-side - a plain substring check
+    // (not jQuery/DOMParser - nothing here needs structural traversal, just
+    // presence) for either the modern #person-data block or the legacy
+    // PersonCard script, same two markers extractAncestryPersonData() itself
+    // looks for. Mirrors myheritagenew.js's identical gap/fix for its own
+    // React-rendered redesigned profile page: a capture taken before the
+    // page finishes rendering comes back as that same near-empty shell, so
+    // retry (popup.js's getSource listener already does this, same as every
+    // other isPageReady collection) until the real content - or the "please
+    // sign in" page loadPage() above already handles - actually shows up.
+    "isPageReady": function(htmlstring) {
+        if (!exists(htmlstring)) {
+            return false;
+        }
+        if (htmlstring.indexOf('Please sign in for secure access to your Ancestry account') !== -1) {
+            return true;
+        }
+        return htmlstring.indexOf('id="person-data"') !== -1 || htmlstring.indexOf('var PersonCard') !== -1;
     },
     "parseProfileData": parseAncestryNew
 });

@@ -637,6 +637,24 @@ function getProfile(profile_id) {
     if (profile_id.length > 0) {
         var startid = profile_id.toLowerCase();
         profile_id = decodeURIComponent(profile_id).trim();
+        // #324 (live-reported, DanCornett): a Geni Tree "index" URL
+        // (https://www.geni.com/family-tree/index/<tree-node-id>?graph_node_id=profile-<id>)
+        // put the real focus profile's id in this query parameter, not in
+        // the path - the generic "grab everything after the last /"
+        // handling further below assumes a "profile-" prefix only ever
+        // appears as its own path segment (.../profile-gNNNN), so it
+        // grabbed the unrelated tree-index number plus the whole unparsed
+        // query string tacked onto it instead, which never validates as a
+        // real profile id ("Invalid Profile Id - Try Again"). Recognize
+        // this form explicitly and pull the real id straight out of the
+        // query parameter before any of the generic path-based handling
+        // below runs.
+        if (profile_id.indexOf("graph_node_id=") != -1) {
+            var graphNodeValue = profile_id.substring(profile_id.indexOf("graph_node_id=") + "graph_node_id=".length).split("&")[0];
+            if (graphNodeValue.indexOf("profile-") != -1) {
+                return "?profile=" + graphNodeValue;
+            }
+        }
         if (profile_id.indexOf("&resolve=") != -1) {
             profile_id = profile_id.substring(profile_id.lastIndexOf('#') + 1);
         }

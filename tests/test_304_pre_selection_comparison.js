@@ -74,17 +74,22 @@ const isDateSpecificityDowngrade = new Function('exists', 'moment', 'DATE_QUALIF
 
 const valuesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'valuesAreEquivalent'))();
 const nicknamesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'nicknamesAreEquivalent'))();
+// #340: occupation's own containment comparator - needs to be passed into
+// valuesAreEquivalentForFieldType() below the same way nicknamesAreEquivalent
+// already is, since that dispatch now has an "occupation" branch too.
+const occupationAlreadyPresent = new Function('return ' + extractFunction(bfSrc, 'occupationAlreadyPresent'))();
 const isPublic = new Function('return ' + extractFunction(bfSrc, 'isPublic'))();
 const isAlive = new Function('_', 'return ' + extractFunction(bfSrc, 'isAlive'))(function (k) { return k; });
 global.valuesAreEquivalent = valuesAreEquivalent;
 global.nicknamesAreEquivalent = nicknamesAreEquivalent;
+global.occupationAlreadyPresent = occupationAlreadyPresent;
 
 const resolveFieldEnabled = new Function('isValue', 'exists', 'return ' + extractFunction(bfSrc, 'resolveFieldEnabled'))(isValue, exists);
 const isChecked = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isChecked'))(resolveFieldEnabled);
 const isEnabled = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isEnabled'))(resolveFieldEnabled);
 
-const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nicknamesAreEquivalent', 'valuesAreEquivalent', 'isDateSpecificityDowngrade',
-    'return ' + extractFunction(bfSrc, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, valuesAreEquivalent, isDateSpecificityDowngrade);
+const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nicknamesAreEquivalent', 'occupationAlreadyPresent', 'valuesAreEquivalent', 'isDateSpecificityDowngrade',
+    'return ' + extractFunction(bfSrc, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, occupationAlreadyPresent, valuesAreEquivalent, isDateSpecificityDowngrade);
 // #304 follow-up (consolidation pass): the single shared "would this field
 // actually contribute something new" answer - both applyProtectedDisabledState()
 // and isFieldEmptyForCheckAll() defer to this now instead of each
@@ -268,6 +273,10 @@ const getGeniPhotoLockedSrc = extractFunction(bfSrc, 'getGeniPhotoLocked');
 const isAppendSrc = extractFunction(bfSrc, 'isAppend');
 const valuesAreEquivalentSrc = extractFunction(bfSrc, 'valuesAreEquivalent');
 const nicknamesAreEquivalentSrc = extractFunction(bfSrc, 'nicknamesAreEquivalent');
+// #340: needed in-scope for valuesAreEquivalentForFieldTypeSrc's own
+// "occupation" branch below, same as nicknamesAreEquivalentSrc already is
+// for its "nicknames" branch.
+const occupationAlreadyPresentSrc = extractFunction(bfSrc, 'occupationAlreadyPresent');
 const valuesAreEquivalentForFieldTypeSrc = extractFunction(bfSrc, 'valuesAreEquivalentForFieldType');
 const isFieldSelectableSrc = extractFunction(bfSrc, 'isFieldSelectable');
 const resolveFieldEnabledSrc = extractFunction(bfSrc, 'resolveFieldEnabled');
@@ -299,6 +308,7 @@ function build(genifamilydata) {
         `
         ${valuesAreEquivalentSrc}
         ${nicknamesAreEquivalentSrc}
+        ${occupationAlreadyPresentSrc}
         ${valuesAreEquivalentForFieldTypeSrc}
         ${isFieldSelectableSrc}
         ${getGeniLockSrc}

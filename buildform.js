@@ -752,10 +752,16 @@ function buildForm() {
             ck++;
             var occupation = alldata["profile"]["occupation"].trim();
             var occlocked = focusFieldLocked("occupation"); // #78
-            // #304: don't pre-check when the scraped occupation is already
-            // on Geni, modulo case/whitespace - the wall-of-green problem.
+            // #304/#340: don't pre-check when the scraped occupation is
+            // already on Geni - modulo case/whitespace (#304), and modulo
+            // being a shorter value already contained in a fuller Geni
+            // occupation (#340, e.g. "shirt maker" vs. "Shirt Maker /
+            // Tailor") - routed through the same shared
+            // valuesAreEquivalentForFieldType() dispatch every other field
+            // type uses, rather than calling valuesAreEquivalent() directly
+            // here as its own separate copy of this question.
             var occSameAsGeni = isValue(occupation) && isValue(genifocusdata.get("occupation")) &&
-                valuesAreEquivalent(occupation, genifocusdata.get("occupation"));
+                valuesAreEquivalentForFieldType(occupation, genifocusdata.get("occupation"), "occupation");
             membersstring = membersstring +
                 '<tr id="occupation"><td class="profilediv"><input type="checkbox" class="checknext" ' + (occlocked ? 'disabled ' : '') + isChecked(occupation, scoreoccupation, false, genifocusdata.get("occupation"), occlocked, occSameAsGeni) + '>' +
                 capFL(title) + ': </td><td style="float:right; padding: 0;"><input type="text" class="formtext" name="' + title + '" value="' + occupation + '" ' + isEnabled(occupation, scoreoccupation, false, genifocusdata.get("occupation"), occlocked, occSameAsGeni) + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("occupation") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("occupation") + '" disabled></td></tr>';
@@ -2597,6 +2603,24 @@ function valuesAreEquivalent(a, b) {
         return (v === undefined || v === null ? "" : String(v)).replace(/\./g, "").replace(/\s+/g, " ").trim().toLowerCase();
     };
     return normalize(a) === normalize(b);
+}
+
+// #340 (live-reported, DanCornett): valuesAreEquivalent() requires an EXACT
+// match (modulo case/whitespace/periods) - but Geni's occupation is often a
+// fuller, elaborated version of what a source scrapes ("shirt maker" vs.
+// "Shirt Maker / Tailor"), not necessarily byte-identical. Treat the
+// scraped value as "nothing new" whenever it's already contained in Geni's
+// existing occupation (case-insensitive) - same containment philosophy
+// nicknames (nicknamesAreEquivalent() just below) and About
+// (isAboutContentPresent()) already use for exactly this reason, a
+// shorter, already-represented value shouldn't light up as a conflict.
+function occupationAlreadyPresent(scraped, current) {
+    var normalize = function (v) {
+        return (v === undefined || v === null ? "" : String(v)).replace(/\./g, "").replace(/\s+/g, " ").trim().toLowerCase();
+    };
+    var normalizedScraped = normalize(scraped);
+    var normalizedCurrent = normalize(current);
+    return normalizedScraped !== "" && normalizedCurrent.indexOf(normalizedScraped) !== -1;
 }
 
 // #304: nicknames need containment, not exact equality - Geni's "Also
@@ -5796,6 +5820,9 @@ function valuesAreEquivalentForFieldType(scraped, current, fieldType) {
     if (fieldType === "nicknames") {
         return nicknamesAreEquivalent(scraped, current);
     }
+    if (fieldType === "occupation") {
+        return occupationAlreadyPresent(scraped, current);
+    }
     if (fieldType === "about_me") {
         return isAboutContentPresent(current, scraped);
     }
@@ -5924,7 +5951,8 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue)
         ((fieldName.endsWith(":location:latitude") || fieldName.endsWith(":location:longitude")) ? "gps" :
             (fieldName === "nicknames" ? "nicknames" :
                 (fieldName === "about_me" ? "about_me" :
-                    (fieldName === "photo" ? "photo" : "generic"))));
+                    (fieldName === "photo" ? "photo" :
+                        (fieldName === "occupation" ? "occupation" : "generic")))));
     // (live-reported, DanCornett - #304 follow-up): Photo's own "Enable
     // photo checkbox auto-selection" config toggle - matches the same
     // (scored && photoscore) gate initial render already applies (see

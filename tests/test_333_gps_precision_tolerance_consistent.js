@@ -84,9 +84,14 @@ assertEqual(ctx.valuesAreEquivalentForFieldType("42.64863", "43.1", "gps"), fals
 // --- Structural: the focus profile's own initial-render computation (which computes
 // its own inline sameAsGeni, not through the fieldType dispatch) calls the real
 // shared function directly, not the old generic valuesAreEquivalent(). ---
-assertEqual(/checkedAttr: isChecked\(latitude, geoScored, geoone, genifocusdata\.get\(title, "location\.latitude"\), locationlocked, gpsEffectivelyMatches\(latitude, genifocusdata\.get\(title, "location\.latitude"\)\)\)/.test(bfSrc), true,
+// #338 follow-up: this call site's sameAsGeni argument now also OR's in
+// locationSpecificityDowngrade (a less-detailed scraped location overrides
+// pre-selection regardless of GPS equivalence) - the regex below only
+// requires gpsEffectivelyMatches() still be called with the right
+// arguments somewhere in that expression, not that it's the only thing in it.
+assertEqual(/checkedAttr: isChecked\(latitude, geoScored, geoone, genifocusdata\.get\(title, "location\.latitude"\), locationlocked, [^)]*gpsEffectivelyMatches\(latitude, genifocusdata\.get\(title, "location\.latitude"\)\)\)/.test(bfSrc), true,
     "#333: the focus profile's own Latitude row computes sameAsGeni via the shared gpsEffectivelyMatches(), not the generic valuesAreEquivalent()");
-assertEqual(/checkedAttr: isChecked\(longitude, geoScored, geoone, genifocusdata\.get\(title, "location\.longitude"\), locationlocked, gpsEffectivelyMatches\(longitude, genifocusdata\.get\(title, "location\.longitude"\)\)\)/.test(bfSrc), true,
+assertEqual(/checkedAttr: isChecked\(longitude, geoScored, geoone, genifocusdata\.get\(title, "location\.longitude"\), locationlocked, [^)]*gpsEffectivelyMatches\(longitude, genifocusdata\.get\(title, "location\.longitude"\)\)\)/.test(bfSrc), true,
     "#333: the focus profile's own Longitude row computes sameAsGeni via the shared gpsEffectivelyMatches() too");
 
 // --- Structural: refreshFieldCheckState() (buildform.js) and isFieldEmptyForCheckAll()

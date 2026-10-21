@@ -1160,6 +1160,22 @@ function buildForm() {
                         var county = geovar1.county;
                         var state = geovar1.state;
                         var country = geovar1.country;
+                        // #338 (live-reported, DanCornett): computed once
+                        // per location, then OR'd into the sameAsGeni
+                        // argument for City/County/State/Country/Latitude/
+                        // Longitude below (never Place/place_name_geo - see
+                        // getLocationSpecificity()'s own comment) and also
+                        // surfaced as a warning pin, same as an ambiguous
+                        // or failed lookup already is - but only when
+                        // nothing more urgent already claimed the pin.
+                        var locationSpecificityDowngrade = isLocationSpecificityDowngrade(
+                            city, county, state, country,
+                            genifocusdata.get(title, "location.city"), genifocusdata.get(title, "location.county"),
+                            genifocusdata.get(title, "location.state"), genifocusdata.get(title, "location.country"));
+                        if (pincolor === "clear" && locationSpecificityDowngrade) {
+                            pincolor = "yellow";
+                            pintitle = "Location appears less precise than current Geni location";
+                        }
                         // #229: real coordinates from whichever geo source
                         // resolved this location (see parseGoogle()/
                         // familySearchPlaceToGeoLocation()'s own comments) -
@@ -1251,32 +1267,39 @@ function buildForm() {
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(city, geoScored, geoone, genifocusdata.get(title, "location.city"), locationlocked, isValue(city) && isValue(genifocusdata.get(title, "location.city")) && valuesAreEquivalent(city, genifocusdata.get(title, "location.city"))),
-                                enabledAttr: isEnabled(city, geoScored, geoone, genifocusdata.get(title, "location.city"), locationlocked, isValue(city) && isValue(genifocusdata.get(title, "location.city")) && valuesAreEquivalent(city, genifocusdata.get(title, "location.city"))),
+                                // #338: locationSpecificityDowngrade OR'd in - a
+                                // genuinely less-detailed scraped location
+                                // never pre-selects here, regardless of
+                                // whether the value also differs.
+                                checkedAttr: isChecked(city, geoScored, geoone, genifocusdata.get(title, "location.city"), locationlocked, locationSpecificityDowngrade || (isValue(city) && isValue(genifocusdata.get(title, "location.city")) && valuesAreEquivalent(city, genifocusdata.get(title, "location.city")))),
+                                enabledAttr: isEnabled(city, geoScored, geoone, genifocusdata.get(title, "location.city"), locationlocked, locationSpecificityDowngrade || (isValue(city) && isValue(genifocusdata.get(title, "location.city")) && valuesAreEquivalent(city, genifocusdata.get(title, "location.city")))),
                                 label: "City: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:city", value: city, icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.city"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(county, geoScored, geoone, genifocusdata.get(title, "location.county"), locationlocked, isValue(county) && isValue(genifocusdata.get(title, "location.county")) && valuesAreEquivalent(county, genifocusdata.get(title, "location.county"))),
-                                enabledAttr: isEnabled(county, geoScored, geoone, genifocusdata.get(title, "location.county"), locationlocked, isValue(county) && isValue(genifocusdata.get(title, "location.county")) && valuesAreEquivalent(county, genifocusdata.get(title, "location.county"))),
+                                // #338: see City's own comment just above.
+                                checkedAttr: isChecked(county, geoScored, geoone, genifocusdata.get(title, "location.county"), locationlocked, locationSpecificityDowngrade || (isValue(county) && isValue(genifocusdata.get(title, "location.county")) && valuesAreEquivalent(county, genifocusdata.get(title, "location.county")))),
+                                enabledAttr: isEnabled(county, geoScored, geoone, genifocusdata.get(title, "location.county"), locationlocked, locationSpecificityDowngrade || (isValue(county) && isValue(genifocusdata.get(title, "location.county")) && valuesAreEquivalent(county, genifocusdata.get(title, "location.county")))),
                                 label: "County: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:county", value: county, icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.county"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(state, geoScored, geoone, genifocusdata.get(title, "location.state"), locationlocked, isValue(state) && isValue(genifocusdata.get(title, "location.state")) && valuesAreEquivalent(state, genifocusdata.get(title, "location.state"))),
-                                enabledAttr: isEnabled(state, geoScored, geoone, genifocusdata.get(title, "location.state"), locationlocked, isValue(state) && isValue(genifocusdata.get(title, "location.state")) && valuesAreEquivalent(state, genifocusdata.get(title, "location.state"))),
+                                // #338: see City's own comment above.
+                                checkedAttr: isChecked(state, geoScored, geoone, genifocusdata.get(title, "location.state"), locationlocked, locationSpecificityDowngrade || (isValue(state) && isValue(genifocusdata.get(title, "location.state")) && valuesAreEquivalent(state, genifocusdata.get(title, "location.state")))),
+                                enabledAttr: isEnabled(state, geoScored, geoone, genifocusdata.get(title, "location.state"), locationlocked, locationSpecificityDowngrade || (isValue(state) && isValue(genifocusdata.get(title, "location.state")) && valuesAreEquivalent(state, genifocusdata.get(title, "location.state")))),
                                 label: "State: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:state", value: state, icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.state"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(country, geoScored, geoone, genifocusdata.get(title, "location.country"), locationlocked, isValue(country) && isValue(genifocusdata.get(title, "location.country")) && valuesAreEquivalent(country, genifocusdata.get(title, "location.country"))),
-                                enabledAttr: isEnabled(country, geoScored, geoone, genifocusdata.get(title, "location.country"), locationlocked, isValue(country) && isValue(genifocusdata.get(title, "location.country")) && valuesAreEquivalent(country, genifocusdata.get(title, "location.country"))),
+                                // #338: see City's own comment above.
+                                checkedAttr: isChecked(country, geoScored, geoone, genifocusdata.get(title, "location.country"), locationlocked, locationSpecificityDowngrade || (isValue(country) && isValue(genifocusdata.get(title, "location.country")) && valuesAreEquivalent(country, genifocusdata.get(title, "location.country")))),
+                                enabledAttr: isEnabled(country, geoScored, geoone, genifocusdata.get(title, "location.country"), locationlocked, locationSpecificityDowngrade || (isValue(country) && isValue(genifocusdata.get(title, "location.country")) && valuesAreEquivalent(country, genifocusdata.get(title, "location.country")))),
                                 label: "Country: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:country", value: country, icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.country"), locked: locationlocked
@@ -1294,17 +1317,19 @@ function buildForm() {
                                 // pencil-edit recompute (which already used
                                 // the tolerant comparator) correctly
                                 // wouldn't pre-select it.
-                                checkedAttr: isChecked(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked, gpsEffectivelyMatches(latitude, genifocusdata.get(title, "location.latitude"))),
-                                enabledAttr: isEnabled(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked, gpsEffectivelyMatches(latitude, genifocusdata.get(title, "location.latitude"))),
+                                // #338: locationSpecificityDowngrade OR'd in -
+                                // see City's own comment above.
+                                checkedAttr: isChecked(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked, locationSpecificityDowngrade || gpsEffectivelyMatches(latitude, genifocusdata.get(title, "location.latitude"))),
+                                enabledAttr: isEnabled(latitude, geoScored, geoone, genifocusdata.get(title, "location.latitude"), locationlocked, locationSpecificityDowngrade || gpsEffectivelyMatches(latitude, genifocusdata.get(title, "location.latitude"))),
                                 label: "Latitude: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:latitude", value: String(latitude), icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.latitude"), locked: locationlocked
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                // #333: see Latitude's own comment just above.
-                                checkedAttr: isChecked(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked, gpsEffectivelyMatches(longitude, genifocusdata.get(title, "location.longitude"))),
-                                enabledAttr: isEnabled(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked, gpsEffectivelyMatches(longitude, genifocusdata.get(title, "location.longitude"))),
+                                // #333/#338: see Latitude's own comment just above.
+                                checkedAttr: isChecked(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked, locationSpecificityDowngrade || gpsEffectivelyMatches(longitude, genifocusdata.get(title, "location.longitude"))),
+                                enabledAttr: isEnabled(longitude, geoScored, geoone, genifocusdata.get(title, "location.longitude"), locationlocked, locationSpecificityDowngrade || gpsEffectivelyMatches(longitude, genifocusdata.get(title, "location.longitude"))),
                                 label: "Longitude: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:longitude", value: String(longitude), icon: locationicon,
                                 geniValue: genifocusdata.get(title, "location.longitude"), locked: locationlocked
@@ -5772,6 +5797,47 @@ function syncGeotopcheckState(fs) {
 // here to the pre-selection decision instead). A genuinely NEW addition to
 // an existing About - even a long one - still correctly pre-selects.
 //
+// #338 (live-reported, DanCornett): a scraped location that's genuinely
+// LESS detailed than what Geni already has was still pre-selecting its
+// GPS/City/County/State/Country fields purely because the raw values
+// differed - replacing a precise "Fort Worth, Tarrant County, Texas,
+// United States" with a bare "Texas, United States" is a downgrade, not
+// new information worth submitting by default. Ranks which of City (1,
+// most detailed) / County (2) / State (3) / Country (4, least detailed) is
+// the most granular NON-BLANK field present - the smaller the number, the
+// more detail. Deliberately ignores actual field CONTENT, only presence/
+// blankness - Dan's own framing: "this evaluation should NOT be comparing
+// the contents of corresponding fields, it just looks at which fields are
+// not-empty." Place/place_name_geo are deliberately excluded from this
+// whole mechanism - per Dan's own note, that field can hold non-location
+// content unrelated to geographic precision. Mirrors
+// isDateSpecificityDowngrade()/getDateSpecificity() (popup.js) in spirit -
+// same "rank by granularity, only a genuine downgrade suppresses pre-
+// selection, equal rank leaves today's value-based comparison untouched"
+// shape, just for location fields instead of dates.
+function getLocationSpecificity(city, county, state, country) {
+    if (isValue(city)) { return 1; }
+    if (isValue(county)) { return 2; }
+    if (isValue(state)) { return 3; }
+    if (isValue(country)) { return 4; }
+    return 0; // no detail at all on this side - never treated as a downgrade OR an upgrade, same convention as getDateSpecificity()'s own "unparseable" fallback
+}
+// Only a genuine downgrade (scraped strictly LESS detailed than Geni's
+// existing location) suppresses pre-selection - equal specificity keeps
+// today's value-based comparison exactly as it already works. Dan's own
+// words: "If the Smallest-Level-of-Location-Detail is the same for both,
+// then the GPS fields can retain their pre-selected status as is currently
+// determined." Checked as an OVERRIDE on top of the existing "values
+// differ" comparison (OR'd into the same sameAsGeni argument at each call
+// site) - a genuine downgrade means "don't pre-select" regardless of
+// whether the values happen to differ, same as values being identical
+// already means today.
+function isLocationSpecificityDowngrade(scrapedCity, scrapedCounty, scrapedState, scrapedCountry, geniCity, geniCounty, geniState, geniCountry) {
+    var scrapedSpecificity = getLocationSpecificity(scrapedCity, scrapedCounty, scrapedState, scrapedCountry);
+    var geniSpecificity = getLocationSpecificity(geniCity, geniCounty, geniState, geniCountry);
+    return scrapedSpecificity > 0 && geniSpecificity > 0 && scrapedSpecificity > geniSpecificity;
+}
+
 // #288/#333 (live-reported, DanCornett): FamilySearch and Geni report GPS
 // coordinates at different decimal precision (FS has 4 or fewer digits
 // after the decimal), so a naive string-equality check would almost

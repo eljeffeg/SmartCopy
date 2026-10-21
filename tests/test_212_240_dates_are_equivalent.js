@@ -87,6 +87,16 @@ assertEqual(datesAreEquivalent('1890', 'Circa 1890', true), true,
     "#304 (ignoreCirca=true): works with the qualifier on either side, not just one direction");
 assertEqual(datesAreEquivalent('Before 1890', '1890', true), false,
     "#304 (ignoreCirca=true): Before/After/Between are deliberately never stripped, even with ignoreCirca - a real, meaningful qualifier difference stays a real difference");
+
+// --- #341 (live-reported, DanCornett): month+year-only dates, abbreviated vs. spelled out ---
+assertEqual(datesAreEquivalent('Dec 1844', 'December 1844'), true,
+    "#341: a month+year-only date ('Dec 1844') is recognized as equivalent to its spelled-out Geni display ('December 1844') - DATE_PARSE_FORMATS had no month+year-only format at all, so neither side could even be parsed and an unparseable pair always falls through to 'not equivalent'");
+assertEqual(datesAreEquivalent('December 1844', 'Dec 1844'), true,
+    "#341: works in the other direction too (scraped spelled-out, Geni abbreviated)");
+assertEqual(datesAreEquivalent('Dec 1844', 'Dec 1845'), false,
+    "Safety: two genuinely different month+year dates are still correctly NOT equivalent - this fix must not over-match");
+assertEqual(datesAreEquivalent('Dec 1844', '13 December 1844'), false,
+    "Safety: a month+year-only date and a full day-level date for the same month/year are still NOT equivalent - different precision is a real difference, same philosophy as the bare-year-vs-full-date case above");
 assertEqual(datesAreEquivalent('Before 1890', 'After 1890', true), false,
     "#304 (ignoreCirca=true): Before vs. After on the same year still never match, per Dan's explicit requirement");
 assertEqual(datesAreEquivalent('Circa 1890', '1890'), false,

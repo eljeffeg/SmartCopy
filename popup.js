@@ -3400,7 +3400,17 @@ function mergeAboutText(existingAbout, newContent) {
 // full-month format, matching dateformatter's own broader list (which
 // already recognized this same need for scraping generally, just never
 // ported over to this comparison-specific list).
-var DATE_PARSE_FORMATS = ["D MMMM YYYY", "D MMM YYYY", "MMMM D, YYYY", "MMM D, YYYY", "MMMM D YYYY", "MMM D YYYY", "YYYY-MM-DD", "YYYY"];
+// #341 (live-reported, DanCornett): a month+year-only pair ("Dec 1844" vs.
+// "December 1844" - the exact same date, abbreviated vs. spelled out)
+// pre-selected as if genuinely different. Root cause: this list had no
+// month+year-only format at all - only day-level formats plus bare "YYYY" -
+// so neither side could even be moment-parsed here, and an unparseable pair
+// always falls through to "not equivalent" (see this function's own
+// comment on that fallback). DATE_SPECIFICITY_FORMATS below already had
+// these same three entries (at specificity 2) for its own, separate
+// purpose - this list just never got them, even though both lists are
+// meant to recognize the same date shapes.
+var DATE_PARSE_FORMATS = ["D MMMM YYYY", "D MMM YYYY", "MMMM D, YYYY", "MMM D, YYYY", "MMMM D YYYY", "MMM D YYYY", "YYYY-MM-DD", "MMMM YYYY", "MMM YYYY", "YYYY-MM", "YYYY"];
 // #304: ignoreCirca lets the pre-selection comparison treat "Circa 1890"/
 // "About 1890" as equivalent to a bare "1890" - every existing caller
 // (including parseForm()'s submit-time no-op skip below) never passes this

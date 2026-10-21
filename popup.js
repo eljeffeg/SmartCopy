@@ -2136,16 +2136,38 @@ var submitform = function () {
                                 spouselist[familyout.profile_id] = {union: unionid, status: "", genidata: genidata};
                             }
                         }
-                        if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "")) {
+                        // #235/#286: computed here (rather than inside the
+                        // callback below) since fdata/marriagedates are
+                        // var-scoped in the outer loop and would read
+                        // whatever the LAST iteration left them as by the
+                        // time this async callback actually fires - same
+                        // reason rawAbout/familyout are already threaded
+                        // through `variable` below. Moved ahead of the gate
+                        // itself (see #332 follow-up comment just below) so
+                        // it can be part of the decision to fetch at all,
+                        // not just a label computed after already deciding to.
+                        var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]), marriagedates[familyout.profile_id]);
+                        // #332 follow-up (live-reported, DanCornett): a
+                        // matched family member whose About (and nicknames)
+                        // weren't touched at all still needs a bare
+                        // citation when some OTHER real field changed
+                        // (burial, etc.) - exactly the same "marriage-only"/
+                        // no-About-change case the focus profile's own
+                        // buildFocusReferenceAboutMe() call already handles
+                        // unconditionally (#286). Family members never had
+                        // that symmetry - this whole fetch-and-merge step
+                        // used to only run when about_me or nicknames
+                        // THEMSELVES had content, so any other field change
+                        // on a family member with an untouched About was
+                        // submitted with no citation at all, no error,
+                        // nothing - a second silent gap behind the original
+                        // #332 crash this issue was filed for. Dan's own
+                        // repro: Gender left Unknown, only Burial Place
+                        // changed, About never checked - Geni's Revisions
+                        // history showed the real update went through, but
+                        // nothing in the About recorded it happened.
+                        if ((exists(familyout["about_me"]) && familyout["about_me"] !== "") || (exists(familyout["nicknames"]) && familyout["nicknames"] !== "") || updatedCategories.length > 0) {
                             var abouturl = "https://www.geni.com/api/" + pid + "?fields=about_me,nicknames&access_token=" + accountinfo.access_token;
-                            // #235/#286: computed here (rather than inside
-                            // the callback below) since fdata/marriagedates
-                            // are var-scoped in the outer loop and would
-                            // read whatever the LAST iteration left them as
-                            // by the time this async callback actually
-                            // fires - same reason rawAbout/familyout are
-                            // already threaded through `variable` below.
-                            var updatedCategories = summarizeUpdatedCategories(familyout, exists(photosubmit[familyout.profile_id]), marriagedates[familyout.profile_id]);
                             submitstatus.push(updatetotal);
                             chrome.runtime.sendMessage({
                                 method: "GET",
@@ -2201,7 +2223,28 @@ var submitform = function () {
                                 // whether the parsed result happens to have
                                 // no keys.
                                 if (geniResponseParsed) {
-                                    if (exists(familyout["about_me"])) {
+                                    {
+                                        // #332 follow-up (live-reported,
+                                        // DanCornett): this used to run only
+                                        // `if (exists(familyout["about_me"]))`
+                                        // - skipping the merge entirely for a
+                                        // family member whose About wasn't
+                                        // touched at all, even when some
+                                        // other real field changed and
+                                        // updatedCategories (passed through
+                                        // `response.variable` below) is
+                                        // non-empty. Runs unconditionally now,
+                                        // same as the focus profile's own
+                                        // buildFocusReferenceAboutMe() call -
+                                        // buildReferenceAboutMe() itself
+                                        // already knows how to produce real
+                                        // content + citation, a bare citation
+                                        // (rawAbout "" but updatedCategories
+                                        // non-empty), or nothing at all
+                                        // (returns undefined, and
+                                        // applyBuiltAboutMe() deletes the key)
+                                        // depending on what's actually new -
+                                        // see its own comment.
                                         // #235/#286 (live-reported, DanCornett -
                                         // simplified): now that Geni's REAL
                                         // existing About is known, resolve the

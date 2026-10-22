@@ -71,6 +71,13 @@ global.isValue = isValue;
 
 const valuesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'valuesAreEquivalent'))();
 global.valuesAreEquivalent = valuesAreEquivalent;
+// #346: updateGeoLocation() now unconditionally calls
+// isLocationSpecificityDowngrade() (real function, not a reimplementation)
+// once it's walked through City/County/State/Country - a dependency every
+// test exercising this function needs now, same as valuesAreEquivalent above.
+const getLocationSpecificity = new Function('isValue', 'return ' + extractFunction(bfSrc, 'getLocationSpecificity'))(isValue);
+const isLocationSpecificityDowngrade = new Function('getLocationSpecificity', 'return ' + extractFunction(bfSrc, 'isLocationSpecificityDowngrade'))(getLocationSpecificity);
+global.isLocationSpecificityDowngrade = isLocationSpecificityDowngrade;
 const syncTopLevelIndicators = new Function('return ' + extractFunction(bfSrc, 'syncTopLevelIndicators'))();
 global.syncTopLevelIndicators = syncTopLevelIndicators;
 const handleChecknextClickSrc = extractFunction(bfSrc, 'handleChecknextClick');

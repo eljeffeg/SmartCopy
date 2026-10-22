@@ -230,30 +230,40 @@ function updateGeoLocation() {
         var titleobj = $($(eventrow.closest("tr")[0]).find("img")[2]);
         titleobj.attr("src", "images/" + pincolor + "pin.png");
         var ptable = eventrow.closest("table");
-        if (exists(ptable[0].id) && ptable[0].id !== "profiletable") {
-            var tableid = ptable[0].id.replace("familytable_", "");
-            var geocheck = $(ptable).find(".geopin");
-            var red = false;
-            var yellow = false;
-            for (var i = 0; i < geocheck.length; i++) {
-                var link = $(geocheck[i]).attr('src');
-                if (link.contains("redpin")) {
-                    red = true;
-                } else if (link.contains("yellowpin")) {
-                    yellow = true;
+        // #346 (live-reported, DanCornett - #338 follow-up 2): factored out
+        // so it can be re-run once the location-specificity check further
+        // below (computed later in this function, once City/County/State/
+        // Country have all been walked) potentially upgrades this
+        // location's own pin from clear to yellow - the family member's
+        // aggregate pin needs to reflect that too, not just whatever was
+        // known from the lookup-ambiguity check alone at this earlier point.
+        function refreshAggregatePin() {
+            if (exists(ptable[0].id) && ptable[0].id !== "profiletable") {
+                var tableid = ptable[0].id.replace("familytable_", "");
+                var geocheck = $(ptable).find(".geopin");
+                var red = false;
+                var yellow = false;
+                for (var i = 0; i < geocheck.length; i++) {
+                    var link = $(geocheck[i]).attr('src');
+                    if (link.contains("redpin")) {
+                        red = true;
+                    } else if (link.contains("yellowpin")) {
+                        yellow = true;
+                    }
+                }
+                if (red) {
+                    $("#" + tableid + "gpin").attr("src", "images/redpin.png");
+                    $("#" + tableid + "gpin").attr("title", "Location lookup failed");
+                } else if (yellow) {
+                    $("#" + tableid + "gpin").attr("src", "images/yellowpin.png");
+                    $("#" + tableid + "gpin").attr("title", "Location lookup may be incorrect");
+                } else {
+                    $("#" + tableid + "gpin").attr("src", "images/clearpin.png");
+                    $("#" + tableid + "gpin").attr("title", "");
                 }
             }
-            if (red) {
-                $("#" + tableid + "gpin").attr("src", "images/redpin.png");
-                $("#" + tableid + "gpin").attr("title", "Location lookup failed");
-            } else if (yellow) {
-                $("#" + tableid + "gpin").attr("src", "images/yellowpin.png");
-                $("#" + tableid + "gpin").attr("title", "Location lookup may be incorrect");
-            } else {
-                $("#" + tableid + "gpin").attr("src", "images/clearpin.png");
-                $("#" + tableid + "gpin").attr("title", "");
-            }
         }
+        refreshAggregatePin();
         var globalloc = $('#forcegeoswitch').prop('checked');
         if (globalloc) {
             $($($(eventrow).closest("tr")[0]).find("input[type=checkbox]")[0]).prop("checked", true);
@@ -405,22 +415,52 @@ function updateGeoLocation() {
         $(eventrow).find("input[type=text]")[0].value = locationdata.city;
         var cityDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.city);
         anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || cityDiffers;
-        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || cityDiffers));
+        // #346 (live-reported, DanCornett - #338 follow-up 2): City/County/
+        // State/Country's own checked-state updates are deferred until
+        // just after Country (below), instead of firing immediately per
+        // row the way they used to - locationSpecificityDowngrade needs
+        // all four rows' real Geni .genislideinput values first, which
+        // isn't known until the walk reaches Country. Each row/diff is
+        // still captured here, in the same single forward walk; only the
+        // actual checkbox-setting moves.
+        var cityRow = eventrow, cityGeniInput = $(eventrow).find(".genislideinput")[0];
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.county;
         var countyDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.county);
         anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || countyDiffers;
-        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || countyDiffers));
+        var countyRow = eventrow, countyGeniInput = $(eventrow).find(".genislideinput")[0];
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.state;
         var stateDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.state);
         anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || stateDiffers;
-        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || stateDiffers));
+        var stateRow = eventrow, stateGeniInput = $(eventrow).find(".genislideinput")[0];
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.country;
         var countryDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.country);
         anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || countryDiffers;
-        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || countryDiffers));
+        var countryGeniInput = $(eventrow).find(".genislideinput")[0];
+        // #346: the same "scraped location is less detailed than Geni's
+        // existing one" check buildForm()'s own initial render already
+        // applies (#338) now also runs here, after a pencil "Edit
+        // Location" correction - Place is excluded, same as initial
+        // render (see isLocationSpecificityDowngrade()'s own comment).
+        // forceAllGeoFields still overrides it, same as it overrides the
+        // plain diff checks below - a deliberate "ignore all this, just
+        // always check" escape hatch.
+        var locationSpecificityDowngrade = isLocationSpecificityDowngrade(
+            locationdata.city, locationdata.county, locationdata.state, locationdata.country,
+            cityGeniInput ? cityGeniInput.value : "", countyGeniInput ? countyGeniInput.value : "",
+            stateGeniInput ? stateGeniInput.value : "", countryGeniInput ? countryGeniInput.value : "");
+        if (pincolor === "clear" && locationSpecificityDowngrade) {
+            pincolor = "yellow";
+            titleobj.attr("src", "images/yellowpin.png");
+            titleobj.attr("title", "Location appears less precise than current Geni location");
+            refreshAggregatePin();
+        }
+        setLocationFieldChecked($(cityRow).find("input[type=checkbox]")[0], (forceAllGeoFields || (cityDiffers && !locationSpecificityDowngrade)));
+        setLocationFieldChecked($(countyRow).find("input[type=checkbox]")[0], (forceAllGeoFields || (countyDiffers && !locationSpecificityDowngrade)));
+        setLocationFieldChecked($(stateRow).find("input[type=checkbox]")[0], (forceAllGeoFields || (stateDiffers && !locationSpecificityDowngrade)));
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || (countryDiffers && !locationSpecificityDowngrade)));
         // #229 follow-up (found during a full-codebase re-audit): this is
         // the same row-count-drift bug already fixed once in .geotopcheck
         // (0a48a3a) and once in .geoicon (this same audit pass) - a manual
@@ -445,10 +485,13 @@ function updateGeoLocation() {
         }
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.latitude;
-        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || gpsFieldDiffersFromGeni(eventrow, locationdata.latitude)));
+        // #346: locationSpecificityDowngrade (computed above, once
+        // City/County/State/Country were known) applies here too - same
+        // override the initial render already gives GPS fields (#338).
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || (gpsFieldDiffersFromGeni(eventrow, locationdata.latitude) && !locationSpecificityDowngrade)));
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.longitude;
-        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || gpsFieldDiffersFromGeni(eventrow, locationdata.longitude)));
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || (gpsFieldDiffersFromGeni(eventrow, locationdata.longitude) && !locationSpecificityDowngrade)));
         $("body").toggleClass("wait");
     }
 }

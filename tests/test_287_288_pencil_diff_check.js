@@ -88,14 +88,19 @@ assertTrue(!updateFieldDiffersFromGeni(makeRow('Allegheny  County'), 'Allegheny 
 assertTrue(updateFieldDiffersFromGeni(makeRow('Pittsburgh'), 'Natrona'),
     "A genuinely different value is still correctly flagged as differing");
 
-const nonGpsFieldChecks = (updateGeoLocationBody.match(/forceAllGeoFields \|\| \w+Differs\)/g) || []).length;
+// #346 follow-up: City/County/State/Country's checks now also OR in
+// `&& !locationSpecificityDowngrade` (wrapped in an extra paren) - this
+// regex only requires the forceAllGeoFields/Differs pairing still be
+// present somewhere in each expression, not that it's the only thing there.
+const nonGpsFieldChecks = (updateGeoLocationBody.match(/forceAllGeoFields \|\| \(?\w+Differs\b/g) || []).length;
 assertTrue(nonGpsFieldChecks === 5, "All 5 non-GPS fields (Place/City/County/State/Country) use the differs-from-Geni check, got " + nonGpsFieldChecks);
 
 assertTrue(updateGeoLocationBody.indexOf('if (anyNonGpsFieldDiffers || !isValue(sourceValue)) {\n                return false;') !== -1,
     "gpsFieldDiffersFromGeni() refuses to pre-select GPS at all when any other field differs");
-assertTrue(updateGeoLocationBody.indexOf('forceAllGeoFields || gpsFieldDiffersFromGeni(eventrow, locationdata.latitude)') !== -1,
+// #346 follow-up: same - locationSpecificityDowngrade is now OR'd in here too.
+assertTrue(updateGeoLocationBody.indexOf('forceAllGeoFields || (gpsFieldDiffersFromGeni(eventrow, locationdata.latitude)') !== -1,
     "Latitude row uses the GPS-specific differs check");
-assertTrue(updateGeoLocationBody.indexOf('forceAllGeoFields || gpsFieldDiffersFromGeni(eventrow, locationdata.longitude)') !== -1,
+assertTrue(updateGeoLocationBody.indexOf('forceAllGeoFields || (gpsFieldDiffersFromGeni(eventrow, locationdata.longitude)') !== -1,
     "Longitude row uses the GPS-specific differs check");
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

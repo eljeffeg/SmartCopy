@@ -2,6 +2,7 @@
 registerCollection({
     "reload": false,
     "recordtype": "Ancestry Genealogy",
+    "usesDeepResearch": true, // #335 further follow-up: fetchAncestryPersonViaTab() below
     "prepareUrl": function(url) {
         if (startsWithHTTP(url, "http://trees.ancestry.") || url.contains("/family-tree/tree/") || url.contains("/family-tree/person/tree/")) {
             if (url.endsWith("/family") || url.endsWith("/family/familyview") || url.endsWith("/family/pedigree")) {
@@ -112,14 +113,11 @@ registerCollection({
     // retry (popup.js's getSource listener already does this, same as every
     // other isPageReady collection) until the real content - or the "please
     // sign in" page loadPage() above already handles - actually shows up.
+    // Factored out to isAncestryPageReady() (below) so
+    // fetchAncestryPersonViaTab()'s own tab-capture polling can reuse the
+    // exact same check.
     "isPageReady": function(htmlstring) {
-        if (!exists(htmlstring)) {
-            return false;
-        }
-        if (htmlstring.indexOf('Please sign in for secure access to your Ancestry account') !== -1) {
-            return true;
-        }
-        return htmlstring.indexOf('id="person-data"') !== -1 || htmlstring.indexOf('var PersonCard') !== -1;
+        return isAncestryPageReady(htmlstring);
     },
     "parseProfileData": parseAncestryNew
 });
@@ -128,6 +126,127 @@ var ancestrymrglist = [];
 
 function resolveAncestryUrl(url) {
     return resolveRelativeUrl(url, "https://www.ancestry.com");
+}
+
+// #335 further follow-up (live-reported, Dan - "much worse than the store
+// version... spouse used estimates when real data was there, no sibling
+// gender"): confirmed via a live diagnostic (15 family-member fetches in
+// one run, every single one coming back as a ~5.4KB response with zero
+// occurrences of "person-data") AND by rebuilding the exact v4.17.3.49
+// store release and testing it against live Ancestry in a second browser -
+// it showed the identical missing-gender symptom. Not a regression this
+// session introduced: getAncestryNewTreeFamily() (below) fetches each
+// family member's own page via a raw background `xhttp` request, a
+// mechanism nothing in this session's #335 work ever touched - it's always
+// used this. Ancestry's /facts pages are now rendered client-side across
+// the board (not just the specific page the earlier #335 fix addressed for
+// the FOCUS profile, which reads the live tab's already-rendered DOM
+// instead) - a raw fetch can never see content that only exists after the
+// page's own JavaScript runs, for the focus profile OR a family member.
+//
+// Fixed the same way MyHeritage's identical problem already was for its
+// own redesigned, React-rendered profile page (see
+// fetchMHFamilyViaTab()/runMHTabFetch(), collections/myheritagenew.js) -
+// a quiet background tab (chrome.tabs.create({active:false}), never steals
+// focus from whatever the user is looking at) actually runs the page's JS,
+// gets polled until isAncestryPageReady() confirms real content has
+// rendered, captured, then closed. Deliberately simpler than MyHeritage's
+// version: that one needs a queue/concurrency-limiter/stagger because it
+// fires several fetches in parallel; Ancestry's family loop
+// (getAncestryNewTreeFamily() below) already awaits one person at a time,
+// so none of that machinery is needed here - just the core open/poll/
+// capture/close sequence, called once per person in the same sequence
+// that already existed.
+function isAncestryPageReady(htmlstring) {
+    if (!exists(htmlstring)) {
+        return false;
+    }
+    if (htmlstring.indexOf('Please sign in for secure access to your Ancestry account') !== -1) {
+        return true;
+    }
+    return htmlstring.indexOf('id="person-data"') !== -1 || htmlstring.indexOf('var PersonCard') !== -1;
+}
+
+// usesDeepResearch (registerCollection above) makes the existing "Skip
+// Deep Research for this run" control (popup.js) available for Ancestry
+// too, same as the other tab-capture collections - this fetch is
+// genuinely slower than the raw xhttp call it replaces (a real tab has to
+// open and render, not just respond), so the same escape hatch those
+// collections already give the user applies here too.
+function fetchAncestryPersonViaTab(url, onDone) {
+    if (!deepResearchOn || deepResearchSkipRun) {
+        onDone("");
+        return;
+    }
+    chrome.tabs.create({url: url, active: false}, function (tab) {
+        if (!exists(tab) || !exists(tab.id)) {
+            onDone("");
+            return;
+        }
+        var settled = false;
+        var attempts = 0;
+        var maxAttempts = 10;
+
+        function cleanupAndFinish(html) {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            var abortIndex = deepResearchInFlightAborts.indexOf(abortThisFetch);
+            if (abortIndex !== -1) {
+                deepResearchInFlightAborts.splice(abortIndex, 1);
+            }
+            chrome.tabs.remove(tab.id, function () {
+                void chrome.runtime.lastError;
+            });
+            onDone(html || "");
+        }
+
+        function abortThisFetch() {
+            cleanupAndFinish("");
+        }
+        deepResearchInFlightAborts.push(abortThisFetch);
+
+        function attempt() {
+            if (settled) {
+                return;
+            }
+            attempts++;
+            chrome.tabs.get(tab.id, function (tabInfo) {
+                if (chrome.runtime.lastError || !exists(tabInfo)) {
+                    cleanupAndFinish("");
+                    return;
+                }
+                chrome.scripting.executeScript({
+                    target: {tabId: tab.id},
+                    func: function () {
+                        var html = "", node = document.firstChild;
+                        while (node) {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                html += node.outerHTML;
+                            } else if (node.nodeType === Node.TEXT_NODE) {
+                                html += node.nodeValue;
+                            }
+                            node = node.nextSibling;
+                        }
+                        return html;
+                    }
+                }, function (results) {
+                    void chrome.runtime.lastError;
+                    if (settled) {
+                        return;
+                    }
+                    var html = (exists(results) && exists(results[0])) ? results[0].result : undefined;
+                    if (isAncestryPageReady(html) || attempts >= maxAttempts) {
+                        cleanupAndFinish(html);
+                    } else {
+                        setTimeout(attempt, 1500);
+                    }
+                });
+            });
+        }
+        setTimeout(attempt, 750);
+    });
 }
 
 // Ancestry (as of 2026) embeds all person data as a single JSON blob in
@@ -539,16 +658,17 @@ async function getAncestryNewTreeFamily(famid, itemid, name, title, url) {
         unionurls[famid] = itemid;
         familystatus.push(famid);
 
-        chrome.runtime.sendMessage({
-            method: "GET",
-            action: "xhttp",
-            url: url,
-            variable: subdata
-        }, async function(response) {
+        // #335 further follow-up: was a raw background `xhttp` fetch - see
+        // fetchAncestryPersonViaTab()'s own comment for why that no longer
+        // gets real content against Ancestry's client-rendered /facts
+        // pages. `arg` here is just `subdata` (this closure's own local,
+        // not a message round-trip) - kept as a separate name only to
+        // match the shape the try/catch block below already expected.
+        $("#readstatus").html(escapeHtml(name) + " (looking deeper, this may take a second)");
+        fetchAncestryPersonViaTab(url, async function(html) {
             try {
-                await response;
-                var arg = response.variable;
-                var person = await parseAncestryNew(response.source, false, {
+                var arg = subdata;
+                var person = await parseAncestryNew(html, false, {
                     "title": arg.title,
                     "proid": arg.profile_id,
                     "itemId": arg.itemId

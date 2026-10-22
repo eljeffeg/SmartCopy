@@ -127,7 +127,8 @@ var fdata = { url: 'https://www.familysearch.org/tree/person/details/ABCD-123' }
             familyout: familyout,
             rawAbout: 'test\n',
             refurl: fdata.url,
-            updatedCategories: ['about']
+            updatedCategories: ['about'],
+            sourcecheck: true
         }
     };
     var result = runRealAsyncAboutMerge(response);

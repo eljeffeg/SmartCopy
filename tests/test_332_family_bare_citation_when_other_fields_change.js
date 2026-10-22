@@ -122,7 +122,8 @@ var fdata = { url: 'https://www.findagrave.com/memorial/41866395/eli-willie-glad
             familyout: familyout,
             rawAbout: '',
             refurl: fdata.url,
-            updatedCategories: ['burial']
+            updatedCategories: ['burial'],
+            sourcecheck: true
         }
     };
     var result = runRealAsyncAboutMerge(response);
@@ -144,7 +145,8 @@ var fdata = { url: 'https://www.findagrave.com/memorial/41866395/eli-willie-glad
             familyout: familyout,
             rawAbout: '',
             refurl: fdata.url,
-            updatedCategories: []
+            updatedCategories: [],
+            sourcecheck: true
         }
     };
     var result = runRealAsyncAboutMerge(response);
@@ -162,7 +164,8 @@ var fdata = { url: 'https://www.findagrave.com/memorial/41866395/eli-willie-glad
             familyout: familyout,
             rawAbout: 'Buried in Oakwood Cemetery.\n',
             refurl: fdata.url,
-            updatedCategories: ['about']
+            updatedCategories: ['about'],
+            sourcecheck: true
         }
     };
     var result = runRealAsyncAboutMerge(response);

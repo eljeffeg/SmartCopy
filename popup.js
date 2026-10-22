@@ -2214,7 +2214,7 @@ var submitform = function () {
                                 method: "GET",
                                 action: "xhttp",
                                 url: abouturl,
-                                variable: {pid: pid, familyout: familyout, rawAbout: rawAbout, refurl: fdata.url, updatedCategories: updatedCategories}
+                                variable: {pid: pid, familyout: familyout, rawAbout: rawAbout, refurl: fdata.url, updatedCategories: updatedCategories, sourcecheck: sourcecheck}
                             }, function (response) {
                                 // A malformed/non-JSON response here used to
                                 // throw uncaught, skipping submitstatus.pop()
@@ -2320,8 +2320,35 @@ var submitform = function () {
                                         // everywhere else in this codebase
                                         // (GeniPerson.get()) - blank.
                                         var geniRealAbout = exists(geni_return.about_me) ? geni_return.about_me : "";
-                                        var builtFamilyAboutMe = buildReferenceAboutMe(rawAbout, geniRealAbout, response.variable.refurl, response.variable.updatedCategories);
-                                        applyBuiltAboutMe(familyout, builtFamilyAboutMe);
+                                        // #343 (live-reported, DanCornett -
+                                        // #332 follow-up): this ran
+                                        // unconditionally, regardless of the
+                                        // citations on/off config toggle -
+                                        // the focus profile's own equivalent
+                                        // call site (buildFocusReferenceAboutMe(),
+                                        // above in submitform()) and the
+                                        // family "add" path both already
+                                        // gate on sourcecheck; this one
+                                        // never did, so a family member's
+                                        // Update always got a citation even
+                                        // with citations turned off. When
+                                        // off, mirror the focus profile's
+                                        // own sourcecheck=false branch
+                                        // exactly: plain-merge any real new
+                                        // content with Geni's existing About
+                                        // (still additive, never overwrites),
+                                        // no footnote - and nothing at all
+                                        // when there's no new content, same
+                                        // as applyBuiltAboutMe(undefined)
+                                        // already does for the on case.
+                                        if (response.variable.sourcecheck) {
+                                            var builtFamilyAboutMe = buildReferenceAboutMe(rawAbout, geniRealAbout, response.variable.refurl, response.variable.updatedCategories);
+                                            applyBuiltAboutMe(familyout, builtFamilyAboutMe);
+                                        } else if (rawAbout !== "") {
+                                            familyout["about_me"] = geniRealAbout !== "" ? geniRealAbout + "\n" + rawAbout : rawAbout;
+                                        } else {
+                                            delete familyout["about_me"];
+                                        }
                                     }
                                     if (exists(familyout["nicknames"]) && exists(geni_return.nicknames)) {
                                         if (geni_return instanceof Array) {

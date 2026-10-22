@@ -507,7 +507,7 @@ var EN_FALLBACK_MESSAGES = {
         "message": "Default deceased profiles to public"
     },
     "Add_reference_to_Geni_s_About_section": {
-        "message": "Add reference to Geni's About section"
+        "message": "Add citation to Geni's About section"
     },
     "Display_the_Geni_side_data_by_default": {
         "message": "Display the Geni side data by default"

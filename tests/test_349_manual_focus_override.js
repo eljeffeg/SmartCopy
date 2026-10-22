@@ -154,5 +154,56 @@ function assertEqual(actual, expected, label) {
         "#349: a valid entry reloads the popup so loadPage() picks up the override from a guaranteed-clean state");
 }
 
+// --- #349 follow-up (live-reported, Dan, before even testing the base feature): the link's own text should reflect what clicking it will do - "Change focus profile" when closed, "Cancel change of focus" once open. ---
+{
+    // Brace-counts the real addEventListener('click', function () {...})
+    // body out of its unique anchor - same technique used elsewhere in
+    // this suite for isolating one specific anonymous handler.
+    function extractClickHandlerBody(srcText, anchor) {
+        const anchorPos = srcText.indexOf(anchor);
+        if (anchorPos === -1) throw new Error('anchor not found: ' + anchor);
+        const fnStart = srcText.indexOf('function () {', anchorPos);
+        const braceStart = srcText.indexOf('{', fnStart);
+        let depth = 0, i = braceStart;
+        for (; i < srcText.length; i++) {
+            if (srcText[i] === '{') depth++;
+            else if (srcText[i] === '}') { depth--; if (depth === 0) break; }
+        }
+        return srcText.slice(braceStart + 1, i);
+    }
+    const handlerBody = extractClickHandlerBody(src, "document.getElementById('changefocuslink').addEventListener('click', ");
+
+    const { JSDOM } = require('jsdom');
+    const dom = new JSDOM('<!DOCTYPE html><html><body>' +
+        '<span id="changefocuslink">Change focus profile</span>' +
+        '<div id="changefocusrow" style="display: none;"><input id="changefocusinput"><div id="changefocuserror" style="display: none;"></div></div>' +
+        '</body></html>');
+    const $dom = require(path.join(ROOT, 'jquery.js'))(dom.window);
+    const clickHandler = new Function('$', 'return function () {' + handlerBody + '};')($dom);
+    const link = dom.window.document.getElementById('changefocuslink');
+
+    // jQuery's slideToggle() is an animation (relies on a real layout
+    // engine jsdom doesn't have) - stubbed to a plain instant show/hide
+    // toggle, since this test is about the TEXT changing correctly, not
+    // the animation itself (which has no logic of its own to verify).
+    $dom.fn.slideToggle = function () {
+        return this.each(function () {
+            this.style.display = (this.style.display === 'none' || this.style.display === '') ? 'block' : 'none';
+        });
+    };
+
+    clickHandler.call(link);
+    assertEqual($dom(link).text(), "Cancel change of focus",
+        "#349: clicking the link while the box is closed opens it and changes the text to 'Cancel change of focus'");
+    assertEqual($dom('#changefocusrow').css('display'), 'block',
+        "#349: the box is now visible after the first click");
+
+    clickHandler.call(link);
+    assertEqual($dom(link).text(), "Change focus profile",
+        "#349: clicking it again while open closes the box and reverts the text to 'Change focus profile'");
+    assertEqual($dom('#changefocusrow').css('display'), 'none',
+        "#349: the box is hidden again after the second click - this is the 'Cancel' action, no profile change is submitted");
+}
+
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

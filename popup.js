@@ -3051,10 +3051,26 @@ function applyManualFocusChange() {
         window.location.reload();
     });
 }
+// #349 follow-up (live-reported, Dan): the link's own text now reflects
+// which action clicking it will actually take - "Change focus profile"
+// when the box is closed, "Cancel change of focus" once it's open, so
+// clicking it again closes the box without submitting anything. Computed
+// from the row's CURRENT visibility before toggling (slideToggle() is an
+// animation - the text updates immediately, it doesn't wait for the
+// animation to finish).
 document.getElementById('changefocuslink').addEventListener('click', function () {
+    // Checked via the row's own inline display style, not jQuery's
+    // :visible (which depends on real computed layout/offsetWidth -
+    // this element only ever gets shown/hidden by this exact handler, so
+    // there's no ancestor-visibility case :visible's extra checks would
+    // catch that a direct style check wouldn't).
+    var opening = $('#changefocusrow').css('display') === 'none';
     $('#changefocusrow').slideToggle();
-    $('#changefocusinput').val('').focus();
+    $(this).text(opening ? "Cancel change of focus" : "Change focus profile");
     $('#changefocuserror').css("display", "none");
+    if (opening) {
+        $('#changefocusinput').val('').focus();
+    }
 }, false);
 document.getElementById('changefocusbutton').addEventListener('click', applyManualFocusChange, false);
 document.getElementById('changefocusinput').addEventListener('keyup', function (e) {

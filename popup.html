@@ -768,6 +768,14 @@
             <tr><td>
                 <div id='focusname' style="font-size: large; font-weight: bold;"></div>
                 <div id='focusrange' style="font-size: small; margin-bottom: 5px; margin-top: 1px;" ></div>
+                <!-- #349: lets the user manually correct a wrongly auto-picked
+                     Geni focus profile - see applyManualFocusChange() (popup.js) -->
+                <span id="changefocuslink" title="Pick a different Geni profile to copy into" style="font-size: small; color: #4a7fc9; cursor: pointer; text-decoration: underline;">Change focus profile</span>
+                <div id="changefocusrow" style="display: none; margin-top: 4px;">
+                    <input type="text" id="changefocusinput" placeholder="Geni ID or URL" style="width: 60%;">
+                    <button type="button" id="changefocusbutton" class="cta cta-blue" style="padding: 2px 10px;">Set</button>
+                    <div id="changefocuserror" style="display: none; color: #b00000; font-size: small; margin-top: 2px;"></div>
+                </div>
             </td><td style="vertical-align: top;">
                 <button type="button" id="submitbutton" class="cta cta-blue" style="float: right;">Submit</button>
             </td>

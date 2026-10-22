@@ -12,6 +12,22 @@ var buildhistory = [], marriagedates = [], parentspouselist = [], siblinglist = 
 var genibuildaction = {}, updatecount = 1, updatetotal = 0;
 var errormsg = "#f9acac", warningmsg = "#f8ff86", infomsg = "#afd2ff";
 var lastResearchFocus = null, tablinkTabId = undefined, tablinkResolvedFocusId = undefined; // #218/#227: see research.js's .ctrllink handler and loadPage() below
+// #349 (live-reported, Dan - Opera auto-picked the wrong Geni focus
+// profile with no way to correct it): loadPage()'s own `request` argument
+// (the original source-page fetch/capture that kicked off this whole run)
+// is never stored anywhere outside its own call chain - every existing
+// caller just threads it through as a parameter. The manual "Change" focus
+// control (below) needs to re-run loadPage() later, from a fresh click
+// handler with no access to that chain, so it's captured here once, at the
+// very top of loadPage() itself, the one place guaranteed to see every
+// call regardless of which branch a given run takes.
+var lastLoadPageRequest = null;
+// #349: the profile id/URL the user explicitly set via the "Change" focus
+// control, persisted across the popup reload that applies it (see that
+// control's own click handler near the bottom of this file) - loaded once
+// at startup (maybeStartLogin()'s gate above) and consumed exactly once in
+// loadPage() above.
+var manualFocusOverride = null;
 
 document.addEventListener('DOMContentLoaded', function () {
   Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
@@ -401,9 +417,10 @@ if (navigator.serviceWorker) {
 var domReady = false;
 var geonoticeLoaded = false;
 var lastFocusLoaded = false; // #218: same race-avoidance shape, for lastResearchFocus
+var manualFocusOverrideLoaded = false; // #349: same race-avoidance shape, for manualFocusOverride
 
 function maybeStartLogin() {
-    if (domReady && geonoticeLoaded && lastFocusLoaded) {
+    if (domReady && geonoticeLoaded && lastFocusLoaded && manualFocusOverrideLoaded) {
         get_tab();
     }
 }
@@ -818,6 +835,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, callback) {
 });
 
 function loadPage(request) {
+    lastLoadPageRequest = request;
     if (!profilechanged) {
         // #276 (live-reported, DanCornett): collection can genuinely be
         // undefined here - the "getSource" message listener just above
@@ -858,6 +876,29 @@ function loadPage(request) {
                     }
                     setMessage(warningmsg, _('SmartCopy_is_having_difficulty_reading_the_page') + error);
                 }
+            }
+            // #349 (live-reported, Dan - Opera auto-picked the wrong Geni
+            // focus profile with no way to correct it): checked FIRST,
+            // ahead of every auto-resolution path below - the user just
+            // explicitly typed/pasted this profile moments ago (the
+            // "Change" control, bound near the bottom of this file),
+            // that's a stronger signal than any history/opener-chain guess
+            // could be. manualFocusOverride is populated once, early
+            // (loaded from chrome.storage.local alongside lastResearchFocus -
+            // see maybeStartLogin()'s own comment on why both are gated
+            // the same way before get_tab() ever runs), and consumed here
+            // exactly once per popup load - the same single-use pattern
+            // #337 already established for lastResearchFocus, for the same
+            // reason: once used, it must not keep overriding a LATER,
+            // unrelated page the user navigates to without reopening the
+            // popup.
+            if (!profilechanged && exists(manualFocusOverride) && manualFocusOverride !== "") {
+                focusid = manualFocusOverride;
+                manualFocusOverride = "";
+                chrome.storage.local.remove('manualFocusOverride');
+                profilechanged = true;
+                loadPage(request);
+                return;
             }
             // #35 follow-up (live-reported): this whole buildhistory match
             // assumes one URL always means the same person - true for an
@@ -2960,6 +3001,41 @@ document.getElementById('submitbutton').addEventListener('click', submitform, fa
 document.getElementById('submitbutton2').addEventListener('click', submitform, false);
 document.getElementById('optionbutton').addEventListener('click', slideoptions, false);
 
+// #349 (live-reported, Dan - Opera auto-picked the wrong Geni focus
+// profile with no way to correct it): reloads the whole popup rather than
+// trying to re-run the fetch/build pipeline in place - buildForm() (and
+// the family-member equivalent) read-then-append to #profiletable's
+// existing HTML rather than clearing it first, since under every EXISTING
+// call path the popup is always freshly opened before either ever runs a
+// second time. Re-entering that pipeline in place without reopening the
+// popup would duplicate rows instead of replacing them. A genuine reload
+// is the only way to guarantee the same clean slate every other run
+// already gets, at the cost of a brief flicker - manualFocusOverride
+// (persisted here, consumed once in loadPage()) is what makes the fresh
+// load pick up the newly-chosen profile instead of auto-resolving the
+// same wrong one again.
+function applyManualFocusChange() {
+    var profilelink = getProfile($('#changefocusinput')[0].value);
+    if (profilelink === "") {
+        $('#changefocuserror').text("Invalid Profile Id - Try Again").css("display", "block");
+        return;
+    }
+    chrome.storage.local.set({manualFocusOverride: profilelink.replace("?profile=", "")}, function () {
+        window.location.reload();
+    });
+}
+document.getElementById('changefocuslink').addEventListener('click', function () {
+    $('#changefocusrow').slideToggle();
+    $('#changefocusinput').val('').focus();
+    $('#changefocuserror').css("display", "none");
+}, false);
+document.getElementById('changefocusbutton').addEventListener('click', applyManualFocusChange, false);
+document.getElementById('changefocusinput').addEventListener('keyup', function (e) {
+    if ((e.keyCode || e.which) === 13) {
+        applyManualFocusChange();
+    }
+}, false);
+
 
 // Condenses a parseForm() field-data object into a short, human-readable
 // list of what categories of data changed - e.g. "photo, name, gender,
@@ -4736,6 +4812,13 @@ chrome.storage.local.get('geonotice', function(result) {
 chrome.storage.local.get('lastResearchFocus', function (result) {
     lastResearchFocus = exists(result.lastResearchFocus) ? result.lastResearchFocus : null;
     lastFocusLoaded = true;
+    maybeStartLogin();
+});
+
+// #349: same load-once-at-startup shape as lastResearchFocus just above.
+chrome.storage.local.get('manualFocusOverride', function (result) {
+    manualFocusOverride = exists(result.manualFocusOverride) ? result.manualFocusOverride : null;
+    manualFocusOverrideLoaded = true;
     maybeStartLogin();
 });
 

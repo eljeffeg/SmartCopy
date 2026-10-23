@@ -61,7 +61,32 @@ var NameParse = (function(){
                 return true;
             }
         });
-        if (nickParts.length > 1 && !fullastName.contains(nickParts.join(" "))) {
+        // Live-reported: "(Nechama) Anna (Chana) Obridka" parsed as
+        // firstName="Obridka", lastName="" - the real first name ("Anna")
+        // and real last name ("Obridka") both vanished. The block below
+        // exists to re-join a genuinely multi-word quoted/parenthesized
+        // nickname (John "Captain Black Jack" Geary) whose MIDDLE words
+        // (Black) carry no quote/paren marker at all, so the per-word
+        // filter above can't catch them on its own - only the first
+        // ("Captain) and last (Jack") fragments get caught, each missing
+        // its OTHER half of the pair. But the same `nickParts.length > 1`
+        // trigger also fires for two entirely SEPARATE, already-complete
+        // nicknames with real name content between them, like this case -
+        // each of "(Nechama)" and "(Chana)" already has both its open AND
+        // close marker in the same word, so there's nothing fragmented to
+        // reassemble. Treating them as one nickname spanning all three
+        // words swept "Anna" (the real first name) into the nickname and
+        // left only "Obridka" in nameParts - a single word, which the
+        // parser below reads as a bare first name with no last name at all.
+        // Only enter this reconstruction when at least one nickPart is
+        // genuinely incomplete (its own word has an opening marker with no
+        // matching close) - the actual signal that a word got split off
+        // from a longer nickname, which two separately-complete
+        // parentheticals never are.
+        function isCompleteNickPart(s) {
+            return (/^\(.*\)$/).test(s) || (/^".*"$/).test(s) || (/^'.*'$/).test(s);
+        }
+        if (nickParts.length > 1 && !nickParts.every(isCompleteNickPart) && !fullastName.contains(nickParts.join(" "))) {
             //This process is done to capture nicknames with more than 1 space, such as John "Captain Black Jack" Geary.
             var start = false;
             var nameParts2 = fullastName.split(" ");
@@ -265,8 +290,14 @@ var NameParse = (function(){
             var nickfirst = nickParts[0].replace("(","");
             */
             var nickfirst = nickParts.join(" ");
-            nickfirst = nickfirst.replace("(","");
-            nickfirst = nickfirst.replace(")","");
+            // Second bug found alongside the reconstruction-misfire above:
+            // these were non-global, so they only ever stripped the FIRST
+            // "(" and FIRST ")" in the whole joined string - fine for a
+            // single nickname, but any SECOND parenthetical nickname
+            // (two separate ones, like "(Nechama) (Chana)") kept its own
+            // parens in the final display text ("Nechama (Chana)").
+            nickfirst = nickfirst.replace(/\(/g,"");
+            nickfirst = nickfirst.replace(/\)/g,"");
             nickfirst = nickfirst.replace(/"/g,'');
             nickfirst = this.fix_case(nickfirst.trim());
             nickName = nickfirst + " " + lastName.trim();

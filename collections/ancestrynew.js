@@ -399,6 +399,33 @@ async function extractAncestryPersonData(htmlstring) {
     return await extractLegacyPersonData(htmlstring);
 }
 
+// Live-reported: copying a woman with a husband and three children (none
+// previously on Geni) correctly added the husband, but all three children
+// landed under a brand-new "(no name)" second union instead of the real
+// one - inspecting the family form showed "Unknown" selected for each
+// child's father, with the real father genuinely present as a dropdown
+// option, just not the one picked. Root cause: a child's own father/mother
+// gets matched against the id already recorded for that same person as a
+// SPOUSE (in `unionurls`, populated while processing the parent's own
+// page) via jQuery's $.inArray(), which compares with strict equality -
+// but the very next block down (focusPersonId vs father.Id, a few lines
+// above this one in parseAncestryNew) already has to compare the exact
+// same kind of Ancestry id with String() coercion, because Ancestry
+// doesn't consistently return a person's id as the same type (number vs.
+// string) in every part of its JSON. $.inArray() never got that same
+// treatment, so a father who IS genuinely already in unionurls can still
+// silently fail to match, falling back to "Unknown" with no error at all -
+// Geni then creates a new union for the child instead of attaching them
+// to the real one.
+function indexOfLooseId(id, array) {
+    for (var i = 0; i < array.length; i++) {
+        if (String(array[i]) === String(id)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 async function parseAncestryNew(htmlstring, familymembers, relation) {
     relation = relation || "";
     if (!exists(htmlstring)) {
@@ -569,8 +596,8 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
         } else if (exists(relation.title)) {
             if (isChild(relation.title)) {
                 if (String(focusPersonId) !== String(father.Id)) {
-                    childlist[relation.proid] = $.inArray(father.Id, unionurls);
-                    profiledata["parent_id"] = $.inArray(father.Id, unionurls);
+                    childlist[relation.proid] = indexOfLooseId(father.Id, unionurls);
+                    profiledata["parent_id"] = indexOfLooseId(father.Id, unionurls);
                 }
             }
         }
@@ -584,8 +611,8 @@ async function parseAncestryNew(htmlstring, familymembers, relation) {
         } else if (exists(relation.title)) {
             if (isChild(relation.title)) {
                 if (String(focusPersonId) !== String(mother.Id)) {
-                    childlist[relation.proid] = $.inArray(mother.Id, unionurls);
-                    profiledata["parent_id"] = $.inArray(mother.Id, unionurls);
+                    childlist[relation.proid] = indexOfLooseId(mother.Id, unionurls);
+                    profiledata["parent_id"] = indexOfLooseId(mother.Id, unionurls);
                 }
             }
         }

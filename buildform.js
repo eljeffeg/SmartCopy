@@ -1391,7 +1391,7 @@ function buildForm() {
                 }
                 if (!dateadded) {
                     membersstring = membersstring +
-                        '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (datelocked ? ' disabled' : '') + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date"' + (datelocked ? ' disabled' : '') + '></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "date.formatted_date")).replace(/&quot;/g, '"')) + '" disabled></td></tr>';
+                        '<tr ' + hiddenRowAttrs(hidden, isValue(genifocusdata.get(title, "date.formatted_date"))) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (datelocked ? ' disabled' : '') + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date"' + (datelocked ? ' disabled' : '') + '></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "date.formatted_date")).replace(/&quot;/g, '"')) + '" disabled></td></tr>';
                 }
                 if (title === "death") {
                     // (Dan's #304 follow-up proposal): value input's
@@ -1399,7 +1399,14 @@ function buildForm() {
                     // focusFieldLocked() check already used for the
                     // checkbox on this line, not hardcoded - see
                     // Occupation's own identical fix above.
-                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" ' + (focusFieldLocked("cause_of_death") ? "disabled" : "") + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
+                    // #328 (live-reported, DanCornett): hasValue was
+                    // hardcoded false here, same gap Occupation/AKA had
+                    // before their own #305/#351-era fixes - a profile
+                    // with no scraped Death Cause at all stayed hidden
+                    // under Hide Empty Fields even when Geni already had
+                    // one, so there was no way to even SEE it was there
+                    // without clicking "Show all fields" first every time.
+                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, isValue(genifocusdata.get("cause_of_death"))) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" ' + (focusFieldLocked("cause_of_death") ? "disabled" : "") + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
                 }
                 if (!locationadded) {
                     // #35 follow-up (live-reported): every <tr> in this
@@ -1439,14 +1446,15 @@ function buildForm() {
                 }
 
                 membersstring = membersstring +
-                    '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (datelocked ? ' disabled' : '') + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date"' + (datelocked ? ' disabled' : '') + '></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "date.formatted_date")).replace(/&quot;/g, '"')) + '" disabled></td></tr>';
+                    '<tr ' + hiddenRowAttrs(hidden, isValue(genifocusdata.get(title, "date.formatted_date"))) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (datelocked ? ' disabled' : '') + '>' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" class="formtext dateform" name="' + title + ':date"' + (datelocked ? ' disabled' : '') + '></td><td class="genisliderow"><img src="images/' + dateicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "date.formatted_date")).replace(/&quot;/g, '"')) + '" disabled></td></tr>';
                 if (title === "death") {
                     // (Dan's #304 follow-up proposal): value input's
                     // disabled attribute now driven by the same
                     // focusFieldLocked() check already used for the
                     // checkbox on this line, not hardcoded - see
                     // Occupation's own identical fix above.
-                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" ' + (focusFieldLocked("cause_of_death") ? "disabled" : "") + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
+                    // #328: see the identical fix's own comment above.
+                    membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, isValue(genifocusdata.get("cause_of_death"))) + '><td class="profilediv"><input type="checkbox" class="checknext"' + (focusFieldLocked("cause_of_death") ? ' disabled' : '') + '>Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death" ' + (focusFieldLocked("cause_of_death") ? "disabled" : "") + '></td><td class="genisliderow"><img src="images/' + genifocusdata.lockIcon("cause_of_death") + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + genifocusdata.get("cause_of_death") + '" disabled></td></tr>';
                 }
                 // #35 follow-up: same missing data-hasvalue + missing
                 // Latitude/Longitude bug as the !locationadded fallback
@@ -2459,11 +2467,19 @@ function buildForm() {
                                 ambigdatecheck.push(i);
                             }
                             membersstring = membersstring +
-                                '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" ' + dateambig + 'name="' + title + ':date"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                                '<tr ' + hiddenRowAttrs(hidden, exists(matchedCandidateForEstimate) && isValue(matchedCandidateForEstimate.get(title, "date.formatted_date"))) + '><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" ' + dateambig + 'name="' + title + ':date"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
 
                         }
                         if (title === "death") {
-                            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_cause_of_death" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                            // #328 (live-reported, DanCornett): hasValue was
+                            // hardcoded false here too - same gap as the
+                            // focus profile's own Date/Death Cause fix
+                            // above, just for a family member. Reuses
+                            // matchedCandidateForEstimate - the same
+                            // already-resolved Geni match this member's
+                            // date-field pre-selection above reads from -
+                            // rather than re-resolving the match separately.
+                            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, exists(matchedCandidateForEstimate) && isValue(matchedCandidateForEstimate.get("cause_of_death"))) + '><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_cause_of_death" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                         }
                         if (!locationadded) {
                             // #35 follow-up: same fix as the focus profile's
@@ -2492,9 +2508,10 @@ function buildForm() {
                     } else {
                         membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" data-hasvalue="false"><td colspan="3"><div class="separator"></div></td></tr>';
 
-                        membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" name="' + title + ':date"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                        membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, exists(matchedCandidateForEstimate) && isValue(matchedCandidateForEstimate.get(title, "date.formatted_date"))) + '><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" name="' + title + ':date"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                         if (title === "death") {
-                            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, false) + '><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_cause_of_death" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                            // #328: see the identical fix's own comment above.
+                            membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, exists(matchedCandidateForEstimate) && isValue(matchedCandidateForEstimate.get("cause_of_death"))) + '><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_cause_of_death" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                         }
                         // #35 follow-up: same missing data-hasvalue +
                         // missing Latitude/Longitude bug as the family

@@ -3586,6 +3586,34 @@ function datesAreEquivalent(a, b, ignoreCirca) {
     if (a.toLowerCase() === b.toLowerCase()) {
         return true;
     }
+    // #334 (live-reported, DanCornett): "Geni allows dates to be in any
+    // order (so that one can indicate a more likely date being the first
+    // shown)" - e.g. "Between 1949 and 1945". A scraped Between date with
+    // the same two dates but the opposite order previously read as
+    // genuinely different, since the code below has no concept of a
+    // two-date range at all (it falls through to moment-parsing the whole
+    // "X and Y" phrase as one date, which always fails - see this
+    // function's own comment on that fallback). Recurses into this same
+    // function for each half, so a case difference, a qualifier, or any
+    // other equivalence this function already understands still applies
+    // to the individual dates within the range, not just an exact-text
+    // comparison of each half.
+    var betweenMatchA = a.match(DATE_BETWEEN_PATTERN);
+    var betweenMatchB = b.match(DATE_BETWEEN_PATTERN);
+    if (betweenMatchA && betweenMatchB) {
+        var aFirst = betweenMatchA[1].trim();
+        var aSecond = betweenMatchA[2].trim();
+        var bFirst = betweenMatchB[1].trim();
+        var bSecond = betweenMatchB[2].trim();
+        return (datesAreEquivalent(aFirst, bFirst, ignoreCirca) && datesAreEquivalent(aSecond, bSecond, ignoreCirca)) ||
+            (datesAreEquivalent(aFirst, bSecond, ignoreCirca) && datesAreEquivalent(aSecond, bFirst, ignoreCirca));
+    }
+    if (betweenMatchA || betweenMatchB) {
+        // One side is a two-date range and the other isn't - never
+        // equivalent, same as the pre-existing "unparseable -> false"
+        // fallback this replaces for exactly this mismatched case.
+        return false;
+    }
     var qualifierMatchA = a.match(DATE_QUALIFIER_PATTERN);
     var qualifierMatchB = b.match(DATE_QUALIFIER_PATTERN);
     var normalizeQualifier = function (q) {

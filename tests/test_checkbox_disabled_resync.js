@@ -76,9 +76,10 @@ function extractArrayStatement(srcText, name) {
     return srcText.slice(start, semi + 1);
 }
 const DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
+const DATE_BETWEEN_PATTERN = /^between\s+(.+?)\s+and\s+(.+)$/i;
 const moment = require(path.join(ROOT, 'moment.js'));
 const datesAreEquivalentSrc = extractArrayStatement(popupSrc, 'DATE_PARSE_FORMATS') + '\n' + extractFunction(popupSrc, 'datesAreEquivalent');
-const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN', datesAreEquivalentSrc + '\nreturn datesAreEquivalent;')(exists, moment, DATE_QUALIFIER_PATTERN);
+const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN', 'DATE_BETWEEN_PATTERN', datesAreEquivalentSrc + '\nreturn datesAreEquivalent;')(exists, moment, DATE_QUALIFIER_PATTERN, DATE_BETWEEN_PATTERN);
 const valuesAreEquivalent = new Function('return ' + extractFunction(src, 'valuesAreEquivalent'))();
 const nicknamesAreEquivalent = new Function('return ' + extractFunction(src, 'nicknamesAreEquivalent'))();
 // #304 follow-up: About's fieldType now reuses isAboutContentPresent()

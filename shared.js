@@ -216,6 +216,15 @@ function isValidDate(d) {
 // date itself, not just "After 1919".
 var DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
 
+// #334 (live-reported, DanCornett): "Between X and Y" doesn't fit the
+// single-qualifier model above at all - it names TWO dates, not one, so
+// stripping a leading "Between " and handing the rest to moment() (the
+// way every other qualifier works) can never succeed; the whole string
+// just fails to parse. Shared by extractDateYear() below (shared.js) and
+// datesAreEquivalent() (popup.js), same reasoning as DATE_QUALIFIER_PATTERN
+// living here for both files to use.
+var DATE_BETWEEN_PATTERN = /^between\s+(.+?)\s+and\s+(.+)$/i;
+
 // #223/#224 follow-up: live-confirmed getGeoDedupKey()/FamilySearch's date
 // query both silently lost the year entirely for any qualified date
 // ("After 20 Jan 1891") - moment() requires the ENTIRE string to match one
@@ -230,6 +239,20 @@ var DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
 function extractDateYear(dateval) {
     if (!exists(dateval) || dateval === "") {
         return undefined;
+    }
+    // #334 (live-reported, DanCornett): neither half of a "Between X and
+    // Y" date was ever used for the FamilySearch location lookup's year -
+    // the whole string failed to parse as one date (see
+    // DATE_BETWEEN_PATTERN's own comment), so a Between-dated event's
+    // "Edit Location" always opened with an empty year field. Try the
+    // first date; if it doesn't parse, fall back to the second - this is
+    // just a best-effort year for narrowing a place lookup, not a value
+    // that gets submitted anywhere, so either date is an equally
+    // reasonable guess when only one of them parses cleanly.
+    var betweenMatch = dateval.match(DATE_BETWEEN_PATTERN);
+    if (betweenMatch) {
+        var firstYear = extractDateYear(betweenMatch[1].trim());
+        return exists(firstYear) ? firstYear : extractDateYear(betweenMatch[2].trim());
     }
     var stripped = dateval.replace(DATE_QUALIFIER_PATTERN, "").replace(/(\d+)(st|nd|rd|th)\b/i, "$1").trim();
     var dt = moment(stripped, getDateFormat(stripped));

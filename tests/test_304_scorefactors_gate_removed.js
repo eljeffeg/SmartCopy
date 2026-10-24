@@ -56,6 +56,7 @@ function extractArrayStatement(src, name) {
 function exists(v) { return typeof v !== 'undefined' && v !== null; }
 function isValue(v) { return v !== ''; }
 const DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
+const DATE_BETWEEN_PATTERN = /^between\s+(.+?)\s+and\s+(.+)$/i;
 
 let pass = 0, fail = 0;
 function assertTrue(cond, label) {
@@ -83,7 +84,7 @@ const ctx1 = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN',
 const isDateSpecificityDowngrade = ctx1.isDateSpecificityDowngrade;
 
 const datesAreEquivalentSrc = extractArrayStatement(popupSrc, 'DATE_PARSE_FORMATS') + '\n' + extractFunction(popupSrc, 'datesAreEquivalent');
-const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN', datesAreEquivalentSrc + '\nreturn datesAreEquivalent;')(exists, moment, DATE_QUALIFIER_PATTERN);
+const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN', 'DATE_BETWEEN_PATTERN', datesAreEquivalentSrc + '\nreturn datesAreEquivalent;')(exists, moment, DATE_QUALIFIER_PATTERN, DATE_BETWEEN_PATTERN);
 
 const resolveFieldEnabled = new Function('isValue', 'exists', 'return ' + extractFunction(bfSrc, 'resolveFieldEnabled'))(isValue, exists);
 const isChecked = new Function('resolveFieldEnabled', 'return ' + extractFunction(bfSrc, 'isChecked'))(resolveFieldEnabled);

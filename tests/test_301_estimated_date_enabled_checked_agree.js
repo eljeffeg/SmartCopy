@@ -60,9 +60,10 @@ function isValue(v) { return v !== ""; }
 // must be present in this harness (same extraction shape as
 // tests/test_212_240_dates_are_equivalent.js).
 const DATE_QUALIFIER_PATTERN = /^(circa|about|after|before)\s+(the\s+)?/i;
+const DATE_BETWEEN_PATTERN = /^between\s+(.+?)\s+and\s+(.+)$/i;
 const moment = require(path.join(ROOT, 'moment.js'));
 const datesAreEquivalentSrc = extractArrayStatement(popupSrc, 'DATE_PARSE_FORMATS') + '\n' + extractFunction(popupSrc, 'datesAreEquivalent');
-const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN', datesAreEquivalentSrc + '\nreturn datesAreEquivalent;')(exists, moment, DATE_QUALIFIER_PATTERN);
+const datesAreEquivalent = new Function('exists', 'moment', 'DATE_QUALIFIER_PATTERN', 'DATE_BETWEEN_PATTERN', datesAreEquivalentSrc + '\nreturn datesAreEquivalent;')(exists, moment, DATE_QUALIFIER_PATTERN, DATE_BETWEEN_PATTERN);
 // #304 follow-up: isCheckedDateField()/isEnabledDateField() now also call
 // isDateSpecificityDowngrade(), which itself needs getDateSpecificity()/
 // DATE_SPECIFICITY_FORMATS - all extracted verbatim from popup.js.

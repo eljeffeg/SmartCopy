@@ -1645,7 +1645,19 @@ $(function () {
         // whatever its own geo children end up checked as, same as its own
         // click handler already does for a direct click.
         var ffs = fs.find('[type="checkbox"]').not('.geotopcheck');
-        if (!$(ffs[0]).prop("disabled")) {
+        // #354 (live-reported, DanCornett): this used to gate the WHOLE
+        // handler on whether just ffs[0] - the very first checkbox found
+        // anywhere in the category - was disabled. If that one person
+        // happened to be locked/inaccessible, the entire handler no-opped,
+        // silently leaving every OTHER, genuinely allowed profile in the
+        // category untouched too ("does NOT change the status of those
+        // 'allowed' profiles"). Removed - a locked item is now skipped
+        // per-item inside the filter below instead (same pattern
+        // applySelectAllState()'s own filter already uses, buildform.js
+        // #78 - jQuery's .prop('checked', ...) doesn't respect disabled
+        // for a programmatic set, only a real user interaction, so this
+        // check has to be explicit).
+        {
             // #304 follow-up (live-reported, DanCornett): a category-wide
             // click (Parents/Siblings/Partners/Children) is exactly as
             // deliberate a "select everything" action as clicking one
@@ -1663,6 +1675,16 @@ $(function () {
             // overwrote whatever was already on the Geni profile. Only
             // applies while turning fields on; deselecting is always safe.
             ffs.filter(function (item) {
+                // #354: a locked/inaccessible profile's fields are disabled
+                // at render time specifically so nothing - including this
+                // category-wide action - can check (or uncheck past their
+                // own protected state) them. Skipping it here is what lets
+                // every OTHER, genuinely allowed profile in the category
+                // still get toggled normally, instead of the whole handler
+                // bailing out over one locked person.
+                if (this.disabled) {
+                    return false;
+                }
                 if ($(ffs[item]).closest('tr').css("display") === "none") {
                     return false;
                 }

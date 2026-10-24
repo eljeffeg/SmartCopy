@@ -1260,6 +1260,15 @@ function buildForm() {
                         var itemGeolochidden = hasGeoFields ? "" : " geohidden";
                         var placeScored = scored && !geoAnySourceEnabled();
                         var geoScored = scored && geoAnySourceEnabled();
+                        // #355 diagnostic (live-reported, DanCornett): a
+                        // location that should be entirely blank is
+                        // showing pre-selected with no value visible on
+                        // either side - not yet root-caused. Logs the raw
+                        // inputs this location's checkbox state is
+                        // computed from, so a console paste while
+                        // reproducing can show whether "place" is
+                        // genuinely blank or just looks that way.
+                        console.log("SmartCopy [#355 diagnostic, focus]: title=" + title + " place=" + JSON.stringify(place) + " city=" + JSON.stringify(city) + " county=" + JSON.stringify(county) + " state=" + JSON.stringify(state) + " country=" + JSON.stringify(country) + " hasGeoFields=" + hasGeoFields + " geoone=" + geoone + " placeScored=" + placeScored + " geoScored=" + geoScored);
                         // #224: once real geo fields exist, suggesting the
                         // FULL raw scraped string for Place Name just
                         // duplicates what city/county/state/country already
@@ -2407,6 +2416,8 @@ function buildForm() {
                                 var itemGeolochidden = hasGeoFields ? "" : " geohidden";
                                 var placeScored = scored && !geoAnySourceEnabled();
                                 var geoScored = scored && geoAnySourceEnabled();
+                                // #355 diagnostic: see the identical focus-profile log's own comment above.
+                                console.log("SmartCopy [#355 diagnostic, family]: member=" + i + " title=" + title + " place=" + JSON.stringify(place) + " city=" + JSON.stringify(city) + " county=" + JSON.stringify(county) + " state=" + JSON.stringify(state) + " country=" + JSON.stringify(country) + " hasGeoFields=" + hasGeoFields + " geoone=" + geoone + " placeScored=" + placeScored + " geoScored=" + geoScored);
                                 // #224: same rule as the focus profile block
                                 // above - see its own comment.
                                 // #256: no longer parenthesized - see the

@@ -107,6 +107,37 @@ function freshLocationBlock() {
         "Safety: a genuinely visible checked field still correctly sets the person's top-level checkbox");
 }
 
+// --- #348 (live-reported, DanCornett): syncTopLevelIndicators() - the function the REAL .checknext click handler calls - must also clear geotopcheck when the last visible child gets unchecked, not just the person-level box. ---
+{
+    freshLocationBlock();
+    $('#flatplace')[0].checked = false;
+    $('#city')[0].checked = true;
+    $('#geotop')[0].checked = true;
+    ctx.syncTopLevelIndicators($('#city')[0]);
+    assertEqual($('#geotop').prop('checked'), true,
+        "Sanity: with City genuinely checked, geotopcheck correctly stays checked");
+    // Now the user unchecks City by hand - the last field still selected
+    // under this location.
+    $('#city')[0].checked = false;
+    ctx.syncTopLevelIndicators($('#city')[0]);
+    assertEqual($('#geotop').prop('checked'), false,
+        "#348: unchecking the last individually-checked field under a location clears that location's OWN top checkbox (geotopcheck) too - before this fix, syncTopLevelIndicators() never touched geotopcheck at all, so it stayed checked with nothing underneath selected");
+    assertEqual($('#personslide').prop('checked'), false,
+        "#348: the person-level indicator correctly clears too, same as it already did before this fix");
+}
+
+// --- #348 safety: a location with multiple checked fields only clears geotopcheck once the LAST one is unchecked, not the first. ---
+{
+    freshLocationBlock();
+    $('#city')[0].checked = true;
+    $('#county')[0].checked = true;
+    $('#geotop')[0].checked = true;
+    $('#county')[0].checked = false;
+    ctx.syncTopLevelIndicators($('#county')[0]);
+    assertEqual($('#geotop').prop('checked'), true,
+        "Safety: geotopcheck stays checked while City is still genuinely checked, even after unchecking County");
+}
+
 // --- #325 symptom 2: a bulk uncheck that skips hidden rows must not leave geotopcheck stuck checked afterward. ---
 {
     freshLocationBlock();

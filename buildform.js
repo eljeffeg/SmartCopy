@@ -2867,6 +2867,20 @@ function hasVisibleCheckedField(container) {
 function syncTopLevelIndicators(clickedElement) {
     var memberexpand = $(clickedElement).closest('.memberexpand');
     if (memberexpand.length > 0) {
+        // #348 (live-reported, DanCornett): a location's own group-header
+        // checkbox (.geotopcheck) only ever got recomputed from
+        // applySelectAllState() (a bulk select-all/deselect-all pass) -
+        // unchecking an individual field directly, down to the LAST one
+        // still checked under that location, left .geotopcheck stuck
+        // showing "something is selected" with nothing actually checked
+        // underneath (the exact asymmetry Dan described: setting it
+        // reactively worked, clearing it didn't). syncGeotopcheckState()
+        // already recomputes every .geotopcheck within whatever scope it's
+        // given, from scratch, the same way hasVisibleCheckedField() does
+        // for the person tier just below - scoping it to this person's own
+        // memberexpand is harmless even when only one of their locations
+        // actually changed.
+        syncGeotopcheckState(memberexpand);
         var personTitle = memberexpand.prev('.membertitle');
         personTitle.find('.checkslide').prop('checked', hasVisibleCheckedField(memberexpand));
         var groupFieldset = personTitle.closest('fieldset');
@@ -2893,6 +2907,10 @@ function syncTopLevelIndicators(clickedElement) {
     }
     var focusFieldset = $(clickedElement).closest('fieldset');
     if (focusFieldset.length > 0 && exists(focusFieldset[0].parentElement) && focusFieldset[0].parentElement.id === "profileshadowdiv") {
+        // #348: see the memberexpand branch's own comment above - the
+        // focus profile's own locations (Birth/Baptism/Death/Burial) have
+        // the identical .geotopcheck gap.
+        syncGeotopcheckState(focusFieldset);
         $('#updateprofile').prop('checked', hasVisibleCheckedField(focusFieldset));
     }
 }

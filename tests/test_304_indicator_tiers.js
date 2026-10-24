@@ -45,6 +45,7 @@ global.exists = exists;
 
 const ctx = new Function('$', 'exists', `
     ${extractFunction(bfSrc, 'hasVisibleCheckedField')}
+    ${extractFunction(bfSrc, 'syncGeotopcheckState')}
     ${extractFunction(bfSrc, 'syncPersonCheckboxWithPreCheckedFields')}
     ${extractFunction(bfSrc, 'syncTopLevelIndicators')}
     return { syncPersonCheckboxWithPreCheckedFields, syncTopLevelIndicators };

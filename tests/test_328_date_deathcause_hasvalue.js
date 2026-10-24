@@ -33,6 +33,21 @@
 // that reveals nothing new about what Geni already has - the same "don't
 // add a field the user can't act on" reasoning Photo was ruled out under
 // for #305.
+//
+// #328 follow-up (live-reported, DanCornett, after v...78 shipped the
+// Date/Death Cause fix above): "this is not showing location detail
+// fields which are present on Geni but there is no 'scraped' location" -
+// the location fallback block (fires when NOTHING was scraped for this
+// event's location at all - the 8-row Place/City/County/State/Country/
+// Latitude/Longitude breakdown plus its own header) had the exact same
+// hardcoded-false gap, just never covered by the first pass since Dan's
+// original report only called out AKA, Burial, and Divorce by name - not
+// specifically their LOCATION sub-fields. Each of the 8 rows now checks
+// its own Geni value independently (so a profile with only a Geni Country
+// shows just that one row, not all 8); the header row shows if ANY of
+// them do. Focus profile reads genifocusdata.get() directly; family
+// members reuse matchedCandidateForEstimate, same precedent as the
+// Date/Death Cause fix just above.
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
@@ -74,6 +89,32 @@ assertTrue(src.indexOf('hiddenRowAttrs(hidden, false) + \'><td class="profilediv
 assertEqual((src.match(/hiddenRowAttrs\(hidden, false\) \+ ' id="about"/g) || []).length, 2,
     "Safety: About's own two fallback rows (focus + family) are still hardcoded false on purpose - they have no genislideinput companion to reveal, so exposing them would show nothing new");
 
+// --- Structural: focus profile's location-fallback block (#328 follow-up) now computes a per-field Geni hasValue, not hardcoded false. ---
+['location_string', 'location.place_name', 'location.city', 'location.county', 'location.state', 'location.country', 'location.latitude', 'location.longitude'].forEach(function (subpath) {
+    assertTrue(src.indexOf('isValue(String(genifocusdata.get(title, "' + subpath + '")))') !== -1,
+        "#328 follow-up: focus profile's location fallback computes hasValue for " + subpath + " from Geni's real value");
+});
+assertTrue(/var focusLocationAnyHasValue = focusPlaceFlatHasValue \|\| focusPlaceGeoHasValue \|\| focusCityHasValue \|\| focusCountyHasValue \|\| focusStateHasValue \|\| focusCountryHasValue \|\| focusLatitudeHasValue \|\| focusLongitudeHasValue;/.test(src),
+    "#328 follow-up: focus profile's location header row hasValue is true whenever ANY sub-field has a Geni value");
+assertEqual((src.match(/data-hasvalue="' \+ focusLocationAnyHasValue \+ '"/g) || []).length, 2,
+    "#328 follow-up: both focus-profile location fallback blocks (obj exists / obj doesn't exist at all) use the computed header hasValue, not a hardcoded one");
+
+// --- Structural: family member's location-fallback block reuses matchedCandidateForEstimate, same precedent as Date/Death Cause. ---
+['location_string', 'location.place_name', 'location.city', 'location.county', 'location.state', 'location.country', 'location.latitude', 'location.longitude'].forEach(function (subpath) {
+    assertTrue(src.indexOf('exists(matchedCandidateForEstimate) && isValue(matchedCandidateForEstimate.get(title, "' + subpath + '"))') !== -1,
+        "#328 follow-up: family member's location fallback computes hasValue for " + subpath + " from the pre-match candidate's real value");
+});
+assertEqual((src.match(/data-hasvalue="' \+ memberLocationAnyHasValue \+ '"/g) || []).length, 2,
+    "#328 follow-up: both family-member location fallback blocks use the computed header hasValue, not a hardcoded one");
+
+// --- Structural: no location sub-row still hardcodes hasValue to false. ---
+assertTrue(src.indexOf('hiddenrow' + "' + geolochidden + '" + '" data-hasvalue="false"') === -1 &&
+    src.indexOf('hiddenrow' + "' +  geolochidden + '" + '" data-hasvalue="false"') === -1,
+    "#328 follow-up: no geoloc (City/County/State/Country/Latitude/Longitude/Place) fallback row still hardcodes hasValue to false");
+assertTrue(src.indexOf('hiddenrow' + "' + geoplacehidden + '" + '" data-hasvalue="false"') === -1 &&
+    src.indexOf('hiddenrow' + "' +  geoplacehidden + '" + '" data-hasvalue="false"') === -1,
+    "#328 follow-up: no geoplace (flat Place view) fallback row still hardcodes hasValue to false");
+
 // --- Behavioral: real hiddenRowAttrs()/isHidden(), confirming the actual display/data-hasvalue output - same harness as #305's own test. ---
 function extractFunction(srcText, name) {
     const marker = 'function ' + name + '(';
@@ -104,6 +145,29 @@ assertEqual(hiddenRowAttrs(true, isValue('12 March 1950')), 'data-hasvalue="true
 var matchedCandidateForEstimate = undefined;
 assertEqual(hiddenRowAttrs(true, exists(matchedCandidateForEstimate) && isValue("anything")), 'data-hasvalue="false" style="display: none;" class="hiddenrow"',
     "Safety: a family member with no matched Geni candidate at all (new Add) has nothing to reveal - stays correctly hidden, same as before this fix");
+
+// --- Behavioral (#328 follow-up): isHidden()'s own "geo" branch (place/loc view toggle), now combined with hidden && !hasValue the same way hiddenRowAttrs() already combines it for every other row. ---
+// This harness's geoAnySourceEnabled() stub returns false (no geocoding
+// source configured), same as the test above it - meaning the flat
+// "place" view is the active one (the "loc" structured breakdown is only
+// ever shown when a geo source IS enabled, an orthogonal toggle unrelated
+// to Hide Empty Fields), so "place" is what exercises the hasValue
+// combination here.
+//
+// Baseline bug reproduction: calling isHidden(hidden, "place") directly
+// (the OLD code) ignores hasValue entirely - always "none" (collapsed)
+// under Hide Empty Fields regardless of what Geni has, since the bare
+// `hidden` flag never had hasValue folded in at all.
+assertEqual(isHidden(true, "place"), 'none',
+    "Baseline: isHidden(hidden, \"place\") alone (the OLD call shape) stays collapsed even when Geni has real data - confirms the bug this fix closes");
+// Fixed shape: hidden && !hasValue folded in before the geo check, exactly
+// like every row transformed by this fix now does.
+assertEqual(isHidden(true && !isValue('Scranton, PA'), "place"), 'table-row',
+    "#328 follow-up: with the fix's hidden && !hasValue combination, a Place row with a real Geni value now shows under Hide Empty Fields");
+assertEqual(isHidden(true && !isValue(''), "place"), 'none',
+    "Safety: with the fix's combination, a Place row with nothing scraped AND no Geni value still correctly stays hidden");
+assertEqual(isHidden(false && !isValue('Scranton, PA'), "place"), 'table-row',
+    "Safety: with Hide Empty Fields off entirely, the row shows regardless, same as before this fix");
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

@@ -406,15 +406,12 @@ function updateGeoLocation() {
             $(geoDetailRow).toggleClass("geohidden", !updateHasGeoFields);
         }
         var updatePlaceNameValue = updateHasGeoFields ? computeCombinedPlaceValue(locationdata.query, locationdata) : locationdata.place;
-        var anyNonGpsFieldDiffers = false;
         $(eventrow).find("input[type=text]")[0].value = updatePlaceNameValue;
         var placeDiffers = updateFieldDiffersFromGeni(eventrow, updatePlaceNameValue);
-        anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || placeDiffers;
         setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || placeDiffers));
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.city;
         var cityDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.city);
-        anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || cityDiffers;
         // #346 (live-reported, DanCornett - #338 follow-up 2): City/County/
         // State/Country's own checked-state updates are deferred until
         // just after Country (below), instead of firing immediately per
@@ -427,17 +424,14 @@ function updateGeoLocation() {
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.county;
         var countyDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.county);
-        anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || countyDiffers;
         var countyRow = eventrow, countyGeniInput = $(eventrow).find(".genislideinput")[0];
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.state;
         var stateDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.state);
-        anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || stateDiffers;
         var stateRow = eventrow, stateGeniInput = $(eventrow).find(".genislideinput")[0];
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.country;
         var countryDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.country);
-        anyNonGpsFieldDiffers = anyNonGpsFieldDiffers || countryDiffers;
         var countryGeniInput = $(eventrow).find(".genislideinput")[0];
         // #346: the same "scraped location is less detailed than Geni's
         // existing one" check buildForm()'s own initial render already
@@ -474,10 +468,24 @@ function updateGeoLocation() {
         // #288/#333 (live-reported, DanCornett): gpsEffectivelyMatches()
         // itself is now a shared, top-level function (see its own comment
         // there) - this flow just calls it. gpsFieldDiffersFromGeni() stays
-        // local; it also needs the anyNonGpsFieldDiffers closure variable,
-        // which is specific to this pencil-edit flow.
+        // local.
+        // #333 further follow-up (re-opened, live-reported, DanCornett):
+        // this used to also refuse to flag GPS as differing at all whenever
+        // ANY other location field differed (original #288 reasoning: Geni
+        // might hold a more precise, manually-placed point - a cemetery
+        // plot, say - that a broader source match shouldn't casually
+        // override). That blunt rule blocked GPS pre-selection even when
+        // the correction was the SAME or BETTER precision than Geni's
+        // existing location, which is exactly backwards from what it was
+        // trying to protect. #346/#338's locationSpecificityDowngrade check
+        // (above, OR'd into this function's own call sites) now protects
+        // the identical concern precisely - it specifically detects "the
+        // scraped location is less detailed than Geni's," rather than
+        // "something else happened to differ too" - so the blunt
+        // any-other-field-differs rule is both redundant and overly broad.
+        // Removed; GPS now gets evaluated purely on whether IT differs.
         function gpsFieldDiffersFromGeni(row, sourceValue) {
-            if (anyNonGpsFieldDiffers || !isValue(sourceValue)) {
+            if (!isValue(sourceValue)) {
                 return false;
             }
             var geniInput = $(row).find(".genislideinput")[0];

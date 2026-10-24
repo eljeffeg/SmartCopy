@@ -184,7 +184,13 @@ var fdata = { city: 'Fort Worth', county: 'Tarrant', state: 'Texas', country: 'U
     global.geolocation = [{
         query: 'Dallas, Dallas, Texas, United States', place: '',
         city: 'Dallas', county: 'Dallas', state: 'Texas', country: 'United States',
-        latitude: '32.78', longitude: '-96.80', count: 1, ambiguous: false
+        // Deliberately a full degree away from fdata's 32.75/-97.33, not
+        // just a decimal-precision truncation away - gpsEffectivelyMatches()
+        // treats values that agree up to truncated precision as the SAME
+        // point (by design, #288/#333's original fix), so a value too
+        // close to Geni's would pass this assertion even without the fix
+        // below actually working.
+        latitude: '33.50', longitude: '-95.00', count: 1, ambiguous: false
     }];
     ctx.updateGeoLocation();
     var state = rowStates();
@@ -192,6 +198,15 @@ var fdata = { city: 'Fort Worth', county: 'Tarrant', state: 'Texas', country: 'U
         "Regression: a genuinely different City/County at the SAME specificity as Geni's still pre-selects after a pencil edit");
     assertEqual(state.pinSrc, 'images/clearpin.png',
         "Regression: no precision warning when specificity is equal, even though the values differ");
+    // #333 further follow-up (re-opened, live-reported, DanCornett): this
+    // same scenario's lat/long (32.78/-96.80) also genuinely differs from
+    // Geni's (32.75/-97.33) - before this fix, GPS never pre-selected here
+    // at all, purely because City/County also differed (the old blunt
+    // anyNonGpsFieldDiffers rule), even though the correction is the same
+    // precision as Geni's existing location, not a downgrade. GPS now
+    // correctly pre-selects on its own merits.
+    assertTrue(state.checked[5] === true && state.checked[6] === true,
+        "#333: Latitude/Longitude pre-select too when they genuinely differ, even though City/County differ at the same time - GPS is no longer blocked purely because another field also differs");
 })();
 
 // --- #346: forceAllGeoFields overrides the downgrade suppression, same as it overrides the plain diff checks. ---

@@ -95,8 +95,16 @@ assertTrue(updateFieldDiffersFromGeni(makeRow('Pittsburgh'), 'Natrona'),
 const nonGpsFieldChecks = (updateGeoLocationBody.match(/forceAllGeoFields \|\| \(?\w+Differs\b/g) || []).length;
 assertTrue(nonGpsFieldChecks === 5, "All 5 non-GPS fields (Place/City/County/State/Country) use the differs-from-Geni check, got " + nonGpsFieldChecks);
 
-assertTrue(updateGeoLocationBody.indexOf('if (anyNonGpsFieldDiffers || !isValue(sourceValue)) {\n                return false;') !== -1,
-    "gpsFieldDiffersFromGeni() refuses to pre-select GPS at all when any other field differs");
+// #333 further follow-up (re-opened, live-reported, DanCornett): this
+// used to require anyNonGpsFieldDiffers be false too - removed, since
+// locationSpecificityDowngrade (see test_346_347_pencil_edit_location_precision.js)
+// now protects the same concern (a less-detailed correction) precisely,
+// without blocking a same-or-better-precision GPS correction that happens
+// alongside a text-field change, which the old blunt rule did.
+assertTrue(updateGeoLocationBody.indexOf('anyNonGpsFieldDiffers') === -1,
+    "#333: gpsFieldDiffersFromGeni() no longer blocks GPS purely because another field also differs - anyNonGpsFieldDiffers is gone entirely");
+assertTrue(updateGeoLocationBody.indexOf('function gpsFieldDiffersFromGeni(row, sourceValue) {\n            if (!isValue(sourceValue)) {\n                return false;\n            }') !== -1,
+    "#333: gpsFieldDiffersFromGeni() now only short-circuits on a blank scraped value, evaluating GPS purely on its own merits otherwise");
 // #346 follow-up: same - locationSpecificityDowngrade is now OR'd in here too.
 assertTrue(updateGeoLocationBody.indexOf('forceAllGeoFields || (gpsFieldDiffersFromGeni(eventrow, locationdata.latitude)') !== -1,
     "Latitude row uses the GPS-specific differs check");

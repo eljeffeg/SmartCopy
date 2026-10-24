@@ -71,6 +71,12 @@ global.isValue = isValue;
 
 const valuesAreEquivalent = new Function('return ' + extractFunction(bfSrc, 'valuesAreEquivalent'))();
 global.valuesAreEquivalent = valuesAreEquivalent;
+// #333 further follow-up: gpsFieldDiffersFromGeni() no longer short-
+// circuits before reaching gpsEffectivelyMatches() just because another
+// field differs - every test exercising updateGeoLocation() now needs
+// this dependency too, same reasoning as the others on this list.
+const gpsEffectivelyMatches = new Function('isValue', 'return ' + extractFunction(bfSrc, 'gpsEffectivelyMatches'))(isValue);
+global.gpsEffectivelyMatches = gpsEffectivelyMatches;
 // #346: updateGeoLocation() now unconditionally calls
 // isLocationSpecificityDowngrade() (real function, not a reimplementation)
 // once it's walked through City/County/State/Country - a dependency every

@@ -408,14 +408,16 @@ const memberId = '0';
         "Control: a genuinely different occupation ('Farmer' scraped vs. Geni's 'Blacksmith') stays checked");
     assertEqual($('.checkslide').prop('checked'), true,
         "Control: the person-bar stays checked too, since a real field underneath still is");
-    // (live-reported, stbodie): a member starts collapsed (memberexpand's
-    // default render is display:none) - hiding a genuine, pre-selected
-    // difference behind an extra click per person to even see it. Once
-    // setGeniFamilyData()'s resync settles with at least one field
-    // genuinely checked, the row auto-expands so the difference is visible
-    // without that extra click.
-    assertEqual($('.memberexpand').css('display') !== 'none', true,
-        "#304 follow-up (live-reported, stbodie): a member with a real pre-selected difference auto-expands, instead of staying collapsed and requiring a manual click to review");
+    // #319 (live-reported, DanCornett): auto-expanding a member with a
+    // genuinely checked field (added proactively, not live-reported at the
+    // time) was explicitly reverted - "I'd be just as happy if it was
+    // reverted... I find it more of an inconvenience than a convenience"
+    // (inconsistent about which profiles opened, and he prefers seeing the
+    // overview first). A member with a real pre-selected difference now
+    // stays collapsed, same as any other member, until the user clicks to
+    // expand it themselves.
+    assertEqual($('.memberexpand').css('display'), 'none',
+        "#319: a member with a real pre-selected difference stays collapsed - auto-expand was reverted per Dan's explicit request");
 }
 
 // --- Scenario 2b (live-reported, DanCornett, confirmed): applyProtectedDisabledState() can now PROMOTE a

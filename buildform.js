@@ -548,7 +548,21 @@ function reverseGender(gender) {
 function focusFieldLocked(path, subpath) {
     var actions = genifocusdata.get("actions");
     var canEditBasics = exists(actions) && (actions.indexOf("update-basics") !== -1 || actions.indexOf("update") !== -1);
-    return genifocusdata.isLocked(path, subpath) || !canEditBasics;
+    // #356 (live-reported, DanCornett): a Geni-side field lock and a
+    // missing update permission have always been folded together here
+    // (#78) since both have the identical practical consequence - but
+    // they aren't actually the same thing, and Geni's curators CAN
+    // override a locked field when submitting directly ("the updates
+    // submitted to Geni also allow such updates"). SmartCopy's own UI
+    // disabling the field regardless of curator status was stricter than
+    // Geni's real permission model. accountinfo.curator (set once at
+    // login, see loadLogin()) bypasses the LOCK specifically - canEditBasics
+    // (no access to this profile at all, e.g. a Private/Living profile not
+    // shared with the user) still applies unconditionally, even for a
+    // curator - Dan's own explicit carve-out: "The only thing which the UI
+    // should prevent Curators from updating are Private... profiles to
+    // which they have no access on Geni either."
+    return (genifocusdata.isLocked(path, subpath) && !accountinfo.curator) || !canEditBasics;
 }
 
 function buildForm() {
@@ -6718,7 +6732,10 @@ function getGeniFieldLocked(profile, value, subvalue) {
     }
     var actions = person.get("actions");
     var canEditBasics = exists(actions) && (actions.indexOf("update-basics") !== -1 || actions.indexOf("update") !== -1);
-    return person.isLocked(value, subvalue) || !canEditBasics;
+    // #356: see focusFieldLocked()'s own comment above - same curator
+    // override, same canEditBasics carve-out (no access to this person at
+    // all still applies unconditionally, even for a curator).
+    return (person.isLocked(value, subvalue) && !accountinfo.curator) || !canEditBasics;
 }
 
 function isAppend(photo) {

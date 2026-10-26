@@ -59,11 +59,14 @@ function extractFunction(srcText, name) {
 
 const body = extractFunction(src, 'updateGeoLocation');
 
-// --- Fix 1 (still in place): the leftover !geoon gate is gone from all 7 field expressions ---
+// --- Fix 1 (still in place): the leftover !geoon gate is gone from the remaining 6 field expressions ---
 assertEqual((body.match(/!geoon && \(forceAllGeoFields/g) || []).length, 0,
-    "The !geoon gate no longer suppresses the 7 diff-based checked-state expressions");
-assertEqual((body.match(/setLocationFieldChecked\([^,]+, \(forceAllGeoFields \|\|/g) || []).length, 7,
-    "All 7 fields (Place/City/County/State/Country/Latitude/Longitude) now use the plain (forceAllGeoFields || xDiffers) expression");
+    "The !geoon gate no longer suppresses the diff-based checked-state expressions");
+// #357 redesign (live-reported by the user): Place dropped out of this
+// count - it's hardcoded to never pre-select now, not part of the
+// (forceAllGeoFields || xDiffers) pattern the other 6 rows still use.
+assertEqual((body.match(/setLocationFieldChecked\([^,]+, \(forceAllGeoFields \|\|/g) || []).length, 6,
+    "All 6 remaining fields (City/County/State/Country/Latitude/Longitude) now use the plain (forceAllGeoFields || xDiffers) expression");
 assertTrue(body.indexOf('setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], geoon);') !== -1,
     "The unrelated query-row checkbox still uses geoon directly, unaffected by either fix");
 

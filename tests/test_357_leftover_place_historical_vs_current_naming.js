@@ -1,43 +1,48 @@
-// Verifies #357 (live-reported by the user, not Dan): a large tree copy
-// forced manually deselecting the "Place" field on every single person,
-// because the raw scraped location's county/state segments used CURRENT-
-// day administrative names while FamilySearch's historical place
-// resolution correctly filled City/County/State/Country with the
-// HISTORICALLY accurate names for the record's own date - two genuinely
-// different administrative names for the same two jurisdiction levels,
-// not spelling variants, so computeLeftoverPlaceName()'s value-based
-// matching (segmentMatchesAnyField()) could never recognize them as the
-// same thing and kept surfacing the current-day names as "leftover,"
-// pre-selecting Place on every person.
+// Verifies #357 (live-reported by the user): a large tree copy required
+// manually deselecting the "Place" field on every single person, because
+// the raw scraped location's county/state segments used current-day
+// administrative names while FamilySearch's historical place resolution
+// correctly filled City/County/State/Country with the historically
+// accurate names for the record's own date - "Freudenstadt, Baden-
+// Württemberg" (modern Kreis/Land names) vs. the historically resolved
+// "Horb am Neckar, Württemberg" for a 19th-century German record.
 //
-// Exact reported case: raw scraped "Rexingen, Freudenstadt, Baden-
-// Württemberg, Germany" (modern Kreis "Freudenstadt", modern Land "Baden-
-// Württemberg" - merged from Baden and Württemberg only in 1952) against
-// FamilySearch's historically correct resolution for the record's date:
-// City=Rexingen, County=Horb am Neckar, State=Württemberg, Country=
-// Germany (the full historical chain is actually five levels - "Rexingen,
-// Horb am Neckar, Oberamt Horb, Württemberg, Germany" - with "Oberamt
-// Horb" folded away during FamilySearch's own 5-into-4 field mapping,
-// same class of thing as the pre-existing "Potsdam"/"Preussen" case
-// below).
+// Two earlier designs were tried and both had real, confirmed gaps before
+// shipping (a count-only check broke two already-correct cases the
+// regression suite itself caught; a three-condition anchor check - count
+// plus matching both the first AND last raw segment - broke on real
+// FamilySearch data for pre-1871 German records, where "Germany" itself
+// doesn't exist in the resolved hierarchy at all, since the country
+// didn't exist yet, and no per-country lookup table of unification dates
+// would generalize).
 //
-// Fix: when the raw segment count EXACTLY matches how many jurisdiction
-// levels resolved (city/county/state/country all non-blank here), every
-// raw segment must correspond to one of those levels by position - safe
-// to treat the whole string as fully accounted for regardless of text.
-// The moment the counts differ (a genuine extra level is in play, or
-// real leading venue/address text), falls through to the ORIGINAL
-// value-based matching completely unchanged - which is exactly why the
-// function's own original motivating case must NOT regress: "Storkow
-// (Mark), Kr. Beeskow-Storkow, Potsdam, Brandenburg, Preussen" (5 raw
-// segments) against 4 resolved fields (City=Storkow, County=Beeskow-
-// Storkow, State=Brandenburg, Country=Germany) is a count MISMATCH (5 vs
-// 4), so "Potsdam" and "Preussen" still correctly survive as leftover,
-// same as before this fix - they're genuine extra historical context the
-// resolved 4 fields don't otherwise capture, not administrative noise.
+// Settled on the user's own explicit design instead, after walking
+// through several real examples together: ONLY leading content (whatever
+// comes before the raw text reaches something SmartCopy already
+// recognizes as part of the structured City/County/State/Country chain)
+// is worth showing in Place at all. The moment the scan reaches a segment
+// that matches ANY resolved field, that segment and everything after it
+// is dropped unconditionally - no further per-segment judgment calls
+// about whether a later mismatch is a legitimate historical variant or a
+// genuinely wrong match, since that question turned out to have no
+// reliable, generalizable answer. A city-level historical/modern variant
+// ("Poznan" vs. a resolved historical "Posen") correctly survives as
+// leading content under this rule, same as genuine venue/address text.
+//
+// Deliberate, explicitly-accepted trade-offs from this redesign (not
+// bugs - see the "Safety: redesign trade-off" cases below): the
+// function's own ORIGINAL motivating case ("Potsdam"/"Preussen", #224 -
+// genuine extra historical levels beyond the 4 resolved fields) no longer
+// survives as leftover, since it's trailing content; and a genuinely
+// WRONG/unrelated country match ("Somewhere, USA" resolving against an
+// unrelated "Germany") also no longer survives as a visible red flag,
+// since it's trailing too. Both are now acceptable because Place is ALSO
+// never pre-selected at all (see the render-time checkedAttr changes in
+// buildform.js) - losing this leftover text is a lost secondary data
+// point, not an accidental-submission risk either way.
 //
 // Uses the REAL extracted computeLeftoverPlaceName()/segmentMatchesAnyField()
-// and their real dependencies verbatim - same extraction harness as
+// and their real dependencies verbatim - same technique as
 // tests/test_260_combined_place_value.js.
 const fs = require('fs');
 const path = require('path');
@@ -73,60 +78,71 @@ const computeLeftoverPlaceName = new Function('exists', 'segmentMatchesAnyField'
 
 let pass = 0, fail = 0;
 function assertEqual(actual, expected, label) {
-    if (actual === expected) { pass++; console.log('PASS:', label, '->', JSON.stringify(actual)); }
+    if (actual === expected) { pass++; console.log('PASS:', label); }
     else { fail++; console.log('FAIL:', label, '- expected', JSON.stringify(expected), 'got', JSON.stringify(actual)); }
 }
 
-// --- #357: the exact reported case - current-day names fully superseded by historical resolution, nothing should be left over. ---
+// --- #357: the exact reported case - the raw text's first segment matches the resolved city, so the scan stops immediately and nothing trailing ever shows. ---
 assertEqual(
     computeLeftoverPlaceName("Rexingen, Freudenstadt, Baden-Württemberg, Germany",
         { place: "", city: "Rexingen", county: "Horb am Neckar", state: "Württemberg", country: "Germany" }),
     "",
-    "#357: 4 raw segments against 4 resolved jurisdiction levels (all non-blank) - 'Freudenstadt'/'Baden-Württemberg' are the current-day names for the same two levels FamilySearch resolved historically as 'Horb am Neckar'/'Württemberg', not genuine extra content - no longer surfaces as leftover"
+    "#357: 'Rexingen' matches the resolved city immediately - the scan stops at position 0, so 'Freudenstadt, Baden-Württemberg, Germany' never shows, regardless of whether any of those individual words match anything"
 );
 
-// --- Safety: the function's own ORIGINAL motivating case must not regress - a genuine extra historical level (count mismatch) still survives. ---
+// --- #357: confirmed from REAL FamilySearch API data (pre-1871 German record) - country itself can be historically variable, not just county/state, and the fix still works because it never needs the country to match anything at all. ---
 assertEqual(
-    computeLeftoverPlaceName("Storkow (Mark), Kr. Beeskow-Storkow, Potsdam, Brandenburg, Preussen",
-        { place: "", city: "Storkow (Mark)", county: "Kr. Beeskow-Storkow", state: "Brandenburg", country: "Germany" }),
-    "Potsdam, Preussen",
-    "Safety: 5 raw segments against only 4 resolved fields (Potsdam is a genuine EXTRA level FamilySearch's own 5-into-4 mapping folded away, Preussen is the historical country name) - a count MISMATCH, so this correctly falls through to the original value-based matching and both still survive as leftover, exactly as before this fix"
+    computeLeftoverPlaceName("Oberndorf am Neckar, Rottweil, Baden-Württemberg, Germany",
+        { place: "", city: "Oberndorf am Neckar", county: "", state: "Oberndorf", country: "Württemberg" }),
+    "",
+    "#357: real pre-1871 FamilySearch resolution (no 'Germany' anywhere in the hierarchy, country resolved to the historical state 'Württemberg' instead) still correctly drops everything, since 'Oberndorf am Neckar' alone is enough to stop the scan at position 0"
 );
 
-// --- Safety: the #260 venue case (real screenshot) must not regress - a count mismatch (blank county) still preserves genuine venue/address text. ---
+// --- The Poznan/Posen example: a CITY-level historical/modern variant, confirmed to survive as leading content since it never matches anything, stopping the scan. ---
+assertEqual(
+    computeLeftoverPlaceName("Poznan, Wielkopolskie, Poland",
+        { place: "", city: "Posen", county: "", state: "Provinz Posen", country: "Prussia" }),
+    "Poznan, Wielkopolskie, Poland",
+    "A city-level historical/modern name variant ('Poznan' vs. resolved 'Posen') correctly survives as leading content, same as genuine venue text would - since nothing in this raw string happens to textually match the resolved fields, the scan never finds a stopping point and the whole string shows, unchecked (Place is never pre-selected regardless - see buildform.js)"
+);
+
+// --- Safety: the real #260 screenshot case (genuine leading venue text, no historical-naming question involved at all) is completely unaffected. ---
 assertEqual(
     computeLeftoverPlaceName("Sagrario, Jalapa, Xalapa, Veracruz, México",
         { place: "", city: "Xalapa-Enríquez, Xalapa", county: "", state: "Veracruz", country: "Mexico" }),
     "Sagrario, Jalapa",
-    "Safety: 5 raw segments against only 3 non-blank resolved fields (county blank) - a count mismatch, so 'Sagrario, Jalapa' (genuine venue/leftover text, the real #260 screenshot case) still correctly survives, unaffected by this fix"
+    "Safety: the real #260 screenshot case - 'Sagrario' and 'Jalapa' both survive as genuine leading venue text, stopping only once 'Xalapa' matches part of the resolved (comma-containing) city value"
 );
 
-// --- Safety: a simple, already-clean match (segment count equals field count, everything textually matches too) stays blank either way. ---
-assertEqual(
-    computeLeftoverPlaceName("Springfield, Sangamon, Illinois, United States",
-        { place: "", city: "Springfield", county: "Sangamon", state: "Illinois", country: "United States" }),
-    "",
-    "Safety: an ordinary, already-matching 4-segment location (no historical/modern naming conflict at all) stays correctly blank, same as before this fix"
-);
-
-// --- Safety: a 2-segment raw location with only 2 resolved fields (e.g. city+country, no county/state ever existed) still count-matches and drops cleanly. ---
-assertEqual(
-    computeLeftoverPlaceName("Paris, France", { place: "", city: "Paris", county: "", state: "", country: "France" }),
-    "",
-    "Safety: a short, 2-segment location with only 2 non-blank fields (county/state genuinely never existed) still count-matches 2-for-2 and correctly stays blank"
-);
-
-// --- Safety (the two real regressions a first, count-only version of this fix introduced - caught by the existing suite, not hypothetical): a coincidental count match is not enough on its own, both end anchors must independently confirm too. ---
+// --- Safety: a leading segment that duplicates geo.place (already shown separately) is skipped without ending the scan - Place isn't a hierarchy boundary. ---
 assertEqual(
     computeLeftoverPlaceName("Sagrario, Oak Hill Cemetery, Springfield, Illinois",
         { place: "Oak Hill Cemetery", city: "Springfield", county: "Sangamon", state: "Illinois", country: "United States" }),
     "Sagrario",
-    "Safety (real regression caught by test_260_combined_place_value.js, via computeCombinedPlaceValue() which also re-adds geo.place separately): 4 raw segments happen to equal 4 non-blank jurisdiction fields, but 'Sagrario' (the FIRST raw segment) doesn't match city 'Springfield' at all - it's genuine venue text, not an administrative level - so the first-anchor check fails and this correctly falls through to preserve it (computeLeftoverPlaceName() itself always excludes geo.place from its own output, by design - 'Oak Hill Cemetery' drops via that existing rule, not this fix), instead of being wrongly swept away just because the count happened to match"
+    "Safety: 'Oak Hill Cemetery' (already shown via geo.place, computeCombinedPlaceValue()'s job to re-add it) is correctly skipped without stopping the scan - 'Sagrario' still survives, and the scan correctly continues past it to find 'Springfield' matching city"
 );
+
+// --- Safety: an ordinary, already-clean match has nothing leading at all. ---
+assertEqual(
+    computeLeftoverPlaceName("Springfield, Sangamon, Illinois, United States",
+        { place: "", city: "Springfield", county: "Sangamon", state: "Illinois", country: "United States" }),
+    "",
+    "Safety: an ordinary, already-matching location has nothing leading - the very first segment matches city, so nothing ever shows"
+);
+
+// --- Safety (redesign trade-off, deliberately accepted - see comment above): the function's own ORIGINAL motivating case no longer survives, since it's trailing content now. ---
+assertEqual(
+    computeLeftoverPlaceName("Storkow (Mark), Kr. Beeskow-Storkow, Potsdam, Brandenburg, Preussen",
+        { place: "", city: "Storkow (Mark)", county: "Kr. Beeskow-Storkow", state: "Brandenburg", country: "Germany" }),
+    "",
+    "Safety (redesign trade-off, explicitly accepted): 'Potsdam'/'Preussen' no longer survive - 'Storkow (Mark)' matches the resolved city immediately, stopping the scan before reaching them, even though they're a genuine extra historical level the structured fields don't otherwise capture"
+);
+
+// --- Safety (redesign trade-off, deliberately accepted): a genuinely wrong/unrelated country match no longer survives as a visible red flag either, since it's also trailing content. ---
 assertEqual(
     computeLeftoverPlaceName("Somewhere, USA", { place: "", city: "Somewhere", county: "", state: "", country: "Germany" }),
-    "USA",
-    "Safety (real regression caught by test_270_historical_country.js): 2 raw segments happen to equal 2 non-blank fields, and the FIRST segment 'Somewhere' does match city - but the LAST segment 'USA' does NOT represent country 'Germany' under any equivalence rule (a genuinely wrong/unrelated country, not an era-naming difference), so the last-anchor check fails and 'USA' correctly survives instead of being silently dropped as if the mismatch were just historical naming"
+    "",
+    "Safety (redesign trade-off, explicitly accepted): 'USA' no longer survives even though the resolved country ('Germany') is genuinely unrelated, not a historical variant - 'Somewhere' matching city is now trusted enough on its own to stop the scan; Place never being pre-selected means this is a lost secondary data point, not a silent-submission risk"
 );
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

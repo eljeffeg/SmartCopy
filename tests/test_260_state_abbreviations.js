@@ -69,12 +69,17 @@ cases.forEach(function (c) {
     assertEqual(computeLeftoverPlaceName(raw, geo), "", c.abbr + " -> " + c.full + " recognized, no spurious leftover");
 });
 
-// Regression: a genuinely unresolved segment (not a state abbreviation
-// at all) still correctly survives as leftover.
+// #357 redesign: computeLeftoverPlaceName() now only ever shows LEADING
+// content - the moment the scan reaches a segment matching city/county/
+// state/country, everything from there on is dropped unconditionally,
+// even when a later segment (like "XY, ZZ Nation" here) has nothing
+// resolved to compare against at all. See
+// tests/test_357_leftover_place_historical_vs_current_naming.js for the
+// full design.
 var rawUnresolved = "Somewhere, Somecounty, XY, ZZ Nation";
 var geoUnresolved = { place: "", city: "Somewhere", county: "Somecounty", state: "", country: "" };
-assertEqual(computeLeftoverPlaceName(rawUnresolved, geoUnresolved), "XY, ZZ Nation",
-    "Regression: a genuinely unrecognized 2-letter token (not a real US state code) still survives as leftover");
+assertEqual(computeLeftoverPlaceName(rawUnresolved, geoUnresolved), "",
+    "#357 redesign: trailing content ('XY, ZZ Nation') no longer survives once 'Somewhere' matches city and stops the scan, even with nothing resolved to compare the trailing segments against");
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

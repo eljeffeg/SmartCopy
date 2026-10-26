@@ -92,8 +92,11 @@ assertTrue(updateFieldDiffersFromGeni(makeRow('Pittsburgh'), 'Natrona'),
 // `&& !locationSpecificityDowngrade` (wrapped in an extra paren) - this
 // regex only requires the forceAllGeoFields/Differs pairing still be
 // present somewhere in each expression, not that it's the only thing there.
+// #357 redesign (live-reported by the user): Place dropped out of this
+// count entirely - it no longer uses a differs-from-Geni check at all,
+// since it never pre-selects regardless of content (hardcoded false).
 const nonGpsFieldChecks = (updateGeoLocationBody.match(/forceAllGeoFields \|\| \(?\w+Differs\b/g) || []).length;
-assertTrue(nonGpsFieldChecks === 5, "All 5 non-GPS fields (Place/City/County/State/Country) use the differs-from-Geni check, got " + nonGpsFieldChecks);
+assertTrue(nonGpsFieldChecks === 4, "All 4 remaining non-GPS fields (City/County/State/Country) use the differs-from-Geni check, got " + nonGpsFieldChecks);
 
 // #333 further follow-up (re-opened, live-reported, DanCornett): this
 // used to require anyNonGpsFieldDiffers be false too - removed, since

@@ -95,8 +95,14 @@ assertTrue(!isLocationSpecificityDowngrade("", "", "", "", "Fort Worth", "Tarran
         var pattern = new RegExp('checkedAttr: isChecked\\(' + field + ', geoScored, geoone, genifocusdata\\.get\\(title, "location\\.' + field + '"\\), locationlocked, locationSpecificityDowngrade \\|\\|');
         assertTrue(pattern.test(bfSrc), "#338: the focus profile's " + field + " row OR's locationSpecificityDowngrade into its sameAsGeni argument");
     });
-    assertTrue(bfSrc.indexOf('checkedAttr: isChecked(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked, isValue(itemPlaceNameValue)') !== -1,
-        "#338: the Place field's own checked computation is untouched - Place is deliberately excluded from this mechanism");
+    // #357 redesign (live-reported by the user): Place's own checked
+    // computation isn't just "untouched by #338" anymore - it's hardcoded
+    // to never pre-select at all, regardless of content, so it was never
+    // going to interact with locationSpecificityDowngrade either way.
+    assertTrue(bfSrc.indexOf('enabledAttr: isEnabled(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string")') !== -1,
+        "#357: the focus profile's Place row still computes its own editable/enabled state normally");
+    assertTrue((bfSrc.match(/checkedAttr: "",\n\s+enabledAttr: isEnabled\(itemPlaceNameValue/g) || []).length === 2,
+        "#357: but its checked state is hardcoded to \"\" (never pre-selected) in both the focus profile and family member renders - deliberately excluded from locationSpecificityDowngrade and every other pre-selection mechanism");
 }
 
 // --- Structural: the warning pin text is present and only overrides a 'clear' pin (never overrides a more urgent ambiguous/failed-lookup warning) ---

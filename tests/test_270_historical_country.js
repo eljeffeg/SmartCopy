@@ -63,12 +63,21 @@ var geoModern = { place: "", city: "Springfield", county: "", state: "Illinois",
 assertEqual(computeLeftoverPlaceName(rawModern, geoModern), "",
     "Regression: 'USA' -> 'United States' (the #260 case) still works unchanged");
 
-// Regression: a genuinely different, unrelated country is never matched
-// just because the segment says "USA".
+// #357 redesign (live-reported by the user, after this exact case):
+// computeLeftoverPlaceName() no longer tries to judge whether a trailing
+// mismatch is a legitimate historical variant or a genuinely wrong
+// match - it now only ever shows LEADING content (see
+// tests/test_357_leftover_place_historical_vs_current_naming.js for the
+// full design and why). "Somewhere" matching city is enough on its own
+// to stop the scan - "USA" no longer survives here even though the
+// resolved country ("Germany") is genuinely unrelated, not an era-naming
+// difference. Explicitly accepted trade-off: Place is also never
+// pre-selected now, so losing this as a visible red flag is a lost
+// secondary data point, not a silent-submission risk.
 var rawWrongCountry = "Somewhere, USA";
 var geoWrongCountry = { place: "", city: "Somewhere", county: "", state: "", country: "Germany" };
-assertEqual(computeLeftoverPlaceName(rawWrongCountry, geoWrongCountry), "USA",
-    "Regression: 'USA' does NOT match an unrelated country ('Germany') - stays as genuine leftover");
+assertEqual(computeLeftoverPlaceName(rawWrongCountry, geoWrongCountry), "",
+    "#357 redesign: 'USA' no longer survives even against an unrelated resolved country - 'Somewhere' matching city alone stops the scan now");
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail === 0 ? 0 : 1);

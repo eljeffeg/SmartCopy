@@ -406,16 +406,11 @@ function updateGeoLocation() {
             $(geoDetailRow).toggleClass("geohidden", !updateHasGeoFields);
         }
         var updatePlaceNameValue = updateHasGeoFields ? computeCombinedPlaceValue(locationdata.query, locationdata) : locationdata.place;
-        // #357 diagnostic: see the identical render-time log's own comment
-        // in buildform.js - this is the pencil "Edit Location" result
-        // handler specifically, the other place computeCombinedPlaceValue()
-        // gets called from.
-        if (updateHasGeoFields) {
-            console.log("SmartCopy [#357 diagnostic, pencil]: raw=" + JSON.stringify(locationdata.query) + " city=" + JSON.stringify(locationdata.city) + " county=" + JSON.stringify(locationdata.county) + " state=" + JSON.stringify(locationdata.state) + " country=" + JSON.stringify(locationdata.country) + " place=" + JSON.stringify(updatePlaceNameValue));
-        }
         $(eventrow).find("input[type=text]")[0].value = updatePlaceNameValue;
-        var placeDiffers = updateFieldDiffersFromGeni(eventrow, updatePlaceNameValue);
-        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || placeDiffers));
+        // #357 (per the user's own explicit design): Place never
+        // pre-selects, matched or not, even under "force all" - see the
+        // identical render-time checkedAttr: "" comment in buildForm().
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], false);
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.city;
         var cityDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.city);
@@ -1306,17 +1301,6 @@ function buildForm() {
                         // city/county/state/country/place survives, "" when
                         // nothing does) - only the wrapping is gone.
                         var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar1) : place;
-                        // #357 diagnostic (live-reported): a current-day
-                        // administrative name is still surviving as
-                        // leftover Place text on some locations even after
-                        // the #357 fix - logging the real resolved
-                        // city/county/state/country this computation
-                        // actually used, so a console paste on a real
-                        // repro shows the true internal shape instead of a
-                        // reconstruction.
-                        if (hasGeoFields) {
-                            console.log("SmartCopy [#357 diagnostic, focus]: title=" + title + " raw=" + JSON.stringify(place) + " city=" + JSON.stringify(geovar1.city) + " county=" + JSON.stringify(geovar1.county) + " state=" + JSON.stringify(geovar1.state) + " country=" + JSON.stringify(geovar1.country) + " leftover=" + JSON.stringify(itemPlaceNameValue));
-                        }
                         // #260: the visible-by-default "Place: " row also
                         // shows any leftover residue alongside the stripped
                         // venue - see computeCombinedPlaceValue()'s own
@@ -1334,7 +1318,16 @@ function buildForm() {
                             locationval = locationval + '<img class="geopin" title="' + escapeHtml(pintitle) + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 18px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                             buildLocationFieldRow({
                                 trClass: "geoplace" + itemGeoplacehidden, classStyleSep: "", displayVal: itemGeoplace,
-                                checkedAttr: isChecked(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked, isValue(itemPlaceNameValue) && isValue(genifocusdata.get(title, "location_string")) && valuesAreEquivalent(itemPlaceNameValue, genifocusdata.get(title, "location_string"))),
+                                // #357 (per the user's own explicit design):
+                                // Place never pre-selects, full stop -
+                                // regardless of content, regardless of
+                                // whether it differs from Geni. It still
+                                // shows (when there's genuine leading
+                                // content) and stays editable/checkable by
+                                // hand - only the automatic "check it for
+                                // me" behavior every other field gets is
+                                // withheld here.
+                                checkedAttr: "",
                                 enabledAttr: isEnabled(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked, isValue(itemPlaceNameValue) && isValue(genifocusdata.get(title, "location_string")) && valuesAreEquivalent(itemPlaceNameValue, genifocusdata.get(title, "location_string"))),
                                 label: capFL(title) + " Place:", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:place_name", value: itemPlaceNameValue, icon: locationicon,
@@ -1342,7 +1335,8 @@ function buildForm() {
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                checkedAttr: isChecked(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name"), locationlocked, isValue(placegeo) && isValue(genifocusdata.get(title, "location.place_name")) && valuesAreEquivalent(placegeo, genifocusdata.get(title, "location.place_name"))),
+                                // #357: see the identical Place row's own comment just above.
+                                checkedAttr: "",
                                 enabledAttr: isEnabled(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name"), locationlocked, isValue(placegeo) && isValue(genifocusdata.get(title, "location.place_name")) && valuesAreEquivalent(placegeo, genifocusdata.get(title, "location.place_name"))),
                                 label: "Place: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:place_name_geo", value: placegeo, icon: locationicon,
@@ -2465,10 +2459,6 @@ function buildForm() {
                                 // #256: no longer parenthesized - see the
                                 // focus profile block's own comment.
                                 var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar2) : place;
-                                // #357 diagnostic: see the identical focus-profile log's own comment above.
-                                if (hasGeoFields) {
-                                    console.log("SmartCopy [#357 diagnostic, family]: member=" + i + " title=" + title + " raw=" + JSON.stringify(place) + " city=" + JSON.stringify(geovar2.city) + " county=" + JSON.stringify(geovar2.county) + " state=" + JSON.stringify(geovar2.state) + " country=" + JSON.stringify(geovar2.country) + " leftover=" + JSON.stringify(itemPlaceNameValue));
-                                }
                                 // #260: same combined Place value as the
                                 // focus profile block above.
                                 if (hasGeoFields) {
@@ -2483,7 +2473,8 @@ function buildForm() {
                                     locationval = locationval + '<img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + escapeHtml(pintitle) + '" style="height: 18px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                                     buildLocationFieldRow({
                                         trClass: "geoplace" + itemGeoplacehidden, displayVal: itemGeoplace,
-                                        checkedAttr: isChecked(itemPlaceNameValue, placeScored, false, ""),
+                                        // #357: see the focus profile's identical Place rows' own comment.
+                                        checkedAttr: "",
                                         enabledAttr: isEnabled(itemPlaceNameValue, placeScored, false, ""),
                                         label: Abbr(capFL(title)) + " Place: ", tdStyle: "float:right;",
                                         fieldName: title + ":location:place_name", value: itemPlaceNameValue,
@@ -2491,7 +2482,7 @@ function buildForm() {
                                     }) +
                                     buildLocationFieldRow({
                                         trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                        checkedAttr: isChecked(placegeo, geoScored, geoone, ""),
+                                        checkedAttr: "",
                                         enabledAttr: isEnabled(placegeo, geoScored, geoone, ""),
                                         label: "Place: ", tdStyle: "float:right;",
                                         fieldName: title + ":location:place_name_geo", value: placegeo,
@@ -6275,6 +6266,15 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue,
     // buildForm()'s own photo row), so the resync can't silently promote
     // a photo to checked when the user has auto-select turned off.
     var eligible = fieldType !== "photo" || $('#photoonoffswitch').prop('checked');
+    // #357 (per the user's own explicit design): Place never pre-selects,
+    // matched or not - same unconditional "never eligible" treatment as
+    // the render-time checkedAttr: "" on these two rows (see their own
+    // comment in buildForm()), just applied to the match-switch resync
+    // path too, so switching a family member's Action dropdown to a
+    // different match can't silently re-check Place either.
+    if (fieldName.endsWith(":location:place_name") || fieldName.endsWith(":location:place_name_geo")) {
+        eligible = false;
+    }
     applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType, eligible, extraSuppress);
 }
 

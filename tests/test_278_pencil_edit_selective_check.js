@@ -47,12 +47,15 @@ const body = extractFunction(src, 'updateGeoLocation');
 assertTrue(body.indexOf("var forceAllGeoFields = $('#forcegeoswitch').prop('checked');") !== -1,
     "updateGeoLocation() now reads the #forcegeoswitch setting");
 
-// Every one of the 7 sub-field checkbox lines must be gated on
-// (forceAllGeoFields || <something>) - the "something" is now a differs-
-// from-Geni check (#287/#288) rather than a bare isValue(...), but the
-// forceAllGeoFields override itself must still cover all 7 rows.
+// #357 redesign (live-reported by the user): Place is no longer part of
+// this uniform gating at all - it never pre-selects, period, so its own
+// setLocationFieldChecked() call now hardcodes false rather than using
+// (forceAllGeoFields || <something>). The other 6 rows (City/County/
+// State/Country/Latitude/Longitude) are unaffected.
 const gatedFieldChecks = (body.match(/setLocationFieldChecked\([^,]+, \(forceAllGeoFields \|\|/g) || []).length;
-assertTrue(gatedFieldChecks === 7, "All 7 sub-fields (Place/City/County/State/Country/Latitude/Longitude) are gated, got " + gatedFieldChecks);
+assertTrue(gatedFieldChecks === 6, "All 6 remaining sub-fields (City/County/State/Country/Latitude/Longitude) are gated, got " + gatedFieldChecks);
+assertTrue(body.indexOf('setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], false);') !== -1,
+    "#357: Place's own checkbox is hardcoded to never pre-select, deliberately excluded from the forceAllGeoFields gating every other row uses");
 
 // The raw location text row at the top still legitimately uses plain
 // geoon directly (untouched by any of this) - it's the one genuinely

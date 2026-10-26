@@ -545,70 +545,62 @@ function segmentMatchesAnyField(segment, fields) {
 // common case for a location that resolved cleanly) - never returns the
 // raw string unchanged, and never fires at all unless the caller already
 // confirmed real geo fields exist (see buildform.js's hasGeoFields).
+// #357 (live-reported by the user, redesigned after two earlier attempts):
+// historical place resolution regularly replaces a raw jurisdiction-level
+// segment with a genuinely different-era administrative name for the SAME
+// level - "Rexingen, Freudenstadt, Baden-Württemberg, Germany" (modern
+// Kreis/Land names, and for a pre-1871 record, Germany didn't even exist
+// as a country yet) resolved historically to city=Rexingen,
+// county=Horb-am-Neckar-equivalent, state=Württemberg, with NO "Germany"
+// anywhere in FamilySearch's own hierarchy. No per-name equivalence table,
+// and no anchor-matching scheme (two were tried and both had real,
+// confirmed gaps - a historical country can itself differ from the raw
+// text with no way to verify it by matching), can safely tell "this is a
+// legitimate era-naming difference" apart from "this is a genuinely wrong
+// match" for every possible jurisdiction level.
+//
+// Settled on the user's own explicit design instead: ONLY leading content
+// (whatever comes before the raw text reaches something SmartCopy already
+// recognizes as part of the structured City/County/State/Country chain)
+// is worth showing in Place at all - trailing jurisdiction-level content,
+// matched or not, is never shown, full stop. This sidesteps the whole
+// "is this historically legitimate" question entirely, in exchange for a
+// real, deliberately-accepted trade-off: Place no longer preserves
+// trailing historical context either (the "Potsdam"/"Preussen" case this
+// function was ORIGINALLY built for, #224 - a genuine extra historical
+// level beyond the 4 resolved fields - no longer survives; nor does a
+// genuinely wrong country match, like "Somewhere, USA" resolving against
+// an unrelated "Germany", which used to deliberately survive as a visible
+// red flag). Given Place is ALSO never pre-selected now (see the call
+// sites that build its checked state), the trade-off's practical impact
+// is losing a secondary, mostly-decorative data point, not an accidental
+// submission risk either way.
+//
+// Scans forward from the start of the raw text; the moment a segment
+// matches ANY of City/County/State/Country (city-level naming variants
+// like "Poznan" vs. a resolved historical "Posen" correctly do NOT match,
+// so they survive as leading content, same as the user's own example), it
+// and everything after it is dropped unconditionally - no further
+// per-segment judgment calls once the structured chain is reached. A
+// leading segment that duplicates geo.place (the already-separately-shown
+// stripped venue text) is skipped without ending the scan, since Place
+// isn't a hierarchy boundary.
 function computeLeftoverPlaceName(rawLocation, geo) {
     if (!exists(rawLocation) || rawLocation.trim() === "" || !exists(geo)) {
         return "";
     }
     var segments = rawLocation.split(",").map(function (s) { return s.trim(); }).filter(function (s) { return s !== ""; });
-    // #357 (live-reported by the user): historical place resolution can
-    // replace a raw segment with a genuinely different-era administrative
-    // name for the SAME jurisdiction level - "Rexingen, Freudenstadt,
-    // Baden-Württemberg, Germany" (modern Kreis/Land names) resolved to
-    // "Rexingen, Horb am Neckar, ..., Württemberg, Germany" historically
-    // (pre-1952 Oberamt/Land names). "Freudenstadt" and "Horb am Neckar"
-    // aren't spelling variants of one place - they're different
-    // administrative units from different eras, so no equivalence table
-    // could ever match them by value, and they were surviving as leftover
-    // "Freudenstadt, Baden-Württemberg" on every single person in a tree
-    // copy, forcing a manual uncheck each time.
-    //
-    // Only trustworthy under THREE conditions together, not count alone
-    // (an earlier version of this fix used count alone and broke two
-    // existing, already-correct cases - see below): the raw segment count
-    // exactly matches how many jurisdiction levels resolved (city/county/
-    // state/country, in that order, blanks skipped) AND the FIRST raw
-    // segment matches the FIRST resolved level AND the LAST raw segment
-    // matches the LAST resolved level. With both ends independently
-    // anchored to a real, confirmed match, the segments in between can
-    // safely be assumed to correspond to the remaining levels by position,
-    // even when their own text doesn't match (that's the whole point -
-    // they're using a different era's name for the same level). Reuses
-    // segmentMatchesAnyField() for the anchor checks themselves, so they
-    // benefit from the exact same normalization/equivalence rules
-    // (US_HISTORICAL_COUNTRY_EQUIVALENTS, county-suffix stripping) as
-    // everything else here, rather than a second comparison copy.
-    //
-    // Without BOTH anchors, this would have broken two real, already-
-    // correct cases the moment the count happened to coincidentally
-    // match: "Sagrario, Oak Hill Cemetery, Springfield, Illinois" against
-    // city/county/state/country all resolved (4 raw segments, 4 resolved
-    // levels) - "Sagrario"/"Oak Hill Cemetery" are genuine venue text, not
-    // administrative levels at all, caught by the FIRST-segment anchor
-    // failing to match city ("Sagrario" != "Springfield"); and "Somewhere,
-    // USA" resolved against country "Germany" (2 raw segments, 2 resolved
-    // levels: city+country) - a genuinely WRONG/unrelated country, not an
-    // era-naming difference, caught by the LAST-segment anchor failing to
-    // match country ("USA" doesn't represent "Germany" under any
-    // equivalence rule). The moment either anchor fails, OR the counts
-    // differ at all (a genuine extra level is in play - an intermediate
-    // jurisdiction FamilySearch's 5-into-4 mapping folded away, like
-    // "Potsdam," or real leading venue text with no clean 1:1
-    // correspondence), this falls through to the existing value-based
-    // matching completely unchanged - exactly why this function's own
-    // original motivating case ("Potsdam"/"Preussen," 5 raw segments
-    // against only 4 resolved fields) still correctly survives as
-    // leftover.
-    var orderedFields = [geo.city, geo.county, geo.state, geo.country].filter(function (f) {
-        return exists(f) && f !== "";
-    });
-    if (orderedFields.length > 0 && segments.length === orderedFields.length &&
-        segmentMatchesAnyField(segments[0], [orderedFields[0]]) &&
-        segmentMatchesAnyField(segments[segments.length - 1], [orderedFields[orderedFields.length - 1]])) {
-        return "";
+    var hierarchyFields = [geo.city, geo.county, geo.state, geo.country];
+    var leading = [];
+    for (var i = 0; i < segments.length; i++) {
+        if (segmentMatchesAnyField(segments[i], hierarchyFields)) {
+            break;
+        }
+        if (!segmentMatchesAnyField(segments[i], [geo.place])) {
+            leading.push(segments[i]);
+        }
     }
-    var fields = [geo.place, geo.city, geo.county, geo.state, geo.country];
-    var leftover = segments.filter(function (seg) { return !segmentMatchesAnyField(seg, fields); });
-    return leftover.join(", ");
+    return leading.join(", ");
 }
 
 // #260 follow-up (live-reported, DanCornett - screenshots confirmed the

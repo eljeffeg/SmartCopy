@@ -287,6 +287,8 @@ const applyProtectedDisabledStateSrc = extractFunction(bfSrc, 'applyProtectedDis
 const refreshFieldCheckStateSrc = extractFunction(bfSrc, 'refreshFieldCheckState');
 const refreshLivingCheckStateSrc = extractFunction(bfSrc, 'refreshLivingCheckState');
 const setGeniFamilyDataSrc = extractFunction(bfSrc, 'setGeniFamilyData');
+const getLocationSpecificitySrc = extractFunction(bfSrc, 'getLocationSpecificity');
+const isLocationSpecificityDowngradeSrc = extractFunction(bfSrc, 'isLocationSpecificityDowngrade');
 const hasVisibleCheckedFieldSrc = extractFunction(bfSrc, 'hasVisibleCheckedField');
 const syncTopLevelIndicatorsSrc = extractFunction(bfSrc, 'syncTopLevelIndicators');
 const localizedGenderSrc = extractFunction(bfSrc, 'localizedGender');
@@ -334,6 +336,8 @@ function build(genifamilydata) {
         ${syncGeotopcheckStateSrc}
         ${hasVisibleCheckedFieldSrc}
         ${syncTopLevelIndicatorsSrc}
+        ${getLocationSpecificitySrc}
+        ${isLocationSpecificityDowngradeSrc}
         ${setGeniFamilyDataSrc}
         return { setGeniFamilyData };
         `

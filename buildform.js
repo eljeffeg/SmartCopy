@@ -6122,8 +6122,24 @@ function isFieldSelectable(scrapedValue, currentValue, fieldType) {
 // (#304): a family member's photo could get silently PROMOTED to checked
 // on resync even with the auto-select config OFF, since nothing here knew
 // that gate existed.
-function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType, eligible) {
-    var checknext = input.closest('tr').find('.checknext');
+// #325/#328/#338 (live-reported, DanCornett): "Switching a family member
+// from 'Add profile' to a matching profile should run the same checks/
+// scans as if it were the startup pass of preselection checks." Three
+// separate reports (a category header not clearing, AKA/Middle Name
+// staying hidden, a location-specificity downgrade not being caught)
+// turned out to share this one root cause - this function (and
+// setGeniFamilyData(), which calls it for every field) is the resync that
+// runs on an Action-dropdown match change, and it was missing pieces that
+// only ever ran at the ORIGINAL render pass: the "Hide Empty Fields"
+// visibility decision (hiddenRowAttrs(), baked into the HTML string once
+// and never revisited), and the location-specificity-downgrade override
+// (only ever re-checked by the pencil "Edit Location" flow). #325's
+// category-header gap was fixed separately in setGeniFamilyData() itself
+// (a one-line guard removal) - the other two are fixed here, in the one
+// function every field's resync already funnels through.
+function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType, eligible, extraSuppress) {
+    var row = input.closest('tr');
+    var checknext = row.find('.checknext');
     // A family-member field's checked state at initial render is computed
     // with currentValue hardcoded blank (no match resolved yet to read a
     // real Geni value from) - once setGeniFamilyData() learns the real
@@ -6135,8 +6151,14 @@ function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, 
     // non-blank on both sides but identical (modulo case/whitespace/Circa/
     // nickname-containment per fieldType) - the field would otherwise stay
     // pre-checked forever even though there's nothing to actually submit.
+    // #338: extraSuppress lets a caller (setGeniFamilyData(), for a
+    // location's city/county/state/country/latitude/longitude) fold in an
+    // externally-computed override - specifically, a scraped location
+    // genuinely less detailed than Geni's existing one - the same way
+    // render time ORs isLocationSpecificityDowngrade() into this exact
+    // argument. Undefined/falsy for every other caller, unaffected.
     var score = eligible !== false;
-    var sameAsGeni = !isFieldSelectable(scrapedValue, currentValue, fieldType);
+    var sameAsGeni = !!extraSuppress || !isFieldSelectable(scrapedValue, currentValue, fieldType);
     // (Dan's #304 follow-up proposal): this used to go through isEnabled(),
     // back when "enabled" and "checked" were the same question - isEnabled()
     // now answers a narrower one (purely: is this locked), so the checked
@@ -6153,9 +6175,32 @@ function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, 
     // field happens to be worth pre-selecting.
     input.prop("disabled", !!locked);
     checknext.prop('disabled', !!locked);
+    // #328: re-run the same "Hide Empty Fields" visibility decision
+    // hiddenRowAttrs() makes at render time - a row that was collapsed
+    // because NEITHER side had a value (a brand-new "Add profile"
+    // candidate has no Geni value to show yet) needs to become visible
+    // once a real match supplies one, and vice versa if the match changes
+    // again to one with no value either. About/Photo are deliberately
+    // excluded - neither has a Geni-value readout in its row at all (see
+    // #328's own comment on buildForm()'s About fallback), so there's
+    // nothing for this to reveal for them; exposing them anyway would just
+    // be an empty, actionable-looking row with no new information. Location
+    // rows (.geoloc/.geoplace) are ALSO excluded here, deliberately scoped
+    // out for now - they have a second, orthogonal visibility toggle (the
+    // "earth icon" flat-vs-structured view switch, which sets this exact
+    // same display style directly and unconditionally) that this simple
+    // hasValue-only recompute would fight with; left as a known, separate
+    // follow-up rather than risking that interaction.
+    if (fieldType !== "about_me" && fieldType !== "photo" && row.hasClass('hiddenrow') &&
+        !row.hasClass('geoloc') && !row.hasClass('geoplace')) {
+        var hideEmptyFieldsOn = $('#hideemptyonoffswitch').prop('checked');
+        var hasValue = isValue(scrapedValue) || isValue(String(currentValue || ""));
+        row.attr('data-hasvalue', hasValue);
+        row.css('display', (hideEmptyFieldsOn && !hasValue) ? 'none' : 'table-row');
+    }
 }
 
-function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue) {
+function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue, extraSuppress) {
     var input = $("#familytable_" + id + " [name='" + fieldName + "']").not(".genislideinput");
     if (input.length === 0) {
         return;
@@ -6196,7 +6241,7 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue)
     // buildForm()'s own photo row), so the resync can't silently promote
     // a photo to checked when the user has auto-select turned off.
     var eligible = fieldType !== "photo" || $('#photoonoffswitch').prop('checked');
-    applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType, eligible);
+    applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType, eligible, extraSuppress);
 }
 
 // #217: Living's <select> only ever holds a real true/false value - never a
@@ -6344,31 +6389,56 @@ function setGeniFamilyData(id, profile) {
         $("#" + id + "_geni_" + title + "_place").val(geniPlaceName);
         $("#" + id + "_geni_" + title + "_place").prev().attr('src', locationicon);
         refreshFieldCheckState(id, title + ":location:place_name_geo", geniPlaceName, locationLocked);
+        // #338 (live-reported, DanCornett): "partner's locations are not
+        // 'scanned' for being of less precision than current Geni value
+        // when that family member is switched from an initial 'Add
+        // profile' to a matching Geni profile... Switching a family member
+        // from 'Add profile' to a matching profile should run the same
+        // checks/scans as if it were the startup pass." The pencil "Edit
+        // Location" flow already recomputes this (updateGeoLocation()),
+        // but a plain Action-dropdown match change never did - computed
+        // once here, from this member's OWN currently scraped city/county/
+        // state/country (read the same way refreshFieldCheckState() itself
+        // would), and passed through as the same override render time ORs
+        // into checkedAttr/enabledAttr for these exact four fields plus
+        // Latitude/Longitude. Never Place/place_name_geo - see
+        // getLocationSpecificity()'s own comment for why.
+        // || "" guards a missing row the same way every other read in this
+        // loop implicitly assumes a real DOM match - .val() on an empty
+        // jQuery selection returns undefined, and isValue(undefined) would
+        // otherwise read as "has a value" (it only checks !== "").
+        var scrapedCityForDowngrade = $("#familytable_" + id + " [name='" + title + ":location:city']").not(".genislideinput").val() || "";
+        var scrapedCountyForDowngrade = $("#familytable_" + id + " [name='" + title + ":location:county']").not(".genislideinput").val() || "";
+        var scrapedStateForDowngrade = $("#familytable_" + id + " [name='" + title + ":location:state']").not(".genislideinput").val() || "";
+        var scrapedCountryForDowngrade = $("#familytable_" + id + " [name='" + title + ":location:country']").not(".genislideinput").val() || "";
         var geniCity = getGeniData(profile, title, "location.city");
+        var geniCounty = getGeniData(profile, title, "location.county");
+        var geniState = getGeniData(profile, title, "location.state");
+        var geniCountry = getGeniData(profile, title, "location.country");
+        var locationSpecificityDowngrade = isLocationSpecificityDowngrade(
+            scrapedCityForDowngrade, scrapedCountyForDowngrade, scrapedStateForDowngrade, scrapedCountryForDowngrade,
+            geniCity, geniCounty, geniState, geniCountry);
         $("#" + id + "_geni_" + title + "_city").val(geniCity);
         $("#" + id + "_geni_" + title + "_city").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:city", geniCity, locationLocked);
-        var geniCounty = getGeniData(profile, title, "location.county");
+        refreshFieldCheckState(id, title + ":location:city", geniCity, locationLocked, undefined, locationSpecificityDowngrade);
         $("#" + id + "_geni_" + title + "_county").val(geniCounty);
         $("#" + id + "_geni_" + title + "_county").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:county", geniCounty, locationLocked);
-        var geniState = getGeniData(profile, title, "location.state");
+        refreshFieldCheckState(id, title + ":location:county", geniCounty, locationLocked, undefined, locationSpecificityDowngrade);
         $("#" + id + "_geni_" + title + "_state").val(geniState);
         $("#" + id + "_geni_" + title + "_state").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:state", geniState, locationLocked);
-        var geniCountry = getGeniData(profile, title, "location.country");
+        refreshFieldCheckState(id, title + ":location:state", geniState, locationLocked, undefined, locationSpecificityDowngrade);
         $("#" + id + "_geni_" + title + "_country").val(geniCountry);
         $("#" + id + "_geni_" + title + "_country").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:country", geniCountry, locationLocked);
+        refreshFieldCheckState(id, title + ":location:country", geniCountry, locationLocked, undefined, locationSpecificityDowngrade);
         // #229: same pattern as every other location sub-field above.
         var geniLatitude = getGeniData(profile, title, "location.latitude");
         $("#" + id + "_geni_" + title + "_latitude").val(geniLatitude);
         $("#" + id + "_geni_" + title + "_latitude").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:latitude", geniLatitude, locationLocked);
+        refreshFieldCheckState(id, title + ":location:latitude", geniLatitude, locationLocked, undefined, locationSpecificityDowngrade);
         var geniLongitude = getGeniData(profile, title, "location.longitude");
         $("#" + id + "_geni_" + title + "_longitude").val(geniLongitude);
         $("#" + id + "_geni_" + title + "_longitude").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:longitude", geniLongitude, locationLocked);
+        refreshFieldCheckState(id, title + ":location:longitude", geniLongitude, locationLocked, undefined, locationSpecificityDowngrade);
     }
 
     // If this person's "select all" checkbox was EXPLICITLY clicked (not
@@ -6484,9 +6554,21 @@ function setGeniFamilyData(id, profile) {
     // handle before. Reuses syncTopLevelIndicators() (the same recompute-
     // from-scratch logic the .checknext/.geotopcheck click handlers
     // already use) rather than a second, narrower copy of the same
-    // question. Skipped when noEditPermission already forced everything
-    // off above.
-    if (!noEditPermission && memberexpand.length > 0) {
+    // question.
+    // #325 (live-reported, DanCornett): this used to skip the call
+    // entirely when noEditPermission - reasoning that this person's own
+    // tier was "already forced off above," which is true, but left the
+    // CATEGORY header above them stale. Switching the last remaining
+    // "Add profile" child in a category to a matched-but-locked profile
+    // correctly cleared that child's own checkslide (the blanket sweep
+    // above), but the category's own .checkall header - which this same
+    // call also recomputes, from every sibling .checkslide in the
+    // fieldset - never got told to look again, so it stayed stuck
+    // checked. Always running this is safe either way: when
+    // noEditPermission, this person's own checkslide is already correctly
+    // false/disabled from the sweep above, so re-syncing from scratch
+    // just confirms that and moves on to the category tier.
+    if (memberexpand.length > 0) {
         syncTopLevelIndicators(memberexpand[0]);
     }
 }

@@ -113,7 +113,11 @@ function makeRow(initialChecked) {
         }
     };
     var input = {
-        closest: function () { return { find: function () { return checknext; } }; },
+        // hasClass always false - this mock doesn't model the #328
+        // row-visibility resync (a separate concern from what this file
+        // tests), so that branch in the real function is simply never
+        // entered here.
+        closest: function () { return { find: function () { return checknext; }, hasClass: function () { return false; } }; },
         prop: function (name, value) {
             if (value === undefined) { return name === 'disabled' ? state.inputDisabled : undefined; }
             if (name === 'disabled') { state.inputDisabled = value; }

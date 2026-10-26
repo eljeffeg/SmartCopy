@@ -406,6 +406,13 @@ function updateGeoLocation() {
             $(geoDetailRow).toggleClass("geohidden", !updateHasGeoFields);
         }
         var updatePlaceNameValue = updateHasGeoFields ? computeCombinedPlaceValue(locationdata.query, locationdata) : locationdata.place;
+        // #357 diagnostic: see the identical render-time log's own comment
+        // in buildform.js - this is the pencil "Edit Location" result
+        // handler specifically, the other place computeCombinedPlaceValue()
+        // gets called from.
+        if (updateHasGeoFields) {
+            console.log("SmartCopy [#357 diagnostic, pencil]: raw=" + JSON.stringify(locationdata.query) + " city=" + JSON.stringify(locationdata.city) + " county=" + JSON.stringify(locationdata.county) + " state=" + JSON.stringify(locationdata.state) + " country=" + JSON.stringify(locationdata.country) + " place=" + JSON.stringify(updatePlaceNameValue));
+        }
         $(eventrow).find("input[type=text]")[0].value = updatePlaceNameValue;
         var placeDiffers = updateFieldDiffersFromGeni(eventrow, updatePlaceNameValue);
         setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], (forceAllGeoFields || placeDiffers));
@@ -1299,6 +1306,17 @@ function buildForm() {
                         // city/county/state/country/place survives, "" when
                         // nothing does) - only the wrapping is gone.
                         var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar1) : place;
+                        // #357 diagnostic (live-reported): a current-day
+                        // administrative name is still surviving as
+                        // leftover Place text on some locations even after
+                        // the #357 fix - logging the real resolved
+                        // city/county/state/country this computation
+                        // actually used, so a console paste on a real
+                        // repro shows the true internal shape instead of a
+                        // reconstruction.
+                        if (hasGeoFields) {
+                            console.log("SmartCopy [#357 diagnostic, focus]: title=" + title + " raw=" + JSON.stringify(place) + " city=" + JSON.stringify(geovar1.city) + " county=" + JSON.stringify(geovar1.county) + " state=" + JSON.stringify(geovar1.state) + " country=" + JSON.stringify(geovar1.country) + " leftover=" + JSON.stringify(itemPlaceNameValue));
+                        }
                         // #260: the visible-by-default "Place: " row also
                         // shows any leftover residue alongside the stripped
                         // venue - see computeCombinedPlaceValue()'s own
@@ -2447,6 +2465,10 @@ function buildForm() {
                                 // #256: no longer parenthesized - see the
                                 // focus profile block's own comment.
                                 var itemPlaceNameValue = hasGeoFields ? computeLeftoverPlaceName(place, geovar2) : place;
+                                // #357 diagnostic: see the identical focus-profile log's own comment above.
+                                if (hasGeoFields) {
+                                    console.log("SmartCopy [#357 diagnostic, family]: member=" + i + " title=" + title + " raw=" + JSON.stringify(place) + " city=" + JSON.stringify(geovar2.city) + " county=" + JSON.stringify(geovar2.county) + " state=" + JSON.stringify(geovar2.state) + " country=" + JSON.stringify(geovar2.country) + " leftover=" + JSON.stringify(itemPlaceNameValue));
+                                }
                                 // #260: same combined Place value as the
                                 // focus profile block above.
                                 if (hasGeoFields) {

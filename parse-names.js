@@ -416,7 +416,22 @@ var NameParse = (function(){
             'I','II','III','IV','V','Senior','Junior','Jr','Sr','PhD','APR','RPh','PE','MD','MA','DMD','CME',
             "BVM","CFRE","CLU","CPA","CSC","CSJ","DC","DD","DDS","DO","DVM","EdD","Esq",
             "JD","LLD","OD","OSB","PC","Ret","RGS","RN","RNC","SHCJ","SJ","SNJM","SSMO",
-            "USA","USAF","USAFR","USAR","USCG","USMC","USMCR","USN","USNR"
+            "USA","USAF","USAFR","USAR","USCG","USMC","USMCR","USN","USNR",
+            // #358 (live-reported): "Dr" as a TRAILING word ("Heinrich
+            // Hirsch Schwarz Dr.") - a common convention in European
+            // records, where a title sometimes follows the name instead
+            // of leading it - was unrecognized by either is_salutation()
+            // (prefix-only, "Mr"/"Mrs"/"Miss"/"Ms") or this list, so it
+            // fell through as a plain, unrecognized trailing name part.
+            // That didn't just mis-park it in the wrong field - with
+            // nothing to mark it as a suffix at all, the whole parse
+            // collapsed around it: lastName became "Dr" and everything
+            // else ("Heinrich Hirsch Schwarz") got swept into firstName
+            // as one combined string, breaking sibling/parent auto-match
+            // against Geni's own "Heinrich Hirsch Schwarz" entirely (the
+            // surname comparison requires an exact match, and "Dr" is
+            // nothing like "Schwarz").
+            "Dr"
         ];
 
         var suffixIndex = suffixArray.map(function(suffix){

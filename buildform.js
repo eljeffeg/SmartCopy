@@ -4872,11 +4872,60 @@ function compareGivenNameWordSets(wordsA, wordsB) {
     return isSubset ? "subset" : null;
 }
 
+// #360: plain Levenshtein edit distance between two strings - used only by
+// isFuzzySurnameMatch() below, never on its own, since a bare edit-distance
+// threshold is too weak a signal by itself (see that function's own
+// comment).
+function levenshteinDistance(a, b) {
+    a = a || "";
+    b = b || "";
+    var prev = [];
+    for (var j = 0; j <= b.length; j++) prev[j] = j;
+    for (var i = 1; i <= a.length; i++) {
+        var curr = [i];
+        for (var j = 1; j <= b.length; j++) {
+            var cost = a[i - 1] === b[j - 1] ? 0 : 1;
+            curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+        }
+        prev = curr;
+    }
+    return prev[b.length];
+}
+
+// #360 (live-reported, DanCornett: "Bertha SCHWARZ" should have matched
+// Geni's "Bertha Berta Schwartz"): a close surname spelling variant - one
+// edit apart, e.g. "Schwarz"/"Schwartz" - is allowed to pass, but ONLY when
+// the surname is long enough that one edit can't accidentally land on a
+// genuinely different, unrelated surname. German surnames in particular
+// cluster heavily on a handful of common prefixes ("Sch-" alone covers
+// Schwarz, Schwartz, Schmidt, Schmid, Schultz, Schuster...), so a short
+// surname or a bare prefix match would risk merging two different real
+// families - "Schmidt" vs. "Schwarz" is 4 edits apart on 7-letter names,
+// comfortably outside this tolerance. Deliberately returns false for
+// identical strings too - that's an exact match, not a fuzzy one, and is
+// already handled by findExistingFamilyMatch()'s own exact-surname path.
+// This function alone is still not a safe basis for a match - see
+// findExistingFamilyMatch()'s own additional gating (exact given-name tier
+// AND an identical birth year required) for why.
+function isFuzzySurnameMatch(a, b) {
+    if (!a || !b || a === b) {
+        return false;
+    }
+    var maxLen = Math.max(a.length, b.length);
+    var tolerance = maxLen >= 6 ? 1 : 0;
+    return levenshteinDistance(a, b) <= tolerance;
+}
+
 // Shared by buildAction() (below) and the auto-check gate in buildForm() -
 // matches an incoming family member against genifamilydata by given-name
 // word-set comparison (see compareGivenNameWordSets() above - handles a
 // shifted First/Middle boundary or reordered name, not just an exact
-// string match) plus an exact, case/diacritic-normalized last name. When
+// string match) plus an exact, case/diacritic-normalized last name, with
+// one narrow exception - see the fuzzy-surname block inside the loop below
+// (#360) - requiring the strongest possible given-name agreement (exact
+// tier) AND an identical birth year on both sides before a close surname
+// spelling variant is even considered, so the fuzzy tolerance never runs
+// on its own. When
 // more than one same-named candidate could apply at the best name tier
 // reached, a real (never estimated - Geni's own recorded value is always
 // real, this codebase never marks an existing Geni birth date as
@@ -4933,8 +4982,10 @@ function findExistingFamilyMatch(relationship, gender, firstName, middleName, la
     if ((incomingWords.length === 0 && incomingLast === "") || relationship === "father" || relationship === "mother") {
         return null;
     }
+    var incomingBirthYear = exists(birthYear) && birthYear !== "" ? Number(birthYear) : undefined;
     var exactMatches = [];
     var subsetMatches = [];
+    var fuzzyMatches = [];
     for (var node in genifamilydata) {
         if (!genifamilydata.hasOwnProperty(node)) continue;
         var candidate = genifamilydata[node];
@@ -4950,18 +5001,37 @@ function findExistingFamilyMatch(relationship, gender, firstName, middleName, la
         // fields rather than assuming which one the source data used.
         var candidateLastName = normalizeGermanic((candidate.get("names", candidateLang + ".last_name") || "").trim().toLowerCase());
         var candidateMaidenName = normalizeGermanic((candidate.get("names", candidateLang + ".maiden_name") || "").trim().toLowerCase());
-        if (candidateLastName !== incomingLast && candidateMaidenName !== incomingLast) continue;
         var givenNameTier = compareGivenNameWordSets(incomingWords, candidateWords);
+        if (candidateLastName !== incomingLast && candidateMaidenName !== incomingLast) {
+            // #360: no exact surname match - still allow a close spelling
+            // variant (e.g. Schwarz/Schwartz), but only when it's
+            // corroborated by the strongest given-name tier AND an
+            // identical birth year on both sides. Either signal alone
+            // (a fuzzy surname, or just a matching first name) is too
+            // weak - together with an exact birth year too, the odds of
+            // this being a coincidence rather than the same person are
+            // low enough to accept.
+            var candidateBirthYearForFuzzy = candidate.get("birth", "date.year");
+            if (givenNameTier === "exact" && exists(incomingBirthYear) &&
+                exists(candidateBirthYearForFuzzy) && candidateBirthYearForFuzzy !== "" &&
+                Number(candidateBirthYearForFuzzy) === incomingBirthYear &&
+                (isFuzzySurnameMatch(incomingLast, candidateLastName) || isFuzzySurnameMatch(incomingLast, candidateMaidenName))) {
+                fuzzyMatches.push(candidate);
+            }
+            continue;
+        }
         if (givenNameTier === "exact") {
             exactMatches.push(candidate);
         } else if (givenNameTier === "subset") {
             subsetMatches.push(candidate);
         }
     }
-    // Only fall back to the subset tier when NO exact match exists at all -
-    // a looser tier should never dilute/join a tie that the stronger tier
-    // already resolved (or failed to resolve) on its own.
-    var tiedMatches = exactMatches.length > 0 ? exactMatches : subsetMatches;
+    // Only fall back to a looser tier when NO match exists at all in every
+    // stronger tier above it - a looser tier should never dilute/join a
+    // tie that a stronger tier already resolved (or failed to resolve) on
+    // its own. Fuzzy-surname matches (#360) are the last resort, behind
+    // both exact-surname tiers.
+    var tiedMatches = exactMatches.length > 0 ? exactMatches : (subsetMatches.length > 0 ? subsetMatches : fuzzyMatches);
     if (tiedMatches.length === 0) {
         return null;
     }

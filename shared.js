@@ -550,6 +550,62 @@ function computeLeftoverPlaceName(rawLocation, geo) {
         return "";
     }
     var segments = rawLocation.split(",").map(function (s) { return s.trim(); }).filter(function (s) { return s !== ""; });
+    // #357 (live-reported by the user): historical place resolution can
+    // replace a raw segment with a genuinely different-era administrative
+    // name for the SAME jurisdiction level - "Rexingen, Freudenstadt,
+    // Baden-Württemberg, Germany" (modern Kreis/Land names) resolved to
+    // "Rexingen, Horb am Neckar, ..., Württemberg, Germany" historically
+    // (pre-1952 Oberamt/Land names). "Freudenstadt" and "Horb am Neckar"
+    // aren't spelling variants of one place - they're different
+    // administrative units from different eras, so no equivalence table
+    // could ever match them by value, and they were surviving as leftover
+    // "Freudenstadt, Baden-Württemberg" on every single person in a tree
+    // copy, forcing a manual uncheck each time.
+    //
+    // Only trustworthy under THREE conditions together, not count alone
+    // (an earlier version of this fix used count alone and broke two
+    // existing, already-correct cases - see below): the raw segment count
+    // exactly matches how many jurisdiction levels resolved (city/county/
+    // state/country, in that order, blanks skipped) AND the FIRST raw
+    // segment matches the FIRST resolved level AND the LAST raw segment
+    // matches the LAST resolved level. With both ends independently
+    // anchored to a real, confirmed match, the segments in between can
+    // safely be assumed to correspond to the remaining levels by position,
+    // even when their own text doesn't match (that's the whole point -
+    // they're using a different era's name for the same level). Reuses
+    // segmentMatchesAnyField() for the anchor checks themselves, so they
+    // benefit from the exact same normalization/equivalence rules
+    // (US_HISTORICAL_COUNTRY_EQUIVALENTS, county-suffix stripping) as
+    // everything else here, rather than a second comparison copy.
+    //
+    // Without BOTH anchors, this would have broken two real, already-
+    // correct cases the moment the count happened to coincidentally
+    // match: "Sagrario, Oak Hill Cemetery, Springfield, Illinois" against
+    // city/county/state/country all resolved (4 raw segments, 4 resolved
+    // levels) - "Sagrario"/"Oak Hill Cemetery" are genuine venue text, not
+    // administrative levels at all, caught by the FIRST-segment anchor
+    // failing to match city ("Sagrario" != "Springfield"); and "Somewhere,
+    // USA" resolved against country "Germany" (2 raw segments, 2 resolved
+    // levels: city+country) - a genuinely WRONG/unrelated country, not an
+    // era-naming difference, caught by the LAST-segment anchor failing to
+    // match country ("USA" doesn't represent "Germany" under any
+    // equivalence rule). The moment either anchor fails, OR the counts
+    // differ at all (a genuine extra level is in play - an intermediate
+    // jurisdiction FamilySearch's 5-into-4 mapping folded away, like
+    // "Potsdam," or real leading venue text with no clean 1:1
+    // correspondence), this falls through to the existing value-based
+    // matching completely unchanged - exactly why this function's own
+    // original motivating case ("Potsdam"/"Preussen," 5 raw segments
+    // against only 4 resolved fields) still correctly survives as
+    // leftover.
+    var orderedFields = [geo.city, geo.county, geo.state, geo.country].filter(function (f) {
+        return exists(f) && f !== "";
+    });
+    if (orderedFields.length > 0 && segments.length === orderedFields.length &&
+        segmentMatchesAnyField(segments[0], [orderedFields[0]]) &&
+        segmentMatchesAnyField(segments[segments.length - 1], [orderedFields[orderedFields.length - 1]])) {
+        return "";
+    }
     var fields = [geo.place, geo.city, geo.county, geo.state, geo.country];
     var leftover = segments.filter(function (seg) { return !segmentMatchesAnyField(seg, fields); });
     return leftover.join(", ");

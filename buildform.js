@@ -1274,15 +1274,6 @@ function buildForm() {
                         var itemGeolochidden = hasGeoFields ? "" : " geohidden";
                         var placeScored = scored && !geoAnySourceEnabled();
                         var geoScored = scored && geoAnySourceEnabled();
-                        // #355 diagnostic (live-reported, DanCornett): a
-                        // location that should be entirely blank is
-                        // showing pre-selected with no value visible on
-                        // either side - not yet root-caused. Logs the raw
-                        // inputs this location's checkbox state is
-                        // computed from, so a console paste while
-                        // reproducing can show whether "place" is
-                        // genuinely blank or just looks that way.
-                        console.log("SmartCopy [#355 diagnostic, focus]: title=" + title + " place=" + JSON.stringify(place) + " city=" + JSON.stringify(city) + " county=" + JSON.stringify(county) + " state=" + JSON.stringify(state) + " country=" + JSON.stringify(country) + " hasGeoFields=" + hasGeoFields + " geoone=" + geoone + " placeScored=" + placeScored + " geoScored=" + geoScored);
                         // #224: once real geo fields exist, suggesting the
                         // FULL raw scraped string for Place Name just
                         // duplicates what city/county/state/country already
@@ -2383,7 +2374,28 @@ function buildForm() {
                                     dateambig: dateambig,
                                     geniInputId: i + "_geni_" + title + "_date",
                                     imgIdAttr: ' imgid="' + i + '"',
-                                    labelSuffix: " "
+                                    labelSuffix: " ",
+                                    // #355 (live-reported, DanCornett): this
+                                    // row had no id at all, unlike the focus
+                                    // profile's own date row (which passes
+                                    // rowIdAttr: ' id="' + title + 'date"').
+                                    // syncGeotopcheckState() walks FORWARD
+                                    // from a location's own header row
+                                    // (id="i_title") through siblings until
+                                    // it finds one with a real id, treating
+                                    // everything in between as that
+                                    // location's own children - with no id
+                                    // here, the NEXT title's date row (e.g.
+                                    // Marriage's) got silently swallowed
+                                    // into the PREVIOUS title's location
+                                    // block (e.g. Baptism's), so checking
+                                    // Marriage's date also flipped Baptism's
+                                    // own geotopcheck. Namespaced by member
+                                    // index i (unlike the focus profile's
+                                    // single copy) since multiple family
+                                    // members each render their own date row
+                                    // for the same title.
+                                    rowIdAttr: ' id="' + i + '_' + title + 'date"'
                                 });
                                 dateadded = true;
                             }
@@ -2430,8 +2442,6 @@ function buildForm() {
                                 var itemGeolochidden = hasGeoFields ? "" : " geohidden";
                                 var placeScored = scored && !geoAnySourceEnabled();
                                 var geoScored = scored && geoAnySourceEnabled();
-                                // #355 diagnostic: see the identical focus-profile log's own comment above.
-                                console.log("SmartCopy [#355 diagnostic, family]: member=" + i + " title=" + title + " place=" + JSON.stringify(place) + " city=" + JSON.stringify(city) + " county=" + JSON.stringify(county) + " state=" + JSON.stringify(state) + " country=" + JSON.stringify(country) + " hasGeoFields=" + hasGeoFields + " geoone=" + geoone + " placeScored=" + placeScored + " geoScored=" + geoScored);
                                 // #224: same rule as the focus profile block
                                 // above - see its own comment.
                                 // #256: no longer parenthesized - see the
@@ -2523,7 +2533,8 @@ function buildForm() {
                                 ambigdatecheck.push(i);
                             }
                             membersstring = membersstring +
-                                '<tr ' + hiddenRowAttrs(hidden, exists(matchedCandidateForEstimate) && isValue(matchedCandidateForEstimate.get(title, "date.formatted_date"))) + '><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" ' + dateambig + 'name="' + title + ':date"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                                // #355: id="...date" added - see the identical fix's own comment above (buildDateFieldRow call).
+                                '<tr id="' + i + '_' + title + 'date" ' + hiddenRowAttrs(hidden, exists(matchedCandidateForEstimate) && isValue(matchedCandidateForEstimate.get(title, "date.formatted_date"))) + '><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" ' + dateambig + 'name="' + title + ':date"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
 
                         }
                         if (title === "death") {
@@ -2583,7 +2594,8 @@ function buildForm() {
                     } else {
                         membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" data-hasvalue="false"><td colspan="3"><div class="separator"></div></td></tr>';
 
-                        membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, exists(matchedCandidateForEstimate) && isValue(matchedCandidateForEstimate.get(title, "date.formatted_date"))) + '><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" name="' + title + ':date"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
+                        // #355: id="...date" added - see the identical fix's own comment above (buildDateFieldRow call).
+                        membersstring = membersstring + '<tr id="' + i + '_' + title + 'date" ' + hiddenRowAttrs(hidden, exists(matchedCandidateForEstimate) && isValue(matchedCandidateForEstimate.get(title, "date.formatted_date"))) + '><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" name="' + title + ':date"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';
                         if (title === "death") {
                             // #328: see the identical fix's own comment above.
                             membersstring = membersstring + '<tr ' + hiddenRowAttrs(hidden, exists(matchedCandidateForEstimate) && isValue(matchedCandidateForEstimate.get("cause_of_death"))) + '><td class="profilediv"><input type="checkbox" class="checknext">Death Cause: </td><td style="float:right;"><input type="text" class="formtext" name="cause_of_death"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_cause_of_death" type="text" class="formtext genislideinput" value="" disabled></td></tr>';

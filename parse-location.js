@@ -694,15 +694,18 @@ function fsSelectionHadTemporalMismatch(entries, year) {
     });
 }
 
-// One search attempt for a given (place, year) pair. Calls back with a
-// GeoLocation-shaped result (see familySearchPlaceToGeoLocation()) on a
-// good settlement-level match, or undefined if nothing usable came back -
-// never throws, matching this codebase's established "degrade to blank,
-// don't break the run" convention for anything that talks to an external,
-// unreliable source.
-function attemptFamilySearchQuery(placeSegment, year, fullLocationString, placeName, callback) {
+// How many candidates a single search asks FamilySearch for - also the
+// threshold attemptFamilySearchQuery() below uses to decide whether a
+// dated query came back suspiciously thin (see its own comment).
+var FS_SEARCH_RESULT_COUNT = 5;
+
+// One raw search call - date-filtered or not, depending on withDateFilter.
+// Calls back with the parsed entries array (possibly empty), or undefined
+// on any failure (bad response, network error, malformed JSON) - never
+// throws.
+function performFamilySearchQuery(placeSegment, year, withDateFilter, callback) {
     var queryText = 'name:"' + placeSegment + '"';
-    if (exists(year)) {
+    if (withDateFilter && exists(year)) {
         // Per FamilySearch's own documented syntax for this parameter
         // ("+date:1823" or "+date:1800/1900" - the "+" marks the date
         // FIELD as required, it's not part of the year value itself).
@@ -722,7 +725,7 @@ function attemptFamilySearchQuery(placeSegment, year, fullLocationString, placeN
     // FS_BROAD_PLACE_TYPES below rejects those; keeping a few candidates
     // in reserve lets the next-best (still date-eligible) match be tried
     // instead of immediately falling through to Google/raw-string.
-    var url = "https://apibeta.familysearch.org/platform/places/search?count=5&q=" + encodeURIComponent(queryText);
+    var url = "https://apibeta.familysearch.org/platform/places/search?count=" + FS_SEARCH_RESULT_COUNT + "&q=" + encodeURIComponent(queryText);
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
@@ -730,44 +733,93 @@ function attemptFamilySearchQuery(placeSegment, year, fullLocationString, placeN
     }, function (response) {
         try {
             var result = JSON.parse(response.source);
-            var entries = result.entries;
-            if (!exists(entries) || entries.length === 0) {
-                callback(undefined);
-                return;
-            }
-            var entriesForSelection = selectFsEntriesForYear(entries, year);
-            var dateMismatch = fsSelectionHadTemporalMismatch(entries, year);
-            // Entries are pre-sorted by relevance score (highest first).
-            // Collect every non-broad candidate tied at the TOP score seen
-            // (not just the first one) - #237 (live-reported, DanCornett):
-            // FamilySearch itself can score two genuinely different
-            // interpretations of the same query identically (e.g.
-            // "Washington, Virginia" scores a Village named Washington and
-            // Washington County equally at 100) - picking blindly whichever
-            // happened to sort first ignored real tie-break signal.
-            var topScore;
-            var tiedCandidates = [];
-            for (var e = 0; e < entriesForSelection.length; e++) {
-                var candidatePlaces = entriesForSelection[e].content.gedcomx.places;
-                if (!exists(candidatePlaces) || candidatePlaces.length === 0 || isBroadPlaceType(candidatePlaces[0])) {
-                    continue;
-                }
-                if (!exists(topScore)) {
-                    topScore = entriesForSelection[e].score;
-                } else if (entriesForSelection[e].score !== topScore) {
-                    break; // pre-sorted descending - nothing further can tie
-                }
-                tiedCandidates.push(candidatePlaces);
-            }
-            if (tiedCandidates.length === 0) {
-                callback(undefined);
-                return;
-            }
-            var picked = selectBestTiedFsMatch(tiedCandidates, placeSegment, fullLocationString, placeName);
-            callback(familySearchPlaceToGeoLocation(picked.places, fullLocationString, placeName, picked.ambiguous, dateMismatch));
+            callback(result.entries);
         } catch (e) {
             callback(undefined);
         }
+    });
+}
+
+// Turns a raw entries array into the final GeoLocation-shaped callback
+// result (or undefined) - shared by both the dated and undated attempts
+// in attemptFamilySearchQuery() below, so the actual candidate-selection
+// logic (tie-breaking, broad-type rejection, temporal filtering) only
+// exists once.
+function pickFamilySearchResult(entries, year, placeSegment, fullLocationString, placeName) {
+    if (!exists(entries) || entries.length === 0) {
+        return undefined;
+    }
+    var entriesForSelection = selectFsEntriesForYear(entries, year);
+    var dateMismatch = fsSelectionHadTemporalMismatch(entries, year);
+    // Entries are pre-sorted by relevance score (highest first). Collect
+    // every non-broad candidate tied at the TOP score seen (not just the
+    // first one) - #237 (live-reported, DanCornett): FamilySearch itself
+    // can score two genuinely different interpretations of the same query
+    // identically (e.g. "Washington, Virginia" scores a Village named
+    // Washington and Washington County equally at 100) - picking blindly
+    // whichever happened to sort first ignored real tie-break signal.
+    var topScore;
+    var tiedCandidates = [];
+    for (var e = 0; e < entriesForSelection.length; e++) {
+        var candidatePlaces = entriesForSelection[e].content.gedcomx.places;
+        if (!exists(candidatePlaces) || candidatePlaces.length === 0 || isBroadPlaceType(candidatePlaces[0])) {
+            continue;
+        }
+        if (!exists(topScore)) {
+            topScore = entriesForSelection[e].score;
+        } else if (entriesForSelection[e].score !== topScore) {
+            break; // pre-sorted descending - nothing further can tie
+        }
+        tiedCandidates.push(candidatePlaces);
+    }
+    if (tiedCandidates.length === 0) {
+        return undefined;
+    }
+    var picked = selectBestTiedFsMatch(tiedCandidates, placeSegment, fullLocationString, placeName);
+    return familySearchPlaceToGeoLocation(picked.places, fullLocationString, placeName, picked.ambiguous, dateMismatch);
+}
+
+// One search attempt for a given (place, year) pair. Calls back with a
+// GeoLocation-shaped result (see familySearchPlaceToGeoLocation()) on a
+// good settlement-level match, or undefined if nothing usable came back -
+// never throws, matching this codebase's established "degrade to blank,
+// don't break the run" convention for anything that talks to an external,
+// unreliable source.
+//
+// #357 follow-up (live-reported by the user): "Empfingen, Freudenstädter
+// Landkreis, Baden-Württemberg, Germany" (1923) resolved to a completely
+// unrelated "Baden, Baden, Baden, Germany" - confirmed via direct queries
+// against the real API that the correct "Empfingen, Freudenstadt" match
+// has NO recorded temporalDescription at all (common for smaller places),
+// and isYearWithinFsTemporalRange() (above) already correctly treats a
+// candidate with no temporal data as always valid - the bug isn't in
+// SmartCopy's own date logic, which never even got the chance to run on
+// the correct candidate. FamilySearch's own SERVER silently drops it from
+// the result set entirely once `+date:1923` is part of the query text,
+// returning only the one unrelated place that happens to have an explicit
+// (and coincidentally matching) date range. Confirmed live: the identical
+// query without the date constraint correctly returns "Empfingen,
+// Freudenstadt" as the top-scored match.
+//
+// Fixed with a cheap, conditional retry rather than always doubling the
+// request cost: the dated query still runs first and alone in the common
+// case. Only when it comes back with FEWER than the full requested count
+// (FS_SEARCH_RESULT_COUNT) - a simple, if imperfect, signal that the
+// server's own date filtering may have silently excluded other valid
+// candidates - does a second, undated query run, with its own (now
+// fuller) results handed to the exact same selection pipeline, letting
+// the already-correct client-side temporal logic do its job on the
+// complete candidate set the dated query never got to see.
+function attemptFamilySearchQuery(placeSegment, year, fullLocationString, placeName, callback) {
+    performFamilySearchQuery(placeSegment, year, true, function (datedEntries) {
+        var datedCount = exists(datedEntries) ? datedEntries.length : 0;
+        if (!exists(year) || datedCount >= FS_SEARCH_RESULT_COUNT) {
+            callback(pickFamilySearchResult(datedEntries, year, placeSegment, fullLocationString, placeName));
+            return;
+        }
+        performFamilySearchQuery(placeSegment, year, false, function (undatedEntries) {
+            callback(pickFamilySearchResult(undatedEntries, year, placeSegment, fullLocationString, placeName));
+        });
     });
 }
 

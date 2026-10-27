@@ -1260,7 +1260,42 @@ function queryGeoGoogle(locationset, test) {
             url: url,
             variable: {id: locationset.id, place: place, location: locationset.location, unittest: unittest, locationset: locationset}
         }, function (response) {
-            var result = JSON.parse(response.source);
+            // #362 (live-reported, DanCornett): unlike
+            // performFamilySearchQuery()'s own equivalent parse (which has
+            // always been wrapped exactly like this, per this file's
+            // established "never throws, degrade to blank" convention for
+            // anything that talks to an external, unreliable source), this
+            // JSON.parse had no try/catch at all. A response that isn't
+            // valid JSON (a network-level failure means response.source is
+            // never set at all; a non-2xx Google response can also return
+            // HTML rather than JSON) threw here, uncaught - which aborts
+            // this whole callback before it ever reaches the SECOND
+            // request below, or the geostatus.pop() that only happens
+            // inside THAT second callback. geostatus never drops back to
+            // 0, so updateGeoLocation()'s poll loop (which only turns the
+            // "wait" spinner back off once geostatus IS empty) spins
+            // forever - live-reported as pasting a GPS coordinate pair
+            // into the "Edit Location" box and clicking Lookup, though the
+            // underlying gap is generic to any malformed/failed response,
+            // not specific to that input. Falling back to {} here lets
+            // GeoLocation()'s own, already-correct "no results field at
+            // all" branch (see its own comment) produce a normal,
+            // already-handled "nothing found" result instead.
+            // {results: []} specifically, not {} - GeoLocation()'s OTHER
+            // early-exit branch ({} / no "results" key at all) only sets
+            // .query/.count, not the full .place/.city/.county/.state/
+            // .country shape every line below unconditionally expects -
+            // confirmed directly (a bare {} fallback here throws one line
+            // later on georesult.state.toLowerCase(), a new crash this fix
+            // would have introduced). {results: []} takes the genuine
+            // "zero real results" branch instead, which already produces
+            // the fully-shaped blank location via parseGoogle("", query).
+            var result;
+            try {
+                result = JSON.parse(response.source);
+            } catch (e) {
+                result = { results: [] };
+            }
             var id = response.variable.id;
             var unittest = response.variable.unittest;
             var full_location = response.variable.location;
@@ -1298,7 +1333,23 @@ function queryGeoGoogle(locationset, test) {
                     url: url,
                     variable: {id: id, location: short_location, unittest: unittest, place: response.variable.place, full: full_location, locationset: locationset}
                 }, function (response) {
-                    var result = JSON.parse(response.source);
+                    // #362: same fix as the first Google request's
+                    // callback above, and more directly responsible for
+                    // the reported hang - geostatus.pop() for this whole
+                    // Google lookup only ever happens inside THIS second
+                    // callback (see this function's own geostatus.push()
+                    // near the top), so an uncaught parse failure here
+                    // left the spinner permanently stuck with no recovery
+                    // at all, regardless of whether the first callback's
+                    // own parse succeeded.
+                    // {results: []}, not {} - same reasoning as the first
+                    // callback's own catch above.
+                    var result;
+                    try {
+                        result = JSON.parse(response.source);
+                    } catch (e) {
+                        result = { results: [] };
+                    }
                     var id = response.variable.id;
                     var short_location = response.variable.location;
                     var unittest = response.variable.unittest;

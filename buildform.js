@@ -1315,6 +1315,7 @@ function buildForm() {
                             if (geoAnySourceEnabled()) {
                                 locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                             }
+                            locationval = locationval + '<img src="images/copy.png" title="Copy Coordinates" class="geoCopyBtn" align="right" style="height: 14px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                             locationval = locationval + '<img class="geopin" title="' + escapeHtml(pintitle) + '" src="images/' + pincolor + 'pin.png" align="right" style="height: 18px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                             buildLocationFieldRow({
                                 trClass: "geoplace" + itemGeoplacehidden, classStyleSep: "", displayVal: itemGeoplace,
@@ -1476,6 +1477,7 @@ function buildForm() {
                         if (geoAnySourceEnabled()) {
                             locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                         }
+                        locationval = locationval + '<img src="images/copy.png" title="Copy Coordinates" class="geoCopyBtn" align="right" style="height: 14px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                         locationval = locationval + '<img class="geopin" title="" src="images/clearpin.png" align="right" style="height: 18px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td><td></td></tr>' +
                         '<tr class="geoplace hiddenrow' + geoplacehidden + '" data-hasvalue="' + focusPlaceFlatHasValue + '" style="display: ' + isHidden(hidden && !focusPlaceFlatHasValue, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext"' + (locationlocked ? ' disabled' : '') + '>' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name"' + (locationlocked ? ' disabled' : '') + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "location_string")).replace(/&quot;/g, '"')) + '" disabled></td></tr>' +
                         '<tr class="geoloc hiddenrow' + geolochidden + '" data-hasvalue="' + focusPlaceGeoHasValue + '" style="display: ' + isHidden(hidden && !focusPlaceGeoHasValue, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext"' + (locationlocked ? ' disabled' : '') + '>Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo"' + (locationlocked ? ' disabled' : '') + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "location.place_name")).replace(/&quot;/g, '"')) + '" disabled></td></tr>' +
@@ -1524,6 +1526,7 @@ function buildForm() {
                     if (geoAnySourceEnabled()) {
                         membersstring = membersstring + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="vertical-align: top; height: 14px; relative; top: 1px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                     }
+                    membersstring = membersstring + '<img src="images/copy.png" title="Copy Coordinates" class="geoCopyBtn" align="right" style="height: 14px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                     membersstring = membersstring + '<img class="geopin" title="" src="images/clearpin.png" align="right" style="height: 18px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td><td></td></tr>' +
                     '<tr class="geoplace hiddenrow' + geoplacehidden + '" data-hasvalue="' + focusPlaceFlatHasValue + '" style="display: ' + isHidden(hidden && !focusPlaceFlatHasValue, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext"' + (locationlocked ? ' disabled' : '') + '>' + capFL(title) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name"' + (locationlocked ? ' disabled' : '') + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "location_string")).replace(/&quot;/g, '"')) + '" disabled></td></tr>' +
                     '<tr class="geoloc hiddenrow' + geolochidden + '" data-hasvalue="' + focusPlaceGeoHasValue + '" style="display: ' + isHidden(hidden && !focusPlaceGeoHasValue, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext"' + (locationlocked ? ' disabled' : '') + '>Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo"' + (locationlocked ? ' disabled' : '') + '></td><td class="genisliderow"><img src="images/' + locationicon + '" class="genislideimage"><input type="text" class="formtext genislideinput" value="' + escapeHtml(String(genifocusdata.get(title, "location.place_name")).replace(/&quot;/g, '"')) + '" disabled></td></tr>' +
@@ -2470,6 +2473,7 @@ function buildForm() {
                                     if (geoAnySourceEnabled()) {
                                         locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
                                     }
+                                    locationval = locationval + '<img src="images/copy.png" title="Copy Coordinates" class="geoCopyBtn" align="right" style="height: 14px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                                     locationval = locationval + '<img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + escapeHtml(pintitle) + '" style="height: 18px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                                     buildLocationFieldRow({
                                         trClass: "geoplace" + itemGeoplacehidden, displayVal: itemGeoplace,
@@ -2592,6 +2596,7 @@ function buildForm() {
                                 if (geoAnySourceEnabled()) {
                                     locationval = locationval + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
                                 }
+                                locationval = locationval + '<img src="images/copy.png" title="Copy Coordinates" class="geoCopyBtn" align="right" style="height: 14px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                                 locationval = locationval + '<img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 18px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
                                 '<tr class="geoplace hiddenrow' +  geoplacehidden + '" data-hasvalue="' + memberPlaceFlatHasValue + '" style="display: ' + isHidden(hidden && !memberPlaceFlatHasValue, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + Abbr(capFL(title)) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                                 '<tr class="geoloc hiddenrow' +  geolochidden + '" data-hasvalue="' + memberPlaceGeoHasValue + '" style="display: ' + isHidden(hidden && !memberPlaceGeoHasValue, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -2635,6 +2640,7 @@ function buildForm() {
                             if (geoAnySourceEnabled()) {
                                 membersstring = membersstring + '<img src="images/edit.png" title="Edit Location" class="geoUpdateBtn" align="right" style="cursor: pointer; height: 14px; margin-top: 2px; margin-right: 3px;">';
                             }
+                            membersstring = membersstring + '<img src="images/copy.png" title="Copy Coordinates" class="geoCopyBtn" align="right" style="height: 14px; cursor: pointer; margin-top: 2px; margin-right: 3px;">';
                             membersstring = membersstring +'<img class="geopin" src="images/clearpin.png" align="right" title="" style="height: 18px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;Unknown</div></td></tr>' +
                             '<tr class="geoplace hiddenrow' + geoplacehidden + '" data-hasvalue="' + memberPlaceFlatHasValue + '" style="display: ' + isHidden(hidden && !memberPlaceFlatHasValue, "place") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">' + Abbr(capFL(title)) + ' Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_location_string" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
                             '<tr class="geoloc hiddenrow' +  geolochidden + '" data-hasvalue="' + memberPlaceGeoHasValue + '" style="display: ' + isHidden(hidden && !memberPlaceGeoHasValue, "loc") + ';"><td class="profilediv" style="padding-left: 10px;"><input type="checkbox" class="checknext">Place: </td><td style="float:right;"><input type="text" class="formtext" name="' + title + ':location:place_name_geo"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_place" type="text" class="formtext genislideinput" value="" disabled></td></tr>' +
@@ -3448,6 +3454,29 @@ function updateClassResponse() {
             $("#geoupdatetext").focus();
         });
     });
+    $('.geoCopyBtn').off();
+    $(function () {
+        // #361: copies this location's current latitude/longitude as a
+        // single "lat,lon" pair - directly pastable into Google Maps or
+        // any other map tool, instead of having to select and copy each
+        // field separately. No-op (just a brief tooltip, no clipboard
+        // write) when there's nothing real to copy yet.
+        $('.geoCopyBtn').on('click', function () {
+            var id = $(this).closest("tr")[0].id;
+            var coordinates = getCurrentGpsCoordinates(id);
+            var btn = this;
+            var originalTitle = btn.title;
+            if (coordinates === "") {
+                btn.title = "No coordinates to copy";
+                setTimeout(function () { btn.title = originalTitle; }, 1500);
+                return;
+            }
+            navigator.clipboard.writeText(coordinates).then(function () {
+                btn.title = "Copied!";
+                setTimeout(function () { btn.title = originalTitle; }, 1500);
+            });
+        });
+    });
     $('.showhide').off();
     $(function () {
         $('.showhide').on('click', function () {
@@ -3562,6 +3591,29 @@ function getCurrentEventYear(dataid) {
     }
     var year = extractDateYear(dateInput.val());
     return exists(year) ? year : "";
+}
+
+// #361: reads the LIVE latitude/longitude input values for a location row
+// (same id/scope convention as getCurrentEventYear() above), so the copy
+// button always copies whatever is actually currently in the form - a
+// manual edit or a fresh "Update Location" result, not whatever was
+// originally scraped. Returns "" (nothing to copy) whenever either field
+// is missing or blank, rather than a partial/malformed pair.
+function getCurrentGpsCoordinates(dataid) {
+    var idsplit = dataid.split("_");
+    var item = idsplit[1];
+    var scope = (idsplit[0] === "focus") ? $("#profiletable") : $("#familytable_" + idsplit[0]);
+    var latInput = scope.find('[name="' + item + ':location:latitude"]');
+    var lonInput = scope.find('[name="' + item + ':location:longitude"]');
+    if (latInput.length === 0 || lonInput.length === 0) {
+        return "";
+    }
+    var lat = latInput.val();
+    var lon = lonInput.val();
+    if (!isValue(lat) || !isValue(lon)) {
+        return "";
+    }
+    return lat + "," + lon;
 }
 
 function placementUpdate() {

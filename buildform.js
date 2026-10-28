@@ -1335,15 +1335,19 @@ function buildForm() {
                             buildLocationFieldRow({
                                 trClass: "geoplace" + itemGeoplacehidden, classStyleSep: "", displayVal: itemGeoplace,
                                 // #357 (per the user's own explicit design):
-                                // Place never pre-selects, full stop -
-                                // regardless of content, regardless of
-                                // whether it differs from Geni. It still
-                                // shows (when there's genuine leading
-                                // content) and stays editable/checkable by
-                                // hand - only the automatic "check it for
-                                // me" behavior every other field gets is
-                                // withheld here.
-                                checkedAttr: "",
+                                // Place doesn't pre-select just because it
+                                // resolved to something, the way every other
+                                // field does - it still shows (when there's
+                                // genuine leading content) and stays
+                                // editable/checkable by hand regardless.
+                                // #357 follow-up: one exception - see
+                                // isPlaceEligibleForPreselection()'s own
+                                // comment (below in this file) - a genuine
+                                // cemetery/venue/street-address leftover
+                                // DOES pre-select when Geni's own Place is
+                                // still blank, since there's nothing to
+                                // protect either way.
+                                checkedAttr: isPlaceEligibleForPreselection(itemPlaceNameValue, false, genifocusdata.get(title, "location_string")) ? "checked" : "",
                                 enabledAttr: isEnabled(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked, isValue(itemPlaceNameValue) && isValue(genifocusdata.get(title, "location_string")) && valuesAreEquivalent(itemPlaceNameValue, genifocusdata.get(title, "location_string"))),
                                 label: capFL(title) + " Place:", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:place_name", value: itemPlaceNameValue, icon: locationicon,
@@ -1351,8 +1355,8 @@ function buildForm() {
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                // #357: see the identical Place row's own comment just above.
-                                checkedAttr: "",
+                                // #357 follow-up: see the identical Place row's own comment just above.
+                                checkedAttr: isPlaceEligibleForPreselection(placegeo, false, genifocusdata.get(title, "location.place_name")) ? "checked" : "",
                                 enabledAttr: isEnabled(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name"), locationlocked, isValue(placegeo) && isValue(genifocusdata.get(title, "location.place_name")) && valuesAreEquivalent(placegeo, genifocusdata.get(title, "location.place_name"))),
                                 label: "Place: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:place_name_geo", value: placegeo, icon: locationicon,
@@ -6362,7 +6366,25 @@ function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, 
     }
 }
 
-function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue, extraSuppress) {
+// #357 follow-up (live-reported, DanCornett): "Place never pre-selects"
+// went further than he wanted - a genuine cemetery/venue/street-address
+// leftover is safe to pre-select after all, as long as there's nothing on
+// Geni to protect either way (a brand-new "Add Profile" candidate, or an
+// existing match whose own Place field is still blank). Reuses
+// isPlaceNameSegment() (parse-location.js) as the content gate - the same
+// already-vetted keyword/street-number pattern this codebase already
+// trusts to tell real venue/address text apart from a bare historical
+// city-name variant ("Poznan" next to a resolved "Posen") or scraping
+// noise, both of which stay un-preselected on purpose. Deliberately
+// simple by the user's own explicit choice: tests the whole leftover
+// string as one unit, not segment-by-segment - a qualifying keyword/
+// number anywhere in the leftover is enough, even if another part of the
+// same leftover is unrelated junk riding along with it.
+function isPlaceEligibleForPreselection(value, isNewAdd, currentGeniValue) {
+    return isValue(value) && isPlaceNameSegment(value) && (isNewAdd === true || currentGeniValue === "");
+}
+
+function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue, extraSuppress, isNewAdd) {
     var input = $("#familytable_" + id + " [name='" + fieldName + "']").not(".genislideinput");
     if (input.length === 0) {
         return;
@@ -6403,14 +6425,13 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue,
     // buildForm()'s own photo row), so the resync can't silently promote
     // a photo to checked when the user has auto-select turned off.
     var eligible = fieldType !== "photo" || $('#photoonoffswitch').prop('checked');
-    // #357 (per the user's own explicit design): Place never pre-selects,
-    // matched or not - same unconditional "never eligible" treatment as
-    // the render-time checkedAttr: "" on these two rows (see their own
-    // comment in buildForm()), just applied to the match-switch resync
-    // path too, so switching a family member's Action dropdown to a
-    // different match can't silently re-check Place either.
+    // #357 follow-up: see isPlaceEligibleForPreselection()'s own comment
+    // just above - applies the SAME conditional rule to the match-switch
+    // resync path, so switching a family member's Action dropdown to a
+    // different match (or to "Add Profile") correctly re-evaluates Place
+    // too, not just at the original startup pass.
     if (fieldName.endsWith(":location:place_name") || fieldName.endsWith(":location:place_name_geo")) {
-        eligible = false;
+        eligible = isPlaceEligibleForPreselection(scrapedValue, isNewAdd, currentValue);
     }
     applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType, eligible, extraSuppress);
 }
@@ -6555,11 +6576,11 @@ function setGeniFamilyData(id, profile) {
         var geniLocationString = getGeniData(profile, title, "location_string");
         $("#" + id + "_geni_" + title + "_location_string").val(geniLocationString);
         $("#" + id + "_geni_" + title + "_location_string").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:place_name", geniLocationString, locationLocked);
+        refreshFieldCheckState(id, title + ":location:place_name", geniLocationString, locationLocked, undefined, undefined, profile === "add");
         var geniPlaceName = getGeniData(profile, title, "location.place_name");
         $("#" + id + "_geni_" + title + "_place").val(geniPlaceName);
         $("#" + id + "_geni_" + title + "_place").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:place_name_geo", geniPlaceName, locationLocked);
+        refreshFieldCheckState(id, title + ":location:place_name_geo", geniPlaceName, locationLocked, undefined, undefined, profile === "add");
         // #338 (live-reported, DanCornett): "partner's locations are not
         // 'scanned' for being of less precision than current Geni value
         // when that family member is switched from an initial 'Add

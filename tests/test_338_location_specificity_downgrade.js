@@ -96,13 +96,23 @@ assertTrue(!isLocationSpecificityDowngrade("", "", "", "", "Fort Worth", "Tarran
         assertTrue(pattern.test(bfSrc), "#338: the focus profile's " + field + " row OR's locationSpecificityDowngrade into its sameAsGeni argument");
     });
     // #357 redesign (live-reported by the user): Place's own checked
-    // computation isn't just "untouched by #338" anymore - it's hardcoded
-    // to never pre-select at all, regardless of content, so it was never
-    // going to interact with locationSpecificityDowngrade either way.
+    // computation isn't just "untouched by #338" anymore - it's never a
+    // function of locationSpecificityDowngrade at all, so it was never
+    // going to interact with this specific check either way.
     assertTrue(bfSrc.indexOf('enabledAttr: isEnabled(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string")') !== -1,
         "#357: the focus profile's Place row still computes its own editable/enabled state normally");
-    assertTrue((bfSrc.match(/checkedAttr: "",\n\s+enabledAttr: isEnabled\(itemPlaceNameValue/g) || []).length === 2,
-        "#357: but its checked state is hardcoded to \"\" (never pre-selected) in both the focus profile and family member renders - deliberately excluded from locationSpecificityDowngrade and every other pre-selection mechanism");
+    // #357 follow-up (live-reported, DanCornett): Place's blanket "never
+    // pre-select" went further than asked - the focus profile's own Place
+    // row now runs isPlaceEligibleForPreselection() instead of a hardcoded
+    // "", since real Geni comparison data is already known at render time
+    // for an already-matched focus profile (see that function's own
+    // comment). A family member has no confirmed match yet at initial
+    // render, so it still hardcodes "" there and picks up the same
+    // conditional rule later, through refreshFieldCheckState()'s resync.
+    assertTrue(bfSrc.indexOf('checkedAttr: isPlaceEligibleForPreselection(itemPlaceNameValue, false, genifocusdata.get(title, "location_string")) ? "checked" : "",') !== -1,
+        "#357 follow-up: the focus profile's Place row now conditionally pre-selects via isPlaceEligibleForPreselection(), not a hardcoded \"\"");
+    assertEqual((bfSrc.match(/checkedAttr: "",\n\s+enabledAttr: isEnabled\(itemPlaceNameValue/g) || []).length, 1,
+        "#357 follow-up: only the family-member render still hardcodes \"\" for Place at render time - deferred to the resync path, which has real Geni data by then");
 }
 
 // --- Structural: the warning pin text is present and only overrides a 'clear' pin (never overrides a more urgent ambiguous/failed-lookup warning) ---

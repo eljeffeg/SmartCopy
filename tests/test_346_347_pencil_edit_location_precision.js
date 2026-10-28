@@ -112,6 +112,14 @@ function buildLocationRowGroup(geniValues, tableId) {
         '<input type="checkbox" class="geotopcheck">' +
         '<img class="geoicon" src="images/geoon.png">' +
         '<img src="images/edit.png" class="geoUpdateBtn">' +
+        // #361's copy-coordinates icon, inserted between the edit button
+        // and the pin, exactly like the real render code - its presence
+        // here is itself the #362 regression test: updateGeoLocation()
+        // used to find the pin by position (img[2]), which this icon
+        // silently shifted off the real pin the moment it existed. See
+        // this function's own updateGeoLocation() comment (buildform.js)
+        // for the full story.
+        '<img src="images/copy.png" class="geoCopyBtn">' +
         '<img class="geopin" src="images/clearpin.png">' +
         'Burial Location: &#160;original text' +
         '</div></td></tr>' +

@@ -227,7 +227,22 @@ function updateGeoLocation() {
         // matters beyond just what's visible.
         var geoiconImg = $($(eventrow.closest("tr")[0]).find("img")[0]);
         var geoon = geoiconImg.attr("src") === "images/geoon.png";
-        var titleobj = $($(eventrow.closest("tr")[0]).find("img")[2]);
+        // #362 (live-reported, DanCornett): used to be the positional
+        // find("img")[2] - broke the moment #361's new copy-coordinates
+        // icon was inserted into this same row ahead of the pin, since
+        // that shifted every img's index by one. titleobj silently became
+        // the COPY button instead of the pin: its src got overwritten
+        // with a pin image, and - the actual crash Dan hit -
+        // titleobj[0].nextSibling (the copy button's own next sibling is
+        // the REAL pin <img> element, not the " Location: ..." text node
+        // that follows the real pin) has no .nodeValue at all, since an
+        // element node's nodeValue is null, not a string to .split(). Any
+        // "Edit Location" submission hit this, not just a GPS-coordinate
+        // paste - the two symptoms were unrelated bugs that happened to
+        // ship in the same release. Selecting by the pin's own .geopin
+        // class instead of position fixes this permanently, immune to
+        // however many icons this row ends up with in the future.
+        var titleobj = $(eventrow.closest("tr")[0]).find("img.geopin");
         titleobj.attr("src", "images/" + pincolor + "pin.png");
         var ptable = eventrow.closest("table");
         // #346 (live-reported, DanCornett - #338 follow-up 2): factored out

@@ -1169,7 +1169,7 @@ function loadSelectPage(request) {
     // calling .replace() directly on undefined throws - degrade to the
     // empty string instead, matching this project's established "never
     // let an unreliable external source crash the run" convention.
-    var parsed = $('<div>').html(exists(request.source) ? request.source.replace(/<img[^>]*>/ig, "") : "");
+    var parsed = $('<div>').html(exists(request.source) ? stripInlineEventHandlers(request.source.replace(/<img[^>]*>/ig, "")) : "");
     var focusperson = parsed.find(".individualInformationName").text().trim();
     if (focusperson == "<Private>") {
         focusperson = parsed.find("#BreadcrumbsFinalText").text().trim();

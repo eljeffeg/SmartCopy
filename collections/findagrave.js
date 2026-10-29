@@ -1,23 +1,6 @@
-// #364 (live-reported, DanCornett): parsing FindAGrave's raw page HTML
-// through jQuery ($(htmlstring...), at every site below) logged a Content
-// Security Policy violation - "Executing inline event handler violates...
-// script-src 'self'" - in popup.html's own console. Root cause: jQuery's
-// HTML-string parsing builds real DOM nodes (via a live, if offscreen,
-// insertion into the current document) to use the browser's own HTML
-// parser, and FindAGrave's actual page markup carries at least one
-// element with an inline on* handler (typical of ad/tracking/consent
-// widgets on a real commercial site) - building that node is exactly what
-// Chrome compiles the handler for, which the extension's own strict CSP
-// then blocks. Harmless in practice (SmartCopy never executes or relies
-// on the blocked handler - the parse completes normally right after, per
-// Dan's own console log), but noisy. Stripped the same defensive way the
-// existing <img> handling already does (a plain regex pass on the raw
-// string before jQuery ever sees it) rather than a full rewrite to
-// DOMParser - this only needs the handler attribute gone, not a deeper
-// structural parsing change.
-function stripInlineEventHandlers(html) {
-    return html.replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
-}
+// #364: the strip-inline-event-handlers helper now lives in shared.js
+// (used by popup.js too, not just this file) - see its own comment there
+// for the full story.
 
 registerCollection({
     "recordtype": "Find A Grave Memorial",

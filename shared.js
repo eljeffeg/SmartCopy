@@ -1255,3 +1255,31 @@ function escapeHtml(string) {
         return entityMap[s];
     });
 }
+
+// #364 (live-reported, DanCornett): parsing a source page's raw HTML
+// through jQuery ($(htmlstring)/$('<div>').html(htmlstring), used by
+// several collection parsers and by popup.js's own loadSelectPage() to
+// build the "select the right person" UI) logged a Content Security
+// Policy violation - "Executing inline event handler violates... script-
+// src 'self'" - in popup.html's own console. Root cause: jQuery's HTML-
+// string parsing builds real DOM nodes (via a live, if offscreen,
+// insertion into the current document) to use the browser's own HTML
+// parser, and a real source page's markup regularly carries at least one
+// element with an inline on* handler (typical of ad/tracking/consent
+// widgets on a real commercial site) - building that node is exactly what
+// Chrome compiles the handler for, which the extension's own strict CSP
+// then blocks. Harmless in practice (nothing here ever executes or relies
+// on the blocked handler - parsing completes normally right after, per
+// Dan's own console log), but noisy, and the stack trace can point at any
+// of several call sites depending on which page/flow triggered it first -
+// confirmed live to include both collections/findagrave.js's own parsing
+// AND popup.js's loadSelectPage(), not just one or the other. Stripped
+// the same defensive way the existing <img>-tag handling already does at
+// each of those call sites (a plain regex pass on the raw string before
+// jQuery ever sees it) rather than a full rewrite to DOMParser - this
+// only needs the handler attribute gone, not a deeper structural parsing
+// change. Lives here (not in one specific collection file) since more
+// than one caller needs it.
+function stripInlineEventHandlers(html) {
+    return html.replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+}

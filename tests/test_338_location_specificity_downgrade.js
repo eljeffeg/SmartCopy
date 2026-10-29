@@ -106,13 +106,24 @@ assertTrue(!isLocationSpecificityDowngrade("", "", "", "", "Fort Worth", "Tarran
     // row now runs isPlaceEligibleForPreselection() instead of a hardcoded
     // "", since real Geni comparison data is already known at render time
     // for an already-matched focus profile (see that function's own
-    // comment). A family member has no confirmed match yet at initial
-    // render, so it still hardcodes "" there and picks up the same
-    // conditional rule later, through refreshFieldCheckState()'s resync.
+    // comment).
     assertTrue(bfSrc.indexOf('checkedAttr: isPlaceEligibleForPreselection(itemPlaceNameValue, false, genifocusdata.get(title, "location_string"), hasGeoFields, isGeniLocationEntirelyBlank(') !== -1,
         "#357 follow-up: the focus profile's Place row now conditionally pre-selects via isPlaceEligibleForPreselection(), not a hardcoded \"\"");
-    assertEqual((bfSrc.match(/checkedAttr: "",\n\s+enabledAttr: isEnabled\(itemPlaceNameValue/g) || []).length, 1,
-        "#357 follow-up: only the family-member render still hardcodes \"\" for Place at render time - deferred to the resync path, which has real Geni data by then");
+    // #365 follow-up (live-reported, DanCornett - the family-member
+    // equivalent of the gap above): a family member's own render-time ""
+    // used to be deliberately deferred to setGeniFamilyData()'s later
+    // resync - but that resync only ever runs for a member iconUpdate()'s
+    // genibuildaction-keyed loop actually reaches, which is only ever
+    // populated when a real SmartMatch candidate was found. A genuinely
+    // brand-new, zero-candidate person never got an entry there, so the
+    // resync never ran for them and Place stayed stuck blank on the
+    // first render. Now computes isPlaceEligibleForPreselection() at
+    // family-member render time too, from a findExistingFamilyMatch()
+    // call made right there (not deferred to any later resync).
+    assertTrue(bfSrc.indexOf('checkedAttr: isPlaceEligibleForPreselection(itemPlaceNameValue, isNewAddForPlace, geniPlaceLocationStringForPlace, hasGeoFields, geniLocationEntirelyBlankForPlace) ? "checked" : "",') !== -1,
+        "#365 follow-up: the family-member render's Place row now also conditionally pre-selects via isPlaceEligibleForPreselection(), not a hardcoded \"\"");
+    assertEqual((bfSrc.match(/checkedAttr: "",\n\s+enabledAttr: isEnabled\(itemPlaceNameValue/g) || []).length, 0,
+        "#365 follow-up: no render site hardcodes \"\" for Place anymore - both focus and family-member compute it directly");
 }
 
 // --- Structural: the warning pin text is present and only overrides a 'clear' pin (never overrides a more urgent ambiguous/failed-lookup warning) ---

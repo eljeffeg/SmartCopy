@@ -2155,6 +2155,36 @@ function buildForm() {
                 // actually chosen.
                 membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span class="showhide" title="' + showtitle + '" style="cursor: pointer; font-weight: normal; font-size: 90%; white-space: nowrap; margin-left: 6px;">' + showlabel + '</span><img id="' + i + '_action_lock" src="images/lock.png" title="This profile is locked - you do not have edit permission, so all fields are disabled" style="width: 14px; height: 14px; margin-left: 4px; display: none; vertical-align: middle;"><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, nameval.middleName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
 
+                // #357/#365 follow-up (live-reported, DanCornett): Place's
+                // own eligibility (isPlaceEligibleForPreselection(), used
+                // below for every title's location rows) used to depend
+                // entirely on setGeniFamilyData()'s LATER resync - which
+                // only ever runs for a member iconUpdate()'s own
+                // genibuildaction-keyed loop actually reaches, which in
+                // turn is only ever populated when a real SmartMatch
+                // candidate was found (confirmed directly - every
+                // genibuildaction[...] write site is inside a match-found
+                // branch). A genuinely brand-new, zero-candidate person
+                // never gets an entry there, so the resync never runs for
+                // them during the initial build, and Place stayed stuck at
+                // its hardcoded blank forever on that first pass - exactly
+                // Dan's report ("Place didn't get updated on the Add, but
+                // a re-run of the same focus would then pre-select it" -
+                // the re-run finally has a real match, so the resync
+                // finally runs). Computed here instead, directly at render
+                // time, mirroring the focus profile's own approach -
+                // reuses the IDENTICAL findExistingFamilyMatch() call
+                // buildAction() just made one line above (same arguments),
+                // so this can never disagree with what the Action dropdown
+                // itself actually shows. A locked-but-matched candidate
+                // still counts as a real match here (confirmed:
+                // buildAction()'s own `selected` flag only stays true when
+                // NO candidate was found at all - a lock only affects
+                // field editability later, never match selection) - this
+                // only decides "new vs. matched," not "editable."
+                var existingFamilyMatchForPlace = findExistingFamilyMatch(relationship, gender, nameval.firstName, nameval.middleName, (nameval.lastName || nameval.birthName), actionBirthYear);
+                var isNewAddForPlace = !existingFamilyMatchForPlace;
+
                 if (isChild(relationship) || relationship === "unknown") {
                     var parentrel = "Parent";
                     if (focusgender === "male") {
@@ -2493,6 +2523,21 @@ function buildForm() {
                                 if (hasGeoFields) {
                                     placegeo = computeCombinedPlaceValue(place, geovar2);
                                 }
+                                // #357/#365 follow-up: Geni's own comparison
+                                // data for Place, read from the match found
+                                // just above (findExistingFamilyMatch()) -
+                                // "" across the board for a genuinely new
+                                // candidate (nothing exists yet to compare
+                                // against), matching getGeniData()'s own
+                                // "add" short-circuit exactly.
+                                var geniPlaceLocationStringForPlace = existingFamilyMatchForPlace ? getGeniData(existingFamilyMatchForPlace.get("id"), title, "location_string") : "";
+                                var geniPlaceNameForPlace = existingFamilyMatchForPlace ? getGeniData(existingFamilyMatchForPlace.get("id"), title, "location.place_name") : "";
+                                var geniLocationEntirelyBlankForPlace = existingFamilyMatchForPlace ? isGeniLocationEntirelyBlank(
+                                    getGeniData(existingFamilyMatchForPlace.get("id"), title, "location.city"),
+                                    getGeniData(existingFamilyMatchForPlace.get("id"), title, "location.county"),
+                                    getGeniData(existingFamilyMatchForPlace.get("id"), title, "location.state"),
+                                    getGeniData(existingFamilyMatchForPlace.get("id"), title, "location.country"),
+                                    geniPlaceNameForPlace, geniPlaceLocationStringForPlace) : true;
                                 locationval = locationval +
                                     '<tr id="'+ i + "_" +title+'"><td colspan="3" style="font-size: 90%;"><div class="membertitle" style="margin-top: 4px; margin-right: 2px; padding-left: 5px;"><input style="float: left; margin-left: -1px;" type="checkbox" class="geotopcheck">' +
                                     '<img class="geoicon" style="cursor: pointer; float:left; padding-left: 3px; padding-top: 2px; padding-right: 4px;" alt="Toggle Geolocation" title="Toggle Geolocation" src="images/' + itemGeoicon + '" height="14px">';
@@ -2503,8 +2548,8 @@ function buildForm() {
                                     locationval = locationval + '<img class="geopin" src="images/' + pincolor + 'pin.png" align="right" title="' + escapeHtml(pintitle) + '" style="height: 18px; margin-top: 2px;">' + capFL(title) + ' Location: &nbsp;' + place.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div></td></tr>' +
                                     buildLocationFieldRow({
                                         trClass: "geoplace" + itemGeoplacehidden, displayVal: itemGeoplace,
-                                        // #357: see the focus profile's identical Place rows' own comment.
-                                        checkedAttr: "",
+                                        // #357/#365 follow-up: see the focus profile's identical Place rows' own comment.
+                                        checkedAttr: isPlaceEligibleForPreselection(itemPlaceNameValue, isNewAddForPlace, geniPlaceLocationStringForPlace, hasGeoFields, geniLocationEntirelyBlankForPlace) ? "checked" : "",
                                         enabledAttr: isEnabled(itemPlaceNameValue, placeScored, false, ""),
                                         label: Abbr(capFL(title)) + " Place: ", tdStyle: "float:right;",
                                         fieldName: title + ":location:place_name", value: itemPlaceNameValue,
@@ -2512,7 +2557,7 @@ function buildForm() {
                                     }) +
                                     buildLocationFieldRow({
                                         trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                        checkedAttr: "",
+                                        checkedAttr: isPlaceEligibleForPreselection(placegeo, isNewAddForPlace, geniPlaceNameForPlace, hasGeoFields, geniLocationEntirelyBlankForPlace) ? "checked" : "",
                                         enabledAttr: isEnabled(placegeo, geoScored, geoone, ""),
                                         label: "Place: ", tdStyle: "float:right;",
                                         fieldName: title + ":location:place_name_geo", value: placegeo,

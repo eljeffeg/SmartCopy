@@ -69,6 +69,10 @@
         "*://bezikaron.co.il/",
         "*://*.online-ofb.de/",
         "*://online-ofb.de/",
-        "*://ofb.genealogy.net/"
+        "*://ofb.genealogy.net/",
+        "*://*.werelate.org/",
+        "*://werelate.org/",
+        "*://*.genealogy.com/",
+        "*://genealogy.com/"
     ]
 }

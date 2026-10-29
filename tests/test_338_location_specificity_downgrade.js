@@ -109,7 +109,7 @@ assertTrue(!isLocationSpecificityDowngrade("", "", "", "", "Fort Worth", "Tarran
     // comment). A family member has no confirmed match yet at initial
     // render, so it still hardcodes "" there and picks up the same
     // conditional rule later, through refreshFieldCheckState()'s resync.
-    assertTrue(bfSrc.indexOf('checkedAttr: isPlaceEligibleForPreselection(itemPlaceNameValue, false, genifocusdata.get(title, "location_string")) ? "checked" : "",') !== -1,
+    assertTrue(bfSrc.indexOf('checkedAttr: isPlaceEligibleForPreselection(itemPlaceNameValue, false, genifocusdata.get(title, "location_string"), hasGeoFields, isGeniLocationEntirelyBlank(') !== -1,
         "#357 follow-up: the focus profile's Place row now conditionally pre-selects via isPlaceEligibleForPreselection(), not a hardcoded \"\"");
     assertEqual((bfSrc.match(/checkedAttr: "",\n\s+enabledAttr: isEnabled\(itemPlaceNameValue/g) || []).length, 1,
         "#357 follow-up: only the family-member render still hardcodes \"\" for Place at render time - deferred to the resync path, which has real Geni data by then");

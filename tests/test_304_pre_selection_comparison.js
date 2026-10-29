@@ -17,6 +17,7 @@ const { JSDOM } = require('jsdom');
 const bfSrc = fs.readFileSync(path.join(ROOT, 'buildform.js'), 'utf8');
 const sharedSrc = fs.readFileSync(path.join(ROOT, 'shared.js'), 'utf8');
 const popupSrc = fs.readFileSync(path.join(ROOT, 'popup.js'), 'utf8');
+const plSrc = fs.readFileSync(path.join(ROOT, 'parse-location.js'), 'utf8');
 
 function extractFunction(src, name) {
     const marker = 'function ' + name + '(';
@@ -289,6 +290,17 @@ const refreshLivingCheckStateSrc = extractFunction(bfSrc, 'refreshLivingCheckSta
 const setGeniFamilyDataSrc = extractFunction(bfSrc, 'setGeniFamilyData');
 const getLocationSpecificitySrc = extractFunction(bfSrc, 'getLocationSpecificity');
 const isLocationSpecificityDowngradeSrc = extractFunction(bfSrc, 'isLocationSpecificityDowngrade');
+// #365: setGeniFamilyData() now unconditionally calls
+// isGeniLocationEntirelyBlank() per title (not just when a Place field
+// actually exists in the DOM), so its real dependency chain - including
+// isPlaceEligibleForPreselection()/isPlaceNameSegment() and parse-
+// location.js's own pattern vars - needs to be in scope even though this
+// test's own fixture never renders a Place field.
+const isPlaceNameSegmentSrc = extractFunction(plSrc, 'isPlaceNameSegment');
+const placeNameKeywordPatternSrc = extractArrayStatement(plSrc, 'PLACE_NAME_KEYWORD_PATTERN');
+const placeNameNumericPatternSrc = extractArrayStatement(plSrc, 'PLACE_NAME_NUMERIC_PATTERN');
+const isPlaceEligibleForPreselectionSrc = extractFunction(bfSrc, 'isPlaceEligibleForPreselection');
+const isGeniLocationEntirelyBlankSrc = extractFunction(bfSrc, 'isGeniLocationEntirelyBlank');
 const hasVisibleCheckedFieldSrc = extractFunction(bfSrc, 'hasVisibleCheckedField');
 const syncTopLevelIndicatorsSrc = extractFunction(bfSrc, 'syncTopLevelIndicators');
 const localizedGenderSrc = extractFunction(bfSrc, 'localizedGender');
@@ -338,6 +350,11 @@ function build(genifamilydata) {
         ${syncTopLevelIndicatorsSrc}
         ${getLocationSpecificitySrc}
         ${isLocationSpecificityDowngradeSrc}
+        ${placeNameKeywordPatternSrc}
+        ${placeNameNumericPatternSrc}
+        ${isPlaceNameSegmentSrc}
+        ${isPlaceEligibleForPreselectionSrc}
+        ${isGeniLocationEntirelyBlankSrc}
         ${setGeniFamilyDataSrc}
         return { setGeniFamilyData };
         `

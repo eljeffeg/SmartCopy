@@ -36,6 +36,7 @@ const { JSDOM } = require('jsdom');
 
 const bfSrc = fs.readFileSync(path.join(ROOT, 'buildform.js'), 'utf8');
 const sharedSrc = fs.readFileSync(path.join(ROOT, 'shared.js'), 'utf8');
+const plSrc = fs.readFileSync(path.join(ROOT, 'parse-location.js'), 'utf8');
 
 function extractFunction(src, name) {
     const marker = 'function ' + name + '(';
@@ -120,6 +121,17 @@ const valuesAreEquivalentForFieldType = new Function('datesAreEquivalent', 'nick
     'return ' + extractFunction(bfSrc, 'valuesAreEquivalentForFieldType'))(datesAreEquivalent, nicknamesAreEquivalent, valuesAreEquivalent, isAboutContentPresent, isDateSpecificityDowngrade);
 const isFieldSelectable = new Function('isValue', 'valuesAreEquivalentForFieldType',
     'return ' + extractFunction(bfSrc, 'isFieldSelectable'))(isValue, valuesAreEquivalentForFieldType);
+// #365: setGeniFamilyData() now unconditionally calls
+// isGeniLocationEntirelyBlank() per title (not just when a Place field
+// actually exists in the DOM), so its real dependency chain - including
+// isPlaceEligibleForPreselection()/isPlaceNameSegment() and parse-
+// location.js's own pattern vars - needs to be in scope even though this
+// test's own fixture never renders a Place field.
+const isPlaceNameSegmentSrc = extractFunction(plSrc, 'isPlaceNameSegment');
+const placeNameKeywordPatternSrc = extractArrayStatement(plSrc, 'PLACE_NAME_KEYWORD_PATTERN');
+const placeNameNumericPatternSrc = extractArrayStatement(plSrc, 'PLACE_NAME_NUMERIC_PATTERN');
+const isPlaceEligibleForPreselectionSrc = extractFunction(bfSrc, 'isPlaceEligibleForPreselection');
+const isGeniLocationEntirelyBlankSrc = extractFunction(bfSrc, 'isGeniLocationEntirelyBlank');
 
 function build(genifamilydata) {
     const getGeniData = makeGetGeniData(genifamilydata);
@@ -145,6 +157,11 @@ function build(genifamilydata) {
         ${syncTopLevelIndicatorsSrc}
         ${getLocationSpecificitySrc}
         ${isLocationSpecificityDowngradeSrc}
+        ${placeNameKeywordPatternSrc}
+        ${placeNameNumericPatternSrc}
+        ${isPlaceNameSegmentSrc}
+        ${isPlaceEligibleForPreselectionSrc}
+        ${isGeniLocationEntirelyBlankSrc}
         ${setGeniFamilyDataSrc}
         return { setGeniFamilyData };
         `

@@ -1346,8 +1346,15 @@ function buildForm() {
                                 // cemetery/venue/street-address leftover
                                 // DOES pre-select when Geni's own Place is
                                 // still blank, since there's nothing to
-                                // protect either way.
-                                checkedAttr: isPlaceEligibleForPreselection(itemPlaceNameValue, false, genifocusdata.get(title, "location_string")) ? "checked" : "",
+                                // protect either way. #365 follow-up: when
+                                // geocoding resolved nothing at all
+                                // (!hasGeoFields), Place holds the complete
+                                // raw text instead of a leftover fragment -
+                                // pre-selects whenever NONE of Geni's own
+                                // location fields for this event have
+                                // anything in them (not just this one Place
+                                // field), same reasoning.
+                                checkedAttr: isPlaceEligibleForPreselection(itemPlaceNameValue, false, genifocusdata.get(title, "location_string"), hasGeoFields, isGeniLocationEntirelyBlank(genifocusdata.get(title, "location.city"), genifocusdata.get(title, "location.county"), genifocusdata.get(title, "location.state"), genifocusdata.get(title, "location.country"), genifocusdata.get(title, "location.place_name"), genifocusdata.get(title, "location_string"))) ? "checked" : "",
                                 enabledAttr: isEnabled(itemPlaceNameValue, placeScored, false, genifocusdata.get(title, "location_string"), locationlocked, isValue(itemPlaceNameValue) && isValue(genifocusdata.get(title, "location_string")) && valuesAreEquivalent(itemPlaceNameValue, genifocusdata.get(title, "location_string"))),
                                 label: capFL(title) + " Place:", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:place_name", value: itemPlaceNameValue, icon: locationicon,
@@ -1355,8 +1362,8 @@ function buildForm() {
                             }) +
                             buildLocationFieldRow({
                                 trClass: "geoloc" + itemGeolochidden, displayVal: itemGeoauto,
-                                // #357 follow-up: see the identical Place row's own comment just above.
-                                checkedAttr: isPlaceEligibleForPreselection(placegeo, false, genifocusdata.get(title, "location.place_name")) ? "checked" : "",
+                                // #357/#365 follow-up: see the identical Place row's own comment just above.
+                                checkedAttr: isPlaceEligibleForPreselection(placegeo, false, genifocusdata.get(title, "location.place_name"), hasGeoFields, isGeniLocationEntirelyBlank(genifocusdata.get(title, "location.city"), genifocusdata.get(title, "location.county"), genifocusdata.get(title, "location.state"), genifocusdata.get(title, "location.country"), genifocusdata.get(title, "location.place_name"), genifocusdata.get(title, "location_string"))) ? "checked" : "",
                                 enabledAttr: isEnabled(placegeo, geoScored, geoone, genifocusdata.get(title, "location.place_name"), locationlocked, isValue(placegeo) && isValue(genifocusdata.get(title, "location.place_name")) && valuesAreEquivalent(placegeo, genifocusdata.get(title, "location.place_name"))),
                                 label: "Place: ", tdStyle: "float:right;padding: 0;",
                                 fieldName: title + ":location:place_name_geo", value: placegeo, icon: locationicon,
@@ -6380,11 +6387,57 @@ function applyProtectedDisabledState(input, scrapedValue, currentValue, locked, 
 // string as one unit, not segment-by-segment - a qualifying keyword/
 // number anywhere in the leftover is enough, even if another part of the
 // same leftover is unrelated junk riding along with it.
-function isPlaceEligibleForPreselection(value, isNewAdd, currentGeniValue) {
-    return isValue(value) && isPlaceNameSegment(value) && (isNewAdd === true || currentGeniValue === "");
+//
+// #365 follow-up (live-reported, GaryKoven): the keyword/number gate
+// above assumes Place holds a genuine LEFTOVER fragment after geocoding
+// already captured City/County/State/Country elsewhere - but when
+// geocoding resolves NOTHING at all (FamilySearch Places and Google both
+// off, or both fail), Place instead holds the ENTIRE raw scraped
+// location text verbatim (queryGeoGoogle()'s own disabled-path copies
+// the whole query string into geo.place, with city/county/state/country
+// all blank - confirmed directly). An ordinary place name like "Revere,
+// Suffolk, Massachusetts, USA" has no cemetery keyword or street number,
+// so the gate above was rejecting it even on a brand-new profile with
+// nothing else on Geni to protect - exactly Gary's reported symptom
+// across 40+ profiles. hasGeoFields (true only when geocoding actually
+// resolved something) distinguishes the two cases: with it false, Place
+// is functionally an ordinary field holding the complete, non-redundant
+// location - the same "new or nothing to protect -> pre-select" rule
+// applies, but WITHOUT the keyword gate (there's no leftover-noise risk
+// when there was no structured breakdown to be redundant against) and,
+// per the user's own explicit refinement, gated on ALL of Geni's own
+// location fields for this event being blank (not just this one Place
+// field) when it's an existing match - pre-selecting the full raw text
+// over a profile that already has real structured City/County/State/
+// Country data would duplicate it (full Place blob AND full field data).
+// A brand-new Add Profile pre-selects unconditionally in THIS branch
+// only (no existing Geni data of any kind to conflict with) - the
+// hasGeoFields branch above is completely unaffected by this follow-up
+// and still requires the keyword/number match even for a new Add
+// Profile (confirmed unchanged: "Poznan" on a brand-new profile still
+// correctly does not pre-select).
+function isPlaceEligibleForPreselection(value, isNewAdd, currentGeniValue, hasGeoFields, geniLocationEntirelyBlank) {
+    if (!isValue(value)) {
+        return false;
+    }
+    if (hasGeoFields) {
+        return isPlaceNameSegment(value) && (isNewAdd === true || currentGeniValue === "");
+    }
+    return isNewAdd === true || geniLocationEntirelyBlank === true;
 }
 
-function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue, extraSuppress, isNewAdd) {
+// #365: "nothing on Geni for this event at all" - every field that could
+// hold location data for one event (City/County/State/Country, plus
+// BOTH of Geni's own Place representations - the structured
+// location.place_name and the flat location_string) has to be blank, not
+// just the one Place field about to be filled in - see
+// isPlaceEligibleForPreselection()'s own comment for why.
+function isGeniLocationEntirelyBlank(city, county, state, country, placeName, locationString) {
+    return !isValue(city) && !isValue(county) && !isValue(state) && !isValue(country) &&
+        !isValue(placeName) && !isValue(locationString);
+}
+
+function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue, extraSuppress, isNewAdd, hasGeoFields, geniLocationEntirelyBlank) {
     var input = $("#familytable_" + id + " [name='" + fieldName + "']").not(".genislideinput");
     if (input.length === 0) {
         return;
@@ -6431,7 +6484,7 @@ function refreshFieldCheckState(id, fieldName, currentValue, locked, blankValue,
     // different match (or to "Add Profile") correctly re-evaluates Place
     // too, not just at the original startup pass.
     if (fieldName.endsWith(":location:place_name") || fieldName.endsWith(":location:place_name_geo")) {
-        eligible = isPlaceEligibleForPreselection(scrapedValue, isNewAdd, currentValue);
+        eligible = isPlaceEligibleForPreselection(scrapedValue, isNewAdd, currentValue, hasGeoFields, geniLocationEntirelyBlank);
     }
     applyProtectedDisabledState(input, scrapedValue, currentValue, locked, fieldType, eligible, extraSuppress);
 }
@@ -6573,14 +6626,6 @@ function setGeniFamilyData(id, profile) {
         $("#" + id + "_geni_" + title + "_date").val(geniDate);
         $("#" + id + "_geni_" + title + "_date").prev().attr('src', getGeniLock(profile, title, "date"));
         refreshFieldCheckState(id, title + ":date", geniDate, dateLocked);
-        var geniLocationString = getGeniData(profile, title, "location_string");
-        $("#" + id + "_geni_" + title + "_location_string").val(geniLocationString);
-        $("#" + id + "_geni_" + title + "_location_string").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:place_name", geniLocationString, locationLocked, undefined, undefined, profile === "add");
-        var geniPlaceName = getGeniData(profile, title, "location.place_name");
-        $("#" + id + "_geni_" + title + "_place").val(geniPlaceName);
-        $("#" + id + "_geni_" + title + "_place").prev().attr('src', locationicon);
-        refreshFieldCheckState(id, title + ":location:place_name_geo", geniPlaceName, locationLocked, undefined, undefined, profile === "add");
         // #338 (live-reported, DanCornett): "partner's locations are not
         // 'scanned' for being of less precision than current Geni value
         // when that family member is switched from an initial 'Add
@@ -6599,6 +6644,11 @@ function setGeniFamilyData(id, profile) {
         // loop implicitly assumes a real DOM match - .val() on an empty
         // jQuery selection returns undefined, and isValue(undefined) would
         // otherwise read as "has a value" (it only checks !== "").
+        // #365: also needed earlier now, by the Place calls just below -
+        // hasGeoFields/geniLocationEntirelyBlank (see
+        // isPlaceEligibleForPreselection()'s own comment) reuse these same
+        // scraped/Geni city/county/state/country reads rather than reading
+        // them twice.
         var scrapedCityForDowngrade = $("#familytable_" + id + " [name='" + title + ":location:city']").not(".genislideinput").val() || "";
         var scrapedCountyForDowngrade = $("#familytable_" + id + " [name='" + title + ":location:county']").not(".genislideinput").val() || "";
         var scrapedStateForDowngrade = $("#familytable_" + id + " [name='" + title + ":location:state']").not(".genislideinput").val() || "";
@@ -6607,6 +6657,16 @@ function setGeniFamilyData(id, profile) {
         var geniCounty = getGeniData(profile, title, "location.county");
         var geniState = getGeniData(profile, title, "location.state");
         var geniCountry = getGeniData(profile, title, "location.country");
+        var hasGeoFields = isValue(scrapedCityForDowngrade) || isValue(scrapedCountyForDowngrade) || isValue(scrapedStateForDowngrade) || isValue(scrapedCountryForDowngrade);
+        var geniLocationString = getGeniData(profile, title, "location_string");
+        var geniPlaceName = getGeniData(profile, title, "location.place_name");
+        var geniLocationEntirelyBlank = isGeniLocationEntirelyBlank(geniCity, geniCounty, geniState, geniCountry, geniPlaceName, geniLocationString);
+        $("#" + id + "_geni_" + title + "_location_string").val(geniLocationString);
+        $("#" + id + "_geni_" + title + "_location_string").prev().attr('src', locationicon);
+        refreshFieldCheckState(id, title + ":location:place_name", geniLocationString, locationLocked, undefined, undefined, profile === "add", hasGeoFields, geniLocationEntirelyBlank);
+        $("#" + id + "_geni_" + title + "_place").val(geniPlaceName);
+        $("#" + id + "_geni_" + title + "_place").prev().attr('src', locationicon);
+        refreshFieldCheckState(id, title + ":location:place_name_geo", geniPlaceName, locationLocked, undefined, undefined, profile === "add", hasGeoFields, geniLocationEntirelyBlank);
         var locationSpecificityDowngrade = isLocationSpecificityDowngrade(
             scrapedCityForDowngrade, scrapedCountyForDowngrade, scrapedStateForDowngrade, scrapedCountryForDowngrade,
             geniCity, geniCounty, geniState, geniCountry);

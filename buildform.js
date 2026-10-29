@@ -5793,15 +5793,30 @@ function loadGeniData() {
         action: "xhttp",
         url: abouturl
     }, function (response) {
+        // #368 (found during a pre-release code review - same bug shape
+        // as #362's "Edit Location" hang, in a far more commonly-hit
+        // spot): this runs on EVERY profile sync, not just a manual
+        // correction flow. JSON.parse() used to be unguarded - a
+        // malformed/unexpected response from Geni's own API threw here,
+        // uncaught, which skipped familystatus.pop() below entirely and
+        // left updateGeo()'s setTimeout poll (familystatus.length > 0)
+        // spinning forever. Degrades to leaving focusabout/focusnicknames
+        // at whatever they already were, matching this codebase's
+        // established "never throws, degrade to blank" convention for
+        // anything that talks to an external, unreliable source.
         if (exists(response) && response.source !== "") {
-            var geni_return = JSON.parse(response.source);
-            if (!$.isEmptyObject(geni_return)) {
-                if (exists(geni_return.about_me)) {
-                    focusabout = geni_return.about_me;
+            try {
+                var geni_return = JSON.parse(response.source);
+                if (!$.isEmptyObject(geni_return)) {
+                    if (exists(geni_return.about_me)) {
+                        focusabout = geni_return.about_me;
+                    }
+                    if (exists(geni_return.nicknames)) {
+                        focusnicknames = geni_return.nicknames;
+                    }
                 }
-                if (exists(geni_return.nicknames)) {
-                    focusnicknames = geni_return.nicknames;
-                }
+            } catch (e) {
+                // Degrade to blank - see this function's own comment above.
             }
         }
         familystatus.pop();

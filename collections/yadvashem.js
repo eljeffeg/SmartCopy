@@ -210,20 +210,34 @@ function parseYadVaShem(htmlstring, familymembers, relation) {
         action: "xhttp",
         url: url
     }, function (response) {
+        // #368 (found during a pre-release code review - same bug shape
+        // as #362's "Edit Location" hang): JSON.parse() and everything
+        // after it used to be unguarded - a malformed response, or valid
+        // JSON shaped nothing like a real YadVashem response (.details
+        // missing), threw here, uncaught, skipping familystatus.pop()
+        // below entirely and leaving updateGeo()'s setTimeout poll
+        // (familystatus.length > 0) spinning forever. Degrades to the
+        // already-initialized blank profiledata on failure, matching
+        // this codebase's established "never throws, degrade to blank"
+        // convention for anything that talks to an external, unreliable
+        // source.
+        try {
+            let json_obj = JSON.parse(response.source);
 
-        let json_obj = JSON.parse(response.source);
+            const ys_person = json_obj.details.reduce((acc, detail) => {
+                // Take first value for each field
+                if (acc[fieldNameToLabelMap.get(detail.id)]) {
+                    return acc;
+                }
 
-        const ys_person = json_obj.details.reduce((acc, detail) => {
-            // Take first value for each field
-            if (acc[fieldNameToLabelMap.get(detail.id)]) {
+                acc[fieldNameToLabelMap.get(detail.id)] = detail.value;
                 return acc;
-            }
+            }, {});
 
-            acc[fieldNameToLabelMap.get(detail.id)] = detail.value;
-            return acc;
-        }, {});
-
-        profiledata = parseYadVaShemJson(ys_person, focusperson, familymembers, relation);
+            profiledata = parseYadVaShemJson(ys_person, focusperson, familymembers, relation);
+        } catch (e) {
+            // Degrade to blank - see this function's own comment above.
+        }
 
         alldata["profile"] = profiledata;
         alldata["scorefactors"] = smscorefactors;

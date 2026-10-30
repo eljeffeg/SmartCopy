@@ -47,15 +47,19 @@ const body = extractFunction(src, 'updateGeoLocation');
 assertTrue(body.indexOf("var forceAllGeoFields = $('#forcegeoswitch').prop('checked');") !== -1,
     "updateGeoLocation() now reads the #forcegeoswitch setting");
 
-// #357 redesign (live-reported by the user): Place is no longer part of
-// this uniform gating at all - it never pre-selects, period, so its own
-// setLocationFieldChecked() call now hardcodes false rather than using
-// (forceAllGeoFields || <something>). The other 6 rows (City/County/
-// State/Country/Latitude/Longitude) are unaffected.
+// #357 redesign (live-reported by the user): Place is not part of this
+// uniform forceAllGeoFields gating - City/County/State/Country/Latitude/
+// Longitude still use it, unaffected.
 const gatedFieldChecks = (body.match(/setLocationFieldChecked\([^,]+, \(forceAllGeoFields \|\|/g) || []).length;
 assertTrue(gatedFieldChecks === 6, "All 6 remaining sub-fields (City/County/State/Country/Latitude/Longitude) are gated, got " + gatedFieldChecks);
-assertTrue(body.indexOf('setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], false);') !== -1,
-    "#357: Place's own checkbox is hardcoded to never pre-select, deliberately excluded from the forceAllGeoFields gating every other row uses");
+// #366 follow-up (live-reported, DanCornett): Place's own checkbox used
+// to hardcode false unconditionally here - now runs the same
+// isPlaceEligibleForPreselection() rule the initial render uses, per
+// Dan's own explicit "don't treat pencil-edit flow any differently"
+// direction. See test_366_pencil_edit_place_consistency.js for the real
+// end-to-end behavior this now produces.
+assertTrue(body.indexOf('setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0],\n            isPlaceEligibleForPreselection(') !== -1,
+    "#366 follow-up: Place's own checkbox now runs isPlaceEligibleForPreselection(), not a hardcoded false");
 
 // The raw location text row at the top still legitimately uses plain
 // geoon directly (untouched by any of this) - it's the one genuinely

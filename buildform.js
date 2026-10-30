@@ -422,10 +422,37 @@ function updateGeoLocation() {
         }
         var updatePlaceNameValue = updateHasGeoFields ? computeCombinedPlaceValue(locationdata.query, locationdata) : locationdata.place;
         $(eventrow).find("input[type=text]")[0].value = updatePlaceNameValue;
-        // #357 (per the user's own explicit design): Place never
-        // pre-selects, matched or not, even under "force all" - see the
-        // identical render-time checkedAttr: "" comment in buildForm().
-        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0], false);
+        // #366 follow-up (live-reported, DanCornett): Place used to be
+        // hardcoded to never pre-select after a pencil "Edit Location"
+        // correction, even under "force all" - a deliberate #357 decision
+        // at the time, made when FamilySearch's return-value handling was
+        // unreliable enough that a lot of junk routinely ended up in
+        // Place. Dan's own explicit direction once that handling matured
+        // (confirmed through the whole #357/#365/#366 saga): "let's not
+        // treat pencil-edit flow any differently than the initial
+        // handling of a location... consistency of behavior is
+        // preferred." Now runs the exact same isPlaceEligibleForPreselection()
+        // rule the initial render uses - reads Geni's own comparison
+        // values by field name (title + ":location:" + suffix), scoped to
+        // this person's own table, rather than walking forward through
+        // sibling rows for them (the exact positional-sibling-walk
+        // fragility that caused #362's titleobj crash and #355's
+        // cross-contamination bug before it - a name-based lookup is
+        // immune to however this row group ends up shaped).
+        var titleForPencilPlace = googlerequery.split("_")[1];
+        function geniValueForPencilPlace(fieldSuffix) {
+            var scrapedInput = $(ptable).find('[name="' + titleForPencilPlace + ':location:' + fieldSuffix + '"]');
+            var geniInput = scrapedInput.closest("tr").find(".genislideinput")[0];
+            return geniInput ? geniInput.value : "";
+        }
+        var isNewAddForPencilPlace = ptable[0].id !== "profiletable" && $(ptable).find("select.actionselect").val() === "add";
+        var geniPlaceNameForPencilPlace = ($(eventrow).find(".genislideinput")[0] || {}).value || "";
+        var geniLocationEntirelyBlankForPencilPlace = isGeniLocationEntirelyBlank(
+            geniValueForPencilPlace("city"), geniValueForPencilPlace("county"),
+            geniValueForPencilPlace("state"), geniValueForPencilPlace("country"),
+            geniPlaceNameForPencilPlace, geniValueForPencilPlace("place_name"));
+        setLocationFieldChecked($(eventrow).find("input[type=checkbox]")[0],
+            isPlaceEligibleForPreselection(updatePlaceNameValue, isNewAddForPencilPlace, geniPlaceNameForPencilPlace, updateHasGeoFields, geniLocationEntirelyBlankForPencilPlace));
         eventrow = $(eventrow).closest("tr")[0].nextElementSibling;
         $(eventrow).find("input[type=text]")[0].value = locationdata.city;
         var cityDiffers = updateFieldDiffersFromGeni(eventrow, locationdata.city);

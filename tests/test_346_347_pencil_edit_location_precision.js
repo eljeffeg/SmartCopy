@@ -30,6 +30,7 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const { JSDOM } = require('jsdom');
 const bfSrc = fs.readFileSync(path.join(ROOT, 'buildform.js'), 'utf8');
+const plSrc = fs.readFileSync(path.join(ROOT, 'parse-location.js'), 'utf8');
 
 let pass = 0, fail = 0;
 function assertTrue(cond, label) {
@@ -51,6 +52,12 @@ function extractFunction(src, name) {
         else if (src[i] === '}') { depth--; if (depth === 0) break; }
     }
     return src.slice(start, i + 1);
+}
+function extractVar(src, name) {
+    const marker = 'var ' + name + ' =';
+    const start = src.indexOf(marker);
+    const end = src.indexOf(';\n', start);
+    return src.slice(start, end + 1);
 }
 
 const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
@@ -86,6 +93,14 @@ global.computeCombinedPlaceValue = function (rawLocation, geo) { return rawLocat
 const GEO_BREAKDOWN_ROW_COUNT = 7;
 global.GEO_BREAKDOWN_ROW_COUNT = GEO_BREAKDOWN_ROW_COUNT;
 
+// #366 follow-up: updateGeoLocation() now calls isPlaceEligibleForPreselection()
+// for real - its full dependency chain needs to be in scope.
+const isPlaceNameSegmentSrc = extractFunction(plSrc, 'isPlaceNameSegment');
+const keywordPatternSrc = extractVar(plSrc, 'PLACE_NAME_KEYWORD_PATTERN');
+const numericPatternSrc = extractVar(plSrc, 'PLACE_NAME_NUMERIC_PATTERN');
+const isPlaceEligibleForPreselectionSrc = extractFunction(bfSrc, 'isPlaceEligibleForPreselection');
+const isGeniLocationEntirelyBlankSrc = extractFunction(bfSrc, 'isGeniLocationEntirelyBlank');
+
 const ctx = new Function(
     '$', 'exists', 'isValue', 'valuesAreEquivalent', 'gpsEffectivelyMatches', 'isLocationSpecificityDowngrade',
     'syncTopLevelIndicators', 'checkNested', 'alldata', 'databyid', 'computeCombinedPlaceValue', 'GEO_BREAKDOWN_ROW_COUNT',
@@ -93,6 +108,11 @@ const ctx = new Function(
     ${handleChecknextClickSrc}
     ${getParsedLocationEntrySrc}
     ${persistGeoUpdateToSourceEntrySrc}
+    ${keywordPatternSrc}
+    ${numericPatternSrc}
+    ${isPlaceNameSegmentSrc}
+    ${isPlaceEligibleForPreselectionSrc}
+    ${isGeniLocationEntirelyBlankSrc}
     ${extractFunction(bfSrc, 'updateGeoLocation')}
     return { updateGeoLocation: updateGeoLocation };
     `

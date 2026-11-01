@@ -606,6 +606,12 @@ commit/tag *is* the shipped extension, modulo a short dev-only exclusion
 list. Releases go directly to `master` (no feature branches, no PRs - this
 has been the workflow throughout, not a one-off shortcut).
 
+**Live store listings** (for checking the actual current published version -
+see "Store release versioning" in memory for how this differs from the
+latest GitHub tag):
+- Chrome Web Store: https://chromewebstore.google.com/detail/smartcopy/ofikakkdpjlipbnhbfloclbkcabdhjah
+- Firefox Add-ons: https://addons.mozilla.org/en-US/firefox/addon/genismartcopy/
+
 **Tagging:** version releases use an annotated tag (`v<version>`, matching
 `manifest.json`'s `version` field). Moving a tag forward to a later commit
 (common while a release is still being iterated on pre-launch) requires

@@ -53,7 +53,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
         fperson = parsed.find("#bio-name");
         if (exists(fperson[0]) && $(fperson[0]).html() === "Memorial has been merged.") {
             let click = $(fperson[0]).next('table').find('a');
-            let urlset = click[0].outerHTML.match('href="(.*)"');
+            let urlset = exists(click[0]) ? click[0].outerHTML.match('href="(.*)"') : null;
             let url = "";
             if (exists(urlset) && exists(urlset[1])) {
                 url = hostDomain(tablink) + urlset[1];
@@ -64,21 +64,26 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                     url: url,
                     variable: relation
                 }, function (response) {
-                    let arg = response.variable;
-                    let person = parseFindAGrave(response.source, familymembers, response.variable);
-                    person = updateInfoData(person, arg);
-                    // arg is the relation object for this person - shaped
-                    // {title, proid, itemId} for family members (see
-                    // getFindAGraveFamily() above), or the string "" for the
-                    // focus person (no family context to file this under).
-                    // Only family members have a real slot to record - a
-                    // merged focus-person memorial has nothing meaningful to
-                    // attribute this redirect's result to.
-                    if (exists(arg.proid)) {
-                        databyid[arg.proid] = person;
-                        alldata["family"][arg.title].push(person);
+                    try {
+                        let arg = response.variable;
+                        let person = parseFindAGrave(response.source, familymembers, response.variable);
+                        person = updateInfoData(person, arg);
+                        // arg is the relation object for this person - shaped
+                        // {title, proid, itemId} for family members (see
+                        // getFindAGraveFamily() above), or the string "" for the
+                        // focus person (no family context to file this under).
+                        // Only family members have a real slot to record - a
+                        // merged focus-person memorial has nothing meaningful to
+                        // attribute this redirect's result to.
+                        if (exists(arg.proid)) {
+                            databyid[arg.proid] = person;
+                            alldata["family"][arg.title].push(person);
+                        }
+                    } catch (e) {
+                        console.error("SmartCopy [parseFindAGrave merged-memorial redirect]: failed to parse the redirected memorial, skipping it rather than hanging the import", e);
+                    } finally {
+                        familystatus.pop();
                     }
-                    familystatus.pop();
                 });
             }
             return "";
@@ -278,6 +283,9 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
 }
 
 function getFindAGraveName(focusperson) {
+    if (!exists(focusperson)) {
+        return "";
+    }
     focusperson = focusperson.split("\<b class")[0].trim(); //filter veteran from name
     let personborn = focusperson.match("\<i\>(.*)\</i\>");
     if (exists(personborn) && exists(personborn[0])) {
@@ -306,15 +314,19 @@ function getFindAGraveFamily(famid, url, subdata) {
         url: url,
         variable: subdata
     }, function (response) {
-        let arg = response.variable;
-        let person = parseFindAGrave(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
-        if (person === "") {
+        try {
+            let arg = response.variable;
+            let person = parseFindAGrave(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+            if (person === "") {
+                return;
+            }
+            person = updateInfoData(person, arg);
+            databyid[arg.profile_id] = person;
+            alldata["family"][arg.title].push(person);
+        } catch (e) {
+            console.error("SmartCopy [getFindAGraveFamily]: failed to parse a family member's memorial, skipping it rather than hanging the import", e);
+        } finally {
             familystatus.pop();
-            return;
         }
-        person = updateInfoData(person, arg);
-        databyid[arg.profile_id] = person;
-        alldata["family"][arg.title].push(person);
-        familystatus.pop();
     });
 }

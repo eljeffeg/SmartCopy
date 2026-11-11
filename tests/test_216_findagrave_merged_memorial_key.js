@@ -18,7 +18,7 @@ const src = fs.readFileSync(path.join(ROOT, 'collections/findagrave.js'), 'utf8'
 function exists(v) { return typeof v !== 'undefined' && v !== null; }
 
 // Extract the exact attribution block verbatim.
-const marker = 'if (exists(arg.proid)) {\n                        databyid[arg.proid] = person;\n                        alldata["family"][arg.title].push(person);\n                    }';
+const marker = 'if (exists(arg.proid)) {\n                            databyid[arg.proid] = person;\n                            alldata["family"][arg.title].push(person);\n                        }';
 const start = src.indexOf(marker);
 if (start === -1) throw new Error('merged-memorial attribution block not found - has this code changed shape?');
 const blockSrc = src.slice(start, start + marker.length);

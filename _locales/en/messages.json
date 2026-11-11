@@ -709,6 +709,9 @@
     "brother": {
         "message": "brother"
     },
+    "sister": {
+        "message": "sister"
+    },
     "sibling": {
         "message": "sibling"
     },

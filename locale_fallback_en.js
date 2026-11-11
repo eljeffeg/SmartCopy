@@ -713,6 +713,9 @@ var EN_FALLBACK_MESSAGES = {
     "brother": {
         "message": "brother"
     },
+    "sister": {
+        "message": "sister"
+    },
     "sibling": {
         "message": "sibling"
     },

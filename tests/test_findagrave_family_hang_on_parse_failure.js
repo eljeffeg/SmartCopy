@@ -76,14 +76,6 @@ function escapeHtml(s) { return s; }
 function startsWithHTTP() { return false; }
 function hostDomain(u) { return u; }
 function updateInfoData(person) { return person; }
-// Real scheduleFindAGraveSend() staggers calls via setTimeout, which this
-// test's synchronous assertions (expecting the mocked chrome.runtime.
-// sendMessage callback to have already fired by the time each assertion
-// runs) aren't set up to wait for - that staggering behavior itself has
-// its own dedicated test (test_findagrave_request_stagger.js). Here it's
-// an incidental dependency of getFindAGraveFamily(), not what's under
-// test, so it's stubbed to call through immediately.
-function scheduleFindAGraveSend(sendFn) { sendFn(); }
 
 function freshCtx() {
     global.familystatus = [];
@@ -93,14 +85,14 @@ function freshCtx() {
     const fn = new Function(
         '$', 'exists', 'stripInlineEventHandlers', 'addEvent', 'isChild', 'isSibling', 'isParent',
         'isPartner', 'cleanHTML', 'escapeHtml', 'startsWithHTTP', 'hostDomain', 'updateInfoData',
-        'scheduleFindAGraveSend', 'familystatus', 'alldata', 'databyid',
+        'familystatus', 'alldata', 'databyid',
         extractFunction('getFindAGraveName') + '\n' +
         extractFunction('parseFindAGrave') + '\n' +
         extractFunction('getFindAGraveFamily') + '\n' +
         'return { getFindAGraveFamily: getFindAGraveFamily, getFindAGraveName: getFindAGraveName };'
     )($, exists, stripInlineEventHandlers, addEvent, isChild, isSibling, isParent,
         isPartner, cleanHTML, escapeHtml, startsWithHTTP, hostDomain, updateInfoData,
-        scheduleFindAGraveSend, global.familystatus, global.alldata, global.databyid);
+        global.familystatus, global.alldata, global.databyid);
     return fn;
 }
 

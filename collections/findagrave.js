@@ -346,16 +346,11 @@ function getFindAGraveFamily(famid, url, subdata) {
         }, function (response) {
             try {
                 let arg = response.variable;
-                // TEMP DEBUG (#382 follow-up) - remove once root cause is confirmed.
-                console.log("SmartCopy [DEBUG findagrave]: fetched", url, "- response.source length:", exists(response.source) ? response.source.length : "undefined", "- first 200 chars:", exists(response.source) ? response.source.slice(0, 200) : "undefined");
                 let person = parseFindAGrave(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
-                console.log("SmartCopy [DEBUG findagrave]: parsed person for", url, "=", JSON.stringify(person));
                 if (person === "") {
                     return;
                 }
-                let preUpdateName = person.name;
                 person = updateInfoData(person, arg);
-                console.log("SmartCopy [DEBUG findagrave]: updateInfoData for", url, "- person.name before:", JSON.stringify(preUpdateName), "arg.name (slug guess):", JSON.stringify(arg.name), "- final person.name:", JSON.stringify(person.name));
                 databyid[arg.profile_id] = person;
                 alldata["family"][arg.title].push(person);
             } catch (e) {

@@ -4,6 +4,7 @@
 
 registerCollection({
     "recordtype": "Find A Grave Memorial",
+    "usesDeepResearch": true, // #213 follow-up: fetchFindAGraveFamilyViaTab() below
     "prepareUrl": function(url) {
         return url;
     },
@@ -306,27 +307,242 @@ function getFAGID(url) {
 }
 
 
+// Live-reported, Dan Bodenheimer (https://www.findagrave.com/memorial/
+// 150507526/leo-hirschfeld): multiple family members in the same import
+// came back with blank/slug-only data (no maiden name, no dates, no
+// gender) - confirmed directly via debug logging that the fetched
+// response.source was Cloudflare's own "Just a moment..." challenge page,
+// not real FindAGrave content, for every family member checked. A plain
+// background fetch can never pass that challenge on its own (no JS
+// execution) - same root cause and same fix shape already proven for
+// Geneanet (#195) and the other Deep-Research sites: fall back to a real
+// hidden browser tab, which can actually clear the challenge the way a
+// normal visit does.
 function getFindAGraveFamily(famid, url, subdata) {
     familystatus.push(famid);
+    fetchFindAGravePlain(url, subdata, function (person, arg) {
+        if (isUsableFindAGravePerson(person)) {
+            finishFindAGraveFamilyMember(famid, person, arg);
+            return;
+        }
+        // The plain fetch failed to produce real data - almost always the
+        // Cloudflare challenge page. Once any ONE real tab has passed it
+        // this session (findagraveClearanceLikely, set in
+        // runFindAGraveTabFetch() below), Cloudflare's own clearance
+        // cookie should carry over to other plain fetches too (same
+        // behavior already confirmed live for Geneanet) - retrying the
+        // much cheaper plain fetch once is worth it before assuming every
+        // remaining family member needs their own slow tab.
+        if (findagraveClearanceLikely) {
+            fetchFindAGravePlain(url, subdata, function (retryPerson, retryArg) {
+                if (isUsableFindAGravePerson(retryPerson)) {
+                    finishFindAGraveFamilyMember(famid, retryPerson, retryArg);
+                } else {
+                    fetchFindAGraveFamilyViaTab(famid, url, retryArg);
+                }
+            });
+        } else {
+            fetchFindAGraveFamilyViaTab(famid, url, arg);
+        }
+    });
+}
+
+function fetchFindAGravePlain(url, subdata, callback) {
     chrome.runtime.sendMessage({
         method: "GET",
         action: "xhttp",
         url: url,
         variable: subdata
     }, function (response) {
+        let arg = (exists(response) && exists(response.variable)) ? response.variable : subdata;
+        let person = "";
         try {
-            let arg = response.variable;
-            let person = parseFindAGrave(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
-            if (person === "") {
+            if (exists(response) && exists(response.source)) {
+                person = parseFindAGrave(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+            }
+        } catch (e) {
+            console.error("SmartCopy [fetchFindAGravePlain]: failed to parse a family member's memorial, falling back to Deep Research rather than hanging the import", e);
+            person = "";
+        }
+        callback(person, arg);
+    });
+}
+
+// Only treat a parse as "good enough" if it actually produced a name or a
+// date - a blank name with no birth/death is exactly what the Cloudflare
+// challenge page parses as (confirmed live via debug logging: name "",
+// gender "unknown", no birth/death at all), while a real memorial almost
+// never has literally none of the three.
+function isUsableFindAGravePerson(person) {
+    return exists(person) && person !== "" && (person.name !== "" || exists(person.birth) || exists(person.death));
+}
+
+function finishFindAGraveFamilyMember(famid, person, arg) {
+    // updateInfoData() (buildform.js) already falls back to arg itself
+    // (the crude URL-slug name guess) whenever person is "" - calling it
+    // unconditionally, rather than only when person is non-blank, is what
+    // makes a totally-failed fetch (Deep Research off, tab exhausted,
+    // etc.) still produce a reviewable fallback row instead of silently
+    // dropping the family member from the results entirely.
+    person = updateInfoData(person, arg);
+    databyid[arg.profile_id] = person;
+    alldata["family"][arg.title].push(person);
+    familystatus.pop();
+}
+
+// Every family member's plain fetch can fail at once (Cloudflare is
+// consistent within a session) - opening one tab per person simultaneously
+// would be both disruptive to watch and plausibly worse for Cloudflare's
+// own bot-detection, not better. This queue runs the tab fallback for one
+// person at a time; everyone else's fallback just waits its turn. Same
+// pattern already proven for Geneanet.
+var findagraveTabQueue = [];
+var findagraveTabRunning = false;
+// Cloudflare's clearance, once earned by any ONE real tab navigation this
+// session, applies to plain fetches too (same behavior already confirmed
+// live for Geneanet) - set the first time a tab lands on real content.
+var findagraveClearanceLikely = false;
+
+function fetchFindAGraveFamilyViaTab(famid, url, arg) {
+    findagraveTabQueue.push({famid: famid, url: url, arg: arg});
+    runNextFindAGraveTabFetch();
+}
+
+function runNextFindAGraveTabFetch() {
+    if (!deepResearchOn || deepResearchSkipRun) {
+        while (findagraveTabQueue.length > 0) {
+            let skipped = findagraveTabQueue.shift();
+            finishFindAGraveFamilyMember(skipped.famid, "", skipped.arg);
+        }
+        return;
+    }
+    if (findagraveTabRunning || findagraveTabQueue.length === 0) {
+        return;
+    }
+    findagraveTabRunning = true;
+    let next = findagraveTabQueue.shift();
+    runFindAGraveTabFetch(next.famid, next.url, next.arg, function () {
+        findagraveTabRunning = false;
+        runNextFindAGraveTabFetch();
+    });
+}
+
+function runFindAGraveTabFetch(famid, url, arg, onDone) {
+    // Mirrors the per-person status update parseFindAGrave() already does
+    // for the plain-fetch path - without this, the status label just sits
+    // on whatever it last said while a tab silently loads in the
+    // background, which reads as a hang even though it's real,
+    // still-in-progress work.
+    $("#readstatus").html(escapeHtml(arg.name) + " (looking deeper, this may take a second)");
+    chrome.tabs.create({url: url, active: false}, function (tab) {
+        if (!exists(tab) || !exists(tab.id)) {
+            finishFindAGraveFamilyMember(famid, "", arg);
+            onDone();
+            return;
+        }
+        let settled = false;
+        let attempts = 0;
+        // Only the very top of the page is actually needed (name, dates,
+        // family list) - not the rest of the page (photos, flowers, ads) -
+        // but Chrome throttles rendering/network for active:false
+        // background tabs fairly aggressively, and the Cloudflare
+        // challenge itself takes a moment to clear. Same budget already
+        // proven for Geneanet's equivalent tab fetch.
+        let maxAttempts = 10;
+
+        function cleanupAndFinish(person) {
+            if (settled) {
                 return;
             }
-            person = updateInfoData(person, arg);
-            databyid[arg.profile_id] = person;
-            alldata["family"][arg.title].push(person);
-        } catch (e) {
-            console.error("SmartCopy [getFindAGraveFamily]: failed to parse a family member's memorial, skipping it rather than hanging the import", e);
-        } finally {
-            familystatus.pop();
+            settled = true;
+            let abortIndex = deepResearchInFlightAborts.indexOf(abortThisFetch);
+            if (abortIndex !== -1) {
+                deepResearchInFlightAborts.splice(abortIndex, 1);
+            }
+            chrome.tabs.remove(tab.id, function () {
+                // Swallow "no tab with id" - the tab may have already
+                // closed (e.g. the user closed it manually) by the time
+                // this runs; nothing left to clean up in that case.
+                void chrome.runtime.lastError;
+            });
+            finishFindAGraveFamilyMember(famid, person, arg);
+            onDone();
         }
+
+        function abortThisFetch() {
+            cleanupAndFinish("");
+        }
+        deepResearchInFlightAborts.push(abortThisFetch);
+
+        function attempt() {
+            if (settled) {
+                return;
+            }
+            attempts++;
+            // Polling chrome.tabs.get() directly, rather than reacting to
+            // chrome.tabs.onUpdated's "complete" event, deliberately - same
+            // reasoning as Geneanet's equivalent fetch: an onUpdated
+            // listener only added after chrome.tabs.create()'s own callback
+            // fires can lose the race against a fast-loading page and miss
+            // the event entirely.
+            chrome.tabs.get(tab.id, function (tabInfo) {
+                if (chrome.runtime.lastError || !exists(tabInfo)) {
+                    cleanupAndFinish("");
+                    return;
+                }
+                chrome.scripting.executeScript({
+                    target: {tabId: tab.id},
+                    func: function () {
+                        let html = "", node = document.firstChild;
+                        while (node) {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                html += node.outerHTML;
+                            } else if (node.nodeType === Node.TEXT_NODE) {
+                                html += node.nodeValue;
+                            }
+                            node = node.nextSibling;
+                        }
+                        return html;
+                    }
+                }, function (results) {
+                    if (settled) {
+                        return;
+                    }
+                    // executeScript can fail here if the tab hasn't
+                    // actually finished navigating to the real URL yet
+                    // (still on about:blank right after chrome.tabs.create)
+                    // - usually transient, and the next poll attempt
+                    // succeeds once real navigation has started. Reading
+                    // lastError just suppresses the "Unchecked lastError"
+                    // console warning; the retry itself already happens
+                    // naturally below since an empty/failed result isn't
+                    // usable.
+                    void chrome.runtime.lastError;
+                    let html = (exists(results) && exists(results[0])) ? results[0].result : undefined;
+                    let person = "";
+                    try {
+                        person = exists(html) ? parseFindAGrave(html, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId}) : "";
+                    } catch (e) {
+                        console.error("SmartCopy [runFindAGraveTabFetch]: failed to parse the tab-fetched memorial", e);
+                        person = "";
+                    }
+                    if (isUsableFindAGravePerson(person)) {
+                        // Reaching real, usable content at all means this
+                        // tab is past whatever challenge Cloudflare showed
+                        // it - see getFindAGraveFamily()'s use of this flag.
+                        findagraveClearanceLikely = true;
+                    }
+                    if (isUsableFindAGravePerson(person) || attempts >= maxAttempts) {
+                        // On the final attempt, use whatever came through
+                        // even if incomplete - that's still strictly better
+                        // than discarding it for the bare slug-name fallback.
+                        cleanupAndFinish(person);
+                    } else {
+                        setTimeout(attempt, 1500);
+                    }
+                });
+            });
+        }
+        setTimeout(attempt, 1500);
     });
 }

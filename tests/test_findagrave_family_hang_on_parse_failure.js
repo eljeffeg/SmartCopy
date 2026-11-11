@@ -18,12 +18,19 @@
 //
 // Fixed two ways, matching #362/#368's "never throws, degrade to blank"
 // convention: (1) getFindAGraveName() now guards against undefined/falsy
-// input directly, returning "" instead of throwing; (2)
-// getFindAGraveFamily()'s callback (and the structurally identical
-// merged-memorial redirect callback a few lines up, which had the same
-// unguarded-exception-before-pop() shape around click[0].outerHTML) now
-// wrap their risky work in try/catch/finally, so familystatus.pop() always
-// runs regardless of what throws. Extracts the real functions verbatim.
+// input directly, returning "" instead of throwing; (2) the parsing
+// inside fetchFindAGravePlain()'s chrome.runtime.sendMessage callback is
+// now wrapped in try/catch, degrading to person="" on failure rather than
+// throwing out of the callback.
+//
+// getFindAGraveFamily() itself was later extended for Deep Research
+// (#382 follow-up) - a failed/unusable plain fetch now falls back to a
+// real browser tab rather than giving up immediately. deepResearchOn is
+// set to false throughout this file so that fallback drains immediately
+// via finishFindAGraveFamilyMember() without needing to mock
+// chrome.tabs.*/chrome.scripting.* at all - the tab-fetch path itself has
+// its own dedicated test elsewhere; this file is purely about the
+// never-hangs guarantee. Extracts the real functions verbatim.
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.join(__dirname, '..');
@@ -75,24 +82,46 @@ function cleanHTML(html) { return html; }
 function escapeHtml(s) { return s; }
 function startsWithHTTP() { return false; }
 function hostDomain(u) { return u; }
-function updateInfoData(person) { return person; }
+// Mirrors updateInfoData()'s own real, documented fallback: whenever
+// person is "" (nothing usable came back), fall back to arg itself (the
+// crude URL-slug name guess) rather than producing nothing at all - this
+// is exactly what makes a totally-failed fetch still show up as a
+// reviewable row instead of silently vanishing.
+function updateInfoData(person, arg) {
+    if (!exists(person) || person === "") {
+        return arg;
+    }
+    return person;
+}
 
 function freshCtx() {
     global.familystatus = [];
     global.alldata = { family: { spouse: [] } };
     global.databyid = {};
     global.focusgender = 'unknown';
+    // Deep Research disabled - the tab-fallback path drains immediately
+    // via finishFindAGraveFamilyMember() without ever touching
+    // chrome.tabs.*/chrome.scripting.*. That path's own behavior is
+    // covered by test_findagrave_deep_research.js instead.
+    global.deepResearchOn = false;
+    global.deepResearchSkipRun = false;
     const fn = new Function(
         '$', 'exists', 'stripInlineEventHandlers', 'addEvent', 'isChild', 'isSibling', 'isParent',
         'isPartner', 'cleanHTML', 'escapeHtml', 'startsWithHTTP', 'hostDomain', 'updateInfoData',
-        'familystatus', 'alldata', 'databyid',
+        'deepResearchOn', 'deepResearchSkipRun', 'familystatus', 'alldata', 'databyid',
         extractFunction('getFindAGraveName') + '\n' +
         extractFunction('parseFindAGrave') + '\n' +
         extractFunction('getFindAGraveFamily') + '\n' +
+        extractFunction('fetchFindAGravePlain') + '\n' +
+        extractFunction('isUsableFindAGravePerson') + '\n' +
+        extractFunction('finishFindAGraveFamilyMember') + '\n' +
+        extractFunction('fetchFindAGraveFamilyViaTab') + '\n' +
+        extractFunction('runNextFindAGraveTabFetch') + '\n' +
+        'var findagraveTabQueue = []; var findagraveTabRunning = false; var findagraveClearanceLikely = false;\n' +
         'return { getFindAGraveFamily: getFindAGraveFamily, getFindAGraveName: getFindAGraveName };'
     )($, exists, stripInlineEventHandlers, addEvent, isChild, isSibling, isParent,
         isPartner, cleanHTML, escapeHtml, startsWithHTTP, hostDomain, updateInfoData,
-        global.familystatus, global.alldata, global.databyid);
+        global.deepResearchOn, global.deepResearchSkipRun, global.familystatus, global.alldata, global.databyid);
     return fn;
 }
 
@@ -112,17 +141,21 @@ function makeChrome(canned) {
 
 // --- getFindAGraveFamily(): the live-reported hang, reproduced ---
 // Neither ".plus2 b" nor a matching "#bio-name" exists on this page -
-// the exact condition that made fperson end up empty live.
+// the exact condition that made fperson end up empty live. With Deep
+// Research disabled, the tab-fallback drains immediately and
+// finishFindAGraveFamilyMember() -> updateInfoData() falls back to the
+// subdata guess (name "Someone", from the URL slug) rather than hanging
+// or silently dropping the family member.
 (function () {
     const ctx = freshCtx();
-    global.chrome = makeChrome({ source: '<html><body><title>Some Other Page</title></body></html>', variable: { title: 'spouse', profile_id: 7, itemId: '999' } });
+    global.chrome = makeChrome({ source: '<html><body><title>Some Other Page</title></body></html>', variable: { title: 'spouse', profile_id: 7, itemId: '999', name: 'Someone' } });
     var threw = false;
     try {
-        ctx.getFindAGraveFamily(0, 'https://www.findagrave.com/memorial/999/someone', { title: 'spouse', profile_id: 7, itemId: '999' });
+        ctx.getFindAGraveFamily(0, 'https://www.findagrave.com/memorial/999/someone', { title: 'spouse', profile_id: 7, itemId: '999', name: 'Someone' });
     } catch (e) { threw = true; }
     assertEqual(threw, false, "getFindAGraveFamily(): a family member's page matching neither name selector no longer throws out of the function");
     assertEqual(global.familystatus.length, 0, "getFindAGraveFamily(): familystatus returns to empty instead of staying stuck - this is what actually unblocks updateGeo()'s poll loop");
-    assertEqual(global.databyid[7].name, "", "getFindAGraveFamily(): degrades to a blank name rather than crashing - visibly incomplete but reviewable, not a hang");
+    assertEqual(global.databyid[7].name, "Someone", "getFindAGraveFamily(): degrades to the URL-slug name guess rather than crashing or dropping the family member entirely");
 })();
 
 // --- Regression check: a normal, valid family member page still works ---

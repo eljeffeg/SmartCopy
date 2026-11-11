@@ -190,7 +190,7 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
                     let url = $(group[x]).attr("href");
                     if (exists(url)) {
                         let itemid = getFAGID(url);
-                        let name = NameParse.fix_case(url.substring(url.lastIndexOf('/') + 1).replace(/-/g, " "));
+                        let name = NameParse.fix_case(url.substring(url.lastIndexOf('/') + 1).replace(/[-_]/g, " "));
                         if (!exists(alldata["family"][title])) {
                             alldata["family"][title] = [];
                         }

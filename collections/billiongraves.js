@@ -17,7 +17,7 @@ registerCollection({
     },
     "loadPage": function(request) {
         var data = getData(request.source);
-        focusname = data.name;
+        focusname = data.name || "";
 
         var dates = []
         if (exists(data.birthDate)){
@@ -61,7 +61,7 @@ function parseBillionGraves(htmlstring, familymembers, relation) {
     }
     
 
-    var focusperson = data.name;
+    var focusperson = data.name || "";
     var genderval = "unknown";
     if (focusperson.contains("(born")) {
         genderval = "female";

@@ -58,32 +58,34 @@ function parseFindAGrave(htmlstring, familymembers, relation) {
             if (exists(urlset) && exists(urlset[1])) {
                 url = hostDomain(tablink) + urlset[1];
                 familystatus.push(familystatus.length);
-                chrome.runtime.sendMessage({
-                    method: "GET",
-                    action: "xhttp",
-                    url: url,
-                    variable: relation
-                }, function (response) {
-                    try {
-                        let arg = response.variable;
-                        let person = parseFindAGrave(response.source, familymembers, response.variable);
-                        person = updateInfoData(person, arg);
-                        // arg is the relation object for this person - shaped
-                        // {title, proid, itemId} for family members (see
-                        // getFindAGraveFamily() above), or the string "" for the
-                        // focus person (no family context to file this under).
-                        // Only family members have a real slot to record - a
-                        // merged focus-person memorial has nothing meaningful to
-                        // attribute this redirect's result to.
-                        if (exists(arg.proid)) {
-                            databyid[arg.proid] = person;
-                            alldata["family"][arg.title].push(person);
+                scheduleFindAGraveSend(function () {
+                    chrome.runtime.sendMessage({
+                        method: "GET",
+                        action: "xhttp",
+                        url: url,
+                        variable: relation
+                    }, function (response) {
+                        try {
+                            let arg = response.variable;
+                            let person = parseFindAGrave(response.source, familymembers, response.variable);
+                            person = updateInfoData(person, arg);
+                            // arg is the relation object for this person - shaped
+                            // {title, proid, itemId} for family members (see
+                            // getFindAGraveFamily() above), or the string "" for the
+                            // focus person (no family context to file this under).
+                            // Only family members have a real slot to record - a
+                            // merged focus-person memorial has nothing meaningful to
+                            // attribute this redirect's result to.
+                            if (exists(arg.proid)) {
+                                databyid[arg.proid] = person;
+                                alldata["family"][arg.title].push(person);
+                            }
+                        } catch (e) {
+                            console.error("SmartCopy [parseFindAGrave merged-memorial redirect]: failed to parse the redirected memorial, skipping it rather than hanging the import", e);
+                        } finally {
+                            familystatus.pop();
                         }
-                    } catch (e) {
-                        console.error("SmartCopy [parseFindAGrave merged-memorial redirect]: failed to parse the redirected memorial, skipping it rather than hanging the import", e);
-                    } finally {
-                        familystatus.pop();
-                    }
+                    });
                 });
             }
             return "";
@@ -305,28 +307,57 @@ function getFAGID(url) {
     return fagid;
 }
 
+// Live-reported, Dan Bodenheimer: a family with several members came back
+// with every one of them falling back to blank/slug-only data (no maiden
+// name, no dates, no gender) - the same "person.name came back blank, so
+// updateInfoData() fell back to the crude URL-slug guess" shape, hitting
+// multiple family members in the same import at once. getFindAGraveFamily()
+// fires a fetch per family member in a tight loop with zero spacing
+// between them - a burst of fully concurrent requests to FindAGrave, not a
+// throttled batch, and findagrave.com was independently confirmed (live,
+// via a browser view-source attempt) to be actively serving a Cloudflare
+// bot-challenge page for at least some requests right now. Same defensive
+// stagger as #309 already uses for Geni's own API (scheduleGeniSend,
+// popup.js) - cheap for a single request, unobtrusive for a real batch,
+// and reduces how concurrent the burst actually is regardless of whether
+// the underlying cause is Cloudflare rate-limiting specifically or just
+// server load from a burst of near-simultaneous requests.
+var lastFindAGraveSendTime = 0;
+var FINDAGRAVE_SEND_MIN_SPACING_MS = 400;
+function scheduleFindAGraveSend(sendFn) {
+    let now = Date.now();
+    let delay = Math.max(0, (lastFindAGraveSendTime + FINDAGRAVE_SEND_MIN_SPACING_MS) - now);
+    lastFindAGraveSendTime = now + delay;
+    if (delay > 0) {
+        setTimeout(sendFn, delay);
+    } else {
+        sendFn();
+    }
+}
 
 function getFindAGraveFamily(famid, url, subdata) {
     familystatus.push(famid);
-    chrome.runtime.sendMessage({
-        method: "GET",
-        action: "xhttp",
-        url: url,
-        variable: subdata
-    }, function (response) {
-        try {
-            let arg = response.variable;
-            let person = parseFindAGrave(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
-            if (person === "") {
-                return;
+    scheduleFindAGraveSend(function () {
+        chrome.runtime.sendMessage({
+            method: "GET",
+            action: "xhttp",
+            url: url,
+            variable: subdata
+        }, function (response) {
+            try {
+                let arg = response.variable;
+                let person = parseFindAGrave(response.source, false, {"title": arg.title, "proid": arg.profile_id, "itemId": arg.itemId});
+                if (person === "") {
+                    return;
+                }
+                person = updateInfoData(person, arg);
+                databyid[arg.profile_id] = person;
+                alldata["family"][arg.title].push(person);
+            } catch (e) {
+                console.error("SmartCopy [getFindAGraveFamily]: failed to parse a family member's memorial, skipping it rather than hanging the import", e);
+            } finally {
+                familystatus.pop();
             }
-            person = updateInfoData(person, arg);
-            databyid[arg.profile_id] = person;
-            alldata["family"][arg.title].push(person);
-        } catch (e) {
-            console.error("SmartCopy [getFindAGraveFamily]: failed to parse a family member's memorial, skipping it rather than hanging the import", e);
-        } finally {
-            familystatus.pop();
-        }
+        });
     });
 }

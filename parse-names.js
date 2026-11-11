@@ -38,7 +38,16 @@ var NameParse = (function(){
         // Look for a birth / maiden name: Mary Smith (Jones)
         if ((fullastName.indexOf(")", fullastName.length - 1) !== -1) && (fullastName.indexOf("(") !== -1)) {
             birthName = fullastName.substring(fullastName.lastIndexOf("(") + 1, fullastName.length).replace(")","");
-            birthName = NameParse.fix_case(birthName.replace(/^born /, '').replace(/^z d\. /, '').replace(/^nee /,''));
+            // #377 (live-reported, DanCornett): "nee" is only one of
+            // several languages' own "[from] the house of" maiden-name
+            // marker - "z d." (Polish "z domu") was already handled here,
+            // and Hebrew's own equivalent ("לבית") is the exact same idiom
+            // in a different script. Adding German "geb"/"geb."/"geboren"
+            // ("born") and the accented French spellings - "née" (correct)
+            // and "neé" (a common real-world typo swapping which "e"
+            // carries the accent) - both of which carry no marker at all
+            // under the old unaccented-only "nee" match.
+            birthName = NameParse.fix_case(birthName.replace(/^(born|z d\.|nee|née|neé|geb\.?|geboren|לבית) /i, ''));
             fullastName = fullastName.substring(0, fullastName.lastIndexOf("(")).trim();
         }
 

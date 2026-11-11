@@ -49,10 +49,16 @@ var NameParse = (function(){
         fullastName = removeprefix(nameParts);
         // split into words
         // completely ignore any words in parentheses
-        var testNickStart = new RegExp('^"', 'i');
-        var testNickEnd = new RegExp('"$', 'i');
-        var testNickStart2 = new RegExp("^'", 'i');
-        var testNickEnd2 = new RegExp("'$", 'i');
+        // Matches both plain ASCII quotes and the curly "smart quotes"
+        // sources like FindAGrave actually render in their markup
+        // (e.g. Clara B “Tootsie” Ludwig) - without the curly
+        // variants, a nickname wrapped in smart quotes carries no
+        // recognized marker at all and is left stuck in the plain name
+        // text instead of being pulled out as a nickname.
+        var testNickStart = new RegExp('^["“]', 'i');
+        var testNickEnd = new RegExp('["”]$', 'i');
+        var testNickStart2 = new RegExp("^['‘]", 'i');
+        var testNickEnd2 = new RegExp("['’]$", 'i');
         nameParts = fullastName.split(" ").filter(function(namePart){
             if (namePart.indexOf("(") !== -1 || namePart.indexOf(")") !== -1 || testNickStart.test(namePart) || testNickEnd.test(namePart) || testNickStart2.test(namePart) || testNickEnd2.test(namePart)) {
                 nickParts.push(namePart);
@@ -84,7 +90,7 @@ var NameParse = (function(){
         // from a longer nickname, which two separately-complete
         // parentheticals never are.
         function isCompleteNickPart(s) {
-            return (/^\(.*\)$/).test(s) || (/^".*"$/).test(s) || (/^'.*'$/).test(s);
+            return (/^\(.*\)$/).test(s) || (/^["“].*["”]$/).test(s) || (/^['‘].*['’]$/).test(s);
         }
         if (nickParts.length > 1 && !nickParts.every(isCompleteNickPart) && !fullastName.contains(nickParts.join(" "))) {
             //This process is done to capture nicknames with more than 1 space, such as John "Captain Black Jack" Geary.

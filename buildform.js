@@ -1544,7 +1544,19 @@ function buildForm() {
                 membersstring = membersstring + locationval;
             } else {
                 if (x > 0) {
-                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" data-hasvalue="false"><td colspan="3"><div class="separator"></div></td><td></td></tr>';
+                    // #374 (live-reported, DanCornett): see the identical
+                    // fix's own comment at the family-member version above.
+                    var focusSeparatorHasGeniValue = isValue(genifocusdata.get(title, "date.formatted_date")) ||
+                        (title === "death" && isValue(genifocusdata.get("cause_of_death"))) ||
+                        isValue(String(genifocusdata.get(title, "location_string"))) ||
+                        isValue(String(genifocusdata.get(title, "location.place_name"))) ||
+                        isValue(String(genifocusdata.get(title, "location.city"))) ||
+                        isValue(String(genifocusdata.get(title, "location.county"))) ||
+                        isValue(String(genifocusdata.get(title, "location.state"))) ||
+                        isValue(String(genifocusdata.get(title, "location.country"))) ||
+                        isValue(String(genifocusdata.get(title, "location.latitude"))) ||
+                        isValue(String(genifocusdata.get(title, "location.longitude")));
+                    membersstring = membersstring + '<tr style="display: ' + isHidden(hidden && !focusSeparatorHasGeniValue) + ';" class="hiddenrow" data-hasvalue="' + focusSeparatorHasGeniValue + '"><td colspan="3"><div class="separator"></div></td><td></td></tr>';
                 }
 
                 membersstring = membersstring +
@@ -2708,7 +2720,31 @@ function buildForm() {
                         }
                         membersstring = membersstring + locationval;
                     } else {
-                        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden) + ';" class="hiddenrow" data-hasvalue="false"><td colspan="3"><div class="separator"></div></td></tr>';
+                        // #374 (live-reported, DanCornett): this separator was
+                        // hardcoded data-hasvalue="false", checking only
+                        // isHidden(hidden) - but the date/location rows right
+                        // below it correctly check matchedCandidateForEstimate
+                        // (Geni's own data), so a block with nothing scraped
+                        // but a real Geni value (e.g. a parent's existing
+                        // Marriage date on Geni, nothing scraped for it) stayed
+                        // visible via those rows while its own leading
+                        // separator incorrectly vanished under Hide Unused
+                        // Fields. Computing the same "does Geni have anything
+                        // here" signal the rows below already use, just early
+                        // enough to also gate the separator with it.
+                        var separatorHasGeniValue = exists(matchedCandidateForEstimate) && (
+                            isValue(matchedCandidateForEstimate.get(title, "date.formatted_date")) ||
+                            (title === "death" && isValue(matchedCandidateForEstimate.get("cause_of_death"))) ||
+                            isValue(matchedCandidateForEstimate.get(title, "location_string")) ||
+                            isValue(matchedCandidateForEstimate.get(title, "location.place_name")) ||
+                            isValue(matchedCandidateForEstimate.get(title, "location.city")) ||
+                            isValue(matchedCandidateForEstimate.get(title, "location.county")) ||
+                            isValue(matchedCandidateForEstimate.get(title, "location.state")) ||
+                            isValue(matchedCandidateForEstimate.get(title, "location.country")) ||
+                            isValue(matchedCandidateForEstimate.get(title, "location.latitude")) ||
+                            isValue(matchedCandidateForEstimate.get(title, "location.longitude"))
+                        );
+                        membersstring = membersstring + '<tr style="display: ' + isHidden(hidden && !separatorHasGeniValue) + ';" class="hiddenrow" data-hasvalue="' + separatorHasGeniValue + '"><td colspan="3"><div class="separator"></div></td></tr>';
 
                         // #355: id="...date" added - see the identical fix's own comment above (buildDateFieldRow call).
                         membersstring = membersstring + '<tr id="' + i + '_' + title + 'date" ' + hiddenRowAttrs(hidden, exists(matchedCandidateForEstimate) && isValue(matchedCandidateForEstimate.get(title, "date.formatted_date"))) + '><td class="profilediv"><input type="checkbox" class="checknext">' + capFL(title) + ' Date: </td><td style="float:right;"><input type="text" imgid="' + i + '" class="formtext dateform" name="' + title + ':date"></td><td class="genisliderow"><img src="images/right.png" class="genislideimage"><input id="' + i + '_geni_' + title + '_date" type="text" class="formtext genislideinput" value="" disabled></td></tr>';

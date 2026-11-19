@@ -6055,7 +6055,16 @@ function addEvent(profiledata, event, dateval, eventlocation) {
     // recorded) - stripped here the same way dateval's "unknown" is already
     // stripped above, rather than storing it as if it were real place text.
     if (eventlocation !== "" && eventlocation.trim().toLowerCase() !== "unknown") {
-        data.push({id: geoid, location: eventlocation});
+        // #387 (live-reported, DanCornett): the blank/"unknown" check above
+        // already trims before comparing, but the stored value itself was
+        // still the raw, untrimmed string - a source page's own location
+        // element can carry significant leading/trailing whitespace from
+        // its own HTML indentation (confirmed live on FindAGrave's
+        // #birthLocationLabel: "            England "), which then shows
+        // up as a literal leading space in the Place field. This is the
+        // shared addEvent() every collection parser calls, so the fix
+        // covers all of them, not just FindAGrave.
+        data.push({id: geoid, location: eventlocation.trim()});
         geoid++;
     }
     if (!$.isEmptyObject(data)) {

@@ -47,7 +47,10 @@ var NameParse = (function(){
             // and "neé" (a common real-world typo swapping which "e"
             // carries the accent) - both of which carry no marker at all
             // under the old unaccented-only "nee" match.
-            birthName = NameParse.fix_case(birthName.replace(/^(born|z d\.|nee|née|neé|geb\.?|geboren|לבית) /i, ''));
+            // #377 follow-up (live-reported, alvestrand): Norwegian "Født"
+            // and Swedish "Född" are the same "born" marker as German
+            // "geboren", just Scandinavian spellings.
+            birthName = NameParse.fix_case(birthName.replace(/^(born|z d\.|nee|née|neé|geb\.?|geboren|født|född|לבית) /i, ''));
             fullastName = fullastName.substring(0, fullastName.lastIndexOf("(")).trim();
         }
 

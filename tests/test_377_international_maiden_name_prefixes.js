@@ -7,6 +7,9 @@
 // entirely, and the French accented spellings ("née", the correct one,
 // and "neé", a common real-world typo swapping which "e" carries the
 // accent) weren't recognized either - only the unaccented "nee" was.
+//
+// #377 follow-up (live-reported, alvestrand): Norwegian "Født" and
+// Swedish "Född" are the same "born" marker, Scandinavian spellings.
 // Extracts the real NameParse.parse() verbatim.
 const fs = require('fs');
 const path = require('path');
@@ -41,6 +44,10 @@ assertEqual(NameParse.parse('Jane Smith (née Jones)', true).birthName, 'Jones',
     "The correctly-accented French spelling (\"née\") is stripped, not just the unaccented \"nee\"");
 assertEqual(NameParse.parse('Jane Smith (neé Jones)', true).birthName, 'Jones',
     "The common real-world typo variant (\"neé\", accent on the wrong e) is stripped too");
+assertEqual(NameParse.parse('Jane Haugen (født Berg)', true).birthName, 'Berg',
+    "Norwegian's maiden-name marker (\"født\") is stripped");
+assertEqual(NameParse.parse('Jane Lindqvist (född Berg)', true).birthName, 'Berg',
+    "Swedish's maiden-name marker (\"född\") is stripped");
 
 // --- Regression: the pre-existing markers still work ---
 assertEqual(NameParse.parse('Jane Smith (born Jones)', true).birthName, 'Jones', "Regression: English \"born\" still works");

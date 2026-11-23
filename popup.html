@@ -8,8 +8,8 @@
 <body>
 <a href=""></a><!-- For some reason, the first hyperlink adds a border - chrome extension feature? -->
 <div id="logo" style="background-color: #e5ebf0; margin: -2px -8px; padding:3px 8px 0; border-bottom: solid 1px #fff;"><a href="https://www.geni.com/projects/SmartCopy/18783" target="_blank"><img src="images/smartcopylg.png" alt="SmartCopy Logo" style="width: 200px;"></a>
-    <span id="sclink" style="float: right;"><a href="https://www.geni.com/discussions?discussion_type=project-18783" target="_blank"><img src="/images/comment.png" alt="Discussion" title="Discussion" style="padding-top: 8px; padding-right: 4px; padding-left: 2px; width: 20px;"></a></span><span class="aboutdev" style="float: right; cursor: pointer;"><img src="/images/info.png" alt="Information" title="Information" style="padding-top: 8px; padding-right: 4px; padding-left: 2px; width: 20px;"></span>
-    <span id="curator" style="display: none; float: right;"><a href="https://historylinktools.herokuapp.com/leaderboard" target="_blank"><img src="/images/curator.png" alt="Leaderboard" title="Leaderboard" style="padding-top: 8px; padding-right: 5px; width: 20px;"></a></span>
+    <span id="sclink" style="float: right;"><a href="https://www.geni.com/discussions?discussion_type=project-18783" target="_blank"><img src="/images/comment.png" alt="Discussion" title="Discussion" style="padding-top: 8px; padding-right: 4px; padding-left: 2px; width: 20px;"></a></span><span class="aboutdev" style="float: right; cursor: pointer;"><img src="/images/info.png" alt="Information" data-i18n="Information" data-i18n-title="title" style="padding-top: 8px; padding-right: 4px; padding-left: 2px; width: 20px;"></span>
+    <span id="curator" style="display: none; float: right;"><a href="https://historylinktools.herokuapp.com/leaderboard" target="_blank"><img src="/images/curator.png" alt="Leaderboard" data-i18n="Leaderboard" data-i18n-title="title" style="padding-top: 8px; padding-right: 5px; width: 20px;"></a></span>
 
     <!-- <span style="display: inline-block; float: right; padding-top: 4px;"><img src="images/CuratorShield.png" width="22" align="right"></span> -->
 </div>
@@ -160,7 +160,7 @@
                                             </label>
                                         </div>
                                     </td>
-                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" title="Off (default): a location edit only pre-selects fields that actually resolved to a value, protecting any richer existing Geni data. On: pre-selects every field, even ones that resolved blank, so a correction always clears a stale prior value too." data-i18n="Location_edit_pre_selects_all_fields">Location edit pre-selects all fields<div id="forcegeochange" style="display: none; color: red;" data-i18n="This_change_will_take_effect_at_next_use">This change will
+                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;"data-i18n="Location_edit_Title" data-i18n-title="title" data-i18n="Location_edit_pre_selects_all_fields">Location edit pre-selects all fields<div id="forcegeochange" style="display: none; color: red;" data-i18n="This_change_will_take_effect_at_next_use">This change will
                                             take effect at next use.</div>
                                     </td>
                                 </tr>
@@ -175,7 +175,7 @@
                                             </label>
                                         </div>
                                     </td>
-                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" title="Experimental: uses an unauthenticated FamilySearch beta endpoint with no support guarantee - may change or stop working without notice." data-i18n="Parse_locations_with_FamilySearch_Places">Parse locations with FamilySearch Places (experimental)</td>
+                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" data-i18n="Parse_locations_Title" data-i18n-title="title" data-i18n="Parse_locations_with_FamilySearch_Places">Parse locations with FamilySearch Places (experimental)</td>
                                 </tr>
                                 <tr id="burialcurrentlocationrow">
                                     <td style="padding: 3px 6px 0 25px; width: 58px;">
@@ -187,7 +187,9 @@
                                             </label>
                                         </div>
                                     </td>
-                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" title="Burial locations are commonly recorded under the place name in use today, not the historic name at time of death - useful if you'd actually go visit the grave. Only affects the FamilySearch lookup for burial location; the source burial date and the estimated burial date are unaffected." data-i18n="Use_current_location_name_for_burial">Use current name for burial loc. (vs. historical)</td>
+                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;"
+                                    data-i18n="Burial_locations_Title" 
+                                    data-i18n-title="title" data-i18n="Use_current_location_name_for_burial">Use current name for burial loc. (vs. historical)</td>
                                 </tr>
                                 <tr>
                                     <td style="padding: 3px 6px 0 25px; width: 58px;">
@@ -199,7 +201,9 @@
                                             </label>
                                         </div>
                                     </td>
-                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" title="Some records list the cemetery as part of the death location instead of a separate burial location. When on, a cemetery name found at the start of the death location is moved to burial location automatically." data-i18n="Move_cemetery_info_from_death_to_burial_location">Move cemetery from death loc. to burial loc.</td>
+                                    <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;"
+                                    data-i18n="Move_cemetery_Title" 
+                                    data-i18n-title="title" data-i18n="Move_cemetery_info_from_death_to_burial_location">Move cemetery from death loc. to burial loc.</td>
                                 </tr>
                                 <tr>
                                     <td colspan="2">
@@ -438,9 +442,10 @@
                                     </label>
                                 </div>
                             </td>
-                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" data-i18n="Run_consistency_checks_when_viewing_Geni_profiles">Run consistency checks when viewing Geni profiles.
-                                <img id="checkdetailsopen" alt="Consistency Check Help" src='images/help.png' style='width: 16px; cursor: pointer; padding-left: 4px; padding-right: 8px; margin-bottom: -3px;' title="Consistency Check Information">
+                            <td style="padding: 3px 0 0; text-align: left; vertical-align: middle;" data-i18n="Run_consistency_checks_when_viewing_Geni_profiles">
                             </td>
+                                <img id="checkdetailsopen" alt="Consistency Check Help" src='images/help.png' style='width: 16px; cursor: pointer; padding-left: 4px; padding-right: 8px; margin-bottom: -3px;' data-i18n="Consistency_Check_Information" data-i18n-title="title">
+                            
                         </tr>
                         </table>
                         <div id="checkdetails" class='colorbox' style="display: none; text-align: left; background-color: #f1f1f6; margin: 12px 20px 0;"><ul style="padding-left:15px;">
@@ -505,9 +510,9 @@
                                                     </div>
                                                 </td>
                                             </tr>
-                                            <tr><td><ul style="padding: 0 0 0 35px; margin: 0;"><li data-i18n="Check_name_fields_for_living_profiles"><ul>Exclude living profiles from quick fix</ul></li></ul></td>
+                                            <tr><td><ul style="padding: 0 0 0 15px; margin: 0;"><li data-i18n="Check_name_fields_for_living_profiles"><ul>Exclude living profiles from quick fix</ul></li></ul></td>
                                                 <td>
-                                                    <div class="onoffswitch" style="float: right;">
+                                                    <div class="onoffswitch" style="padding: 3px 6px 0 25px; width: 58px;">
                                                         <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                                                                id="livingcheckonoffswitch">
                                                         <label class="onoffswitch-label" for="livingcheckonoffswitch">
@@ -771,14 +776,19 @@
                 <div id='focusrange' style="font-size: small; margin-bottom: 5px; margin-top: 1px;" ></div>
                 <!-- #349: lets the user manually correct a wrongly auto-picked
                      Geni focus profile - see applyManualFocusChange() (popup.js) -->
-                <span id="changefocuslink" title="Pick a different Geni profile to copy into" style="font-size: small; color: #4a7fc9; cursor: pointer; text-decoration: underline;">Change focus profile</span>
+                <span id="changefocuslink"
+                    data-i18n="Pick_a_different_Geni_profile"
+                    data-i18n-title="title"
+                      style="font-size: small; color: #4a7fc9; cursor: pointer; text-decoration: underline;">
+                     <span data-i18n="Change_Focus">Change focus profile</span>
+                </span>     
                 <div id="changefocusrow" style="display: none; margin-top: 4px;">
                     <input type="text" id="changefocusinput" placeholder="Geni ID or URL" style="width: 60%;">
-                    <button type="button" id="changefocusbutton" class="cta cta-blue" style="padding: 2px 10px;">Set</button>
+                    <button type="button" id="changefocusbutton" class="cta cta-blue" style="padding: 2px 10px;"data-i18n="Set">Set</button>
                     <div id="changefocuserror" style="display: none; color: #b00000; font-size: small; margin-top: 2px;"></div>
                 </div>
             </td><td style="vertical-align: top;">
-                <button type="button" id="submitbutton" class="cta cta-blue" style="float: right;">Submit</button>
+                <button type="button" id="submitbutton" class="cta cta-blue" style="float: right;"><span data-i18n="Submit">Submit</span></button>
             </td>
             </tr>
         </table>
@@ -790,7 +800,7 @@
         <div class="modal-content">
             <div class="shadoweffect" style="margin: 12px; padding-left: 10px; padding-right: 10px; padding-top: 0;">
                 <span id="modalclose1" class="close">&times;</span>
-                <table><tr><td><img src="images/redpin.png" alt="Redpin" align="left" style="width: 32px; margin-left: -5px;"></td><td><h2>Location Update</h2></td></tr></table>
+                <table><tr><td><img src="images/redpin.png" alt="Redpin" align="left" style="width: 32px; margin-left: -5px;"></td><td><h2 data-i18n="Location_Update">Location Update</h2></td></tr></table>
                 <span id="geoUpdateModalDescription" data-i18n="Update_location_resubmit_to_Google">Update the location and resubmit it to Google for GeoLocation.</span>
                 <div class="modal-body" style="height: 100%;">
                     <p><input id="geoupdatetext" type="text" style="width: 100%;"></p>
@@ -801,15 +811,23 @@
                     CURRENT (possibly just-edited) year, but editing it here
                     only affects this lookup - never writes back to the
                     actual date field. -->
-                    <p id="geoupdateyearrow" style="display: none;">FamilySearch lookup year: <input id="geoupdateyear" type="number" style="width: 70px;"> <span id="geoupdateyearcurrent" style="display: none; color: #888; font-size: 90%;" title="Using the current year instead of the historic date, per the 'Use current location name for burial' setting.">(using current year)</span></p>
+                    <p id="geoupdateyearrow" style="display: none;">
+                   <span data-i18n="FamilySearch_lookup_year">FamilySearch lookup year:</span> 
+                   <input id="geoupdateyear" type="number" style="width: 70px;"
+                   style="display: none; color: #888; font-size: 90%;"  
+                   data-i18n="geoupdate_usingCurrentYearTitle" ;
+                   data-i18n-title="title"; >
+                   </p>
                     <!-- #239: same FamilySearch-Places-only visibility as
                     the lookup year row above - Google has no equivalent
                     place-correction process to link to. Points at
                     FamilySearch's own place research/correction page, not
                     this specific result - there's no stable per-place
                     "report this" URL, per #239's own research. -->
-                    <p id="geoupdatefslink" style="display: none; font-size: 90%;"><a href="https://www.familysearch.org/en/research/places/" target="_blank">Suggest a New Place (FamilySearch)</a></p>
-                    <button type="button" id="georevertbtn" value="" class="cta cta-blue" title="Restore Original Location" style="float: left;"><img style="width: 22px; margin-top: 3px;" alt="Revert" src="images/revert.png"></button><button type="button" id="geolookupbtn" class="cta cta-blue" style="float: right;">Update</button>
+                    <p id="geoupdatefslink" style="display: none; font-size: 90%;"><a href="https://www.familysearch.org/en/research/places/" target="_blank" data-i18n="Suggest_a_New_Place_FamilySearch">Suggest a New Place (FamilySearch)</a></p>
+                    <button type="button" id="georevertbtn" value="" class="cta cta-blue" data-i18n= "Restore_Original_Location"
+                    data-i18n-title="title" 
+                    style="float: left;"><img style="width: 22px; margin-top: 3px;" alt="Revert" src="images/revert.png"></button><button type="button" id="geolookupbtn" class="cta cta-blue" style="float: right;"data-i18n="Update">Update</button>
                     <br><br>
                 </div>
             </div>
@@ -817,8 +835,14 @@
     </div>
 
     <form id="formdata">
-        <div id="genislider" title="Geni Data" class="ctx" style="display: none; z-index:99; cursor: pointer; position: fixed; top: 44%; left: -8px; height:70px; width: 0;"><img src="images/openmenu.png" alt="Open Menu" style="width: 10px; padding-top:22px; height: 25px; margin-left: -2px;"></div>
-        <div class='colorbox' id='experimentalmessage' style="display: none; width: 93%; margin: 0 5px 10px; background-color:#f8ff86;">SmartCopy use on this website is experimental and may not be fully supported. Please be cautions and review the data thoroughly before submitting. Report issues in the <a href="https://www.geni.com/discussions?discussion_type=project-18783" target="_blank">SmartCopy discussion at Geni</a>.</div>
+        <div id="genislider"
+         data-i18n="Geni_Data" 
+         data-i18n-title="title" class="ctx" style="display: none; z-index:99; cursor: pointer; position: fixed; top: 44%; left: -8px; height:70px; width: 0;"><img src="images/openmenu.png" alt="Open Menu" style="width: 10px; padding-top:22px; height: 25px; margin-left: -2px;"></div>
+        <div class='colorbox' id='experimentalmessage' style="display: none; width: 93%; margin: 0 5px 10px; background-color:#f8ff86;"
+        data-i18="Warning_Geni_Data1">
+        <a href="https://www.geni.com/discussions?discussion_type=project-18783" target="_blank"
+        data-i18="Warning_Geni_Data2"></a>.
+        </div>
         <div class="shadoweffect" id="treematches" style="margin: 0 4px 6px; display: none;">
             <table><tr>
                 <td style="vertical-align: top;">
@@ -829,8 +853,8 @@
                        target="_blank"
                        class='match-button tree-match  '
                        data-position='topright'
-                       title="1 pending Tree Match">
-
+                       data-i18n="One_pending_Tree_Match"
+                       data-i18n-title="title">
                       <span class="count-and-icon">
                         <span data-genicon="tree-match"></span>
                         <span class='number'>
@@ -855,9 +879,9 @@
         </div>
         <div id="profiledata" style="display: none; text-align: center;">
             <table style="margin-bottom: 10px; width: 100%;">
-                <tr><td><strong>Profile Data</strong></td></tr>
+                <tr><td><strong><span data-i18n="Profile_Data">Profile Data</span></strong></td></tr>
                 <tr><td id="profileexpand">
-                    <div class="shadoweffect" style="padding-top: 12px; margin-right: 1px; margin-left: 1px; font-weight: bold;" id="profileshadowdiv"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall">Update Profile<span id="focusshowhide" class="showhide" title="Hiding Unused Fields" style="padding-left: 6px; cursor: pointer; font-weight: normal; font-size: 90%; white-space: nowrap;"> ▸ Show all fields</span><span id="updateslide" style="font-size: 130%; cursor: pointer; float: right; padding: 0px 4px;"><img src="images/dropdown.png" alt="Dropdown" style="width: 11px;"></span><span class="genisliderow" style="float: right; font-size: 80%; font-weight: normal; margin-right: 100px; margin-top: 5px;">Geni Data</span>
+                    <div class="shadoweffect" style="padding-top: 12px; margin-right: 1px; margin-left: 1px; font-weight: bold;" id="profileshadowdiv"><label for="updateprofile"></label><input type="checkbox" id="updateprofile" class="checkall"><span data-i18n="Update_Profile">Update Profile</span><img id="focusshowhide" alt="Show" src="images/show.png" class="showhide"  data-i18n="Showing_All_Fields" data-i18n-title="title" style="width: 24px; padding-left: 6px; margin-bottom: -8px; cursor: pointer;"><span id="updateslide" style="font-size: 130%; cursor: pointer; float: right; padding: 0px 4px;"><img src="images/dropdown.png" alt="Dropdown" style="width: 11px;"></span><span class="genisliderow" style="float: right; font-size: 80%; font-weight: normal; margin-right: 100px; margin-top: 5px;"><span data-i18n="Geni_Data">Geni Data</span></span>
                         <fieldset id="profilefield" class="fieldeffect">
                             <table style="width: 100%; border-spacing: 0; border-collapse: collapse;" id="profiletable">
                             </table>
@@ -869,35 +893,39 @@
 
         <div id="familydata" style="display: none; margin-top: 10px; text-align: center;">
             <table style="margin-bottom: 10px; width: 100%;">
-                <tr><td><strong>Family Members</strong></td></tr>
+                <tr><td><strong><span data-i18n="Family_Members">Family Members</span></strong></td></tr>
                 <tr><td >
                     <div class="shadoweffect" style="padding-top: 4px; margin-right: 1px; margin-left: 1px;">
                         <div id="parent" style="display: none; margin-top: 8px;">
-                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addparentck">Parents</span><span id="parentcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandparent" style="color: #000;">expand all</a>)</span><span id="parentsearch" style="float: right; padding-right: 5px;"><a href="https://www.geni.com/search/advanced" id="genisearch" target="_blank"><img src="images/search.png" alt="Search Geni for Parents" title="Search Geni for Parents" style="height: 16px; margin-bottom: -4px;" border="0"></a></span>
+                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addparentck"><span data-i18n="Parents">Parents</span></span><span id="parentcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandparent" style="color: #000;"><span data-i18n="expand_all">expand all</span></a>)</span><span id="parentsearch" style="float: right; padding-right: 5px;"><a href="https://www.geni.com/search/advanced" id="genisearch" target="_blank"><img src="images/search.png" alt="Search Geni for Parents"
+                                data-i18n="Search_Geni_for_Parents"
+                                data-i18n-title="title" 
+                                style="height: 16px; margin-bottom: -4px;" border: 0></a></span>
                             <fieldset class="fieldeffect">
                                 <div id="parentval" class="familydiv"></div>
                             </fieldset>
                         </div>
                         <div id="sibling" style="display: none; margin-top: 8px;">
-                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addsiblingck">Siblings</span><span id="siblingcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandsibling" style="color: #000;">expand all</a>)</span>
+                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addsiblingck"><span data-i18n="Siblings">Siblings</span></span><span id="siblingcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandsibling" style="color: #000;"><span data-i18n="expand_all">expand all</span></a>)</span>
                             <fieldset class="fieldeffect">
                                 <div id="siblingval" class="familydiv"></div>
                             </fieldset>
                         </div>
                         <div id="partner" style="display: none; margin-top: 8px;">
-                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addpartnerck">Partners</span><span id="partnercount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandpartner" style="color: #000;">expand all</a>)</span>
+                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addpartnerck"><span data-i18n="Partners">Partners</span></span><span id="partnercount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandpartner" style="color: #000;"><span data-i18n="expand_all">expand all</span></a>)</span>
                             <fieldset class="fieldeffect">
                                 <div id="partnerval" class="familydiv"></div>
                             </fieldset>
                         </div>
                         <div id="child" style="display: none; margin-top: 8px;">
-                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addchildck">Children</span><span id="childcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandchild"  style="color: #000;">expand all</a>)</span>
+                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addchildck"><span data-i18n="Children">Children</span></span><span id="childcount" style="color: #949494; font-size: x-small;"></span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandchild"  style="color: #000;"><span data-i18n="expand_all">expand all</span></a>)</span>
                             <fieldset class="fieldeffect">
                                 <div id="childval" class="familydiv"></div>
                             </fieldset>
                         </div>
                         <div id="unknown" style="display: none; margin-top: 8px;">
-                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addunknownck" disabled>Unknown Relations</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandunknown"  style="color: #000;">expand all</a>)</span>
+                            <span style="font-weight: bold;"><input type="checkbox" class="checkall" id="addunknownck" disabled><span
+                                data-i18n="Unknown_Relations">Unknown Relations</span><span style="float: right; padding-right: 5px; font-size: x-small;">(<a class="expandlinks" name="expandunknown"  style="color: #000;"><span data-i18n="expand_all">expand all</span></a>)</span>
                             <fieldset class="fieldeffect">
                                 <div id="unknownval" class="familydiv"></div>
                             </fieldset>
@@ -907,38 +935,38 @@
             </table>
         </div>
 
-        <div id="bottomsubmit" style="display: none; padding-top: 10px; padding-bottom: 5px; text-align: center;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;">Submit</a></div>
+        <div id="bottomsubmit" style="display: none; padding-top: 10px; padding-bottom: 5px; text-align: center;"><a class="submitbutton" id="submitbutton2" style="cursor: pointer;"><span data-i18n="Submit">Submit</span></a></div>
 
         <div id="loading" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px; margin-bottom: 15px;">
-            <div style="text-align: center; padding-top: 2px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Reading Family Data...</strong><div id="readstatus"></div>
+            <div style="text-align: center; padding-top: 2px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong><span data-i18n="Reading_Family_Data">Reading Family Data ...</span></strong><div id="readstatus"></div>
                 <div style="padding-top: 6px;"><button type="button" id="skipdeepresearch" class="cta cta-yellow" style="height: 22px; font-size: 12px; padding: 0 8px;" data-i18n="Skip_Deep_Research_for_this_run">Skip Deep Dive</button></div>
             </div>
         </div>
         <div id="updating" class="shadoweffect" style="display:none; padding-top: 10px; margin-top: 5px;">
-            <div style="text-align: center; padding-top: 2px; padding-right: 10px; padding-left: 10px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong>Updating Geni (<span id="updatecount">1</span> of <span id="updatetotal">1</span>)</strong>
+            <div style="text-align: center; padding-top: 2px; padding-right: 10px; padding-left: 10px;"><img src="images/spinnerlg.gif" alt="Waiting" style="height:20px; padding-right:5px; margin-top: -3px; vertical-align: middle;"><strong><span data-i18n="Updating_Geni">Updating Geni</span> (<span id="updatecount">1</span> of <span id="updatetotal">1</span>)</strong>
                 <div id="updatestatus"></div>
             </div>
         </div>
     </form>
 </div>
-<center>
+<div style="text-align: center;">
     <div id='loginspinner' style="padding-top: 11px; text-align: center;"><img src="images/spinnerlg.gif" alt="Waiting" style="height: 24px;"></div>
     <div id='logindiv' style="padding: 24px 14px; text-align: center; display: none;">
-        <div style="font-size: 92%; margin-bottom: 14px;">Please log in to your Geni account to use SmartCopy.</div>
-        <button type="button" id="genilogin" class="cta cta-blue">Log in with Geni</button>
-        <div id="loginhint" style="font-size: 82%; color: #888; margin-top: 16px; display: none;">A login window opened. Finish logging in there, then click the SmartCopy icon again.</div>
+        <div style="font-size: 92%; margin-bottom: 14px;"data-i18n="Please_log">Please log in to your Geni account to use SmartCopy.</div>
+        <button type="button" id="genilogin" class="cta cta-blue"data-i18n="Log_in_with_Geni">Log in with Geni</button>
+        <div id="loginhint" style="font-size: 82%; color: #888; margin-top: 16px; display: none;"data-i18n="A_login_window_opened">A login window opened. Finish logging in there, then click the SmartCopy icon again.</div>
     </div>
     <div class='colorbox' id='useraccess' style="display:none; width: 88%; margin-bottom: 12px; margin-right: 9px; margin-left: 9px; background-color:#dfe6ed;"></div>
-</center>
+</div>
 <div style="display: table-cell; text-align: left; white-space: nowrap; font-size: x-small; padding-left: 10px;">
     <span style="display: table-cell;" id="addhistoryblock"><a style="cursor: pointer;" id="addhistory" data-i18n="Add_to_History">Add to History</a><img id="addhistoryspinner" src="images/spinnerlg.gif" alt="Working" style="height: 12px; margin-left: 4px; vertical-align: middle; display: none;"></span></div>
 <div style="display: table-cell;  width: 100%; text-align: right; white-space: nowrap; font-size: x-small; padding-right: 10px;"><a style="cursor: pointer;" id="showhistory" data-i18n="Show_History">Show History</a></div>
 <div id='historybox' class="shadoweffect" style="display: none; margin-bottom: 20px; margin-right: 10px; margin-left: 10px;"><div id='historytext'></div><div style='font-size: x-small; text-align: center; padding-top: 5px;'><a style="cursor: pointer;" id="clearhistory" data-i18n="Clear_History">Clear History</a></div></div>
-<center>
-    <div id="versionbox" style="width: 90px; z-index: -1; position:relative; -webkit-user-select: none; bottom:-5px; margin-top: -15px; color: #a9b5d4; text-align: center; white-space: nowrap; font-size: xx-small; "></div>
-</center>
+
+    <div id="versionbox" style="width: 90px; margin-left: auto; margin-right: auto; z-index: -1; position:relative; -webkit-user-select: none;user-select: none; bottom:-5px; margin-top: -15px; color: #a9b5d4; text-align: center; white-space: nowrap; font-size: xx-small; "></div>
+
 <div id="language_selector" style="display: none;">
-    <select name="name_language" class="language_select" style="width: 152px; height: 24px; -webkit-appearance: menulist-button; margin-left: 22px; margin-bottom: 4px;">
+    <select name="name_language" class="language_select" style="width: 152px; height: 24px; -webkit-appearance: menulist-button;appearance: menulist-button; margin-left: 22px; margin-bottom: 4px;">
         <option value="af">Afrikaans</option>
         <option value="sq">Albanian - Shqiptar</option>
         <option value="am">Amharic</option>

@@ -1282,7 +1282,7 @@ function partnerCheck(partners) {
         if (isNaN(wife_ddate) && wife_ddate === union_mdate) {
             //Wife death date same as marriage date
             consistencymessage = concat("info") + _("Death_date_of_") + buildEditLink(wife) + _("_is_the_same_as_") + getPronoun(getGeniData(wife, "gender")) +
-                _("_marriage date.");
+                _("_marriage_date") + ".";
         }
 
         for (let i = 0; i < partners.length; i++) {

@@ -30,10 +30,17 @@ var lastLoadPageRequest = null;
 var manualFocusOverride = null;
 
 document.addEventListener('DOMContentLoaded', function () {
-  Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
-    if ( el.hasAttribute('data-i18n') ){
-      var tranlation = chrome.i18n.getMessage(el.getAttribute('data-i18n'));
-      $(el).text(tranlation);
+    Array.prototype.forEach.call(document.getElementsByTagName('*'), function (el) {
+//  Enhanced code to accommodate tooltip translations
+        if (el.hasAttribute('data-i18n')) {
+  var key = el.getAttribute('data-i18n');
+  var attr = el.getAttribute('data-i18n-title'); // ex: "title", "alt", "placeholder"
+  var translation = chrome.i18n.getMessage(key);
+  if (attr) {
+    el.setAttribute(attr, translation);
+  } else {
+    $(el).text(translation);
+  }
     }
   });
   // The on/off switches render their "ON"/"OFF" text via CSS
@@ -324,10 +331,10 @@ function formatJSON(datastring, historytext, id) {
                     historytext += '<li>';
                 }
                 if (typeof p[key] === 'object') {
-                    historytext += '<b>' + key + "</b>: " + formatJSON(p[key], "", "");
+                    historytext += '<b>' + _(key) + "</b>: " + formatJSON(p[key], "", "");
 
                 } else {
-                    historytext += '<b>' + key + "</b> -> " + escapeHtml(p[key]) + " ";
+                    historytext += '<b>' + _(key) + "</b> -> " + escapeHtml(p[key]) + " ";
                 }
                 if (typeof datastring === 'string') {
                     historytext += '</li>';
@@ -348,7 +355,7 @@ function buildHistorySelect() {
         if (exists(buildhistory[i].name)) {
             name = buildhistory[i].name;
         }
-        historytext += '<option value="' + buildhistory[i].id + '">History: ' + escapeHtml(name) + '</option>';
+        historytext += '<option value="' + buildhistory[i].id + '">' + _("History") + " " + escapeHtml(name) + '</option>';
         if (i > 30) {
             break;
         }
@@ -650,7 +657,7 @@ function userAccess() {
                 try {
                     responsedata = JSON.parse(response.source);
                 } catch (e) {
-                    setMessage(errormsg, "SmartCopy was unable to read Geni's account-access response. Try again.");
+                    setMessage(errormsg, _("SmartCopy_was_unable_to_read"));
                     return;
                 }
                 var accessdialog = document.querySelector('#useraccess');
@@ -661,21 +668,21 @@ function userAccess() {
                 }
                 if (accountinfo.curator && responsedata.claimed && !responsedata.curator) {
                     if (!responsedata.user) {
-                        $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
-                            '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>');
+                        $(accessdialog).html('<div style="padding-top: 2px;"><strong>' + _("Limited_Right") + '</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">' + _("Grant_Tree_Building") + '</button></div>' +
+                            '<div>' + _("Granting_tree_building_rights") + '</div>');
                         document.getElementById('grantbutton').addEventListener('click', useradd, false);
                     } else {
                         if (responsedata.user.revoked == null) {
-                            $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
-                                '<div>Tree-building rights were granted by <a href="https://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>');
+                            $(accessdialog).html('<div style="padding-top: 2px;"><strong> ' + _("This_user_has_rights") + '</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">' + _("Revoke_Tree_Building") + '</button></div>' +
+                                '<div>' + _("Tree_building_rights_were_granted_by") + '<a href="https://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>');
                             document.getElementById('revokebutton').addEventListener('click', userrevoke, false);
                         } else {
-                            $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
-                                '<div>Tree-building rights were revoked by <a href="https://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>');
+                            $(accessdialog).html('<div style="padding-top: 2px;"><strong>' + _("Limited_Right") + '</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">' + _("Restore_Tree_Building") + '</button></div>' +
+                                '<div>' + _("Tree_building_rights_were_revoked_by") + '<a href="https://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>');
                             document.getElementById('grantbutton').addEventListener('click', userrestore, false);
                         }
                     }
-                    $(accessdialog).append('<div style="text-align:center"><br><a id="researchclick" href="#">Continue to Research this Person</a></div>')
+                    $(accessdialog).append('<div style="text-align:center"><br><a id="researchclick" href="#">' + _("Continue_to_Research_this_Person") + '</a></div>')
                     document.getElementById('researchclick').addEventListener('click', buildResearch, false);
                     chrome.runtime.sendMessage({
                         method: "GET",
@@ -703,7 +710,7 @@ function userAccess() {
                 }
             });
         } else {
-            setMessage(warningmsg, "Invalid Profile Id - Try Again");
+            setMessage(warningmsg, _("Invalid_Profile_Id"));
         }
     } else {
         setTimeout(userAccess, 50);
@@ -988,7 +995,7 @@ function loadPage(request) {
         if (focusid === "" || focusid === "Select from History") {
             var accessdialog = document.querySelector('#useraccess');
             accessdialog.style.marginBottom = "-2px";
-            $(accessdialog).text("The URL or ID entered failed to resolve.");
+            $(accessdialog).text(_("The_URL_or_ID_entered_failed_to_resolve"));
             accessdialog.style.backgroundColor = errormsg;
             accessdialog.style.display = "block";
             focusid = null;
@@ -1048,14 +1055,14 @@ function loadPage(request) {
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
                     document.getElementById("loading").style.display = "none";
-                    setMessage(errormsg, 'SmartCopy was unable to retrieve the focus profile data from Geni (invalid response).');
+                    setMessage(errormsg,_("SmartCopy_was_unable_to_retrieve") + _("Invalid_Response"));
                     return;
                 }
                 if (genifamily["error"]) {
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
                     document.getElementById("loading").style.display = "none";
-                    setMessage(errormsg, 'SmartCopy was unable to retrieve the focus profile data from Geni.<br>Geni message: "' + genifamily["error"]["message"] + '"');
+                    setMessage(errormsg, _("SmartCopy_was_unable_to_retrieve") + '<br>' + _("Geni_Message")+ '"' + genifamily["error"]["message"] + '"');
                     return;
                 } else if (genifamily["focus"].merged_into) {
                     focusid = genifamily["focus"].merged_into.replace("https://www.geni.com/api/", "").trim();
@@ -1074,14 +1081,14 @@ function loadPage(request) {
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
                     document.getElementById("loading").style.display = "none";
-                    setMessage(errormsg, 'SmartCopy was unable to retrieve the focus profile data from Geni.');
+                    setMessage(errormsg, _("SmartCopy_was_unable_to_retrieve"));
                     return
                 } else if (permissions.length === 0) {
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
                     document.getElementById("loading").style.display = "none";
-                    setMessage(warningmsg, 'Geni replies that you have no permissions on the focus profile.  The profile may be private and inaccessible or you may need to reauthenticate SmartCopy on Geni. ' +
-                        'You can reauthenticate by <a href="' + smartcopyurl + '/logout" target="_blank">clicking here</a> and rerunning SmartCopy.');
+                    setMessage(warningmsg, _("No_Permissions") + _("Reauthenticate")
+                        +' <a href="' + smartcopyurl + '/logout" target="_blank">' +_("Clicking_Here") + '</a>' + _("Rerunning_SC"));
                     return
                 }
                 var matches = genifocusdata.get("match_counts");
@@ -1122,12 +1129,12 @@ function loadPage(request) {
                 if (collection.parseProfileData) {
                     collection.parseProfileData(request.source, true);
                 } else {
-                    setMessage(warningmsg, 'There was a problem with the collection - please report with link to page.');
+                    setMessage(warningmsg, _("Problem_with_the_collection"));
                 }
                 if (!accountinfo.user || (exists(accountinfo.user.revoked) && accountinfo.user.revoked !== null)) {
                     //document.getElementById("loading").style.display = "none";
                     $("#familymembers").attr('disabled', 'disabled');
-                    setMessage(warningmsg, 'Use of SmartCopy for copying Family Members to Geni is managed.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
+                    setMessage(warningmsg, _("Use_of_SmartCopy") +'<a class="ctrllink" url="https://www.geni.com/discussions/147619">' + _("Request_for_a_Curator") +'</a>');
                 }
                 console.log("Finished parsing family...");
             });
@@ -1140,15 +1147,16 @@ function loadPage(request) {
 function loadSelectPage(request) {
     //document.getElementById("smartcopy-container").style.display = "none";
     document.getElementById("loading").style.display = "none";
-    setMessage(infomsg, 'SmartCopy was unable to determine the Geni profile to use as a copy destination.<br/><br/>' +
-        '<strong><span id="changetext" title="Select the profile on Geni that matches the focus person on this page.">Set Geni Destination Profile</span></strong>' +
-        '<table style="width: 100%;"><tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong><span id="optionrel" style="display: none;">Relatives &&nbsp;</span><span id="optionsc">SmartCopy&nbsp;</span>History:</strong></td></tr>' +
-        '<tr id="optionrowldr"><td colspan="2" style="width: 100%; text-align: left; font-size: 90%; padding-left: 20px;">Loading Geni Relatives <img src="images/spinnerlg.gif" style="height: 16px; margin-bottom: -4px;"></td></tr>' +
+    setMessage(infomsg, _("SmartCopy_was_unable_to_determine") + '<br/><br/>' +
+        '<strong><span id="changetext" title="' + _("Select_the_profile_on_Geni") + '">' + _("Set_Geni_Destination_Profile") +'</span></strong>' +
+        '<table style="width: 100%;"><tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong><span id="optionrel" style="display: none;">' +_("Relatives")+' &&nbsp;</span><span id="optionsc"> '+ _("SmartCopy") + '&nbsp;</span>' + _("History") + '</strong></td></tr>' +
+        '<tr id="optionrowldr"><td colspan="2" style="width: 100%; text-align: left; font-size: 90%; padding-left: 20px;">' + _("Loading_Geni_Relatives") + ' <img src="images/spinnerlg.gif" style="height: 16px; margin-bottom: -4px;"></td></tr>' +
         '<tr id="optionrow" style="display: none;"><td id="focusoption" style="width: 100%; text-align: left;"></td></tr>' +
-        '<tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong>Geni ID or URL:</strong></td></tr>' +
+        '<tr><td colspan="2" style="width: 100%; font-size: 90%; text-align: left;"><strong>' + _("Geni_ID_or_URL") + '</strong></td></tr>' +
         '<tr><td style="padding-right: 5px;"><input type="text" style="width: 100%;" id="changeprofile"></td></tr>' +
-        '<tr><td style="padding-top: 5px;"><button id="changefocus">Set Destination</button></td></tr></table>');
-    // #257 (live-reported): was JSON.stringify(request), not request.source
+        '<tr><td style="padding-top: 5px;"><button id="changefocus">' + _("Set_Destination", "Set Destination") + '</button></td></tr></table>');
+   
+ // #257 (live-reported): was JSON.stringify(request), not request.source
     // - wrapped the WHOLE request object (including its raw HTML) into one
     // JSON string with every quote escaped, then fed that JSON text to
     // jQuery's .html() as if it were markup. The browser's HTML parser hit
@@ -1219,7 +1227,7 @@ function loadSelectPage(request) {
             loadPage(request);
         } else {
             var invalidtext = $("#changetext")[0];
-            $(invalidtext).text("Invalid Profile Id - Try Again");
+            $(invalidtext).text(_("Invalid_ID"));
             invalidtext.style.color = 'red';
         }
     }
@@ -1237,7 +1245,7 @@ function loadSelectPage(request) {
             try {
                 genifamily = JSON.parse(response.source);
             } catch (e) {
-                setMessage(errormsg, "SmartCopy was unable to retrieve family data from Geni (invalid response). Try again.");
+                setMessage(errormsg, _("SmartCopy_was_unable_to_retrieve") + _("Invalid_Response") + _("Try_Again") );
                 return;
             }
             buildParentSpouse(false);
@@ -1270,7 +1278,7 @@ function loadSelectPage(request) {
             $($('#focusoption')[0]).html(selectsrt);
         });
     } else {
-        var selectsrt = '<select id="focusselect" style="width: 100%;"><option>Select from History</option>';
+        var selectsrt = '<select id="focusselect" style="width: 100%;"><option>'+_("Select_from_History","Select from History")+'</option>';
         selectsrt += buildHistorySelect();
         selectsrt += '</select>';
         $('#optionrowldr').css("display", "none");
@@ -1375,7 +1383,7 @@ function buildGeniCount(val, name) {
             genifmcount += " " + val.unknown + " <span class='unknownbox'></span>";
         }
         if (genifmcount.length > 0) {
-            genifmcount = " &mdash; Geni has" + genifmcount;
+            genifmcount = " &mdash;" + _("Geni_has","Geni has") + genifmcount;
             $("#" + name).html(genifmcount);
         }
     }
@@ -1597,10 +1605,10 @@ var expandAll = function () {
         }
         if (window[this.name]) {
             $(expandmembers[i]).slideDown();
-            $(this).text("collapse all");
+            $(this).text(_("collapse_all","collapse all"));
         } else {
             $(expandmembers[i]).slideUp();
-            $(this).text("expand all");
+            $(this).text(_("expand_all","expand all"));
         }
     }
     window[this.name] = !window[this.name];
@@ -1844,9 +1852,9 @@ $(function () {
         $('#historybox').slideToggle();
         showhistorycheck = !showhistorycheck;
         if (showhistorycheck) {
-            $('#showhistory').text(_("Show_History"));
+            $('#showhistory').text(_("Show_History", "Show History"));
         } else {
-            $('#showhistory').text(_("Hide_History"));
+            $('#showhistory').text(_("Hide_History", "Hide History"));
         }
     });
 });
@@ -1940,7 +1948,7 @@ var submitform = function () {
         document.getElementById("familydata").style.display = "none";
         document.getElementById("profiledata").style.display = "none";
         document.getElementById("updating").style.display = "block";
-        setMessage(warningmsg, 'Leaving this window before completion could result in an incomplete data copy.');
+        setMessage(warningmsg, _("Leaving_Window","Leaving this window before completion could result in an incomplete data copy."));
 
         var about = "";
         var sourcecheck = $('#sourceonoffswitch').prop('checked');
@@ -2490,14 +2498,14 @@ function buildTree(data, action, sendid) {
                 // only found out from Geni's own "Access Denied" response,
                 // instead of being caught here first like every other
                 // permission check in this function.
-                updateMessage(errormsg, "Geni permission denied - No update permission on: " + sendid);
+                updateMessage(errormsg, _("Geni_permission_denied_update") + sendid);
                 console.log("Geni permission denied - No update permission on profile: " + sendid);
                 submitstatus.pop();
                 return;
             }
         } else if (action.startsWith("add") && action !== "add-photo") {
             if (permissions.indexOf("add") === -1) {
-                updateMessage(errormsg, "Geni permission denied - No add permission on: " + sendid);
+                updateMessage(errormsg, _("Geni_permission_denied_add") + sendid);
                 console.log("Geni permission denied - No add permission on profile: " + sendid);
                 submitstatus.pop();
                 return;
@@ -2526,7 +2534,7 @@ function buildTree(data, action, sendid) {
                 // surfaced yet - see #322) rather than leaving the user to
                 // guess why nothing was selected for this person at all.
                 var skippedName = (exists(databyid[id]) && exists(databyid[id].name)) ? getProfileName(databyid[id].name) : sendid;
-                updateMessage(errormsg, skippedName + ": skipped, no name selected. Step/half-sibling? Sync the shared parent's other spouse first, then retry.");
+                updateMessage(errormsg, skippedName + _("Skipped_No_Name"));
                 console.warn("Skipping empty-name 'add' submission - see #300", data);
                 submitstatus.pop();
                 return;
@@ -2534,7 +2542,7 @@ function buildTree(data, action, sendid) {
         }
         var posturl = "https://www.geni.com/api/" + sendid + "/" + action +  "?fields=id,unions,name&access_token=" + accountinfo.access_token;
         if (action === "add-photo" && permissions.indexOf("add-photo") === -1) {
-            updateMessage(errormsg, "Geni permission to add photo denied on: " + sendid);
+            updateMessage(errormsg, _("Add_Photo_Denied") + sendid);
             console.log("Geni permission to add photo denied on: " + sendid);
             submitstatus.pop();
             return;
@@ -2735,13 +2743,13 @@ function buildTree(data, action, sendid) {
             if (permissions.indexOf("update") === -1 && permissions.indexOf("update-basics") !== -1) {
                 action = "update-basics";
             } else if (permissions.indexOf("update") === -1 && permissions.indexOf("update-basics") === -1) {
-                updateMessage(errormsg, "Permission denied - No update permission on: " + sendid);
+                updateMessage(errormsg, _("Geni_permission_denied_update") + sendid);
                 console.log("Permission denied - No update permission on profile: " + sendid);
                 return;
             }
         } else if (action.startsWith("add") && action !== "add-photo") {
             if (permissions.indexOf("add") === -1) {
-                updateMessage(errormsg, "Permission denied - No add permission on: " + sendid);
+                updateMessage(errormsg, _("Geni_permission_denied_add") + sendid);
                 console.log("Permission denied - No add permission on profile: " + sendid);
                 return;
             }
@@ -3025,11 +3033,11 @@ function submitWait() {
         } else {
             focusprofileurl = "https://www.geni.com/" + focusid;
         }
-        $("#updating").html('<div style="text-align: center; font-size: 110%;"><strong>Geni Tree Updated</strong></div>' +
-            '<div style="text-align: center; padding:5px; color: #a75ccd">Reminder: Please review for duplicates<br>and merge when able.</div>' +
-            '<div style="text-align: center; padding:5px;"><b>View Profile:</b> ' +
-            '<a href="https://www.geni.com/family-tree/index/' + focusid.replace("profile-g", "") + '" target="_blank">tree view</a>, ' +
-            '<a href="' + focusprofileurl + '" target="_blank">profile view</a></div>');
+        $("#updating").html('<div style="text-align: center; font-size: 110%;"><strong>'+_("Geni_Tree_Updated", "Geni Tree Updated")+'</strong></div>' +
+            '<div style="text-align: center; padding:5px; color: #a75ccd">'+_("Reminder_Duplicate","Reminder: Please review for duplicates<br>and merge when able.")+'</div>' +
+            '<div style="text-align: center; padding:5px;"><b>'+_("View_Profile", "View Profile:")+'</b> ' +
+            '<a href="https://www.geni.com/family-tree/index/' + focusid.replace("profile-g", "") + '" target="_blank">'+_("Tree_View", "tree view")+'</a>, ' +
+            '<a href="' + focusprofileurl + '" target="_blank">'+_("View_Profil", "profile view")+'</a></div>');
         if (noerror) {
             document.getElementById("message").style.display = "none";
             $('#updating').css('margin-bottom', "15px");
@@ -3066,7 +3074,7 @@ document.getElementById('optionbutton').addEventListener('click', slideoptions, 
 function applyManualFocusChange() {
     var profilelink = getProfile($('#changefocusinput')[0].value);
     if (profilelink === "") {
-        $('#changefocuserror').text("Invalid Profile Id - Try Again").css("display", "block");
+        $('#changefocuserror').text(_("Invalid_ID","Invalid Profile Id - Try Again")).css("display", "block");
         return;
     }
     chrome.storage.local.set({manualFocusOverride: profilelink.replace("?profile=", "")}, function () {
@@ -3088,7 +3096,7 @@ document.getElementById('changefocuslink').addEventListener('click', function ()
     // catch that a direct style check wouldn't).
     var opening = $('#changefocusrow').css('display') === 'none';
     $('#changefocusrow').slideToggle();
-    $(this).text(opening ? "Cancel change of focus" : "Change focus profile");
+    $(this).text(opening ? _("Cancel_Change","Cancel change of focus") : _("Change_Focus","Change focus profile"));
     $('#changefocuserror').css("display", "none");
     if (opening) {
         $('#changefocusinput').val('').focus();
@@ -3408,7 +3416,7 @@ function buildReferenceAboutMe(newAboutContent, existingAbout, refurl, updatedCa
     if (!contentIsNew && isLastLineFromSameSource(base, sameSourceToken, updatedCategories)) {
         return refreshLastCitationTimestamp(base);
     }
-    var updatedSuffix = updatedCategories.length > 0 ? " (this update: " + updatedCategories.join(", ") + ")" : "";
+    var updatedSuffix = updatedCategories.length > 0 ? " (" + _('This_update')  + updatedCategories.map(cle => _(cle.replaceAll(' ', '_'))).join(", ") + ")" : "";
     var footnoteLine = exists(refurl)
         ? "* '''[" + encodeURI(refurl) + " " + footnoteRecordtype + "]''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n"
         : "* '''" + recordtype + "''' - [https://www.geni.com/projects/SmartCopy/18783 SmartCopy]: ''" + moment.utc().format("MMM D YYYY, H:mm:ss") + " UTC''" + updatedSuffix + "\n";
@@ -4633,11 +4641,11 @@ $(function () {
             // moment the user closed the eyeball again after opening it.
             $('#formdata').find('.hiddenrow[data-hasvalue="false"]').css("display", "none");
             $('.showhide').text(SHOW_ALL_LABEL);
-            $('.showhide').attr("title", "Hiding Unused Fields");
+            $('.showhide').attr("title", _("Hiding_Unused_Fields","Hiding Unused Fields"));
         } else {
             $('#formdata').find(".hiddenrow").css("display", "table-row");
             $('.showhide').text(SHOW_LESS_LABEL);
-            $('.showhide').attr("title", "Showing All Fields");
+            $('.showhide').attr("title", _("Showing_All_Fields","Showing All Fields"));
             geoonoff($('#geoonoffswitch').prop('checked'));
         }
     }

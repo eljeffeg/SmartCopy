@@ -42,8 +42,9 @@ var deepResearchSkipRun = false;
 // full-size glyphs read as bold regardless of font-weight, since
 // font-weight has no effect on a filled Unicode symbol's shape; these
 // are a dedicated smaller variant, still filled rather than outline.
-var SHOW_ALL_LABEL = ' ▸ Show all fields';
-var SHOW_LESS_LABEL = ' ▾ Hide unused fields';
+//var SHOW_ALL_LABEL = ' ▸ Show all fields';
+var SHOW_ALL_LABEL = _("Showing_All_Fields"," ▸ Show all fields");
+var SHOW_LESS_LABEL =_("Hiding_Unused_Fields"," ▾ Hide unused fields");
 
 // Registry of abort callbacks for every Deep Research tab fetch currently
 // in flight (one entry per open tab, across all four collections). Skipping
@@ -169,7 +170,7 @@ function _(messageName, substitutions) {
         return result;
     }
     if (typeof EN_FALLBACK_MESSAGES === "undefined" || !EN_FALLBACK_MESSAGES.hasOwnProperty(messageName)) {
-        return result;
+        return messageName;//We retrieve at least the calling key
     }
     return applyLocaleFallbackSubstitutions(EN_FALLBACK_MESSAGES[messageName], substitutions);
 }

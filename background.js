@@ -386,7 +386,7 @@ function updateBadgeForTab(tabId, url) {
         // contrast display) beyond opening the popup itself. setTitle()
         // doesn't touch the badge's own color/glyph, just adds a hover
         // tooltip carrying the same distinction in text.
-        chrome.action.setTitle({tabId: tabId, title: "SmartCopy - experimental site support, double-check results"}, ignoreTabError);
+        chrome.action.setTitle({tabId: tabId, title: chrome.i18n.getMessage("SC_Experimental")}, ignoreTabError);
     } else if (isSupportedSite(url)) {
         chrome.action.setBadgeText({tabId: tabId, text: "✓"}, ignoreTabError);
         chrome.action.setBadgeBackgroundColor({tabId: tabId, color: "#2e7d32"}, ignoreTabError);
@@ -398,7 +398,7 @@ function updateBadgeForTab(tabId, url) {
         if (chrome.action.setBadgeTextColor) {
             chrome.action.setBadgeTextColor({tabId: tabId, color: "#ffffff"}, ignoreTabError);
         }
-        chrome.action.setTitle({tabId: tabId, title: "SmartCopy - supported site"}, ignoreTabError);
+        chrome.action.setTitle({tabId: tabId, title: chrome.i18n.getMessage("SC_Supported")}, ignoreTabError);
     } else {
         chrome.action.setBadgeText({tabId: tabId, text: ""}, ignoreTabError);
         // Reset back to the manifest default (extension name) - title is

@@ -9,7 +9,7 @@
 
 var EN_FALLBACK_MESSAGES = {
     "File0": {
-        "message": "====================manifest.json & background.js========================================"
+        "message": "====================manifest.json & background.js===EN=v4.18.1===================================="
     },
     "appName": {
         "message": "SmartCopy"
@@ -28,6 +28,9 @@ var EN_FALLBACK_MESSAGES = {
     },
     "File1": {
         "message": "====================buildform.js========================================"
+    },
+    "Determining_Locations": {
+        "message": "Determining Locations"
     },
     "Title": {
         "message": "Title"
@@ -161,6 +164,12 @@ var EN_FALLBACK_MESSAGES = {
     "About": {
         "message": "About"
     },
+    "Location_lookup_may_be_incorrect": {
+        "message": "Location lookup may be incorrect."
+    },
+    "Location_lookup_failed": {
+        "message": "Location lookup failed."
+    },
     "Toggle_Geolocation": {
         "message": "Toggle Geolocation"
     },
@@ -175,6 +184,21 @@ var EN_FALLBACK_MESSAGES = {
     },
     "Profile_Update_Disabled": {
         "message": "Profile Update Disabled: pre-1600 or pre-1000 (Curator)"
+    },
+    "Pre_1600": {
+        "message": "pre 1600 - disabled"
+    },
+    "Half_sibling": {
+        "message": "half-sibling"
+    },
+    "Ambiguous_Date": {
+        "message": "Ambiguous Date"
+    },
+    "Action": {
+        "message": "Action:"
+    },
+    "This_profile_is_locked": {
+        "message": "This profile is locked - you do not have edit permission, so all fields are disabled"
     },
     "Place": {
         "message": "Place"
@@ -827,6 +851,54 @@ var EN_FALLBACK_MESSAGES = {
     "Export_Profiles_button_on_Project_Actions": {
         "message": "Export Profiles button on Project Actions"
     },
+    "Developed_by": {
+        "message": "Developed by"
+    },
+    "Special_Thanks": {
+        "message": "Special Thanks:"
+    },
+    "Design": {
+        "message": "Design"
+    },
+    "Testing": {
+        "message": "Testing"
+    },
+    "Documentation": {
+        "message": "Documentation"
+    },
+    "Support": {
+        "message": "Support"
+    },
+    "Infrastructure": {
+        "message": "Infrastructure"
+    },
+    "Geni_Curator": {
+        "message": "Geni Curator"
+    },
+    "Programming": {
+        "message": "Programming"
+    },
+    "Disclaimer": {
+        "message": "Disclaimer:"
+    },
+    "Disclaimer_text1": {
+        "message": "You shall not use this software for any illegal purposes and in particular agree that you shall not copy / post any content to Geni which is in violation of copyright, that is defamatory, obscene, abusive, indecent, or in breach of the privacy of any person or otherwise in breach of any terms of service."
+    },
+    "Disclaimer_text2": {
+        "message": "You are responsible for obtaining any required permission from the creator of a work, such as biographies or images, when copying genealogical content.  This software is distributed on an «AS IS» BASIS, WITHOUT WARRANTIES, CONDITIONS OR LIABILITIES OF ANY KIND, either express or implied."
+    },
+    "Disclaimer_text3": {
+        "message": "This software uses the Geni API but is not operated or sponsored by Geni, Inc."
+    },
+    "Help": {
+        "message": "Help"
+    },
+    "Privacy_Policy": {
+        "message": "Privacy Policy"
+    },
+    "Logout": {
+        "message": "Logout"
+    },
     "Set": {
         "message": "Set"
     },
@@ -988,8 +1060,41 @@ var EN_FALLBACK_MESSAGES = {
     "SmartCopy_does_not_currently_support_parsing": {
         "message": "SmartCopy does not currently support parsing this page / site / collection."
     },
+    "SmartCopy_was_unable_to_read": {
+        "message": "SmartCopy was unable to read Geni's account-access response. Try again."
+    },
     "This_profile_is_not_in_the_World_Family_Tree": {
         "message": "This profile is not in the World Family Tree."
+    },
+    "Limited_Right": {
+        "message": "This user has limited rights on SmartCopy."
+    },
+    "Grant_Tree_Building": {
+        "message": "Grant Tree-Building"
+    },
+    "Granting_tree_building_rights": {
+        "message": "Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights."
+    },
+    "This_user_has_rights": {
+        "message": "This user has tree-building rights on SmartCopy."
+    },
+    "Revoke_Tree_Building": {
+        "message": "Revoke Tree-Building"
+    },
+    "Tree_building_rights_were_granted_by": {
+        "message": "Tree-building rights were granted by "
+    },
+    "Restore_Tree_Building": {
+        "message": "Restore Tree-Building"
+    },
+    "Tree_building_rights_were_revoked_by": {
+        "message": "Tree-building rights were revoked by "
+    },
+    "Continue_to_Research_this_Person": {
+        "message": "Continue to Research this Person"
+    },
+    "Invalid_Profile_Id": {
+        "message": "Invalid Profile Id - Try Again"
     },
     "Research_this_Person": {
         "message": "Research this Person"
@@ -1002,6 +1107,42 @@ var EN_FALLBACK_MESSAGES = {
     },
     "This_website_is_not_yet_supported_by_SmartCopy": {
         "message": "This website is not yet supported by SmartCopy."
+    },
+    "The_URL_or_ID_entered_failed_to_resolve": {
+        "message": "The URL or ID entered failed to resolve."
+    },
+    "SmartCopy_was_unable_to_retrieve": {
+        "message": "SmartCopy was unable to retrieve the focus profile/family data from Geni "
+    },
+    "Try_Again": {
+        "message": "Try again"
+    },
+    "Invalid_Response": {
+        "message": "(invalid response)."
+    },
+    "Geni_Message": {
+        "message": "Geni Message : "
+    },
+    "No_Permissions": {
+        "message": "Geni replies that you have no permissions on the focus profile.  The profile may be private and inaccessible or you may need to reauthenticate SmartCopy on Geni."
+    },
+    "Reauthenticate": {
+        "message": "You can reauthenticate by "
+    },
+    "Clicking_Here": {
+        "message": "clicking here"
+    },
+    "Rerunning_SC": {
+        "message": "and rerunning SmartCopy."
+    },
+    "Problem_with_the_collection": {
+        "message": "There was a problem with the collection - please report with link to page."
+    },
+    "Use_of_SmartCopy": {
+        "message": "Use of SmartCopy for copying Family Members to Geni is managed.  You may "
+    },
+    "Request_for_a_Curator": {
+        "message": " request this ability from a Curator"
     },
     "SmartCopy_was_unable_to_determine": {
         "message": "SmartCopy was unable to determine the Geni profile to use as a copy destination."
@@ -1020,6 +1161,9 @@ var EN_FALLBACK_MESSAGES = {
     },
     "History": {
         "message": "History:"
+    },
+    "Error_injecting_script": {
+        "message": "There was an error injecting script :"
     },
     "Loading_Geni_Relatives": {
         "message": "Loading Geni Relatives"

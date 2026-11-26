@@ -55,7 +55,7 @@ function updateGeo() {
     } else if (!captcha) {
         var values = [];
         console.log("Family Processed...");
-        $("#readstatus").html("Determining Locations");
+        $("#readstatus").html(_("Determining_Locations"));
         var listvalues = ["birth", "baptism", "marriage", "divorce", "death", "burial"];
         // #224: resolved once for the focus profile - genifocusdata is
         // already loaded by this point (set well before updateGeo() ever
@@ -3035,11 +3035,11 @@ function actionUpdate(object) {
     var profile = $(object)[0].value;
     if (profile === "add") {
         actionicon.attr('src','images/add.png');
-        actionicon.attr('title','add');
+        actionicon.attr('title',_("add"));
         actionicon.attr('description','add');
     } else {
         actionicon.attr('src','images/update.png');
-        actionicon.attr('title','update');
+        actionicon.attr('title',_("update"));
         actionicon.attr('description','update');
     }
     let namelang = getGeniData(profile, "name_language");

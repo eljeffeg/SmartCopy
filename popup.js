@@ -657,7 +657,7 @@ function userAccess() {
                 try {
                     responsedata = JSON.parse(response.source);
                 } catch (e) {
-                    setMessage(errormsg, "SmartCopy was unable to read Geni's account-access response. Try again.");
+                    setMessage(errormsg, _("SmartCopy_was_unable_to_read"));
                     return;
                 }
                 var accessdialog = document.querySelector('#useraccess');
@@ -668,21 +668,21 @@ function userAccess() {
                 }
                 if (accountinfo.curator && responsedata.claimed && !responsedata.curator) {
                     if (!responsedata.user) {
-                        $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">Grant Tree-Building</button></div>' +
-                            '<div>Granting tree-building rights will give this user the ability to add profiles to the Geni tree via SmartCopy.  If you notice they are not being responsible with the tool, you can revoke the rights.</div>');
+                        $(accessdialog).html('<div style="padding-top: 2px;"><strong>' + _("Limited_Right") + '</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-blue">' + _("Grant_Tree_Building") + '</button></div>' +
+                            '<div>' + _("Granting_tree_building_rights") + '</div>');
                         document.getElementById('grantbutton').addEventListener('click', useradd, false);
                     } else {
                         if (responsedata.user.revoked == null) {
-                            $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has tree-building rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">Revoke Tree-Building</button></div>' +
-                                '<div>Tree-building rights were granted by <a href="https://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>');
+                            $(accessdialog).html('<div style="padding-top: 2px;"><strong> ' + _("This_user_has_rights") + '</strong></div><div style="padding-top: 6px;"><button type="button" id="revokebutton" class="cta cta-red">' + _("Revoke_Tree_Building") + '</button></div>' +
+                                '<div>' + _("Tree_building_rights_were_granted_by") + '<a href="https://www.geni.com/' + responsedata.user.sponsor + '" target="_blank">' + responsedata.user.sname + '</a> on ' + responsedata.user.sponsordate + ' UTC</div>');
                             document.getElementById('revokebutton').addEventListener('click', userrevoke, false);
                         } else {
-                            $(accessdialog).html('<div style="padding-top: 2px;"><strong>This user has limited rights on SmartCopy.</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">Restore Tree-Building</button></div>' +
-                                '<div>Tree-building rights were revoked by <a href="https://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>');
+                            $(accessdialog).html('<div style="padding-top: 2px;"><strong>' + _("Limited_Right") + '</strong></div><div style="padding-top: 6px;"><button type="button" id="grantbutton" class="cta cta-yellow">' + _("Restore_Tree_Building") + '</button></div>' +
+                                '<div>' + _("Tree_building_rights_were_revoked_by") + '<a href="https://www.geni.com/' + responsedata.user.revoked + '" target="_blank">' + responsedata.user.rname + '</a> on ' + responsedata.user.revokedate + ' UTC</div>');
                             document.getElementById('grantbutton').addEventListener('click', userrestore, false);
                         }
                     }
-                    $(accessdialog).append('<div style="text-align:center"><br><a id="researchclick" href="#">Continue to Research this Person</a></div>')
+                    $(accessdialog).append('<div style="text-align:center"><br><a id="researchclick" href="#">' + _("Continue_to_Research_this_Person") + '</a></div>')
                     document.getElementById('researchclick').addEventListener('click', buildResearch, false);
                     chrome.runtime.sendMessage({
                         method: "GET",
@@ -710,7 +710,7 @@ function userAccess() {
                 }
             });
         } else {
-            setMessage(warningmsg, "Invalid Profile Id - Try Again");
+            setMessage(warningmsg, _("Invalid_Profile_Id"));
         }
     } else {
         setTimeout(userAccess, 50);
@@ -1055,7 +1055,7 @@ function loadPage(request) {
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
                     document.getElementById("loading").style.display = "none";
-                    setMessage(errormsg, 'SmartCopy was unable to retrieve the focus profile data from Geni (invalid response).');
+                    setMessage(errormsg,_("SmartCopy_was_unable_to_retrieve") + _("Invalid_Response"));
                     return;
                 }
                 if (genifamily["error"]) {
@@ -1227,7 +1227,7 @@ function loadSelectPage(request) {
             loadPage(request);
         } else {
             var invalidtext = $("#changetext")[0];
-            $(invalidtext).text("Invalid Profile Id - Try Again");
+            $(invalidtext).text(_("Invalid_ID"));
             invalidtext.style.color = 'red';
         }
     }
@@ -1245,7 +1245,7 @@ function loadSelectPage(request) {
             try {
                 genifamily = JSON.parse(response.source);
             } catch (e) {
-                setMessage(errormsg, "SmartCopy was unable to retrieve family data from Geni (invalid response). Try again.");
+                setMessage(errormsg, _("SmartCopy_was_unable_to_retrieve") + _("Invalid_Response") + _("Try_Again") );
                 return;
             }
             buildParentSpouse(false);

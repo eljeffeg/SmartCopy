@@ -2151,7 +2151,7 @@ function buildForm() {
             if (expand) {
                 membersstring += '<td class="expandcontrol" name="' + i + '-' + relationship + '"  style="cursor: pointer; width: 100%;">';
             } else {
-                membersstring += '<td name="' + i + '-' + relationship + '"  style="width: 100%;" title="pre 1600 - disabled" description="pre 1600 - disabled">';
+                membersstring += '<td name="' + i + '-' + relationship + '"  style="width: 100%;" title="' + _("Pre_1600") + '" description="pre 1600 - disabled">';
             }
             membersstring += '<span id="ribbon' + i + '" style="display: ' + isHidden(living) + '; float: right; position: relative; margin-right: -12px; margin-bottom: -5px; right: 8px; top: -3px; margin-left: -8px;"><img src="images/deceased.png" style="width: 18px;"></span>';
             if (expand) {
@@ -2160,10 +2160,10 @@ function buildForm() {
             membersstring += '<span style="font-size: 90%;"><img class="iconaction" style="width: 16px; margin-bottom: -4px; margin-left: -2px; padding-right: 3px;" src="/images/' + actionicon +  '.png" title="' + _(actionicon) + '" description=' + actionicon + '>' + escapeHtml(fullname.replace(/&quot;/g, '"')) + '</span>';
             
             if (halfsibling) {
-                membersstring += '<span style="float: right; margin-right: 3px; margin-left: -2px; margin-top: 3px; margin-bottom: -3px;"><img src="images/halfcircle.png" style="width: 14px; margin-top: -2px;" alt="half-sibling" title="half-sibling"></span>';
+                membersstring += '<span style="float: right; margin-right: 3px; margin-left: -2px; margin-top: 3px; margin-bottom: -3px;"><img src="images/halfcircle.png" style="width: 14px; margin-top: -2px;" alt="half-sibling" title="' + _("Half_sibling") + '"></span>';
             }
             if (expand) {
-                membersstring += '<span style="float: right; padding-left: 8px;"><img class="geopin" id="' + i + 'gpin" src="images/clearpin.png" style="height: 18px; margin-bottom: -3px;"><img id="' + i + 'errordate" src="images/dateerror.png" style="display: none; height: 13px; margin-bottom: -3px; padding-right: 3px; margin-left: -3px;" title="Ambiguous Date"></span>';
+                membersstring += '<span style="float: right; padding-left: 8px;"><img class="geopin" id="' + i + 'gpin" src="images/clearpin.png" style="height: 18px; margin-bottom: -3px;"><img id="' + i + 'errordate" src="images/dateerror.png" style="display: none; height: 13px; margin-bottom: -3px; padding-right: 3px; margin-left: -3px;" title="' + _("Ambiguous_Date") + '"></span>';
             }
             membersstring += '</td><td></td></tr></table></div>' +
                 '<div id="slide' + i + '-' + relationship + '" class="memberexpand" style="display: none; padding-bottom: 6px; padding-left: 12px;"><table id="familytable_' + i + '" style="border-spacing: 0px; border-collapse: separate; width: 100%;">' +
@@ -2195,7 +2195,7 @@ function buildForm() {
                 // blanket no-edit-permission sweep answers for the fields
                 // themselves, surfaced right at Action: where the match is
                 // actually chosen.
-                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><span style="margin-top: 3px; float: left; margin-left: 19px;">Action:</span><span class="showhide" title="' + showtitle + '" style="cursor: pointer; font-weight: normal; font-size: 90%; white-space: nowrap; margin-left: 6px;">' + showlabel + '</span><img id="' + i + '_action_lock" src="images/lock.png" title="This profile is locked - you do not have edit permission, so all fields are disabled" style="width: 14px; height: 14px; margin-left: 4px; display: none; vertical-align: middle;"><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, nameval.middleName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
+                membersstring += '<tr name="act" style="display: ' + hideunknown + ';"><td class="profilediv" colspan="3" style="padding-bottom: 3px;"><span style="margin-top: 3px; float: left; margin-left: 19px;">' + _("Action") + '</span><span class="showhide" title="' + showtitle + '" style="cursor: pointer; font-weight: normal; font-size: 90%; white-space: nowrap; margin-left: 6px;">' + showlabel + '</span><img id="' + i + '_action_lock" src="images/lock.png" title="' + _("This_profile_is_locke") +'" style="width: 14px; height: 14px; margin-left: 4px; display: none; vertical-align: middle;"><span name="buildactionspan" id="action' + i + '">' + buildAction(relationship, gender, i, nameval.firstName, nameval.middleName, (nameval.lastName || nameval.birthName), actionBirthYear) + '</span></td></tr></span>';
 
                 // #357/#365 follow-up (live-reported, DanCornett): Place's
                 // own eligibility (isPlaceEligibleForPreselection(), used
@@ -2529,11 +2529,11 @@ function buildForm() {
                                 } else if (geovar2.ambiguous || geovar2.count > 1) {
                                     pincolor = "yellow";
                                     pintitle = "Location lookup may be incorrect";
-                                    membersstring = membersstring.replace('id="' + i + 'gpin" src="images/clearpin.png"', 'id="' + i + 'gpin" src="images/yellowpin.png" title="Location lookup may be incorrect"');
+                                    membersstring = membersstring.replace('id="' + i + 'gpin" src="images/clearpin.png"', 'id="' + i + 'gpin" src="images/yellowpin.png" title="' + _("Location_lookup_may_be_incorrect") + '"');
                                 } else if (geovar2.count === 0) {
                                     pincolor = "red";
                                     pintitle = "Location lookup failed";
-                                    membersstring = membersstring.replace('id="' + i + 'gpin" src="images/clearpin.png"', 'id="' + i + 'gpin" src="images/redpin.png" title="Location lookup failed"');
+                                    membersstring = membersstring.replace('id="' + i + 'gpin" src="images/clearpin.png"', 'id="' + i + 'gpin" src="images/redpin.png" title="'+ _("Location_lookup_failed") + '"');
                                 }
                                 var placegeo = geovar2.place;
                                 var city = geovar2.city;

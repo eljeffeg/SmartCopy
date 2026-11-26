@@ -995,7 +995,7 @@ function loadPage(request) {
         if (focusid === "" || focusid === "Select from History") {
             var accessdialog = document.querySelector('#useraccess');
             accessdialog.style.marginBottom = "-2px";
-            $(accessdialog).text("The URL or ID entered failed to resolve.");
+            $(accessdialog).text(_("The_URL_or_ID_entered_failed_to_resolve"));
             accessdialog.style.backgroundColor = errormsg;
             accessdialog.style.display = "block";
             focusid = null;
@@ -1062,7 +1062,7 @@ function loadPage(request) {
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
                     document.getElementById("loading").style.display = "none";
-                    setMessage(errormsg, 'SmartCopy was unable to retrieve the focus profile data from Geni.<br>Geni message: "' + genifamily["error"]["message"] + '"');
+                    setMessage(errormsg, _("SmartCopy_was_unable_to_retrieve") + '<br>' + _("Geni_Message")+ '"' + genifamily["error"]["message"] + '"');
                     return;
                 } else if (genifamily["focus"].merged_into) {
                     focusid = genifamily["focus"].merged_into.replace("https://www.geni.com/api/", "").trim();
@@ -1081,14 +1081,14 @@ function loadPage(request) {
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
                     document.getElementById("loading").style.display = "none";
-                    setMessage(errormsg, 'SmartCopy was unable to retrieve the focus profile data from Geni.');
+                    setMessage(errormsg, _("SmartCopy_was_unable_to_retrieve"));
                     return
                 } else if (permissions.length === 0) {
                     document.getElementById("top-container").style.display = "block";
                     document.getElementById("submitbutton").style.display = "none";
                     document.getElementById("loading").style.display = "none";
-                    setMessage(warningmsg, 'Geni replies that you have no permissions on the focus profile.  The profile may be private and inaccessible or you may need to reauthenticate SmartCopy on Geni. ' +
-                        'You can reauthenticate by <a href="' + smartcopyurl + '/logout" target="_blank">clicking here</a> and rerunning SmartCopy.');
+                    setMessage(warningmsg, _("No_Permissions") + _("Reauthenticate")
+                        +' <a href="' + smartcopyurl + '/logout" target="_blank">' +_("Clicking_Here") + '</a>' + _("Rerunning_SC"));
                     return
                 }
                 var matches = genifocusdata.get("match_counts");
@@ -1129,12 +1129,12 @@ function loadPage(request) {
                 if (collection.parseProfileData) {
                     collection.parseProfileData(request.source, true);
                 } else {
-                    setMessage(warningmsg, 'There was a problem with the collection - please report with link to page.');
+                    setMessage(warningmsg, _("Problem_with_the_collection"));
                 }
                 if (!accountinfo.user || (exists(accountinfo.user.revoked) && accountinfo.user.revoked !== null)) {
                     //document.getElementById("loading").style.display = "none";
                     $("#familymembers").attr('disabled', 'disabled');
-                    setMessage(warningmsg, 'Use of SmartCopy for copying Family Members to Geni is managed.  You may <a class="ctrllink" url="https://www.geni.com/discussions/147619">request this ability from a Curator</a>.');
+                    setMessage(warningmsg, _("Use_of_SmartCopy") +'<a class="ctrllink" url="https://www.geni.com/discussions/147619">' + _("Request_for_a_Curator") +'</a>');
                 }
                 console.log("Finished parsing family...");
             });
